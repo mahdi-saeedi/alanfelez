@@ -1,0 +1,94 @@
+# Security Baseline & Threat Model
+
+> Status: **Proposed**. Target: **OWASP ASVS 4.0 Level 2**. Reviewed before each production release (checklist in §10).
+> Report vulnerabilities to: *(set the security contact in site settings, and publish `/.well-known/security.txt`)*.
+
+## 1. What we protect (assets)
+| Asset | Why it matters |
+|---|---|
+| **Paid market data** (full price table, history, analyses, forecasts, IME auction data) | It's the product. If it leaks, nobody needs to subscribe |
+| User accounts (phone numbers, names, emails) | Personal data. Account takeover |
+| Payments and subscriptions | Money, fraud, disputes |
+| Admin panel and manual price entry | A fake price published under our brand damages trust and could move a market |
+| SMS budget | OTP abuse costs real money |
+| Availability during market hours | Users depend on it for trading decisions |
+
+## 2. Threats (STRIDE summary) and controls
+
+| # | Threat | Control |
+|---|---|---|
+| T1 | **SMS pumping / OTP flooding** (spoofing + DoS on the budget) | §4 |
+| T2 | **Scraping paid data**, or sharing one Gold account | §5 |
+| T3 | **Tampered or false prices** (compromised source, staff mistake, malicious insider) | §6 |
+| T4 | Payment callback forgery or replay, double-crediting | §7 |
+| T5 | Admin account takeover | Keycloak **TOTP 2FA required for all staff roles**, admin on a separate host (`admin.alanfelez.ir`), short sessions (30 min idle), IP allow-list optional, and every staff write goes to `audit_log` |
+| T6 | XSS through rich-text content or the FAQ | TipTap JSON → server-side render → **bluemonday** sanitize. Strict **CSP** with nonces. No `dangerouslySetInnerHTML` except sanitized server HTML |
+| T7 | Broken access control (IDOR, paid data in the API) | Every handler calls `access.Can`. Resource ownership is checked in the SQL (`WHERE user_id = $1`). Locked features return teaser payloads only. Negative tests exist per endpoint |
+| T8 | Injection | sqlc parameterized queries only. OpenAPI request validation. No string-built SQL |
+| T9 | CSRF | Web: Auth.js session cookie `SameSite=Lax` + CSRF token on mutations. API: bearer tokens only (no cookie auth on the Go API) |
+| T10 | Secrets leakage | No secrets in git (gitleaks in CI + pre-commit). Secrets in GitHub Environments → server `.env` (mode 600). Rotated on staff change |
+| T11 | Vulnerable dependencies and images | Renovate, govulncheck, `pnpm audit`, Trivy image scan (CI fails on HIGH/CRITICAL with a fix available). Distroless base images |
+| T12 | DoS / traffic floods | Arvan CDN/WAF in front. Caddy and API rate limits. SSE connection caps per IP and per user |
+| T13 | Data loss or ransomware | Backups off-server (Object Storage, versioned, separate credentials), restore drills (OPERATIONS §5) |
+
+## 3. Authentication (Keycloak)
+- Mobile sign-up requires OTP. OTP = 6 digits, **valid 2 min**, max 5 attempts, then the code is burned.
+- Passwords (optional): minimum 10 characters, checked against a breached-password list if feasible. Keycloak **brute-force detection** is on (temporary lockout).
+- Tokens: access 5 min, refresh with rotation. Sessions: users idle 7 days / max 30 days, staff idle 30 min / max 12 h.
+- Go validates the `iss`, `aud`, `exp` and `nbf` claims and the signature via JWKS (cached, with rotation handled).
+- Staff roles are only assigned manually by an `admin`. Keep the role list minimal: `admin`, `editor`, `support`.
+
+## 4. OTP / SMS abuse controls (T1)
+Every limit is configurable. Defaults:
+
+| Control | Default |
+|---|---|
+| Resend cooldown per phone | 120 s |
+| OTPs per phone | 5 / hour, 10 / day |
+| OTPs per IP | 10 / hour |
+| Allowed destinations | **Iranian mobile numbers only** (`+989…`), with format validation |
+| CAPTCHA (self-hosted, e.g. ALTCHA / proof-of-work, since Google reCAPTCHA is unreliable in Iran) | Required after 2 OTP requests from the same IP or phone within 1 h |
+| Global circuit breaker | If SMS spend exceeds the **daily budget** (setting), OTP sending pauses except for existing users, and staff get an alert |
+| Monitoring | Alert on OTP rate above 3× the 7-day baseline |
+
+## 5. Paid-data protection (T2)
+- **The server never sends locked data**: no hidden fields, no CSS-only blur. Teasers are generated server-side.
+- Per-tier API rate limits, e.g. Free 60 req/min, paid 300 req/min, and a history-range limit per request.
+- No bulk export endpoints for users. Chart history is paginated by range.
+- **Concurrent session limit** for paid tiers (e.g. 2 active devices, configurable) to deter account sharing. Users can see and revoke devices on the account page.
+- `robots` rules and `noindex` for anything behind a lock. Watermark PDF exports (Gold) with the user ID.
+
+## 6. Price integrity (T3)
+- Ingested points go through schema validation, unit/currency checks, and an **outlier gate** (jump > `max_jump_pct` → quarantined, staff approve or reject).
+- Manual entry is limited to the `editor`/`admin` roles. Every manual point records `entered_by` and is audit-logged. A bulk CSV upload shows a diff and needs confirmation.
+- Public price rows always show the **source** and the **time**. Manual entries show the market as the source (the internal `is_manual` flag isn't shown publicly).
+- A 4-eyes option (feature flag): manual changes above the threshold need a second staff approval.
+
+## 7. Payments (T4)
+- The callback is never trusted. It triggers a **server-to-server verify** with the gateway. The amount and order ID must match our records.
+- Idempotency: unique `payments.authority`, and the order state machine allows `pending → paid` only once. The subscription is created in the same transaction.
+- A reconciliation job (daily) compares gateway reports with orders and alerts on mismatches.
+- No card data ever touches our servers (the gateway's hosted page).
+
+## 8. Transport, headers, cookies
+- TLS 1.2+ (Caddy automatic certificates), **HSTS** (`max-age=31536000; includeSubDomains`), HTTP → HTTPS redirect.
+- Headers: `Content-Security-Policy` (nonce-based, no `unsafe-inline` scripts), `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic/geolocation off), `frame-ancestors 'none'`.
+- Cookies: `Secure`, `HttpOnly`, `SameSite=Lax`, with the `__Host-` prefix where possible.
+- CORS: the API allows only `alanfelez.ir`, `www.`, `admin.` and the staging origins.
+
+## 9. Privacy and data handling
+- Collect only what's needed: mobile number (required), name, email (optional). **No national ID** (client answer #18).
+- Personal data is never logged. Phone numbers are masked in logs (`+98912***4567`).
+- Data stays on Iranian infrastructure (ArvanCloud). Processors: SMS provider, payment gateway, Keycloak (self-hosted).
+- Users can export or delete their account (delete = anonymize, but financial records are kept 10 years as legally required).
+- The Privacy Policy text reflects this section (SCOPE §11).
+
+## 10. Release security checklist
+- [ ] CI security jobs green (gitleaks, govulncheck, Trivy, pnpm audit)
+- [ ] New endpoints: access check + negative test (wrong tier, other user's resource, anonymous)
+- [ ] New rich-text or HTML rendering path: sanitized + CSP still passes
+- [ ] New staff action: audit-logged
+- [ ] New secret: added to GitHub Environments + `.env.example` (placeholder only)
+- [ ] Rate limits on any new public mutation endpoint
+- [ ] Before major releases: ZAP baseline scan against staging

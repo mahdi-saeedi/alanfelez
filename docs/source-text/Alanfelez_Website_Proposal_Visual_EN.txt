@@ -1,0 +1,530 @@
+
+Technical & Visual Specification for Exact Website Build
+Alanfelez  |  آلان‌فلز
+This document is prepared for rebuilding the approved final design — exactly and pixel-by-pixel.
+
+۱. مقدمه و نحوه استفاده از این سند
+این سند با یک هدف مشخص تهیه شده است: ارائه به طراح/توسعه‌دهنده، به‌عنوان جایگزینی برای توضیحات شفاهی، تا وب‌سایت Alanfelez دقیقاً مطابق با طراحی نهایی زیر پیاده‌سازی شود:
+https://ratio-donkey-94517275.figma.site
+توصیه می‌شود طراح/توسعه‌دهنده علاوه بر مطالعه این سند، صفحات را مستقیماً از لینک بالا نیز مشاهده کند. تصاویر موجود در این سند به‌عنوان یک مرجع سریع و مکتوب عمل می‌کنند؛ اما نسخه آنلاین طراحی، مرجع نهایی برای تعیین دقیق فاصله‌ها، انیمیشن‌ها و نحوه تعامل کاربران با عناصر سایت است.
+
+۱.۱ اصل اساسی: دقیقاً همین را پیاده‌سازی کنید
+	•	چیدمان، ترتیب بخش‌ها و متن دقیق فارسی (شامل تیترها، متن دکمه‌ها، برچسب‌ها و تگ‌ها) باید دقیقاً مطابق چیزی باشد که در تصاویر و لینک زنده بالا نمایش داده شده است؛ نه بازنویسی شود و نه به یک ایده مشابه تبدیل شود. 
+	•	رنگ‌های مشخص‌شده در بخش ۶ (طراحی بصری)، کدهای HEX دقیقاً استخراج‌شده از طراحی هستند و باید بدون هیچ تغییری استفاده شوند. 
+	•	هر جا در طراحی، قابلیتی به‌واسطه سطح اشتراک کاربر قفل شده است (آیکون 🔒)، باید دقیقاً همان رفتار در سایت پیاده‌سازی شود؛ یعنی نه قفل آن حذف شود و نه قابلیت به‌صورت کامل برای همه کاربران فعال شود. 
+	•	هر موردی که در طراحی Figma به‌طور کامل مشخص نشده است (برای مثال متن دقیق پاسخ سؤالات متداول (FAQ) یا نسخه موبایل سایت) در بخش ۸ فهرست شده و باید پیش از شروع توسعه، با کارفرما تأیید شود؛ نباید چیزی بر اساس حدس یا سلیقه توسعه‌دهنده تعیین شود. 
+۱.۲ ساختار سند
+	•	بخش ۲: خلاصه پروژه و اهداف 
+	•	بخش ۳: نقشه سایت (Sitemap) و عناصر مشترک در تمام صفحات (هدر، فوتر، نوار نمایش قیمت‌ها) 
+	•	بخش ۴: بررسی بصری هر یک از ۷ صفحه — شامل اسکرین‌شات واقعی و توضیحات کامل تمام اجزای صفحه 
+	•	بخش ۵: سیستم اشتراک ۴ سطحی، همراه با اسکرین‌شات‌ها و جدول مقایسه کامل 
+	•	بخش ۶: راهنمای دقیق طراحی بصری (رنگ‌های واقعی HEX، تایپوگرافی و آیکون‌ها 
+	•	بخش ۷: الزامات فنی Backend 
+	•	بخش ۸: فرضیات و سؤالات باز که نیاز به تأیید کارفرما دارند 
+	•	بخش ۹: مراحل بعدی
+
+2. Sitemap
+#
+Page Name
+Short Description
+1
+صفحه اصلی
+معرفی پبتفرم، قیمت لحظه ای، آخرین مزایدات، معرفی اشتراک ها
+2
+قیمت فلزات
+جدول کامل و فیلتر پذیر قیمت لحظه ای همه فلزات و محصولات
+3
+نمودار قیمت
+نمودار تاریخچه قیمت با بازه های زمانی و مقایسه چند فلز
+4
+پیشبینی و تحلیل
+اخبار بازار و تحلیل تخصصی
+5
+مزایدات
+اتصال به مزایدات ایران ضایعات
+6
+ماشین حساب
+محاسبه ارزش تقریبی بار بر اساس وزن و خلوص و قیمت روز بازار
+7
+اشتراک ها
+معرفی و مقایسه 3 سطح اشتراک و خرید اشتراک
+8
+سوالات متداول
+متن نوشته شده
+9
+درباره ما
+متن نوشته شده
+10
+ارتباط با ما
+متن نوشته شده
+
+۲.۱ عناصر مشترک در تمام صفحات
+
+نوار نمایش زنده قیمت‌ها (Live Price Ticker)
+	•	یک نوار باریک و تیره در بالای تمامی صفحات که به‌صورت مداوم قیمت و درصد تغییرات ۷ فلز اصلی را نمایش می‌دهد: آلومینیوم، مس، برنج، روی، سرب، آهن و چدن. 
+	•	برای افزایش قیمت از رنگ سبز و برای کاهش قیمت از رنگ قرمز استفاده می‌شود. )کدهای دقیق رنگ‌ها در بخش ۶ مشخص شده‌اند.( 
+
+هدر / منوی اصلی (Header / Main Navigation)
+	•	از راست به چپ (با توجه به RTL بودن سایت):
+	•	لوگوی Alanfelez به همراه نماد مربعی برند 
+	•	سپس منوی اصلی با ترتیب زیر: 
+	•	خانه 
+	•	قیمت فلزات 
+	•	نمودار قیمت
+	•	پیشبینی و تحلیل
+	•	مزایدات 
+	•	ماشین حساب 
+	•	اشتراک‌ها
+	•	سوالات متداول
+	•	درباره ما
+10. ارتباط با ما
+	•	در سمت مقابل منو نیز موارد زیر قرار می‌گیرند: 
+	•	آیکون جستجو 
+	•	دکمه ورود (Log in) 
+	•	دکمه ثبت‌نام (Sign up) 
+	•	دکمه گرد شروع کنید (Get Started) با پس‌زمینه طلایی و ظاهر برجسته 
+
+۴. بررسی بصری صفحات و قابلیت‌ها
+متن فارسی نمایش داده‌شده روی صفحه (شامل عناوین، متن دکمه‌ها و سایر نوشته‌ها) باید در سایت نهایی دقیقاً همان‌طور که در تصاویر نمایش داده شده است، بازتولید شود؛ این متن‌ها نباید ترجمه، بازنویسی یا تغییر داده شوند.
+4.1 Home Page
+
+Hero section — first view of the Home page
+الف) بخش هیرو (Hero Section)
+	•	یک نشان (Badge) با متن:  بازار زنده — به‌روزرسانی لحظه‌ای» به همراه یک نقطه سبز چشمک‌زن که وضعیت آنلاین/زنده بودن بازار را نشان می‌دهد. 
+	•	تیتر اصلی: بازار فلزات را هوشمندانه‌تر دنبال کنید» که در آن کلمه «هوشمندانه‌تر» با رنگ طلایی برجسته می‌شود. 
+	•	زیرتیتر: قیمت، نمودار، تحلیل و فرصت‌های خرید و فروش فلزات؛ همه در یک پلتفرم تخصصی» 
+	•	دو دکمه: 
+	•	«مشاهده قیمت فلزات» — دکمه اصلی با پس‌زمینه طلایی که در سمت راست قرار می‌گیرد. 
+	•	«ورود به بازار خرید و فروش» — دکمه دارای حاشیه (Outlined) که در سمت چپ دکمه اول قرار می‌گیرد. 
+	•	در سمت چپ بخش Hero، یک ویجت کوچک نمودار قیمت مس قرار دارد که در زیر آن ۴ شاخص کوچک تغییر قیمت نمایش داده می‌شود: روی، برنج، مس و آلومینیوم.
+
+
+“Live Metal Prices” section and the start of “Alanfelez Services”
+ب) بخش قیمت لحظه‌ای فلزات (Live Metal Prices)
+	•	شامل ۷ کارت برای فلزات زیر: چدن، آهن، سرب، روی، برنج، مس و آلومینیوم 
+	•	با توجه به راست‌به‌چپ بودن سایت (RTL)، آلومینیوم در اولین کارت از سمت راست قرار می‌گیرد. 
+	•	هر کارت شامل موارد زیر است: 
+	•	نام فلز 
+	•	قیمت (تومان به ازای هر کیلوگرم) 
+	•	واحد kg/Toman 
+	•	درصد تغییر قیمت به همراه فلش جهت تغییر و رنگ مربوطه: 
+	•	سبز = افزایش قیمت 
+	•	قرمز = کاهش قیمت 
+	•	زمان آخرین به‌روزرسانی قیمت 
+	•	در بالا و سمت چپ این بخش، لینک «مشاهده همه →» (View all →) قرار می‌گیرد. 
+
+
+“Alanfelez Services” section (6 cards) and the start of “Latest Market Listings”
+ج) بخش «خدمات الانفلز» (Alanfelez Services) — ۶ کارت ۲ ردیف × ۳ ستون
+Card Title
+Access Tier Badge
+Description
+Price Calculator
+Free
+Estimate load value based on today's price
+Price Chart
+Free
+Historical price chart across different time ranges
+Metal Prices
+Free
+Live prices for 200+ metal types and products
+Auctions
+Gold
+Participate in specialized metal auctions
+Buy & Sell
+Silver
+Specialized nationwide metal and scrap marketplace
+News & Analysis
+Pro
+Latest news and expert market analysis
+
+Latest market listings + start of the “Pro Subscription” banner
+d) “Latest Market Listings” Section
+•  4 sample listing cards, each with: transaction type tag (buy = green / sell = red), product name, weight, city (with a location icon), and price (Toman/kg)
+•  A locked 🔒 “View seller info” button [Locked — Silver tier]
+•  Listing posted time (e.g. “15 minutes ago”) and a “View all listings →” link
+
+“Pro Subscription” banner with a preview of all 3 tiers
+e) “Pro Subscription” Promotional Banner
+•  Full-width dark background; headline “Unlock more opportunities with a Pro subscription”
+•  Subheadline: “Full access to seller contact info, auctions, expert analysis, and market intelligence”
+•  3 tier preview cards in one row: “Gold” (highlighted with a gold border, centered/emphasized), “Silver”, “Free”
+•  A closing button: “View plans and pricing”
+
+Stats bar and closing brand statement + footer
+f) Stats Bar and Closing Section
+•  4 statistics in one row: “200+ market data types”, “28,000+ successful trades”, “4,500+ active listings”, “12,000+ verified users”
+•  Brand statement: “Alanfelez — Iran's most specialized digital platform for the metals market”
+•  Two closing buttons: “Learn more” (outlined) and “Sign up free” (solid dark)
+•  Footer: last-updated date (“Updated: Shahrivar 1, 1403”) on the right, copyright “© 1403 Alanfelez — All rights reserved” on the left
+
+4.2 Metal Prices (Live Prices)
+
+Top of the Metal Prices page — filters and start of the table
+Filters
+•  General category tab row: All | Raw Materials | Intermediate Products | Scrap
+•  Metal selection tab row: All | Aluminum | Copper | Brass | Zinc | Lead | Iron | Cast Iron (the active tab has a solid dark background)
+Main Price Table — Columns
+Column
+Description
+Metal
+The base metal name (e.g. Aluminum, Copper)
+Type
+The exact product type (Billet, Soft Scrap, Copper Cathode, Rebar 16, ...)
+Price (Toman/kg)
+Live price, shown in a large bold font
+Unit
+Kilogram
+Daily Change
+The numeric change vs. the previous day (e.g. +2,100)
+% Change
+Percentage with an arrow + color (green/red), inside a colored pill badge
+Last Updated
+Exact time (e.g. 10:32)
+Source
+Iran Mercantile Exchange / Iron Ore Market / Free Market
+
+Rest of the price table + sidebar + closing banner
+The design shows 11 sample price rows (Aluminum billet and scrap, red and cable copper, yellow brass and brass scrap, zinc billet, lead billet, iron rebar-16 and sheet-4, cast iron scrap) plus a pagination counter “Showing 11 of 11 rows.”
+Sidebar
+•  “Top Gainers ↑” — a short list of metals/products with the largest daily price increase, green figure on the side
+•  “Top Losers ↓” — a short list of metals with the largest daily drop, red figure
+•  “Data Sources” — a list with colored dots: Iran Mercantile Exchange, Iran Iron Market, Free Market
+End of page: a banner “Want to see historical prices?” + a “View price chart →” button linking to Section 4.3.
+
+4.3 Price Chart
+
+Sidebar quick-comparison panel + main chart controls
+“Quick Compare” Sidebar Panel (right side of the image)
+•  Sparkline cards (minimal charts without axes/numbers) for Aluminum, Copper, Brass, Zinc, and Lead; the currently selected metal is set apart with a highlighted border and background (orange/gold).
+Main Panel — Controls
+•  Three dropdowns in one row: “Select Metal” (Copper), “Market” (Free Market), “Unit” (Toman/kilogram)
+•  “Compare” chips below the dropdowns for adding several other metals to the chart at once
+•  A stats bar: “Current Price” in a very large font, “Change (1M)” in red/green, then High, Low, and Average for the selected range
+•  A row of time-range tabs: 1D | 1W | 1M | 3M | 6M | 1Y | 3Y | MAX (the active tab has a dark background)
+•  An area chart with a light red gradient under the line, illustrating a downward trend in this example; a caption below the chart states the data source and last-updated time
+
+Rest of the chart + locked “Advanced Market Analysis” section
+Locked Section: “Advanced Market Analysis” [Locked — Gold tier]
+•  A separate box below the chart with a 🔒 icon centered, and a gold tier badge in the top corner
+•  Description text: “Technical analysis, support/resistance levels, AI-powered trend prediction”
+•  A CTA button: “Upgrade to Gold”
+
+4.4 Metal Price Calculator
+
+Top of the Calculator page — metal selection, product type, and base price
+Calculation Form (main column, right side, larger)
+•  Metal-selection tabs: Aluminum, Copper, Brass, Zinc, Lead, Iron, Cast Iron
+•  Product-type tabs: “Scrap” and “Raw Materials”
+•  An “Exact product type” dropdown (e.g. “Soft Aluminum Scrap”)
+•  An automatic, read-only display of “Today's base price” driven by the selections above and live data
+•  A “Weight” input + a unit dropdown (Kilogram)
+•  An optional “Manual price (optional)” input, for calculating against a negotiated price instead of the system's base price
+
+Rest of the form (deductions, shipping cost) + result panel and action buttons
+Rest of the Form and the Result
+•  “Deductions %” and “Impurity %” inputs side by side
+•  A “Shipping cost (Toman)” input
+•  The result panel (dark background, the most prominent element on the page): title “Estimated load value” + a very large number + a 4-box breakdown beneath it (shipping, deductions, net weight, base price)
+•  Three action buttons in a row: “New calculation” (primary, dark), “Share” (outlined), “Save calculation” (outlined)
+Sidebar (left side of the image)
+•  “Saved Calculations” — a list of previous calculations with name, weight, and final amount for each
+•  “Advanced Features” [Locked — Gold tier] — compare multiple loads at once, adjust quality, historical price comparison, PDF export + an “Upgrade to Gold” button
+
+4.5 News & Metal Market Analysis
+
+Top of the News page — filters, sidebar, and the featured story
+Filters and Sidebar
+•  Filter tabs: All | Aluminum | Copper | Brass | Zinc | Lead | Iron | Global Market | Economy | Scrap
+•  “Today's Top Stories” — a numbered list (1 through 5) of the day's trending headlines
+•  “Key Market Indices” — four rows: LME Copper, LME Aluminum, USD exchange rate, IME Index; each with a value and a colored direction arrow
+•  Featured/main story: a large horizontal image + a category tag on top of the image (e.g. “Copper”) + a large headline + a summary + metadata at the bottom (date, read time, upward/downward trend)
+
+Grid of news cards
+News Card Grid
+•  A 2-column layout of smaller cards; each with: a colored category tag in the top corner, a Persian (Jalali) date, a bold headline, a two-line summary, and a read time with a clock icon.
+
+The locked “Alanfelez Expert Analysis” section
+“Alanfelez Expert Analysis” Section [Locked — Gold tier]
+•  Section title + a gold badge in the top-right corner
+•  4 locked cards (2×2 layout) with a 🔒 icon and blurred text behind it; sample types: Expert Report, Market Analysis, Technical Analysis, Market Report
+•  Each card has an “Upgrade to read” button
+
+4.6 Metal & Scrap Buy/Sell Marketplace
+
+Top of the Marketplace page — actions, search, filters, and featured listings
+Main Actions and Search
+•  Two buttons at the top of the page: “+ Post a Sell Listing” (primary, dark) and “+ Post a Buy Request” (outlined), both on the right
+•  A full-width search box: “Search listings...”
+•  Filters in one row: an All/Buy/Sell tab on the right, and a metal-selection tab (All through Cast Iron) on the left of the same row
+“Featured Listings” — Cards with a Highlighted Border
+•  Transaction-type tag (buy = green / sell = pink) in the top-right corner
+•  Status tag “Urgent” or “Featured” in the top-left corner
+•  Product name (bold), weight (kg), and city with a 📍 icon
+•  A large price (Toman/kg) on the left side of the card
+•  A full-width, locked “View seller info 🔒” button [Locked — Silver tier]
+•  Bottom of the card: a green “Verified ✓” badge + the listing's posted time
+
+“Latest Listings” — grid of regular cards
+
+Rest of the listings + the locked “Active Auctions” section
+“Active Auctions” Section [Locked — Gold tier]
+•  Two locked cards (🔒 icon in the top corner) with: product title, volume (tons), “minimum bid” (Toman/kg), “deadline” (Jalali date), and “active bid count”
+•  A full-width “Upgrade to participate” button under each card
+
+5. Subscription Plans Page
+
+Top of the Subscription page — billing-cycle toggle and 4 plan cards
+Elements at the Top of the Page
+•  Headline: “Choose the plan that fits your activity” + a descriptive subheadline
+•  A three-way billing-cycle toggle: Monthly (active, dark background) | Quarterly | Yearly (with a yellow “20% off” badge attached to the corner)
+The 4 Plan Cards (right to left in the image)
+Plan Name
+Price
+Audience
+CTA Button
+Free
+0 Toman / month
+For getting familiar with the platform
+Start free
+Silver
+129,000 Toman / month
+For active buyers and sellers
+Choose Silver
+Gold ⭐ (Most Popular)
+299,000 Toman / month
+For professional traders
+Choose Gold
+Enterprise
+Contact us
+For companies and industrial organizations
+Contact sales
+Important visual note: the “Gold” card has a thicker gold border and is slightly larger than the other three, so it stands out as the recommended choice; this distinction must be preserved in the build.
+
+Rest of the plan cards + start of the full comparison table
+Full Details of Each Plan
+Free — 0 Toman / month
+•  ✓ Sign-up and basic profile
+•  ✓ Base metal prices
+•  ✓ Limited calculator
+•  ✓ Limited listing views
+Silver — 129,000 Toman / month
+Everything in Free, plus:
+•  Full access to the buy/sell market
+•  View contact info
+•  Post sell listings
+•  View auctions
+•  Price alerts
+•  Advanced filters
+•  Trading groups
+Gold ⭐ — 299,000 Toman / month
+Everything in Silver, plus:
+•  Advanced charts
+•  Advanced calculator
+•  Full auction participation
+•  Advanced AI-powered market analysis
+•  Expert reports
+•  Market intelligence / smart buyer-seller matching
+•  Featured business profile
+•  Featured (boosted) listings
+•  Priority support
+Enterprise — Custom pricing
+•  Multiple concurrent users
+•  Company account
+•  Custom advanced reports
+•  Dedicated API access
+•  Dedicated support
+•  Customization services
+•  Team training
+•  Dedicated SLA
+•  Annual contract
+•  Dedicated account manager
+
+
+Full feature-comparison table across all 4 plans
+Full Feature Comparison Table
+Feature
+Free
+Silver
+Gold
+Enterprise
+Base prices
+✓
+✓
+✓
+✓
+Full live prices
+Limited
+✓
+✓
+✓
+Price chart
+✓
+✓
+✓
+✓
+Advanced chart
+✗
+✗
+✓
+✓
+Calculator
+Limited
+✓
+Advanced
+Advanced
+View listings
+Limited
+✓
+✓
+✓
+Seller contact info
+✗
+✓
+✓
+✓
+Post listings
+✗
+✓
+Featured
+Featured
+Auctions
+✗
+View only
+Full
+Full
+Price alerts
+✗
+✓
+✓
+✓
+Expert analysis
+✗
+✗
+✓
+✓
+Market intelligence
+✗
+✗
+✓
+✓
+API
+✗
+✗
+✗
+✓
+Support
+General
+Priority
+Priority
+Dedicated
+
+End of the comparison table + start of the FAQ section
+
+FAQ accordion + the closing banner of the page
+FAQ Section on This Page
+•  When does my subscription become active?
+•  Can I change plans during the billing cycle?
+•  What payment methods are supported?
+•  Can I get a refund if I'm not satisfied?
+These questions are designed as an accordion (with a + icon to expand); the answer copy for each question is not specified in the design and must be supplied by the client (Section 8).
+Closing banner: full-width dark background, “Start free, no credit card required” + a gold “Sign up free” button.
+
+6. Precise Visual Design Guide (Design Spec)
+The colors below were sampled directly from the pixels of the design screenshots (not estimated), so they must be used exactly as given in the build.
+6.1 Exact Color Palette (extracted from the design)
+Usage
+HEX Code
+Color Sample
+Header / Hero / Footer background (primary dark)
+#1C2331
+ 
+Dark gradient background (seen in the Hero)
+#282E3B
+ 
+Brand gold (primary buttons, badges, lock icon)
+#C9A227
+ 
+Price increase / success (text)
+#16A34A
+ 
+Price-increase badge background
+#DCFCE7
+ 
+Price decrease / danger (text)
+#DC2626
+ 
+Price-decrease badge background
+#FEE2E2
+ 
+Light section background
+#F2F2F0
+ 
+Card background
+#FFFFFF
+ 
+6.2 Typography & Layout
+•  A readable, modern Persian font with multiple weights (Regular for body text, Bold/Extrabold for headlines and prices) — the exact font name should be extracted from the Figma file
+•  Price figures are always shown in a heavy (bold) weight and a larger size than surrounding text
+•  The Card is the primary recurring visual unit: rounded corners, very subtle shadow
+•  Simple flat icons (not outline/line icons) are used for the services and features sections
+6.3 Recurring Interactive Patterns
+•  The 🔒 lock icon on content/buttons restricted to a higher subscription tier — this should be built as a single reusable component parameterized by “required tier”
+•  Colored access-tier badges (“Free” gray, “Silver” blue-gray, “Gold” gold, “Pro” purple) that repeat consistently next to feature titles
+•  A live indicator (blinking green dot) next to the “Live market” label in the price ticker and on the Home page
+•  Green/red percentage-change badges with a direction arrow — this element recurs across 6 of the 7 pages and should be a single shared component
+
+7. Technical & Integration Requirements
+This section lists backend requirements that aren't visible in the design screenshots but are essential for the site to actually function. The detailed technical architecture (framework, hosting, database) is left to the development team.
+7.1 Live Price Data
+•  Integration with at least the 3 data sources shown in the design: Iran Mercantile Exchange, Iran Iron Market, Free Market (plus LME for global prices)
+•  An automated, scheduled mechanism for updating prices
+•  Storage of historical price data to support the range-based charts (1D through MAX)
+•  Transparent display of the “source” for each price, exactly matching the “Source” column on the Metal Prices page
+7.2 Authentication & User Management
+•  Sign-up / login (the exact method must be confirmed with the client — Section 8)
+•  A user profile that reflects the current subscription tier
+•  A “Verified ✓” badge for identity-verified listers (as seen on listing cards in the Marketplace page)
+7.3 Subscription & Payment System
+•  An Iranian online payment gateway for monthly/quarterly/yearly transactions
+•  Access-control logic that exactly matches the 4-plan comparison table in Section 5
+•  Automatic handling of renewals, upgrades, and downgrades
+•  Billing history and payment records per user
+7.4 Buy/Sell Marketplace
+•  A listing/request form with fields: metal type, product, weight, city, price, description
+•  Hiding seller contact info from free-tier users (per the access matrix in Section 5)
+•  An auction system: bid submission, deadline countdown, live bid-count display — exclusive to the Gold tier
+•  Search and filtering of listings by metal type and transaction type (buy/sell)
+7.5 News & Analysis Content
+•  A simple CMS panel for the Alanfelez content team to publish news
+•  Content categorization by metal/topic (matching the tabs on the News page)
+•  Locking expert content for non-Gold members (blurred/blocked display, matching the design)
+7.6 Chart & Calculator
+•  An interactive charting library supporting multiple time ranges and simultaneous comparison of several data series
+•  Calculator logic: (weight × base price) − deductions − impurity + shipping cost, exactly matching the fields in the design
+•  Persisting user calculations for later reference
+7.7 Responsiveness & Performance
+•  Fully responsive design for mobile and tablet (the reference design only shows the desktop version — see Section 8)
+•  Load-time optimization for the live price tables and charts
+•  Full RTL and Persian-language support across every component
+
+8. Assumptions & Open Questions for the Client
+The items below are not fully specified in the reference design and must be confirmed with the client before development begins — they should not be guessed or decided unilaterally.
+•  Mobile/responsive version: the reference design only shows the desktop version; will a separate mobile design be provided, or should the development team adapt it?
+•  Live price data source and update frequency: the exact method for pulling data from the Exchange / Iron Market / Free Market (an official API, manual entry, or a data agreement?)
+•  User authentication method (phone number, email, or both) and which SMS/OTP service to use
+•  The payment gateway to use for subscription transactions
+•  The full answer copy for the FAQ section on the Subscription page
+•  The exact refund policy for subscription cancellations
+•  The identity-verification process (“Verified ✓”) for users and listings — manual admin review or automated?
+•  The actual news/analysis content — produced in-house, or does it require a CMS panel for a non-technical team?
+•  The exact Persian font used in the Figma file (should be extracted directly from the source file)
+
+9. Next Steps
+This document is prepared for direct hand-off to a designer/developer to begin building “exactly this site.” Suggested next steps:
+1. The designer/developer reviews the live design (https://ratio-donkey-94517275.figma.site/) alongside this document
+2. Jointly resolve the “Assumptions & Open Questions” (Section 8) before writing any code
+3. The design/development team provides a timeline and cost estimate based on the scope documented in this file
+4. Define development phasing if needed (e.g. Phase 1: Home + Prices + Chart; Phase 2: Marketplace + Subscription; Phase 3: Auctions + Expert Analysis)
+5. Begin implementation once scope, timeline, and cost are finally approved
+Note: cost and timeline sections have deliberately been left out of this document so the designer/developer can provide their own realistic estimate based on the documented scope.

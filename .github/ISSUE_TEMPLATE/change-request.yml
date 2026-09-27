@@ -1,0 +1,20 @@
+name: Change request
+description: Client-requested change to the approved scope (docs/PROCESS.md §3)
+labels: ["type:change-request"]
+body:
+  - type: textarea
+    id: change
+    attributes: { label: Requested change, description: "What differs from SCOPE.md (quote the section)" }
+    validations: { required: true }
+  - type: input
+    id: requester
+    attributes: { label: Requested by / date / channel }
+    validations: { required: true }
+  - type: textarea
+    id: impact
+    attributes: { label: Impact assessment, description: "Effort (h), schedule, cost, affected features, risk" }
+  - type: dropdown
+    id: decision
+    attributes:
+      label: Decision
+      options: ["Pending", "Approved (in writing)", "Deferred to later phase", "Rejected"]

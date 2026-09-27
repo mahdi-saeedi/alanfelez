@@ -1,0 +1,15 @@
+name: Feature
+description: A new capability or page
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes: { label: Goal, description: "Who needs what, and why (link SCOPE.md section)" }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes: { label: Acceptance criteria, description: "Checklist that defines done (include fa/en, tiers)" }
+    validations: { required: true }
+  - type: textarea
+    id: notes
+    attributes: { label: Notes / design links / screenshots }
