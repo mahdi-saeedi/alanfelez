@@ -97,13 +97,23 @@ The yearly −20% matches the design badge. The quarterly −10% is our proposal
 This lives in `services/api/internal/access` as config (exposed to the UIs via `/v1/me/entitlements`), so when the client corrects it, one file changes.
 Locked items follow the design pattern (🔒 lock, blur, «ارتقا به طلایی»), and **locked data is never sent to the browser**.
 
-Billing rules 🛠:
-- Activates immediately after payment verification.
-- Upgrade Silver → Gold at any time; the remaining days are prorated as credit.
-- Downgrade takes effect at the end of the current period.
-- No auto-renew (Iranian gateways don't support card-on-file). We send an SMS/email reminder 3 days before expiry.
+Billing rules 🛠 (built in M3, `services/api/internal/billing/rules.go`):
+- Activates immediately after payment verification (server-to-server with the gateway, never from the redirect alone).
+- Periods are fixed days: month = 30, quarter = 90, year = 365 (makes proration exact and predictable).
+- **Renewal** (buying the plan you have) is queued: it starts when the current one ends, so no paid day is lost.
+- **Upgrade** Silver → Gold at any time: starts now; the unpaid-for rest of every lower paid plan (running or queued) is
+  credited in proportion to the time left. Manually granted plans give no credit.
+- **Downgrade** takes effect at the end of the current period (queued like a renewal).
+- If credit leaves less than 1,000 Toman to pay, the rest is waived (gateways refuse tiny payments).
+- No auto-renew (Iranian gateways don't support card-on-file). An SMS reminder goes out 3 days before expiry, once per plan,
+  unless the user has already renewed. Text: site setting `sms_templates` (editable).
 
 Refund policy 🛠 (#32): full refund within 7 days of purchase if no paid feature has been used. Once used, there's no refund, and the subscription runs until the end of its period.
+Built as: the user requests it on the account page; an admin approves or rejects it in the admin panel. Approving cancels that
+order's plan; the money is transferred back by hand (Iranian gateways have no refund API) and the transfer reference is noted.
+"Used" = the API delivered Silver/Gold-only data under that plan (the full price table, non-base or >1-month chart history,
+and later analysis, calculator…). Browsing the base prices (ticker, home cards) doesn't count. A queued renewal can always be
+refunded until it starts.
 "Used" means the user opened Gold/Silver-only content or ran a Gold calculation. This is logged server-side so it can be checked. (We draft the text, the client reviews it.)
 
 ## 7. Daily auctions («حراج‌های روزانه») — 🛠 decision for client answer #5

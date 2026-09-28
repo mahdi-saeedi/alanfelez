@@ -3,11 +3,12 @@
 A bilingual (Persian / English) information platform for Iran's metals market. It covers live prices, price charts, expert analysis
 and forecasts, Iran Mercantile Exchange (IME) daily auction data, a load-value calculator, and Free / Silver / Gold subscriptions.
 
-> **Project status (2026-09-28):** M1 (foundation) and M2 (market data) complete, pending the client's review.
+> **Project status (2026-09-28):** M1 (foundation), M2 (market data) and M3 (accounts & payments) complete, pending the client's review.
 > Everything runs locally with one command: website, admin panel, Go API + worker, and Keycloak with phone OTP + Keycloakify theme.
 > Prices come from a demo generator until the real price APIs arrive (F5); staff can enter them by hand (single or CSV).
 > The Kubernetes delivery pipeline (Argo CD, canary, automatic and manual rollback) is tested on a local cluster.
-> Next: M3 accounts, subscriptions and payments. See [Roadmap](#roadmap).
+> Checkout runs end to end with a mock gateway until the client's gateway arrives (F13).
+> Next: M4 CMS content (analysis, FAQ, pages, contact & tickets). See [Roadmap](#roadmap).
 
 ## Start here (new developer)
 
@@ -81,7 +82,7 @@ Sign in with any mobile number; `task otp` shows the code. `task smoke` checks e
 | 0 | Discovery, client Q&A, scope, architecture | ✅ done |
 | 1 | Monorepo, OpenAPI contract, Go API foundation, seed/bootstrap, Keycloak (phone OTP, SMS SPI, Keycloakify theme, staff TOTP), web + admin shells (fa/en), design tokens, Docker Compose, Helm + Argo CD + Rollouts (tested locally), CI/Release/Rollback workflows | ✅ done (staging cluster setup pending: DEPLOYMENT §3) |
 | 2 | Market data: schema, ingestion (River worker, adapter registry, demo source, outlier quarantine), history API, SSE, tier-gated prices, admin manual/CSV entry + review queue + source health + manual plan grants. Pages: Home, Metal Prices, Price Chart | ✅ done (real price APIs pending F5; chart compare and unit conversion to Toman for LME later) |
-| 3 | Auth (OTP sign-up), account, subscriptions + payments, access control | |
+| 3 | Account page, checkout (quote → gateway → server-side verify), queued renewals, prorated upgrades, refunds, renewal SMS, admin users/orders/refunds | ✅ done (real gateway pending F13, SMS provider F7) |
 | 4 | CMS content: Forecast & Analysis, FAQ, About, Terms, Privacy, Licenses, Contact + tickets | |
 | 5 | Gold features: calculator, IME daily auctions, SMS price alerts | |
 | 6 | Mobile polish, SEO, performance, security review, staging review with client → production launch | |

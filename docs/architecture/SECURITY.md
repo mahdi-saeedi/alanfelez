@@ -67,7 +67,12 @@ Every limit is configurable. Defaults:
 ## 7. Payments (T4)
 - The callback is never trusted. It triggers a **server-to-server verify** with the gateway. The amount and order ID must match our records.
 - Idempotency: unique `payments.authority`, and the order state machine allows `pending → paid` only once. The subscription is created in the same transaction.
-- A reconciliation job (daily) compares gateway reports with orders and alerts on mismatches.
+- A reconciliation job (daily) compares gateway reports with orders and alerts on mismatches (with the real gateway, F13).
+- Built in M3: `POST /v1/payments/verify` is public (the callback can outlive the session) and trusts nothing it receives: it
+  checks the authority belongs to the order, calls the gateway's verify with the order's amount, and activates the plan in the
+  same transaction that marks the order paid. Repeating it is a no-op. An order that expired while the user was on the gateway
+  page is still honoured if the gateway confirms the payment (the money was taken).
+- The mock gateway and the console SMS sender are refused in production by config validation.
 - No card data ever touches our servers (the gateway's hosted page).
 
 ## 8. Transport, headers, cookies

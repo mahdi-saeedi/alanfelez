@@ -94,6 +94,10 @@ erDiagram
 
 Key decisions:
 - **The effective tier** = the highest-ranked `subscriptions` row with `status='active' AND now() BETWEEN starts_at AND ends_at`, or `free` if none.
+  **Built in M3** (migration `00003_billing.sql`): `users` (id = Keycloak `sub`, refreshed from token claims on `/v1/me`),
+  `orders` (price, credit, amount, kind, quoted start), `payments`, `refunds`, `entitlement_usage`, `notifications`
+  (with a `dedupe_key` so jobs can re-run). Subscriptions gained `order_id` and the `replaced` status (ended by an upgrade).
+  Overlaps are prevented by the per-user advisory lock + queued placement instead of an exclusion constraint (ADR-0024).
   M2 created `app.subscriptions` early (keyed by the Keycloak `user_id`, `origin = manual | order`) so staff can grant plans before checkout exists; `order_id` and the exclusion constraint are added with billing (expand migration). `app.audit_log` exists too (every staff write).
   An exclusion constraint prevents overlapping active subscriptions for the same user and plan.
 - **Plan prices are versioned** (`valid_from`/`valid_to`). Orders keep a reference to the exact price row, so history never changes when prices change.

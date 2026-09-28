@@ -39,6 +39,9 @@ Nobody runs `kubectl apply` or `helm upgrade` by hand. **Git is the source of tr
 | `APP_ENV` | `local` | `staging` | `production` |
 | `SEED_PROFILES` | `reference,demo` | `reference,demo` | `reference` (demo is **refused** in production) |
 | OTP SMS provider | `console` (codes in the Keycloak log) | `console` or the real provider in test mode | real provider, `keycloak.otp.consoleAllowed: false` |
+| Payment gateway (`api.paymentGateway`) | `mock` (fake gateway page, no money) | `mock` until the sandbox of the real gateway (F13) | `none` until the real gateway is added: the site runs, checkout says "unavailable". `mock` is refused |
+| Reminder SMS (`api.smsProvider`) | `console` (worker log) | `console` | `none` (no reminders) until the SMS provider (F7). `console` is refused |
+| `payments.enabled` flag | on (demo seed) | on (demo seed) | off until the gateway is live; switch it in the admin |
 | Keycloak users | OTP sign-up | test users allowed | no seeded users. Staff are created by an admin, with mandatory TOTP |
 | Secrets | `devSecrets.enabled: true` (chart-generated) | SealedSecrets | SealedSecrets |
 | Backups | none | nightly | WAL archiving (RPO 15 min) + nightly, restore drill every quarter |

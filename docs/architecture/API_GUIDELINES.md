@@ -39,7 +39,9 @@
 | `UNAUTHENTICATED` | 401 | Missing or invalid token |
 | `FORBIDDEN` | 403 | Wrong role or not the owner |
 | `FEATURE_LOCKED` | 403 | Tier too low (includes `requiredPlan`) |
-| `NOT_FOUND` | 404 | |
+| `NOT_FOUND` | 404 | Also for someone else's resource (an order of another user looks like no order) |
+| `PAYMENTS_DISABLED` | 409 | Checkout while the `payments.enabled` flag is off |
+| `NOT_REFUNDABLE` | 409 | Refund requested after 7 days or after a paid feature was used |
 | `CONFLICT` | 409 | State conflict (e.g. order already paid, point already reviewed, duplicate point) |
 | `PRICE_JUMP` | 422 | Manual price moves more than the series' outlier threshold; resend with `force: true` to confirm |
 | `IDEMPOTENCY_MISMATCH` | 422 | Same key, different body |

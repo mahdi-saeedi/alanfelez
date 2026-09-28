@@ -67,6 +67,11 @@ Test users (local only, file `deploy/local/keycloak/alanfelez-users-0.json`). Us
 | `local-editor` | `local-editor-pass` | editor (staff) | same |
 | `09120000001` | `local-user-pass` | normal user | or log in with OTP |
 
+**Try a purchase:** http://localhost:3000/plans → «انتخاب طلایی» → sign in as `09120000001` → accept the terms → pay. The **mock
+gateway** page opens (served by the API, no real money): «پرداخت / Pay» or «انصراف / Cancel». You land on the result page; the
+account page shows the plan, the billing history and, within 7 days and before using paid features, «درخواست بازگشت وجه».
+Admins decide refunds under *Orders & refunds*. Renewal reminder SMS appear in `task logs -- worker`.
+
 **Try the paid view:** sign in to the admin as `local-admin` → *Subscriptions* → paste the user's id (Keycloak console → Users →
 `09120000001` → ID) → Silver or Gold. Then sign in on the website as that user: all series, longer chart ranges, live updates for all of them.
 The admin also has *Prices & manual entry* (editor/admin), *Bulk entry (CSV)* with a preview before saving, the *Price review queue*
