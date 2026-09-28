@@ -125,6 +125,11 @@ paths:
         - { name: metal, in: query, required: false, schema: { type: string } }
         - { name: category, in: query, required: false, schema: { type: string } }
         - { name: market, in: query, required: false, schema: { type: string } }
+        - name: base
+          in: query
+          required: false
+          description: Only the base series (the ticker and home cards). Doesn't count as using a paid feature
+          schema: { type: boolean, default: false }
       responses:
         '200':
           description: Latest prices in display order
@@ -757,8 +762,16 @@ components:
 
     Plan:
       type: object
-      required: [code, name, rank, prices]
+      required: [code, name, rank, prices, features, limits]
       properties:
+        features:
+          type: object
+          description: What this plan includes (evaluated from internal/access; the UIs never keep their own matrix)
+          additionalProperties: { type: boolean }
+        limits:
+          type: object
+          description: 0 = unlimited
+          additionalProperties: { type: integer }
         code: { $ref: '#/components/schemas/Tier' }
         name: { type: string }
         rank: { type: integer }

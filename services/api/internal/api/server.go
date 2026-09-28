@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/alanfelez/alanfelez/services/api/internal/access"
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
@@ -100,11 +101,17 @@ func (s *Server) ListPlans(ctx context.Context, req ListPlansRequestObject) (Lis
 	lang := langOf((*string)(req.Params.AcceptLanguage))
 	items := make([]Plan, 0, len(plans))
 	for _, p := range plans {
+		features := map[string]bool{}
+		for f, ok := range access.Entitlements(access.Tier(p.Code)) {
+			features[string(f)] = ok
+		}
 		items = append(items, Plan{
-			Code:   Tier(p.Code),
-			Name:   localized(lang, p.NameFa, p.NameEn),
-			Rank:   int(p.Rank),
-			Prices: append([]PlanPrice{}, byPlan[p.Code]...),
+			Code:     Tier(p.Code),
+			Name:     localized(lang, p.NameFa, p.NameEn),
+			Rank:     int(p.Rank),
+			Prices:   append([]PlanPrice{}, byPlan[p.Code]...),
+			Features: features,
+			Limits:   map[string]int{string(access.ChartHistoryDays): access.Limit(access.Tier(p.Code), access.ChartHistoryDays)},
 		})
 	}
 	purchasable, err := s.q.FeatureEnabled(ctx, "payments.enabled")

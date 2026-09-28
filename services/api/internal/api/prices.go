@@ -27,10 +27,11 @@ func (s *Server) ListPrices(ctx context.Context, req ListPricesRequestObject) (L
 	}
 	lang := langOf((*string)(req.Params.AcceptLanguage))
 	p := req.Params
+	baseOnly := p.Base != nil && *p.Base
 	out := PriceList{Items: make([]PriceRow, 0, len(rows))}
 	for _, r := range rows {
 		if (p.Metal != nil && *p.Metal != r.MetalSlug) || (p.Category != nil && *p.Category != r.CategorySlug) ||
-			(p.Market != nil && *p.Market != r.MarketSlug) {
+			(p.Market != nil && *p.Market != r.MarketSlug) || (baseOnly && !r.IsBase) {
 			continue
 		}
 		if !seeAll && !r.IsBase {

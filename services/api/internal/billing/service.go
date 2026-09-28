@@ -198,7 +198,7 @@ func (s *Service) startPayment(ctx context.Context, o dbq.AppOrder, user dbq.Ups
 	started, err := s.gw.Request(ctx, payment.Request{
 		OrderID:     uid(o.ID),
 		AmountRial:  o.AmountRial,
-		CallbackURL: s.callbackURL + "?order=" + uid(o.ID),
+		CallbackURL: s.callbackURL + "?order=" + uid(o.ID) + "&lang=" + o.Locale,
 		Description: fmt.Sprintf("Alan Felez %s (%s)", o.PlanCode, o.Period),
 		Mobile:      user.PhoneE164.String,
 	})

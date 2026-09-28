@@ -45,7 +45,7 @@ type Config struct {
 // Payments configures checkout (internal/billing, internal/payment).
 type Payments struct {
 	Gateway string `env:"GATEWAY" envDefault:"mock"` // mock | none | <real gateway, F13>
-	// CallbackURL is the website route the gateway redirects back to. Empty = WEB_URL + /checkout/callback.
+	// CallbackURL is the website route the gateway redirects back to. Empty = WEB_URL + /api/checkout/callback.
 	CallbackURL string `env:"CALLBACK_URL"`
 }
 
@@ -54,7 +54,7 @@ func (c Config) PaymentCallbackURL() string {
 	if c.Payments.CallbackURL != "" {
 		return c.Payments.CallbackURL
 	}
-	return strings.TrimSuffix(c.WebURL, "/") + "/checkout/callback"
+	return strings.TrimSuffix(c.WebURL, "/") + "/api/checkout/callback"
 }
 
 // Prices configures price ingestion (`alanfelez worker`).

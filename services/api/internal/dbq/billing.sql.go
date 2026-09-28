@@ -100,9 +100,12 @@ func (q *Queries) AdminListOrders(ctx context.Context, arg AdminListOrdersParams
 }
 
 const cancelSubscription = `-- name: CancelSubscription :exec
-UPDATE app.subscriptions SET status = 'cancelled', ends_at = LEAST(ends_at, GREATEST(starts_at, now())) WHERE id = $1
+UPDATE app.subscriptions SET status = 'cancelled',
+  ends_at = CASE WHEN starts_at < now() THEN LEAST(ends_at, now()) ELSE ends_at END
+WHERE id = $1
 `
 
+// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
 func (q *Queries) CancelSubscription(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, cancelSubscription, id)
 	return err
@@ -900,11 +903,12 @@ func (q *Queries) RecordUsage(ctx context.Context, arg RecordUsageParams) error 
 }
 
 const replaceSubscriptions = `-- name: ReplaceSubscriptions :exec
-UPDATE app.subscriptions SET status = 'replaced', ends_at = GREATEST(starts_at, now())
+UPDATE app.subscriptions SET status = 'replaced',
+  ends_at = CASE WHEN starts_at < now() THEN LEAST(ends_at, now()) ELSE ends_at END
 WHERE id = ANY($1::uuid[]) AND status = 'active'
 `
 
-// An upgrade ends lower plans now (queued ones never start).
+// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 func (q *Queries) ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, replaceSubscriptions, ids)
 	return err

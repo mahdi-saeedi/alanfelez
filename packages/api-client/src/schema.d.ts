@@ -519,6 +519,14 @@ export interface components {
             price: components["schemas"]["Money"];
         };
         Plan: {
+            /** @description What this plan includes (evaluated from internal/access; the UIs never keep their own matrix) */
+            features: {
+                [key: string]: boolean;
+            };
+            /** @description 0 = unlimited */
+            limits: {
+                [key: string]: number;
+            };
             code: components["schemas"]["Tier"];
             name: string;
             rank: number;
@@ -998,6 +1006,8 @@ export interface operations {
                 metal?: string;
                 category?: string;
                 market?: string;
+                /** @description Only the base series (the ticker and home cards). Doesn't count as using a paid feature */
+                base?: boolean;
             };
             header?: {
                 "Accept-Language"?: components["parameters"]["AcceptLanguage"];

@@ -116,15 +116,19 @@ VALUES ($1, $2, $3, $4, 'order', $5)
 RETURNING id, user_id, plan_code, starts_at, ends_at, status, origin, note;
 
 -- name: ReplaceSubscriptions :exec
--- An upgrade ends lower plans now (queued ones never start).
-UPDATE app.subscriptions SET status = 'replaced', ends_at = GREATEST(starts_at, now())
+-- An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
+UPDATE app.subscriptions SET status = 'replaced',
+  ends_at = CASE WHEN starts_at < now() THEN LEAST(ends_at, now()) ELSE ends_at END
 WHERE id = ANY(sqlc.arg(ids)::uuid[]) AND status = 'active';
 
 -- name: GetSubscriptionByOrder :one
 SELECT id, user_id, plan_code, starts_at, ends_at, status FROM app.subscriptions WHERE order_id = $1;
 
 -- name: CancelSubscription :exec
-UPDATE app.subscriptions SET status = 'cancelled', ends_at = LEAST(ends_at, GREATEST(starts_at, now())) WHERE id = $1;
+-- Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
+UPDATE app.subscriptions SET status = 'cancelled',
+  ends_at = CASE WHEN starts_at < now() THEN LEAST(ends_at, now()) ELSE ends_at END
+WHERE id = $1;
 
 -- name: LatestEndForPlan :one
 -- For manual grants: extend after the latest active subscription of the same plan.

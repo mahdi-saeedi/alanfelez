@@ -198,9 +198,15 @@ func TestRefunds(t *testing.T) {
 		t.Fatalf("order after refund: %v", o)
 	}
 
-	// Using a paid feature ends the refund right (SCOPE §6).
+	// Using a paid feature ends the refund right (SCOPE §6). The base prices (ticker, home) don't count.
 	_, id2, auth2, _ := e.checkout(customer, "silver", "key-refund-2")
 	e.pay(id2, auth2, true)
+	if _, _, raw := e.call(http.MethodGet, "/v1/prices?base=true", customer, nil); strings.Contains(raw, "copper-lme") {
+		t.Fatal("base=true must return base series only")
+	}
+	if _, o, _ := e.call(http.MethodGet, "/v1/me/orders/"+id2, customer, nil); o["refundable"] != true {
+		t.Fatalf("base prices must not count as paid use: %v", o)
+	}
 	if _, _, raw := e.call(http.MethodGet, "/v1/prices", customer, nil); !strings.Contains(raw, "copper-lme") {
 		t.Fatal("silver must see LME")
 	}
@@ -276,4 +282,40 @@ func TestRenewalReminderOnce(t *testing.T) {
 		t.Fatalf("notification cost = %d", cost)
 	}
 
+}
+
+// A queued renewal can be refunded, and an upgrade can replace a queued lower plan (both used to hit the
+// ends_at > starts_at check by collapsing the queued period).
+func TestQueuedSubscriptionsCancelAndReplace(t *testing.T) {
+	e := setup(t)
+	e.enablePayments(true)
+	_, id1, a1, _ := e.checkout(customer, "silver", "key-queue-1")
+	e.pay(id1, a1, true)
+	_, id2, a2, _ := e.checkout(customer, "silver", "key-queue-2") // renewal, starts in 30 days
+	if _, status := e.pay(id2, a2, true); status != "paid" {
+		t.Fatalf("renewal: %s", status)
+	}
+	st, r, _ := e.call(http.MethodPost, "/v1/me/orders/"+id2+"/refund", customer, nil)
+	if st != 201 {
+		t.Fatalf("refund request for queued renewal: %d %v", st, r)
+	}
+	if st, body, _ := e.call(http.MethodPost, "/v1/admin/refunds/"+r["id"].(string)+"/decision", "admin", map[string]any{"decision": "approve"}); st != 200 {
+		t.Fatalf("approve refund of queued renewal: %d %v", st, body)
+	}
+	if e.tier() != "silver" {
+		t.Fatal("refunding the queued renewal must keep the running plan")
+	}
+
+	_, id3, a3, _ := e.checkout(customer, "silver", "key-queue-3") // queue another renewal
+	e.pay(id3, a3, true)
+	// Upgrade: the running silver's unused days + the queued silver in full cover the whole gold price, so it's
+	// activated at once, without a gateway (and both silvers are replaced).
+	st, _, a4, body := e.checkout(customer, "gold", "key-queue-4")
+	order := body["order"].(map[string]any)
+	if st != http.StatusCreated || a4 != "" || order["status"] != "paid" || order["amount"].(map[string]any)["amount"] != "0" {
+		t.Fatalf("fully credited upgrade: %d %q %v", st, a4, order)
+	}
+	if e.tier() != "gold" || e.countSubs("status = 'replaced'") != 2 {
+		t.Fatalf("tier %s, replaced %d", e.tier(), e.countSubs("status = 'replaced'"))
+	}
 }

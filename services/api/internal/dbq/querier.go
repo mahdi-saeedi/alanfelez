@@ -15,6 +15,7 @@ type Querier interface {
 	// The highest-ranked plan the user holds right now.
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
 	AdminListOrders(ctx context.Context, arg AdminListOrdersParams) ([]AdminListOrdersRow, error)
+	// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
 	CancelSubscription(ctx context.Context, id pgtype.UUID) error
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
 	CurrentPlanPrice(ctx context.Context, arg CurrentPlanPriceParams) (CurrentPlanPriceRow, error)
@@ -85,7 +86,7 @@ type Querier interface {
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
-	// An upgrade ends lower plans now (queued ones never start).
+	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
 	// Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
 	SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow, error)

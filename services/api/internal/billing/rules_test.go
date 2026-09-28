@@ -78,6 +78,15 @@ func TestQuoteFor(t *testing.T) {
 			},
 			plan: access.Gold, price: goldPrice, wantKind: KindUpgrade, wantStarts: now, wantCredit: goldPrice, replaces: []string{"y"},
 		},
+		{
+			// 20,000,000 − 19,999,996 leaves 4 Rial: below MinCharge, so it's waived.
+			name: "a tiny remainder is waived",
+			held: []Held{
+				{ID: "s1", Plan: access.Silver, Starts: now.Add(-days(30)).Add(4 * time.Second), Ends: now.Add(4 * time.Second), PaidRial: 25_920_000},
+				{ID: "s2", Plan: access.Silver, Starts: now.Add(4 * time.Second), Ends: now.Add(days(30)), PaidRial: 19_999_996},
+			},
+			plan: access.Gold, price: goldPrice, wantKind: KindUpgrade, wantStarts: now, wantCredit: goldPrice, replaces: []string{"s1", "s2"},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

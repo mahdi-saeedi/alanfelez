@@ -60,6 +60,10 @@ type Quote struct {
 	Replaces []string // subscriptions ended early by an upgrade
 }
 
+// MinCharge is the smallest amount sent to a gateway (1,000 Toman; gateways reject tiny payments). A smaller
+// remainder after credit is waived (🛠 SCOPE §6).
+const MinCharge int64 = 10_000
+
 // Errors.
 var (
 	ErrFreePlan      = errors.New("the free plan can't be bought")
@@ -112,6 +116,9 @@ func QuoteFor(now time.Time, held []Held, plan access.Tier, period Period, price
 		q.Credit = price
 	}
 	q.Amount = price - q.Credit
+	if q.Amount > 0 && q.Amount < MinCharge { // gateways refuse tiny amounts; waive the remainder
+		q.Credit, q.Amount = price, 0
+	}
 	q.Ends = q.Starts.AddDate(0, 0, days)
 	return q, nil
 }
