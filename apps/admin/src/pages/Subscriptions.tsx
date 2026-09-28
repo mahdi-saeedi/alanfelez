@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGetLocale, useTranslate } from "@refinedev/core";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
@@ -12,8 +13,10 @@ export function SubscriptionsPage() {
   const t = useTranslate();
   const locale = useGetLocale()() as Locale;
   const qc = useQueryClient();
-  const [filter, setFilter] = useState("");
-  const [form, setForm] = useState({ userId: "", plan: "gold" as "silver" | "gold", days: "30", note: "" });
+  const [params] = useSearchParams();
+  const preset = params.get("user") ?? ""; // from the Users page
+  const [filter, setFilter] = useState(preset);
+  const [form, setForm] = useState({ userId: preset, plan: "gold" as "silver" | "gold", days: "30", note: "" });
   const roles = useQuery({ queryKey: ["roles"], queryFn: currentRoles });
   const admin = canGrant(roles.data ?? []);
   const userFilter = UUID.test(filter.trim()) ? filter.trim() : undefined;

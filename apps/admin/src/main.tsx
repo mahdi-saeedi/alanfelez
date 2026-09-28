@@ -14,6 +14,8 @@ import { BulkPage } from "./pages/Bulk";
 import { QuarantinePage } from "./pages/Quarantine";
 import { SourcesPage } from "./pages/Sources";
 import { SubscriptionsPage } from "./pages/Subscriptions";
+import { OrdersPage } from "./pages/Orders";
+import { UsersPage } from "./pages/Users";
 import { LoginPage, CallbackPage, DeniedPage } from "./pages/AuthPages";
 import "./index.css";
 
@@ -51,6 +53,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/prices/quarantine" element={<QuarantinePage />} />
             <Route path="/sources" element={<SourcesPage />} />
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/users" element={<UsersPage />} />
             <Route path="/metals" element={<MetalsList />} />
             <Route path="/markets" element={<MarketsList />} />
             <Route path="/plans" element={<PlansList />} />

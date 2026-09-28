@@ -7,6 +7,8 @@ const NAV = [
   { to: "/prices/bulk", key: "nav.bulk" },
   { to: "/prices/quarantine", key: "nav.quarantine" },
   { to: "/sources", key: "nav.sources" },
+  { to: "/users", key: "nav.users" },
+  { to: "/orders", key: "nav.orders" },
   { to: "/subscriptions", key: "nav.subscriptions" },
   { to: "/metals", key: "nav.metals" },
   { to: "/markets", key: "nav.markets" },
