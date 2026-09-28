@@ -17,6 +17,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/payment"
+	"github.com/alanfelez/alanfelez/services/api/internal/platform/jalali"
 )
 
 // Problem codes for billing (API_GUIDELINES §4).
@@ -402,15 +403,7 @@ func textOf(s string) pgtype.Text {
 
 // normalizeSearch turns Persian digits into ASCII and "+98…" into "09…", so staff can paste a number as they see it.
 func normalizeSearch(q string) string {
-	q = strings.Map(func(r rune) rune {
-		switch {
-		case r >= '۰' && r <= '۹':
-			return '0' + (r - '۰')
-		case r >= '٠' && r <= '٩':
-			return '0' + (r - '٠')
-		}
-		return r
-	}, strings.TrimSpace(q))
+	q = jalali.Latin(strings.TrimSpace(q))
 	q = strings.ReplaceAll(q, " ", "")
 	if strings.HasPrefix(q, "+98") {
 		q = "0" + q[3:]

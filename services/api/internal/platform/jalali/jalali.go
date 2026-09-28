@@ -61,3 +61,16 @@ func Digits(s string) string {
 		return r
 	}, s)
 }
+
+// Latin converts Persian and Arabic-Indic digits to ASCII digits (for input typed on a Persian keyboard).
+func Latin(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r >= '۰' && r <= '۹':
+			return '0' + (r - '۰')
+		case r >= '٠' && r <= '٩':
+			return '0' + (r - '٠')
+		}
+		return r
+	}, s)
+}

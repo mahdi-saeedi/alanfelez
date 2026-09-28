@@ -12,6 +12,10 @@ import (
 	"github.com/go-chi/cors"
 )
 
+// MaxBodyBytes caps every request body (the largest legitimate ones are rich-text pages and 500-row price uploads).
+// The generated server doesn't enforce the OpenAPI maxLength/maxItems, so this is the backstop.
+const MaxBodyBytes = 2 << 20
+
 // Pinger is anything whose availability gates readiness (database, Redis).
 type Pinger interface {
 	Ping(ctx context.Context) error
@@ -22,13 +26,15 @@ type Pinger interface {
 //	/healthz  liveness: the process is up (never checks dependencies) → 204
 //	/readyz   readiness: every dependency answers → 200 {"status":"ready"}; otherwise 503 (problem JSON).
 //	          Kubernetes stops routing traffic to a pod that isn't ready; Argo Rollouts' canary analysis reads it too.
-func NewRouter(log *slog.Logger, corsOrigins []string, deps map[string]Pinger) chi.Router {
+//
+// extra middleware runs after the standard ones (e.g. ClientInfo).
+func NewRouter(log *slog.Logger, corsOrigins []string, deps map[string]Pinger, extra ...func(http.Handler) http.Handler) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-	// Client IPs: middleware.RealIP is intentionally NOT used (it trusts spoofable headers).
-	// A trusted-proxy aware IP extractor is added with the ingress configuration (SECURITY.md §5).
+	// Client IPs: middleware.RealIP is intentionally NOT used (it trusts spoofable headers); see ClientInfo.
 	r.Use(requestLogger(log))
 	r.Use(recoverer(log))
+	r.Use(middleware.RequestSize(MaxBodyBytes))
 	r.Use(securityHeaders)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   corsOrigins,
@@ -38,6 +44,7 @@ func NewRouter(log *slog.Logger, corsOrigins []string, deps map[string]Pinger) c
 		AllowCredentials: false, // the API uses bearer tokens, never cookies (SECURITY.md T9)
 		MaxAge:           600,
 	}))
+	r.Use(extra...)
 
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
 	r.Get("/readyz", func(w http.ResponseWriter, req *http.Request) {

@@ -22,13 +22,15 @@ const (
 
 // Config is the complete process configuration.
 type Config struct {
-	Env             string        `env:"APP_ENV" envDefault:"local"`
-	HTTPAddr        string        `env:"HTTP_ADDR" envDefault:":8080"`
-	LogLevel        string        `env:"LOG_LEVEL" envDefault:"info"`
-	LogFormat       string        `env:"LOG_FORMAT" envDefault:"json"` // json | text
-	DatabaseURL     string        `env:"DATABASE_URL" envDefault:"postgres://alanfelez:alanfelez@localhost:5432/alanfelez?sslmode=disable"`
-	RedisURL        string        `env:"REDIS_URL" envDefault:"redis://localhost:6379/0"`
-	CORSOrigins     []string      `env:"CORS_ORIGINS" envSeparator:"," envDefault:"http://localhost:3000,http://localhost:5173"`
+	Env         string   `env:"APP_ENV" envDefault:"local"`
+	HTTPAddr    string   `env:"HTTP_ADDR" envDefault:":8080"`
+	LogLevel    string   `env:"LOG_LEVEL" envDefault:"info"`
+	LogFormat   string   `env:"LOG_FORMAT" envDefault:"json"` // json | text
+	DatabaseURL string   `env:"DATABASE_URL" envDefault:"postgres://alanfelez:alanfelez@localhost:5432/alanfelez?sslmode=disable"`
+	RedisURL    string   `env:"REDIS_URL" envDefault:"redis://localhost:6379/0"`
+	CORSOrigins []string `env:"CORS_ORIGINS" envSeparator:"," envDefault:"http://localhost:3000,http://localhost:5173"`
+	// TrustedProxies may set X-Forwarded-For (ingress, the website server). Default: private ranges.
+	TrustedProxies  []string      `env:"TRUSTED_PROXIES" envSeparator:"," envDefault:"127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,::1/128,fc00::/7"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"20s"`
 	StartupTimeout  time.Duration `env:"STARTUP_TIMEOUT" envDefault:"90s"` // wait for dependencies on boot
 	OIDC            OIDC          `envPrefix:"OIDC_"`
