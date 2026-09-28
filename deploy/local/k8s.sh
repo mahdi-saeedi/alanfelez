@@ -95,6 +95,15 @@ push_snapshot() {
     echo "${commit}" > "${STATE_DIR}/last-commit"
     log "Pushed GitOps commit ${commit:0:10}: ${message}"
   )
+  argo_refresh
+}
+
+# Ask Argo CD to look at git now (it otherwise polls every ~3 minutes).
+argo_refresh() {
+  local app
+  for app in alanfelez-data alanfelez; do
+    ${K} -n argocd annotate application "${app}" argocd.argoproj.io/refresh=normal --overwrite > /dev/null 2>&1 || true
+  done
 }
 
 # Push a commit to Gitea main through a temporary port-forward, with retries (port-forward startup is racy).
@@ -143,6 +152,7 @@ cmd_rollback() {
     gitea_push "${commit}"
     cp "${STATE_DIR}/last-commit" "${STATE_DIR}/previous-commit"; echo "${commit}" > "${STATE_DIR}/last-commit"
     log "Pushed rollback commit ${commit:0:10} (restores ${prev:0:10})"
+    argo_refresh
   )
 }
 
