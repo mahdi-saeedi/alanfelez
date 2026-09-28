@@ -20,7 +20,7 @@ const CHUNK_SIZE = 3936; // Auth.js: 4096 bytes minus the cookie's own overhead
 const secure = (process.env.AUTH_URL ?? "").startsWith("https://");
 export const sessionCookie = `${secure ? "__Secure-" : ""}authjs.session-token`;
 
-export type SessionTokens = { accessToken?: string; refreshToken?: string; expiresAt?: number; error?: string };
+export type SessionTokens = { accessToken?: string; refreshToken?: string; idToken?: string; expiresAt?: number; error?: string };
 
 /** Reads the decrypted session JWT from a request (handles chunked cookies). */
 export function readSession(headers: Headers): Promise<(JWT & SessionTokens) | null> {
@@ -47,10 +47,11 @@ export async function refreshTokens(refreshToken: string): Promise<SessionTokens
     cache: "no-store",
   });
   if (!res.ok) return null;
-  const body = (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
+  const body = (await res.json()) as { access_token: string; refresh_token?: string; id_token?: string; expires_in: number };
   return {
     accessToken: body.access_token,
     refreshToken: body.refresh_token ?? refreshToken,
+    ...(body.id_token ? { idToken: body.id_token } : {}),
     expiresAt: Math.floor(Date.now() / 1000) + body.expires_in,
   };
 }

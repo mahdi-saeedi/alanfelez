@@ -31,6 +31,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
+        token.idToken = account.id_token; // id_token_hint for Keycloak logout (src/components/Header.tsx)
         token.error = undefined;
       }
       if (profile) {

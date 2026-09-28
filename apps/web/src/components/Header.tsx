@@ -1,4 +1,8 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { keycloak } from "@/lib/keycloak";
+import { readSession } from "@/lib/session-refresh";
 import { Link } from "@/i18n/navigation";
 import { auth, signIn, signOut } from "@/auth";
 import { LocaleSwitch } from "./LocaleSwitch";
@@ -22,9 +26,17 @@ export async function Header() {
     "use server";
     await signIn("keycloak", undefined, { ui_locales: locale });
   }
+  // Ends the website session AND the Keycloak session (otherwise "login" would silently sign the same person back
+  // in through SSO, which matters on shared computers).
   async function logout() {
     "use server";
-    await signOut();
+    const session = await readSession(await headers()).catch(() => null);
+    await signOut({ redirect: false });
+    const url = new URL(`${keycloak.issuer}/protocol/openid-connect/logout`);
+    url.searchParams.set("client_id", keycloak.clientId);
+    url.searchParams.set("post_logout_redirect_uri", `${process.env.AUTH_URL ?? "http://localhost:3000"}${locale === "en" ? "/en" : "/"}`);
+    if (session?.idToken) url.searchParams.set("id_token_hint", session.idToken);
+    redirect(url.toString());
   }
 
   return (
