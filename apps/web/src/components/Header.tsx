@@ -42,7 +42,7 @@ export async function Header() {
   return (
     <header className="bg-graphite text-white">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 text-lg font-extrabold text-white">
+        <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
           <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-lg" />
           {t("brand.name")}
         </Link>

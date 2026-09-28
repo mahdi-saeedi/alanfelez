@@ -46,9 +46,9 @@
     "title": "Choose the plan that fits your activity",
     "subtitle": "Pick the access level that matches how active you are in the market.",
     "free": "0 Toman",
-    "month": "month",
-    "quarter": "quarter",
-    "year": "year",
+    "month": "Monthly",
+    "quarter": "Quarterly",
+    "year": "Yearly",
     "perPeriod": "{price} / {period}",
     "unit": {
       "month": "Toman / month",
