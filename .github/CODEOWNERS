@@ -1,8 +1,8 @@
 # Default owner for everything. When a second developer joins, add them and split by area.
-*                       @OWNER
-/contracts/openapi.yaml       @OWNER
-/services/api/internal/access/   @OWNER
-/services/api/internal/billing/  @OWNER
-/deploy/                @OWNER
-/services/keycloak/     @OWNER
-/docs/architecture/adr/              @OWNER
+*                       @mahdi-saeedi
+/contracts/openapi.yaml       @mahdi-saeedi
+/services/api/internal/access/   @mahdi-saeedi
+/services/api/internal/billing/  @mahdi-saeedi
+/deploy/                @mahdi-saeedi
+/services/keycloak/     @mahdi-saeedi
+/docs/architecture/adr/              @mahdi-saeedi
