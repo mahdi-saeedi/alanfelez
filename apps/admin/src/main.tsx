@@ -9,6 +9,11 @@ import { i18nProvider, applyDocumentLang } from "./i18n";
 import { Layout } from "./pages/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { MetalsList, MarketsList, PlansList } from "./pages/Resources";
+import { PricesPage } from "./pages/Prices";
+import { BulkPage } from "./pages/Bulk";
+import { QuarantinePage } from "./pages/Quarantine";
+import { SourcesPage } from "./pages/Sources";
+import { SubscriptionsPage } from "./pages/Subscriptions";
 import { LoginPage, CallbackPage, DeniedPage } from "./pages/AuthPages";
 import "./index.css";
 
@@ -41,6 +46,11 @@ createRoot(document.getElementById("root")!).render(
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="/prices" element={<PricesPage />} />
+            <Route path="/prices/bulk" element={<BulkPage />} />
+            <Route path="/prices/quarantine" element={<QuarantinePage />} />
+            <Route path="/sources" element={<SourcesPage />} />
+            <Route path="/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/metals" element={<MetalsList />} />
             <Route path="/markets" element={<MarketsList />} />
             <Route path="/plans" element={<PlansList />} />

@@ -168,6 +168,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@alanfelez/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@alanfelez/ui':
         specifier: workspace:*
         version: link:../../packages/ui

@@ -3,6 +3,11 @@ import { NavLink, Outlet } from "react-router";
 
 const NAV = [
   { to: "/", key: "nav.dashboard" },
+  { to: "/prices", key: "nav.prices" },
+  { to: "/prices/bulk", key: "nav.bulk" },
+  { to: "/prices/quarantine", key: "nav.quarantine" },
+  { to: "/sources", key: "nav.sources" },
+  { to: "/subscriptions", key: "nav.subscriptions" },
   { to: "/metals", key: "nav.metals" },
   { to: "/markets", key: "nav.markets" },
   { to: "/plans", key: "nav.plans" },
@@ -27,7 +32,7 @@ export function Layout() {
             <NavLink
               key={n.to}
               to={n.to}
-              end={n.to === "/"}
+              end
               className={({ isActive }) =>
                 `rounded-lg px-3 py-2 text-sm ${isActive ? "bg-gold font-bold text-graphite" : "text-silver-light hover:bg-graphite-2 hover:text-white"}`
               }
