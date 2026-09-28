@@ -19,6 +19,8 @@ api:
   logLevel: debug
   seedProfiles: reference,demo
   demoPrices: true                 # demo price generator (worker)
+  paymentGateway: mock             # fake gateway page, no real money
+  smsProvider: console             # SMS written to the worker log
 web:
   replicas: 2
 keycloak:

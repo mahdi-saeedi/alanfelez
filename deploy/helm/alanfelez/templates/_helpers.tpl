@@ -42,6 +42,10 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 # Signing keys come straight from the Keycloak service (no hairpin through the ingress/CDN); `iss` stays public.
 - { name: OIDC_JWKS_URL, value: "http://{{ .Release.Name }}-keycloak:8080/realms/alanfelez/protocol/openid-connect/certs" }
 - { name: PRICES_DEMO_ALLOWED, value: {{ .Values.api.demoPrices | quote }} }
+- { name: PAYMENTS_GATEWAY, value: {{ .Values.api.paymentGateway | quote }} }
+- { name: SMS_PROVIDER, value: {{ .Values.api.smsProvider | quote }} }
+- { name: PUBLIC_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
+- { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }
 {{- range $k, $v := .Values.api.extraEnv }}
 - { name: {{ $k }}, value: {{ $v | quote }} }

@@ -29,6 +29,11 @@ x-api-env: &api-env
   OIDC_ISSUER_URL: http://localhost:${KEYCLOAK_PORT:-8081}/realms/alanfelez
   OIDC_JWKS_URL: http://keycloak:8081/realms/alanfelez/protocol/openid-connect/certs
   PRICES_DEMO_ALLOWED: "true"
+  # Checkout: the mock gateway page is served by the API (PUBLIC_URL); the gateway sends the browser back to the website.
+  PAYMENTS_GATEWAY: mock
+  PUBLIC_URL: http://localhost:${API_PORT:-8080}
+  WEB_URL: http://localhost:${WEB_PORT:-3000}
+  SMS_PROVIDER: console
   CORS_ORIGINS: http://localhost:${WEB_PORT:-3000},http://localhost:${ADMIN_PORT:-5173}
   SEED_PROFILES: reference,demo
 

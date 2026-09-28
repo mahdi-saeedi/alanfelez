@@ -16,5 +16,7 @@ images:
 api:
   seedProfiles: reference,demo
   demoPrices: true                 # demo price generator (worker)
+  paymentGateway: mock             # fake gateway page, no real money
+  smsProvider: console             # SMS written to the worker log
 keycloak:
   otp: { smsProvider: console, consoleAllowed: true }   # switch to the real provider when available (F7)

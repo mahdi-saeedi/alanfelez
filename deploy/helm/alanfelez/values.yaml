@@ -31,6 +31,8 @@ api:
   logLevel: info
   seedProfiles: reference          # "reference,demo" on staging; demo is refused in production
   demoPrices: false                # demo price generator (with the demo seed). Refused in production
+  paymentGateway: none             # none (checkout unavailable) | mock (local/staging, refused in production) | <real, F13>
+  smsProvider: none                # none (no renewal SMS) | console (logs, refused in production) | <real, F7>
   redisUrl: ""                     # default: the alanfelez-data Redis service
   corsOrigins: []                  # defaults to the web origin
   extraEnv: {}
