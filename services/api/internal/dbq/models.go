@@ -20,6 +20,12 @@ type AppAuditLog struct {
 	RequestID pgtype.Text
 }
 
+type AppEntitlementUsage struct {
+	SubscriptionID pgtype.UUID
+	Feature        string
+	FirstUsedAt    pgtype.Timestamptz
+}
+
 type AppFeatureFlag struct {
 	Key         string
 	Enabled     bool
@@ -28,6 +34,55 @@ type AppFeatureFlag struct {
 	Owner       pgtype.Text
 	CreatedAt   pgtype.Timestamptz
 	UpdatedAt   pgtype.Timestamptz
+}
+
+type AppNotification struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	Channel   string
+	Template  string
+	Recipient string
+	Body      string
+	Status    string
+	Provider  string
+	CostRial  int32
+	Error     pgtype.Text
+	DedupeKey string
+	CreatedAt pgtype.Timestamptz
+}
+
+type AppOrder struct {
+	ID             pgtype.UUID
+	UserID         pgtype.UUID
+	PlanPriceID    pgtype.UUID
+	PlanCode       string
+	Period         string
+	Kind           string
+	PriceRial      int64
+	CreditRial     int64
+	AmountRial     int64
+	StartsAt       pgtype.Timestamptz
+	Status         string
+	IdempotencyKey string
+	Locale         string
+	ExpiresAt      pgtype.Timestamptz
+	PaidAt         pgtype.Timestamptz
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+}
+
+type AppPayment struct {
+	ID         pgtype.UUID
+	OrderID    pgtype.UUID
+	Gateway    string
+	Authority  string
+	AmountRial int64
+	Status     string
+	RefID      pgtype.Text
+	CardMask   pgtype.Text
+	Raw        []byte
+	CreatedAt  pgtype.Timestamptz
+	VerifiedAt pgtype.Timestamptz
 }
 
 type AppPlan struct {
@@ -47,6 +102,19 @@ type AppPlanPrice struct {
 	AmountRial int64
 	ValidFrom  pgtype.Timestamptz
 	ValidTo    pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
+}
+
+type AppRefund struct {
+	ID         pgtype.UUID
+	OrderID    pgtype.UUID
+	AmountRial int64
+	Status     string
+	Reason     pgtype.Text
+	Note       pgtype.Text
+	DecidedBy  pgtype.UUID
+	DecidedAt  pgtype.Timestamptz
 	CreatedAt  pgtype.Timestamptz
 	UpdatedAt  pgtype.Timestamptz
 }
@@ -78,6 +146,21 @@ type AppSubscription struct {
 	GrantedBy pgtype.UUID
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
+	OrderID   pgtype.UUID
+}
+
+type AppUser struct {
+	ID         pgtype.UUID
+	Username   string
+	PhoneE164  pgtype.Text
+	FirstName  pgtype.Text
+	LastName   pgtype.Text
+	Email      pgtype.Text
+	Locale     string
+	BlockedAt  pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	LastSeenAt pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
 }
 
 type MarketMarket struct {

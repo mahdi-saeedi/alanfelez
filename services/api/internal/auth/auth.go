@@ -26,9 +26,12 @@ const (
 
 // Principal is the authenticated caller.
 type Principal struct {
-	ID       pgtype.UUID // token `sub` (Keycloak user id)
-	Username string
-	Roles    []string // effective realm roles (Keycloak expands composites)
+	ID         pgtype.UUID // token `sub` (Keycloak user id)
+	Username   string      // customers: their mobile number (09121234567)
+	GivenName  string
+	FamilyName string
+	Email      string
+	Roles      []string // effective realm roles (Keycloak expands composites)
 }
 
 // HasRole reports whether the caller has role r.
@@ -82,6 +85,9 @@ func NewOIDCVerifier(ctx context.Context, issuer, jwksURL, audience string) *OID
 type claims struct {
 	Sub         string `json:"sub"`
 	Username    string `json:"preferred_username"`
+	GivenName   string `json:"given_name"`
+	FamilyName  string `json:"family_name"`
+	Email       string `json:"email"`
 	RealmAccess struct {
 		Roles []string `json:"roles"`
 	} `json:"realm_access"`
@@ -103,7 +109,10 @@ func (o *OIDCVerifier) Verify(ctx context.Context, raw string) (*Principal, erro
 	if err := id.Scan(c.Sub); err != nil {
 		return nil, fmt.Errorf("auth: sub is not a uuid: %w", err)
 	}
-	return &Principal{ID: id, Username: c.Username, Roles: mergeRoles(c.RealmAccess.Roles, c.Roles)}, nil
+	return &Principal{
+		ID: id, Username: c.Username, GivenName: c.GivenName, FamilyName: c.FamilyName, Email: c.Email,
+		Roles: mergeRoles(c.RealmAccess.Roles, c.Roles),
+	}, nil
 }
 
 // mergeRoles unions realm_access.roles (web tokens) with the flat roles claim (admin tokens), without duplicates.

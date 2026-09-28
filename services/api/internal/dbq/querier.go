@@ -14,25 +14,55 @@ type Querier interface {
 	// Subscriptions and the audit log.
 	// The highest-ranked plan the user holds right now.
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
+	AdminListOrders(ctx context.Context, arg AdminListOrdersParams) ([]AdminListOrdersRow, error)
+	CancelSubscription(ctx context.Context, id pgtype.UUID) error
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
+	CurrentPlanPrice(ctx context.Context, arg CurrentPlanPriceParams) (CurrentPlanPriceRow, error)
+	// Billing uses the database clock, so "starts now" and "is active now" (now() in SQL) can never disagree.
+	DBNow(ctx context.Context) (pgtype.Timestamptz, error)
+	DecideRefund(ctx context.Context, arg DecideRefundParams) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
+	ExpirePendingOrders(ctx context.Context) (int64, error)
+	// Notifications ---------------------------------------------------------------------------------------------
+	// Paid or granted plans ending in the window with nothing queued after them, and a phone to remind.
+	ExpiringSubscriptions(ctx context.Context, arg ExpiringSubscriptionsParams) ([]ExpiringSubscriptionsRow, error)
+	FeatureEnabled(ctx context.Context, key string) (bool, error)
+	// Orders ----------------------------------------------------------------------------------------------------
+	FindOrderByKey(ctx context.Context, arg FindOrderByKeyParams) (AppOrder, error)
 	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
+	GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error)
+	GetRefundByOrder(ctx context.Context, orderID pgtype.UUID) (AppRefund, error)
 	GetSeriesByID(ctx context.Context, id int32) (GetSeriesByIDRow, error)
 	GetSeriesBySlug(ctx context.Context, slug string) (GetSeriesBySlugRow, error)
 	// Resolves slugs for ingestion. Inactive series are included so the caller can report them.
 	GetSeriesIDs(ctx context.Context, slugs []string) ([]GetSeriesIDsRow, error)
+	GetSiteSetting(ctx context.Context, key string) ([]byte, error)
 	GetSourceBySlug(ctx context.Context, slug string) (GetSourceBySlugRow, error)
+	GetSubscriptionByOrder(ctx context.Context, orderID pgtype.UUID) (GetSubscriptionByOrderRow, error)
+	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
+	InsertNotification(ctx context.Context, arg InsertNotificationParams) (pgtype.UUID, error)
+	InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOrder, error)
+	// Subscriptions ---------------------------------------------------------------------------------------------
+	InsertOrderSubscription(ctx context.Context, arg InsertOrderSubscriptionParams) (InsertOrderSubscriptionRow, error)
+	// Payments --------------------------------------------------------------------------------------------------
+	InsertPayment(ctx context.Context, arg InsertPaymentParams) (AppPayment, error)
 	// ON CONFLICT DO NOTHING makes re-ingesting the same quote a no-op (no row returned).
 	InsertPoint(ctx context.Context, arg InsertPointParams) (InsertPointRow, error)
+	// Refunds ---------------------------------------------------------------------------------------------------
+	InsertRefund(ctx context.Context, arg InsertRefundParams) (AppRefund, error)
 	InsertSourceRun(ctx context.Context, arg InsertSourceRunParams) error
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (InsertSubscriptionRow, error)
 	// The last published price before a moment (used for prev_close when the latest point is replaced out of order).
 	LastCloseBefore(ctx context.Context, arg LastCloseBeforeParams) (int64, error)
+	// For manual grants: extend after the latest active subscription of the same plan.
+	LatestEndForPlan(ctx context.Context, arg LatestEndForPlanParams) (pgtype.Timestamptz, error)
 	LatestPriceBySlug(ctx context.Context) ([]LatestPriceBySlugRow, error)
 	ListActivePlans(ctx context.Context) ([]ListActivePlansRow, error)
 	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
+	// Active subscriptions that haven't ended, with the value paid for them (0 for manual grants).
+	ListHeldSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListHeldSubscriptionsRow, error)
 	// Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
 	// One row per active series, with its latest published point (NULL when the series has no data yet).
 	ListLatestPrices(ctx context.Context, includeInactive bool) ([]ListLatestPricesRow, error)
@@ -43,16 +73,36 @@ type Querier interface {
 	// Sources ----------------------------------------------------------------------------------------------------
 	ListSources(ctx context.Context) ([]ListSourcesRow, error)
 	ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListSubscriptionsRow, error)
+	ListUserOrders(ctx context.Context, userID pgtype.UUID) ([]ListUserOrdersRow, error)
+	ListUserSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListUserSubscriptionsRow, error)
 	// Ingestion (always inside one transaction per batch) ---------------------------------------------------------
 	LockLatest(ctx context.Context, seriesID int32) (LockLatestRow, error)
+	LockOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error)
+	LockPaymentByAuthority(ctx context.Context, authority string) (AppPayment, error)
 	LockPoint(ctx context.Context, id int64) (LockPointRow, error)
+	LockRefund(ctx context.Context, id pgtype.UUID) (AppRefund, error)
+	LockUserBilling(ctx context.Context, userID pgtype.UUID) error
+	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
+	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
+	RecordUsage(ctx context.Context, arg RecordUsageParams) error
+	// An upgrade ends lower plans now (queued ones never start).
+	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
+	// Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
+	SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow, error)
 	// Downsampled history: the last published price per bucket. Buckets are aligned to Tehran midnight so daily
 	// buckets are calendar days in Iran.
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
+	SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) error
+	SetPaymentFailed(ctx context.Context, arg SetPaymentFailedParams) error
+	SetPaymentVerified(ctx context.Context, arg SetPaymentVerifiedParams) error
 	SetPointStatus(ctx context.Context, arg SetPointStatusParams) error
 	SourceHasPoints(ctx context.Context, sourceID int16) (bool, error)
 	SourceHealth(ctx context.Context) ([]SourceHealthRow, error)
+	SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UUID) (bool, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
+	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
+	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
+	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

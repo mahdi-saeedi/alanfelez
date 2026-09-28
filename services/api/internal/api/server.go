@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/subscription"
@@ -22,25 +22,18 @@ import (
 // Server implements the generated StrictServerInterface. Handlers stay thin:
 // parse → call a query/service → map to the API model.
 type Server struct {
-	pool   *pgxpool.Pool
-	q      dbq.Querier
-	prices *prices.Service
-	tiers  *subscription.Resolver
-	now    func() time.Time
+	pool    *pgxpool.Pool
+	q       dbq.Querier
+	prices  *prices.Service
+	billing *billing.Service
+	tiers   *subscription.Resolver
+	now     func() time.Time
 }
 
 // NewServer wires the API implementation.
-func NewServer(pool *pgxpool.Pool, ps *prices.Service) *Server {
+func NewServer(pool *pgxpool.Pool, ps *prices.Service, bs *billing.Service) *Server {
 	q := dbq.New(pool)
-	return &Server{pool: pool, q: q, prices: ps, tiers: subscription.NewResolver(q), now: time.Now}
-}
-
-// inTx runs fn in one transaction (for writes that must land together with their audit row).
-func (s *Server) inTx(ctx context.Context, fn func(q *dbq.Queries) error) error {
-	if err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error { return fn(dbq.New(tx)) }); err != nil {
-		return fmt.Errorf("tx: %w", err)
-	}
-	return nil
+	return &Server{pool: pool, q: q, prices: ps, billing: bs, tiers: subscription.NewResolver(q), now: time.Now}
 }
 
 var _ StrictServerInterface = (*Server)(nil)
@@ -114,7 +107,11 @@ func (s *Server) ListPlans(ctx context.Context, req ListPlansRequestObject) (Lis
 			Prices: append([]PlanPrice{}, byPlan[p.Code]...),
 		})
 	}
-	return ListPlans200JSONResponse{Items: items}, nil
+	purchasable, err := s.q.FeatureEnabled(ctx, "payments.enabled")
+	if err != nil {
+		return nil, fmt.Errorf("feature flag: %w", err)
+	}
+	return ListPlans200JSONResponse{Items: items, Purchasable: purchasable}, nil
 }
 
 // langOf normalises the Accept-Language parameter; Persian is the default locale.

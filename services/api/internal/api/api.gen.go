@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -23,21 +24,66 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AdminOrderKind.
+const (
+	AdminOrderKindDowngrade AdminOrderKind = "downgrade"
+	AdminOrderKindNew       AdminOrderKind = "new"
+	AdminOrderKindRenewal   AdminOrderKind = "renewal"
+	AdminOrderKindUpgrade   AdminOrderKind = "upgrade"
+)
+
+// Valid indicates whether the value is a known member of the AdminOrderKind enum.
+func (e AdminOrderKind) Valid() bool {
+	switch e {
+	case AdminOrderKindDowngrade:
+		return true
+	case AdminOrderKindNew:
+		return true
+	case AdminOrderKindRenewal:
+		return true
+	case AdminOrderKindUpgrade:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AdminPointStatus.
 const (
-	Published   AdminPointStatus = "published"
-	Quarantined AdminPointStatus = "quarantined"
-	Rejected    AdminPointStatus = "rejected"
+	AdminPointStatusPublished   AdminPointStatus = "published"
+	AdminPointStatusQuarantined AdminPointStatus = "quarantined"
+	AdminPointStatusRejected    AdminPointStatus = "rejected"
 )
 
 // Valid indicates whether the value is a known member of the AdminPointStatus enum.
 func (e AdminPointStatus) Valid() bool {
 	switch e {
-	case Published:
+	case AdminPointStatusPublished:
 		return true
-	case Quarantined:
+	case AdminPointStatusQuarantined:
 		return true
-	case Rejected:
+	case AdminPointStatusRejected:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for BillingPeriod.
+const (
+	BillingPeriodMonth   BillingPeriod = "month"
+	BillingPeriodQuarter BillingPeriod = "quarter"
+	BillingPeriodYear    BillingPeriod = "year"
+)
+
+// Valid indicates whether the value is a known member of the BillingPeriod enum.
+func (e BillingPeriod) Valid() bool {
+	switch e {
+	case BillingPeriodMonth:
+		return true
+	case BillingPeriodQuarter:
+		return true
+	case BillingPeriodYear:
 		return true
 	default:
 		return false
@@ -107,6 +153,30 @@ func (e ChartRange) Valid() bool {
 	}
 }
 
+// Defines values for CheckoutQuoteKind.
+const (
+	CheckoutQuoteKindDowngrade CheckoutQuoteKind = "downgrade"
+	CheckoutQuoteKindNew       CheckoutQuoteKind = "new"
+	CheckoutQuoteKindRenewal   CheckoutQuoteKind = "renewal"
+	CheckoutQuoteKindUpgrade   CheckoutQuoteKind = "upgrade"
+)
+
+// Valid indicates whether the value is a known member of the CheckoutQuoteKind enum.
+func (e CheckoutQuoteKind) Valid() bool {
+	switch e {
+	case CheckoutQuoteKindDowngrade:
+		return true
+	case CheckoutQuoteKindNew:
+		return true
+	case CheckoutQuoteKindRenewal:
+		return true
+	case CheckoutQuoteKindUpgrade:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Currency.
 const (
 	IRR Currency = "IRR"
@@ -143,6 +213,96 @@ func (e MarketScope) Valid() bool {
 	}
 }
 
+// Defines values for MySubscriptionOrigin.
+const (
+	MySubscriptionOriginManual MySubscriptionOrigin = "manual"
+	MySubscriptionOriginOrder  MySubscriptionOrigin = "order"
+)
+
+// Valid indicates whether the value is a known member of the MySubscriptionOrigin enum.
+func (e MySubscriptionOrigin) Valid() bool {
+	switch e {
+	case MySubscriptionOriginManual:
+		return true
+	case MySubscriptionOriginOrder:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MySubscriptionStatus.
+const (
+	MySubscriptionStatusActive    MySubscriptionStatus = "active"
+	MySubscriptionStatusCancelled MySubscriptionStatus = "cancelled"
+	MySubscriptionStatusReplaced  MySubscriptionStatus = "replaced"
+)
+
+// Valid indicates whether the value is a known member of the MySubscriptionStatus enum.
+func (e MySubscriptionStatus) Valid() bool {
+	switch e {
+	case MySubscriptionStatusActive:
+		return true
+	case MySubscriptionStatusCancelled:
+		return true
+	case MySubscriptionStatusReplaced:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OrderKind.
+const (
+	OrderKindDowngrade OrderKind = "downgrade"
+	OrderKindNew       OrderKind = "new"
+	OrderKindRenewal   OrderKind = "renewal"
+	OrderKindUpgrade   OrderKind = "upgrade"
+)
+
+// Valid indicates whether the value is a known member of the OrderKind enum.
+func (e OrderKind) Valid() bool {
+	switch e {
+	case OrderKindDowngrade:
+		return true
+	case OrderKindNew:
+		return true
+	case OrderKindRenewal:
+		return true
+	case OrderKindUpgrade:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OrderStatus.
+const (
+	Expired  OrderStatus = "expired"
+	Failed   OrderStatus = "failed"
+	Paid     OrderStatus = "paid"
+	Pending  OrderStatus = "pending"
+	Refunded OrderStatus = "refunded"
+)
+
+// Valid indicates whether the value is a known member of the OrderStatus enum.
+func (e OrderStatus) Valid() bool {
+	switch e {
+	case Expired:
+		return true
+	case Failed:
+		return true
+	case Paid:
+		return true
+	case Pending:
+		return true
+	case Refunded:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PaidPlan.
 const (
 	PaidPlanGold   PaidPlan = "gold"
@@ -163,19 +323,40 @@ func (e PaidPlan) Valid() bool {
 
 // Defines values for PlanPricePeriod.
 const (
-	Month   PlanPricePeriod = "month"
-	Quarter PlanPricePeriod = "quarter"
-	Year    PlanPricePeriod = "year"
+	PlanPricePeriodMonth   PlanPricePeriod = "month"
+	PlanPricePeriodQuarter PlanPricePeriod = "quarter"
+	PlanPricePeriodYear    PlanPricePeriod = "year"
 )
 
 // Valid indicates whether the value is a known member of the PlanPricePeriod enum.
 func (e PlanPricePeriod) Valid() bool {
 	switch e {
-	case Month:
+	case PlanPricePeriodMonth:
 		return true
-	case Quarter:
+	case PlanPricePeriodQuarter:
 		return true
-	case Year:
+	case PlanPricePeriodYear:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RefundStatus.
+const (
+	RefundStatusApproved  RefundStatus = "approved"
+	RefundStatusRejected  RefundStatus = "rejected"
+	RefundStatusRequested RefundStatus = "requested"
+)
+
+// Valid indicates whether the value is a known member of the RefundStatus enum.
+func (e RefundStatus) Valid() bool {
+	switch e {
+	case RefundStatusApproved:
+		return true
+	case RefundStatusRejected:
+		return true
+	case RefundStatusRequested:
 		return true
 	default:
 		return false
@@ -202,16 +383,16 @@ func (e SourceHealthLastRunStatus) Valid() bool {
 
 // Defines values for SubscriptionOrigin.
 const (
-	Manual SubscriptionOrigin = "manual"
-	Order  SubscriptionOrigin = "order"
+	SubscriptionOriginManual SubscriptionOrigin = "manual"
+	SubscriptionOriginOrder  SubscriptionOrigin = "order"
 )
 
 // Valid indicates whether the value is a known member of the SubscriptionOrigin enum.
 func (e SubscriptionOrigin) Valid() bool {
 	switch e {
-	case Manual:
+	case SubscriptionOriginManual:
 		return true
-	case Order:
+	case SubscriptionOriginOrder:
 		return true
 	default:
 		return false
@@ -220,16 +401,16 @@ func (e SubscriptionOrigin) Valid() bool {
 
 // Defines values for SubscriptionStatus.
 const (
-	Active    SubscriptionStatus = "active"
-	Cancelled SubscriptionStatus = "cancelled"
+	SubscriptionStatusActive    SubscriptionStatus = "active"
+	SubscriptionStatusCancelled SubscriptionStatus = "cancelled"
 )
 
 // Valid indicates whether the value is a known member of the SubscriptionStatus enum.
 func (e SubscriptionStatus) Valid() bool {
 	switch e {
-	case Active:
+	case SubscriptionStatusActive:
 		return true
-	case Cancelled:
+	case SubscriptionStatusCancelled:
 		return true
 	default:
 		return false
@@ -295,16 +476,34 @@ func (e AcceptLanguage) Valid() bool {
 
 // Defines values for AdminReviewPriceJSONBodyDecision.
 const (
-	Approve AdminReviewPriceJSONBodyDecision = "approve"
-	Reject  AdminReviewPriceJSONBodyDecision = "reject"
+	AdminReviewPriceJSONBodyDecisionApprove AdminReviewPriceJSONBodyDecision = "approve"
+	AdminReviewPriceJSONBodyDecisionReject  AdminReviewPriceJSONBodyDecision = "reject"
 )
 
 // Valid indicates whether the value is a known member of the AdminReviewPriceJSONBodyDecision enum.
 func (e AdminReviewPriceJSONBodyDecision) Valid() bool {
 	switch e {
-	case Approve:
+	case AdminReviewPriceJSONBodyDecisionApprove:
 		return true
-	case Reject:
+	case AdminReviewPriceJSONBodyDecisionReject:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AdminDecideRefundJSONBodyDecision.
+const (
+	AdminDecideRefundJSONBodyDecisionApprove AdminDecideRefundJSONBodyDecision = "approve"
+	AdminDecideRefundJSONBodyDecisionReject  AdminDecideRefundJSONBodyDecision = "reject"
+)
+
+// Valid indicates whether the value is a known member of the AdminDecideRefundJSONBodyDecision enum.
+func (e AdminDecideRefundJSONBodyDecision) Valid() bool {
+	switch e {
+	case AdminDecideRefundJSONBodyDecisionApprove:
+		return true
+	case AdminDecideRefundJSONBodyDecisionReject:
 		return true
 	default:
 		return false
@@ -323,6 +522,24 @@ func (e ListCategoriesParamsAcceptLanguage) Valid() bool {
 	case ListCategoriesParamsAcceptLanguageEn:
 		return true
 	case ListCategoriesParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for StartCheckoutParamsAcceptLanguage.
+const (
+	StartCheckoutParamsAcceptLanguageEn StartCheckoutParamsAcceptLanguage = "en"
+	StartCheckoutParamsAcceptLanguageFa StartCheckoutParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the StartCheckoutParamsAcceptLanguage enum.
+func (e StartCheckoutParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case StartCheckoutParamsAcceptLanguageEn:
+		return true
+	case StartCheckoutParamsAcceptLanguageFa:
 		return true
 	default:
 		return false
@@ -419,6 +636,35 @@ func (e ListSeriesPointsParamsAcceptLanguage) Valid() bool {
 	}
 }
 
+// AdminOrder defines model for AdminOrder.
+type AdminOrder struct {
+	// Amount Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Amount    Money     `json:"amount"`
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Credit Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Credit  Money              `json:"credit"`
+	Gateway string             `json:"gateway"`
+	Id      openapi_types.UUID `json:"id"`
+	Kind    AdminOrderKind     `json:"kind"`
+	PaidAt  *time.Time         `json:"paidAt,omitempty"`
+	Period  BillingPeriod      `json:"period"`
+	Plan    PaidPlan           `json:"plan"`
+
+	// Price Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Price        Money               `json:"price"`
+	RefId        *string             `json:"refId,omitempty"`
+	RefundId     *openapi_types.UUID `json:"refundId,omitempty"`
+	RefundReason *string             `json:"refundReason,omitempty"`
+	RefundStatus *RefundStatus       `json:"refundStatus,omitempty"`
+	Status       OrderStatus         `json:"status"`
+	UserId       openapi_types.UUID  `json:"userId"`
+	Username     *string             `json:"username,omitempty"`
+}
+
+// AdminOrderKind defines model for AdminOrder.Kind.
+type AdminOrderKind string
+
 // AdminPoint defines model for AdminPoint.
 type AdminPoint struct {
 	Amount     string    `json:"amount"`
@@ -458,6 +704,26 @@ type AdminSeries struct {
 	Unit         Unit       `json:"unit"`
 }
 
+// AdminUser defines model for AdminUser.
+type AdminUser struct {
+	Blocked       bool       `json:"blocked"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	CurrentEndsAt *time.Time `json:"currentEndsAt,omitempty"`
+
+	// CurrentPlan Subscription tier (plan code)
+	CurrentPlan Tier               `json:"currentPlan"`
+	Email       *string            `json:"email,omitempty"`
+	FirstName   *string            `json:"firstName,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	LastName    *string            `json:"lastName,omitempty"`
+	LastSeenAt  time.Time          `json:"lastSeenAt"`
+	Phone       *string            `json:"phone,omitempty"`
+	Username    string             `json:"username"`
+}
+
+// BillingPeriod defines model for BillingPeriod.
+type BillingPeriod string
+
 // BulkPriceResult defines model for BulkPriceResult.
 type BulkPriceResult struct {
 	Index          int                   `json:"index"`
@@ -473,6 +739,40 @@ type BulkPriceResultStatus string
 
 // ChartRange defines model for ChartRange.
 type ChartRange string
+
+// CheckoutInput defines model for CheckoutInput.
+type CheckoutInput struct {
+	Period BillingPeriod `json:"period"`
+	Plan   PaidPlan      `json:"plan"`
+}
+
+// CheckoutQuote defines model for CheckoutQuote.
+type CheckoutQuote struct {
+	// Amount Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Amount Money `json:"amount"`
+
+	// Credit Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Credit Money             `json:"credit"`
+	EndsAt time.Time         `json:"endsAt"`
+	Kind   CheckoutQuoteKind `json:"kind"`
+	Period BillingPeriod     `json:"period"`
+	Plan   PaidPlan          `json:"plan"`
+
+	// Price Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Price    Money     `json:"price"`
+	StartsAt time.Time `json:"startsAt"`
+}
+
+// CheckoutQuoteKind defines model for CheckoutQuote.Kind.
+type CheckoutQuoteKind string
+
+// CheckoutResult defines model for CheckoutResult.
+type CheckoutResult struct {
+	Order Order `json:"order"`
+
+	// RedirectUrl Gateway payment page; absent when nothing is left to pay
+	RedirectUrl *string `json:"redirectUrl,omitempty"`
+}
 
 // Currency defines model for Currency.
 type Currency string
@@ -529,6 +829,23 @@ type Market struct {
 // MarketScope defines model for Market.Scope.
 type MarketScope string
 
+// Me defines model for Me.
+type Me struct {
+	Current   *MySubscription    `json:"current,omitempty"`
+	Email     *string            `json:"email,omitempty"`
+	FirstName *string            `json:"firstName,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+	LastName  *string            `json:"lastName,omitempty"`
+	Next      *MySubscription    `json:"next,omitempty"`
+
+	// Phone E.164
+	Phone *string `json:"phone,omitempty"`
+
+	// Tier Subscription tier (plan code)
+	Tier     Tier   `json:"tier"`
+	Username string `json:"username"`
+}
+
 // Metal defines model for Metal.
 type Metal struct {
 	Name string `json:"name"`
@@ -540,6 +857,54 @@ type Money struct {
 	Amount   string   `json:"amount"`
 	Currency Currency `json:"currency"`
 }
+
+// MySubscription defines model for MySubscription.
+type MySubscription struct {
+	EndsAt   time.Time            `json:"endsAt"`
+	Id       openapi_types.UUID   `json:"id"`
+	Origin   MySubscriptionOrigin `json:"origin"`
+	Plan     PaidPlan             `json:"plan"`
+	StartsAt time.Time            `json:"startsAt"`
+	Status   MySubscriptionStatus `json:"status"`
+}
+
+// MySubscriptionOrigin defines model for MySubscription.Origin.
+type MySubscriptionOrigin string
+
+// MySubscriptionStatus defines model for MySubscription.Status.
+type MySubscriptionStatus string
+
+// Order defines model for Order.
+type Order struct {
+	// Amount Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Amount    Money     `json:"amount"`
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Credit Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Credit Money              `json:"credit"`
+	Id     openapi_types.UUID `json:"id"`
+	Kind   OrderKind          `json:"kind"`
+	PaidAt *time.Time         `json:"paidAt,omitempty"`
+	Period BillingPeriod      `json:"period"`
+	Plan   PaidPlan           `json:"plan"`
+
+	// Price Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Price Money `json:"price"`
+
+	// RefId Gateway receipt number
+	RefId        *string       `json:"refId,omitempty"`
+	RefundStatus *RefundStatus `json:"refundStatus,omitempty"`
+
+	// Refundable A refund can be requested now
+	Refundable bool        `json:"refundable"`
+	Status     OrderStatus `json:"status"`
+}
+
+// OrderKind defines model for Order.Kind.
+type OrderKind string
+
+// OrderStatus defines model for OrderStatus.
+type OrderStatus string
 
 // PaidPlan defines model for PaidPlan.
 type PaidPlan string
@@ -618,6 +983,22 @@ type Problem struct {
 	Title        string `json:"title"`
 	Type         string `json:"type"`
 }
+
+// Refund defines model for Refund.
+type Refund struct {
+	// Amount Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+	Amount    Money              `json:"amount"`
+	CreatedAt time.Time          `json:"createdAt"`
+	DecidedAt *time.Time         `json:"decidedAt,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+	Note      *string            `json:"note,omitempty"`
+	OrderId   openapi_types.UUID `json:"orderId"`
+	Reason    *string            `json:"reason,omitempty"`
+	Status    RefundStatus       `json:"status"`
+}
+
+// RefundStatus defines model for RefundStatus.
+type RefundStatus string
 
 // SeriesHistory defines model for SeriesHistory.
 type SeriesHistory struct {
@@ -702,6 +1083,13 @@ type Unit string
 // AcceptLanguage defines model for AcceptLanguage.
 type AcceptLanguage string
 
+// AdminListOrdersParams defines parameters for AdminListOrders.
+type AdminListOrdersParams struct {
+	Status       *OrderStatus        `form:"status,omitempty" json:"status,omitempty"`
+	RefundStatus *RefundStatus       `form:"refundStatus,omitempty" json:"refundStatus,omitempty"`
+	UserId       *openapi_types.UUID `form:"userId,omitempty" json:"userId,omitempty"`
+}
+
 // AdminBulkPricesJSONBody defines parameters for AdminBulkPrices.
 type AdminBulkPricesJSONBody struct {
 	DryRun *bool              `json:"dryRun,omitempty"`
@@ -715,6 +1103,15 @@ type AdminReviewPriceJSONBody struct {
 
 // AdminReviewPriceJSONBodyDecision defines parameters for AdminReviewPrice.
 type AdminReviewPriceJSONBodyDecision string
+
+// AdminDecideRefundJSONBody defines parameters for AdminDecideRefund.
+type AdminDecideRefundJSONBody struct {
+	Decision AdminDecideRefundJSONBodyDecision `json:"decision"`
+	Note     *string                           `json:"note,omitempty"`
+}
+
+// AdminDecideRefundJSONBodyDecision defines parameters for AdminDecideRefund.
+type AdminDecideRefundJSONBodyDecision string
 
 // AdminListSubscriptionsParams defines parameters for AdminListSubscriptions.
 type AdminListSubscriptionsParams struct {
@@ -731,6 +1128,11 @@ type AdminGrantSubscriptionJSONBody struct {
 	UserId openapi_types.UUID `json:"userId"`
 }
 
+// AdminListUsersParams defines parameters for AdminListUsers.
+type AdminListUsersParams struct {
+	Q *string `form:"q,omitempty" json:"q,omitempty"`
+}
+
 // ListCategoriesParams defines parameters for ListCategories.
 type ListCategoriesParams struct {
 	AcceptLanguage *ListCategoriesParamsAcceptLanguage `json:"Accept-Language,omitempty"`
@@ -738,6 +1140,15 @@ type ListCategoriesParams struct {
 
 // ListCategoriesParamsAcceptLanguage defines parameters for ListCategories.
 type ListCategoriesParamsAcceptLanguage string
+
+// StartCheckoutParams defines parameters for StartCheckout.
+type StartCheckoutParams struct {
+	IdempotencyKey string                             `json:"Idempotency-Key"`
+	AcceptLanguage *StartCheckoutParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// StartCheckoutParamsAcceptLanguage defines parameters for StartCheckout.
+type StartCheckoutParamsAcceptLanguage string
 
 // ListMarketsParams defines parameters for ListMarkets.
 type ListMarketsParams struct {
@@ -747,6 +1158,11 @@ type ListMarketsParams struct {
 // ListMarketsParamsAcceptLanguage defines parameters for ListMarkets.
 type ListMarketsParamsAcceptLanguage string
 
+// RequestRefundJSONBody defines parameters for RequestRefund.
+type RequestRefundJSONBody struct {
+	Reason *string `json:"reason,omitempty"`
+}
+
 // ListMetalsParams defines parameters for ListMetals.
 type ListMetalsParams struct {
 	AcceptLanguage *ListMetalsParamsAcceptLanguage `json:"Accept-Language,omitempty"`
@@ -754,6 +1170,14 @@ type ListMetalsParams struct {
 
 // ListMetalsParamsAcceptLanguage defines parameters for ListMetals.
 type ListMetalsParamsAcceptLanguage string
+
+// VerifyPaymentJSONBody defines parameters for VerifyPayment.
+type VerifyPaymentJSONBody struct {
+	OrderId openapi_types.UUID `json:"orderId"`
+
+	// Params The gateway's callback query parameters, as received
+	Params map[string]string `json:"params"`
+}
 
 // ListPlansParams defines parameters for ListPlans.
 type ListPlansParams struct {
@@ -792,11 +1216,29 @@ type AdminBulkPricesJSONRequestBody AdminBulkPricesJSONBody
 // AdminReviewPriceJSONRequestBody defines body for AdminReviewPrice for application/json ContentType.
 type AdminReviewPriceJSONRequestBody AdminReviewPriceJSONBody
 
+// AdminDecideRefundJSONRequestBody defines body for AdminDecideRefund for application/json ContentType.
+type AdminDecideRefundJSONRequestBody AdminDecideRefundJSONBody
+
 // AdminGrantSubscriptionJSONRequestBody defines body for AdminGrantSubscription for application/json ContentType.
 type AdminGrantSubscriptionJSONRequestBody AdminGrantSubscriptionJSONBody
 
+// StartCheckoutJSONRequestBody defines body for StartCheckout for application/json ContentType.
+type StartCheckoutJSONRequestBody = CheckoutInput
+
+// QuoteCheckoutJSONRequestBody defines body for QuoteCheckout for application/json ContentType.
+type QuoteCheckoutJSONRequestBody = CheckoutInput
+
+// RequestRefundJSONRequestBody defines body for RequestRefund for application/json ContentType.
+type RequestRefundJSONRequestBody RequestRefundJSONBody
+
+// VerifyPaymentJSONRequestBody defines body for VerifyPayment for application/json ContentType.
+type VerifyPaymentJSONRequestBody VerifyPaymentJSONBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// AdminListOrders Latest orders (max 100), optionally filtered
+	// (GET /v1/admin/orders)
+	AdminListOrders(w http.ResponseWriter, r *http.Request, params AdminListOrdersParams)
 	// AdminCreatePrice Manual price entry (fallback when a source is down, SCOPE §13)
 	// (POST /v1/admin/prices)
 	AdminCreatePrice(w http.ResponseWriter, r *http.Request)
@@ -809,6 +1251,9 @@ type ServerInterface interface {
 	// AdminReviewPrice Approve (publish) or reject a quarantined point. Roles, editor, admin
 	// (POST /v1/admin/prices/{id}/review)
 	AdminReviewPrice(w http.ResponseWriter, r *http.Request, id string)
+	// AdminDecideRefund Approve (order refunded, plan cancelled) or reject a refund request. Role, admin
+	// (POST /v1/admin/refunds/{id}/decision)
+	AdminDecideRefund(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// AdminListSeries Every series with its latest price and outlier threshold
 	// (GET /v1/admin/series)
 	AdminListSeries(w http.ResponseWriter, r *http.Request)
@@ -821,18 +1266,45 @@ type ServerInterface interface {
 	// AdminGrantSubscription Grant a subscription manually (until checkout exists). Role, admin
 	// (POST /v1/admin/subscriptions)
 	AdminGrantSubscription(w http.ResponseWriter, r *http.Request)
+	// AdminListUsers Search users by mobile, name or id (max 50)
+	// (GET /v1/admin/users)
+	AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams)
 	// ListCategories List product categories (raw materials, intermediate products, scrap)
 	// (GET /v1/categories)
 	ListCategories(w http.ResponseWriter, r *http.Request, params ListCategoriesParams)
+	// StartCheckout Create an order and start its payment. Returns the gateway URL to send the browser to
+	// (POST /v1/checkout)
+	StartCheckout(w http.ResponseWriter, r *http.Request, params StartCheckoutParams)
+	// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
+	// (POST /v1/checkout/quote)
+	QuoteCheckout(w http.ResponseWriter, r *http.Request)
 	// ListMarkets List markets / price sources
 	// (GET /v1/markets)
 	ListMarkets(w http.ResponseWriter, r *http.Request, params ListMarketsParams)
+	// GetMe The signed-in user's profile and current plan (refreshes the local profile from the token)
+	// (GET /v1/me)
+	GetMe(w http.ResponseWriter, r *http.Request)
 	// GetEntitlements Evaluated feature map for the caller (anonymous = free)
 	// (GET /v1/me/entitlements)
 	GetEntitlements(w http.ResponseWriter, r *http.Request)
+	// ListMyOrders The user's orders (billing history), newest first
+	// (GET /v1/me/orders)
+	ListMyOrders(w http.ResponseWriter, r *http.Request)
+	// GetMyOrder One of the user's orders (payment result page)
+	// (GET /v1/me/orders/{id})
+	GetMyOrder(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// RequestRefund Ask for a refund (within 7 days of payment, if no paid feature was used)
+	// (POST /v1/me/orders/{id}/refund)
+	RequestRefund(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// ListMySubscriptions The user's subscriptions, newest first (includes queued ones)
+	// (GET /v1/me/subscriptions)
+	ListMySubscriptions(w http.ResponseWriter, r *http.Request)
 	// ListMetals List base metals
 	// (GET /v1/metals)
 	ListMetals(w http.ResponseWriter, r *http.Request, params ListMetalsParams)
+	// VerifyPayment Complete a payment after the gateway redirected the browser back (called by the website's callback page)
+	// (POST /v1/payments/verify)
+	VerifyPayment(w http.ResponseWriter, r *http.Request)
 	// ListPlans List active subscription plans with current prices
 	// (GET /v1/plans)
 	ListPlans(w http.ResponseWriter, r *http.Request, params ListPlansParams)
@@ -847,6 +1319,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// AdminListOrders Latest orders (max 100), optionally filtered
+// (GET /v1/admin/orders)
+func (_ Unimplemented) AdminListOrders(w http.ResponseWriter, r *http.Request, params AdminListOrdersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // AdminCreatePrice Manual price entry (fallback when a source is down, SCOPE §13)
 // (POST /v1/admin/prices)
@@ -869,6 +1347,12 @@ func (_ Unimplemented) AdminListQuarantine(w http.ResponseWriter, r *http.Reques
 // AdminReviewPrice Approve (publish) or reject a quarantined point. Roles, editor, admin
 // (POST /v1/admin/prices/{id}/review)
 func (_ Unimplemented) AdminReviewPrice(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminDecideRefund Approve (order refunded, plan cancelled) or reject a refund request. Role, admin
+// (POST /v1/admin/refunds/{id}/decision)
+func (_ Unimplemented) AdminDecideRefund(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -896,9 +1380,27 @@ func (_ Unimplemented) AdminGrantSubscription(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// AdminListUsers Search users by mobile, name or id (max 50)
+// (GET /v1/admin/users)
+func (_ Unimplemented) AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // ListCategories List product categories (raw materials, intermediate products, scrap)
 // (GET /v1/categories)
 func (_ Unimplemented) ListCategories(w http.ResponseWriter, r *http.Request, params ListCategoriesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// StartCheckout Create an order and start its payment. Returns the gateway URL to send the browser to
+// (POST /v1/checkout)
+func (_ Unimplemented) StartCheckout(w http.ResponseWriter, r *http.Request, params StartCheckoutParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
+// (POST /v1/checkout/quote)
+func (_ Unimplemented) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -908,15 +1410,51 @@ func (_ Unimplemented) ListMarkets(w http.ResponseWriter, r *http.Request, param
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// GetMe The signed-in user's profile and current plan (refreshes the local profile from the token)
+// (GET /v1/me)
+func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // GetEntitlements Evaluated feature map for the caller (anonymous = free)
 // (GET /v1/me/entitlements)
 func (_ Unimplemented) GetEntitlements(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// ListMyOrders The user's orders (billing history), newest first
+// (GET /v1/me/orders)
+func (_ Unimplemented) ListMyOrders(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetMyOrder One of the user's orders (payment result page)
+// (GET /v1/me/orders/{id})
+func (_ Unimplemented) GetMyOrder(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RequestRefund Ask for a refund (within 7 days of payment, if no paid feature was used)
+// (POST /v1/me/orders/{id}/refund)
+func (_ Unimplemented) RequestRefund(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListMySubscriptions The user's subscriptions, newest first (includes queued ones)
+// (GET /v1/me/subscriptions)
+func (_ Unimplemented) ListMySubscriptions(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // ListMetals List base metals
 // (GET /v1/metals)
 func (_ Unimplemented) ListMetals(w http.ResponseWriter, r *http.Request, params ListMetalsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// VerifyPayment Complete a payment after the gateway redirected the browser back (called by the website's callback page)
+// (POST /v1/payments/verify)
+func (_ Unimplemented) VerifyPayment(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -946,6 +1484,65 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// AdminListOrders operation middleware
+func (siw *ServerInterfaceWrapper) AdminListOrders(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListOrdersParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "refundStatus" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "refundStatus", r.URL.Query(), &params.RefundStatus, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "refundStatus"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "refundStatus", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "userId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "userId", r.URL.Query(), &params.UserId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "userId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListOrders(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // AdminCreatePrice operation middleware
 func (siw *ServerInterfaceWrapper) AdminCreatePrice(w http.ResponseWriter, r *http.Request) {
@@ -1006,6 +1603,32 @@ func (siw *ServerInterfaceWrapper) AdminReviewPrice(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminReviewPrice(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminDecideRefund operation middleware
+func (siw *ServerInterfaceWrapper) AdminDecideRefund(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDecideRefund(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1090,6 +1713,39 @@ func (siw *ServerInterfaceWrapper) AdminGrantSubscription(w http.ResponseWriter,
 	handler.ServeHTTP(w, r)
 }
 
+// AdminListUsers operation middleware
+func (siw *ServerInterfaceWrapper) AdminListUsers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListUsersParams
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "q", r.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListUsers(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListCategories operation middleware
 func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http.Request) {
 
@@ -1122,6 +1778,84 @@ func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListCategories(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartCheckout operation middleware
+func (siw *ServerInterfaceWrapper) StartCheckout(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params StartCheckoutParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage StartCheckoutParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartCheckout(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// QuoteCheckout operation middleware
+func (siw *ServerInterfaceWrapper) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.QuoteCheckout(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1172,11 +1906,105 @@ func (siw *ServerInterfaceWrapper) ListMarkets(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// GetMe operation middleware
+func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetEntitlements operation middleware
 func (siw *ServerInterfaceWrapper) GetEntitlements(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetEntitlements(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListMyOrders operation middleware
+func (siw *ServerInterfaceWrapper) ListMyOrders(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMyOrders(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMyOrder operation middleware
+func (siw *ServerInterfaceWrapper) GetMyOrder(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMyOrder(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RequestRefund operation middleware
+func (siw *ServerInterfaceWrapper) RequestRefund(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RequestRefund(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListMySubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) ListMySubscriptions(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMySubscriptions(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1218,6 +2046,20 @@ func (siw *ServerInterfaceWrapper) ListMetals(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListMetals(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// VerifyPayment operation middleware
+func (siw *ServerInterfaceWrapper) VerifyPayment(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.VerifyPayment(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1546,6 +2388,39 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1/me/entitlements", wrapper.GetEntitlements)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me", wrapper.GetMe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me/subscriptions", wrapper.ListMySubscriptions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me/orders", wrapper.ListMyOrders)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me/orders/{id}", wrapper.GetMyOrder)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/me/orders/{id}/refund", wrapper.RequestRefund)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/checkout/quote", wrapper.QuoteCheckout)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/checkout", wrapper.StartCheckout)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/payments/verify", wrapper.VerifyPayment)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/users", wrapper.AdminListUsers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/orders", wrapper.AdminListOrders)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/refunds/{id}/decision", wrapper.AdminDecideRefund)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/admin/series", wrapper.AdminListSeries)
 	})
 	r.Group(func(r chi.Router) {
@@ -1574,6 +2449,77 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
+
+type AdminListOrdersRequestObject struct {
+	Params AdminListOrdersParams
+}
+
+type AdminListOrdersResponseObject interface {
+	VisitAdminListOrdersResponse(w http.ResponseWriter) error
+}
+
+type AdminListOrders200JSONResponse struct {
+	Items []AdminOrder `json:"items"`
+}
+
+func (response AdminListOrders200JSONResponse) VisitAdminListOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListOrders401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response AdminListOrders401ApplicationProblemPlusJSONResponse) VisitAdminListOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListOrders403ApplicationProblemPlusJSONResponse Problem
+
+func (response AdminListOrders403ApplicationProblemPlusJSONResponse) VisitAdminListOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListOrdersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListOrdersdefaultApplicationProblemPlusJSONResponse) VisitAdminListOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type AdminCreatePriceRequestObject struct {
 	Body *AdminCreatePriceJSONRequestBody
@@ -1954,6 +2900,104 @@ func (response AdminReviewPricedefaultApplicationProblemPlusJSONResponse) VisitA
 	return err
 }
 
+type AdminDecideRefundRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminDecideRefundJSONRequestBody
+}
+
+type AdminDecideRefundResponseObject interface {
+	VisitAdminDecideRefundResponse(w http.ResponseWriter) error
+}
+
+type AdminDecideRefund200JSONResponse Refund
+
+func (response AdminDecideRefund200JSONResponse) VisitAdminDecideRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDecideRefund401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response AdminDecideRefund401ApplicationProblemPlusJSONResponse) VisitAdminDecideRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDecideRefund403ApplicationProblemPlusJSONResponse Problem
+
+func (response AdminDecideRefund403ApplicationProblemPlusJSONResponse) VisitAdminDecideRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDecideRefund404ApplicationProblemPlusJSONResponse Problem
+
+func (response AdminDecideRefund404ApplicationProblemPlusJSONResponse) VisitAdminDecideRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDecideRefund409ApplicationProblemPlusJSONResponse Problem
+
+func (response AdminDecideRefund409ApplicationProblemPlusJSONResponse) VisitAdminDecideRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDecideRefunddefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminDecideRefunddefaultApplicationProblemPlusJSONResponse) VisitAdminDecideRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type AdminListSeriesRequestObject struct {
 }
 
@@ -2248,6 +3292,77 @@ func (response AdminGrantSubscriptiondefaultApplicationProblemPlusJSONResponse) 
 	return err
 }
 
+type AdminListUsersRequestObject struct {
+	Params AdminListUsersParams
+}
+
+type AdminListUsersResponseObject interface {
+	VisitAdminListUsersResponse(w http.ResponseWriter) error
+}
+
+type AdminListUsers200JSONResponse struct {
+	Items []AdminUser `json:"items"`
+}
+
+func (response AdminListUsers200JSONResponse) VisitAdminListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListUsers401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response AdminListUsers401ApplicationProblemPlusJSONResponse) VisitAdminListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListUsers403ApplicationProblemPlusJSONResponse Problem
+
+func (response AdminListUsers403ApplicationProblemPlusJSONResponse) VisitAdminListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListUsersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListUsersdefaultApplicationProblemPlusJSONResponse) VisitAdminListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListCategoriesRequestObject struct {
 	Params ListCategoriesParams
 }
@@ -2289,6 +3404,215 @@ func (response ListCategoriesdefaultApplicationProblemPlusJSONResponse) VisitLis
 	return err
 }
 
+type StartCheckoutRequestObject struct {
+	Params StartCheckoutParams
+	Body   *StartCheckoutJSONRequestBody
+}
+
+type StartCheckoutResponseObject interface {
+	VisitStartCheckoutResponse(w http.ResponseWriter) error
+}
+
+type StartCheckout201JSONResponse CheckoutResult
+
+func (response StartCheckout201JSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckout400ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response StartCheckout400ApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckout401ApplicationProblemPlusJSONResponse Problem
+
+func (response StartCheckout401ApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckout403ApplicationProblemPlusJSONResponse Problem
+
+func (response StartCheckout403ApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckout404ApplicationProblemPlusJSONResponse Problem
+
+func (response StartCheckout404ApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckout409ApplicationProblemPlusJSONResponse Problem
+
+func (response StartCheckout409ApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckout503ApplicationProblemPlusJSONResponse Problem
+
+func (response StartCheckout503ApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartCheckoutdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response StartCheckoutdefaultApplicationProblemPlusJSONResponse) VisitStartCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type QuoteCheckoutRequestObject struct {
+	Body *QuoteCheckoutJSONRequestBody
+}
+
+type QuoteCheckoutResponseObject interface {
+	VisitQuoteCheckoutResponse(w http.ResponseWriter) error
+}
+
+type QuoteCheckout200JSONResponse CheckoutQuote
+
+func (response QuoteCheckout200JSONResponse) VisitQuoteCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type QuoteCheckout400ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response QuoteCheckout400ApplicationProblemPlusJSONResponse) VisitQuoteCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type QuoteCheckout401ApplicationProblemPlusJSONResponse Problem
+
+func (response QuoteCheckout401ApplicationProblemPlusJSONResponse) VisitQuoteCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type QuoteCheckout404ApplicationProblemPlusJSONResponse Problem
+
+func (response QuoteCheckout404ApplicationProblemPlusJSONResponse) VisitQuoteCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type QuoteCheckoutdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response QuoteCheckoutdefaultApplicationProblemPlusJSONResponse) VisitQuoteCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListMarketsRequestObject struct {
 	Params ListMarketsParams
 }
@@ -2319,6 +3643,60 @@ type ListMarketsdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response ListMarketsdefaultApplicationProblemPlusJSONResponse) VisitListMarketsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMeRequestObject struct {
+}
+
+type GetMeResponseObject interface {
+	VisitGetMeResponse(w http.ResponseWriter) error
+}
+
+type GetMe200JSONResponse Me
+
+func (response GetMe200JSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMe401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetMe401ApplicationProblemPlusJSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMedefaultApplicationProblemPlusJSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -2378,6 +3756,271 @@ func (response GetEntitlementsdefaultApplicationProblemPlusJSONResponse) VisitGe
 	return err
 }
 
+type ListMyOrdersRequestObject struct {
+}
+
+type ListMyOrdersResponseObject interface {
+	VisitListMyOrdersResponse(w http.ResponseWriter) error
+}
+
+type ListMyOrders200JSONResponse struct {
+	Items []Order `json:"items"`
+}
+
+func (response ListMyOrders200JSONResponse) VisitListMyOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMyOrders401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListMyOrders401ApplicationProblemPlusJSONResponse) VisitListMyOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMyOrdersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListMyOrdersdefaultApplicationProblemPlusJSONResponse) VisitListMyOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMyOrderRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type GetMyOrderResponseObject interface {
+	VisitGetMyOrderResponse(w http.ResponseWriter) error
+}
+
+type GetMyOrder200JSONResponse Order
+
+func (response GetMyOrder200JSONResponse) VisitGetMyOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMyOrder401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetMyOrder401ApplicationProblemPlusJSONResponse) VisitGetMyOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMyOrder404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetMyOrder404ApplicationProblemPlusJSONResponse) VisitGetMyOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMyOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMyOrderdefaultApplicationProblemPlusJSONResponse) VisitGetMyOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestRefundRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *RequestRefundJSONRequestBody
+}
+
+type RequestRefundResponseObject interface {
+	VisitRequestRefundResponse(w http.ResponseWriter) error
+}
+
+type RequestRefund201JSONResponse Refund
+
+func (response RequestRefund201JSONResponse) VisitRequestRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestRefund401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response RequestRefund401ApplicationProblemPlusJSONResponse) VisitRequestRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestRefund404ApplicationProblemPlusJSONResponse Problem
+
+func (response RequestRefund404ApplicationProblemPlusJSONResponse) VisitRequestRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestRefund409ApplicationProblemPlusJSONResponse Problem
+
+func (response RequestRefund409ApplicationProblemPlusJSONResponse) VisitRequestRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RequestRefunddefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RequestRefunddefaultApplicationProblemPlusJSONResponse) VisitRequestRefundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMySubscriptionsRequestObject struct {
+}
+
+type ListMySubscriptionsResponseObject interface {
+	VisitListMySubscriptionsResponse(w http.ResponseWriter) error
+}
+
+type ListMySubscriptions200JSONResponse struct {
+	Items []MySubscription `json:"items"`
+}
+
+func (response ListMySubscriptions200JSONResponse) VisitListMySubscriptionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMySubscriptions401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListMySubscriptions401ApplicationProblemPlusJSONResponse) VisitListMySubscriptionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMySubscriptionsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListMySubscriptionsdefaultApplicationProblemPlusJSONResponse) VisitListMySubscriptionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListMetalsRequestObject struct {
 	Params ListMetalsParams
 }
@@ -2419,6 +4062,92 @@ func (response ListMetalsdefaultApplicationProblemPlusJSONResponse) VisitListMet
 	return err
 }
 
+type VerifyPaymentRequestObject struct {
+	Body *VerifyPaymentJSONRequestBody
+}
+
+type VerifyPaymentResponseObject interface {
+	VisitVerifyPaymentResponse(w http.ResponseWriter) error
+}
+
+type VerifyPayment200JSONResponse struct {
+	OrderId openapi_types.UUID `json:"orderId"`
+	Status  OrderStatus        `json:"status"`
+}
+
+func (response VerifyPayment200JSONResponse) VisitVerifyPaymentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type VerifyPayment400ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response VerifyPayment400ApplicationProblemPlusJSONResponse) VisitVerifyPaymentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type VerifyPayment404ApplicationProblemPlusJSONResponse Problem
+
+func (response VerifyPayment404ApplicationProblemPlusJSONResponse) VisitVerifyPaymentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type VerifyPayment503ApplicationProblemPlusJSONResponse Problem
+
+func (response VerifyPayment503ApplicationProblemPlusJSONResponse) VisitVerifyPaymentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type VerifyPaymentdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response VerifyPaymentdefaultApplicationProblemPlusJSONResponse) VisitVerifyPaymentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListPlansRequestObject struct {
 	Params ListPlansParams
 }
@@ -2429,6 +4158,9 @@ type ListPlansResponseObject interface {
 
 type ListPlans200JSONResponse struct {
 	Items []Plan `json:"items"`
+
+	// Purchasable Whether plans can be bought now (feature flag payments.enabled)
+	Purchasable bool `json:"purchasable"`
 }
 
 func (response ListPlans200JSONResponse) VisitListPlansResponse(w http.ResponseWriter) error {
@@ -2581,6 +4313,9 @@ func (response ListSeriesPointsdefaultApplicationProblemPlusJSONResponse) VisitL
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// AdminListOrders Latest orders (max 100), optionally filtered
+	// (GET /v1/admin/orders)
+	AdminListOrders(ctx context.Context, request AdminListOrdersRequestObject) (AdminListOrdersResponseObject, error)
 	// AdminCreatePrice Manual price entry (fallback when a source is down, SCOPE §13)
 	// (POST /v1/admin/prices)
 	AdminCreatePrice(ctx context.Context, request AdminCreatePriceRequestObject) (AdminCreatePriceResponseObject, error)
@@ -2593,6 +4328,9 @@ type StrictServerInterface interface {
 	// AdminReviewPrice Approve (publish) or reject a quarantined point. Roles, editor, admin
 	// (POST /v1/admin/prices/{id}/review)
 	AdminReviewPrice(ctx context.Context, request AdminReviewPriceRequestObject) (AdminReviewPriceResponseObject, error)
+	// AdminDecideRefund Approve (order refunded, plan cancelled) or reject a refund request. Role, admin
+	// (POST /v1/admin/refunds/{id}/decision)
+	AdminDecideRefund(ctx context.Context, request AdminDecideRefundRequestObject) (AdminDecideRefundResponseObject, error)
 	// AdminListSeries Every series with its latest price and outlier threshold
 	// (GET /v1/admin/series)
 	AdminListSeries(ctx context.Context, request AdminListSeriesRequestObject) (AdminListSeriesResponseObject, error)
@@ -2605,18 +4343,45 @@ type StrictServerInterface interface {
 	// AdminGrantSubscription Grant a subscription manually (until checkout exists). Role, admin
 	// (POST /v1/admin/subscriptions)
 	AdminGrantSubscription(ctx context.Context, request AdminGrantSubscriptionRequestObject) (AdminGrantSubscriptionResponseObject, error)
+	// AdminListUsers Search users by mobile, name or id (max 50)
+	// (GET /v1/admin/users)
+	AdminListUsers(ctx context.Context, request AdminListUsersRequestObject) (AdminListUsersResponseObject, error)
 	// ListCategories List product categories (raw materials, intermediate products, scrap)
 	// (GET /v1/categories)
 	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
+	// StartCheckout Create an order and start its payment. Returns the gateway URL to send the browser to
+	// (POST /v1/checkout)
+	StartCheckout(ctx context.Context, request StartCheckoutRequestObject) (StartCheckoutResponseObject, error)
+	// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
+	// (POST /v1/checkout/quote)
+	QuoteCheckout(ctx context.Context, request QuoteCheckoutRequestObject) (QuoteCheckoutResponseObject, error)
 	// ListMarkets List markets / price sources
 	// (GET /v1/markets)
 	ListMarkets(ctx context.Context, request ListMarketsRequestObject) (ListMarketsResponseObject, error)
+	// GetMe The signed-in user's profile and current plan (refreshes the local profile from the token)
+	// (GET /v1/me)
+	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
 	// GetEntitlements Evaluated feature map for the caller (anonymous = free)
 	// (GET /v1/me/entitlements)
 	GetEntitlements(ctx context.Context, request GetEntitlementsRequestObject) (GetEntitlementsResponseObject, error)
+	// ListMyOrders The user's orders (billing history), newest first
+	// (GET /v1/me/orders)
+	ListMyOrders(ctx context.Context, request ListMyOrdersRequestObject) (ListMyOrdersResponseObject, error)
+	// GetMyOrder One of the user's orders (payment result page)
+	// (GET /v1/me/orders/{id})
+	GetMyOrder(ctx context.Context, request GetMyOrderRequestObject) (GetMyOrderResponseObject, error)
+	// RequestRefund Ask for a refund (within 7 days of payment, if no paid feature was used)
+	// (POST /v1/me/orders/{id}/refund)
+	RequestRefund(ctx context.Context, request RequestRefundRequestObject) (RequestRefundResponseObject, error)
+	// ListMySubscriptions The user's subscriptions, newest first (includes queued ones)
+	// (GET /v1/me/subscriptions)
+	ListMySubscriptions(ctx context.Context, request ListMySubscriptionsRequestObject) (ListMySubscriptionsResponseObject, error)
 	// ListMetals List base metals
 	// (GET /v1/metals)
 	ListMetals(ctx context.Context, request ListMetalsRequestObject) (ListMetalsResponseObject, error)
+	// VerifyPayment Complete a payment after the gateway redirected the browser back (called by the website's callback page)
+	// (POST /v1/payments/verify)
+	VerifyPayment(ctx context.Context, request VerifyPaymentRequestObject) (VerifyPaymentResponseObject, error)
 	// ListPlans List active subscription plans with current prices
 	// (GET /v1/plans)
 	ListPlans(ctx context.Context, request ListPlansRequestObject) (ListPlansResponseObject, error)
@@ -2665,6 +4430,32 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// AdminListOrders operation middleware
+func (sh *strictHandler) AdminListOrders(w http.ResponseWriter, r *http.Request, params AdminListOrdersParams) {
+	var request AdminListOrdersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListOrders(ctx, request.(AdminListOrdersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListOrders")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListOrdersResponseObject); ok {
+		if err := validResponse.VisitAdminListOrdersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // AdminCreatePrice operation middleware
@@ -2786,6 +4577,39 @@ func (sh *strictHandler) AdminReviewPrice(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// AdminDecideRefund operation middleware
+func (sh *strictHandler) AdminDecideRefund(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminDecideRefundRequestObject
+
+	request.Id = id
+
+	var body AdminDecideRefundJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminDecideRefund(ctx, request.(AdminDecideRefundRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminDecideRefund")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminDecideRefundResponseObject); ok {
+		if err := validResponse.VisitAdminDecideRefundResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AdminListSeries operation middleware
 func (sh *strictHandler) AdminListSeries(w http.ResponseWriter, r *http.Request) {
 	var request AdminListSeriesRequestObject
@@ -2891,6 +4715,32 @@ func (sh *strictHandler) AdminGrantSubscription(w http.ResponseWriter, r *http.R
 	}
 }
 
+// AdminListUsers operation middleware
+func (sh *strictHandler) AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams) {
+	var request AdminListUsersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListUsers(ctx, request.(AdminListUsersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListUsers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListUsersResponseObject); ok {
+		if err := validResponse.VisitAdminListUsersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListCategories operation middleware
 func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request, params ListCategoriesParams) {
 	var request ListCategoriesRequestObject
@@ -2910,6 +4760,70 @@ func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListCategoriesResponseObject); ok {
 		if err := validResponse.VisitListCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StartCheckout operation middleware
+func (sh *strictHandler) StartCheckout(w http.ResponseWriter, r *http.Request, params StartCheckoutParams) {
+	var request StartCheckoutRequestObject
+
+	request.Params = params
+
+	var body StartCheckoutJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StartCheckout(ctx, request.(StartCheckoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StartCheckout")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StartCheckoutResponseObject); ok {
+		if err := validResponse.VisitStartCheckoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// QuoteCheckout operation middleware
+func (sh *strictHandler) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
+	var request QuoteCheckoutRequestObject
+
+	var body QuoteCheckoutJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.QuoteCheckout(ctx, request.(QuoteCheckoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "QuoteCheckout")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(QuoteCheckoutResponseObject); ok {
+		if err := validResponse.VisitQuoteCheckoutResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2943,6 +4857,30 @@ func (sh *strictHandler) ListMarkets(w http.ResponseWriter, r *http.Request, par
 	}
 }
 
+// GetMe operation middleware
+func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	var request GetMeRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMe(ctx, request.(GetMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMeResponseObject); ok {
+		if err := validResponse.VisitGetMeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetEntitlements operation middleware
 func (sh *strictHandler) GetEntitlements(w http.ResponseWriter, r *http.Request) {
 	var request GetEntitlementsRequestObject
@@ -2960,6 +4898,116 @@ func (sh *strictHandler) GetEntitlements(w http.ResponseWriter, r *http.Request)
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetEntitlementsResponseObject); ok {
 		if err := validResponse.VisitGetEntitlementsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListMyOrders operation middleware
+func (sh *strictHandler) ListMyOrders(w http.ResponseWriter, r *http.Request) {
+	var request ListMyOrdersRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMyOrders(ctx, request.(ListMyOrdersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMyOrders")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMyOrdersResponseObject); ok {
+		if err := validResponse.VisitListMyOrdersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMyOrder operation middleware
+func (sh *strictHandler) GetMyOrder(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request GetMyOrderRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMyOrder(ctx, request.(GetMyOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMyOrder")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMyOrderResponseObject); ok {
+		if err := validResponse.VisitGetMyOrderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RequestRefund operation middleware
+func (sh *strictHandler) RequestRefund(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request RequestRefundRequestObject
+
+	request.Id = id
+
+	var body RequestRefundJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RequestRefund(ctx, request.(RequestRefundRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RequestRefund")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RequestRefundResponseObject); ok {
+		if err := validResponse.VisitRequestRefundResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListMySubscriptions operation middleware
+func (sh *strictHandler) ListMySubscriptions(w http.ResponseWriter, r *http.Request) {
+	var request ListMySubscriptionsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMySubscriptions(ctx, request.(ListMySubscriptionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMySubscriptions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMySubscriptionsResponseObject); ok {
+		if err := validResponse.VisitListMySubscriptionsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2986,6 +5034,37 @@ func (sh *strictHandler) ListMetals(w http.ResponseWriter, r *http.Request, para
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListMetalsResponseObject); ok {
 		if err := validResponse.VisitListMetalsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// VerifyPayment operation middleware
+func (sh *strictHandler) VerifyPayment(w http.ResponseWriter, r *http.Request) {
+	var request VerifyPaymentRequestObject
+
+	var body VerifyPaymentJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.VerifyPayment(ctx, request.(VerifyPaymentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "VerifyPayment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(VerifyPaymentResponseObject); ok {
+		if err := validResponse.VisitVerifyPaymentResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -3077,76 +5156,105 @@ func (sh *strictHandler) ListSeriesPoints(w http.ResponseWriter, r *http.Request
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"dIppvbcdHd1e3f7PAA==",
+	"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",
+	"nUTMZhBXE8DWwdWbq/8bAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

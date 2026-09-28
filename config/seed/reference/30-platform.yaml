@@ -19,6 +19,13 @@ datasets:
         value: { telegram: "", instagram: "", linkedin: "", bale: "", eitaa: "" }
       - key: sms
         value: { daily_budget_rial: 50000000, alert_at_percent: 80 }
+      # SMS texts (🛠 our draft, editable in the admin). Placeholders: {plan}, {date}, {url}.
+      - key: sms_templates
+        value:
+          subscription_expiring:
+            fa: "الان‌فلز: اشتراک {plan} شما در تاریخ {date} به پایان می‌رسد. برای تمدید: {url}"
+            en: "Alan Felez: your {plan} plan ends on {date}. Renew at {url}"
+
       - key: otp_limits
         value: { resend_cooldown_seconds: 120, per_phone_hour: 5, per_phone_day: 10, per_ip_hour: 10, captcha_after: 2 }
       - key: home_stats

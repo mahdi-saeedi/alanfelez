@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Alan Felez API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     Public, user and admin API for الان‌فلز. Contract-first (ADR-0014): edit this file,
     then run `task generate`. Conventions: docs/architecture/API_GUIDELINES.md.
@@ -15,6 +15,8 @@ tags:
     description: Latest prices and price history. Visibility depends on the caller's tier (internal/access)
   - name: me
     description: The calling user
+  - name: billing
+    description: Checkout and payments (SCOPE §6, SECURITY §7). The gateway callback is never trusted; the API verifies server-to-server
   - name: admin
     description: Staff only (realm role `staff`; writes need `editor` or `admin`). Every write is audit-logged
 
@@ -100,11 +102,14 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required: [items, purchasable]
                 properties:
                   items:
                     type: array
                     items: { $ref: '#/components/schemas/Plan' }
+                  purchasable:
+                    type: boolean
+                    description: Whether plans can be bought now (feature flag payments.enabled)
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/prices:
@@ -190,6 +195,282 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Entitlements' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me:
+    get:
+      operationId: getMe
+      tags: [me]
+      summary: The signed-in user's profile and current plan (refreshes the local profile from the token)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/subscriptions:
+    get:
+      operationId: listMySubscriptions
+      tags: [me]
+      summary: The user's subscriptions, newest first (includes queued ones)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Subscriptions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/MySubscription' }
+        '401': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/orders:
+    get:
+      operationId: listMyOrders
+      tags: [me]
+      summary: The user's orders (billing history), newest first
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/orders/{id}:
+    get:
+      operationId: getMyOrder
+      tags: [me]
+      summary: One of the user's orders (payment result page)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/orders/{id}/refund:
+    post:
+      operationId: requestRefund
+      tags: [me]
+      summary: Ask for a refund (within 7 days of payment, if no paid feature was used)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 1000 }
+      responses:
+        '201':
+          description: Refund requested
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Refund' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/checkout/quote:
+    post:
+      operationId: quoteCheckout
+      tags: [billing]
+      summary: Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckoutInput' }
+      responses:
+        '200':
+          description: Quote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckoutQuote' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/checkout:
+    post:
+      operationId: startCheckout
+      tags: [billing]
+      summary: Create an order and start its payment. Returns the gateway URL to send the browser to
+      description: |
+        Idempotent per Idempotency-Key: repeating the request returns the same order (and payment page).
+        When credit covers the whole price, the plan is activated at once and no redirect is returned.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 100 }
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckoutInput' }
+      responses:
+        '201':
+          description: Order created (or the existing one for this key)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckoutResult' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/payments/verify:
+    post:
+      operationId: verifyPayment
+      tags: [billing]
+      summary: Complete a payment after the gateway redirected the browser back (called by the website's callback page)
+      description: |
+        No authentication: the callback can arrive after the session ended. Nothing in the request is trusted; the
+        API asks the gateway server-to-server and checks the order, authority and amount. Safe to repeat.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, params]
+              properties:
+                orderId: { type: string, format: uuid }
+                params:
+                  type: object
+                  description: The gateway's callback query parameters, as received
+                  additionalProperties: { type: string }
+      responses:
+        '200':
+          description: Order status after verification
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [orderId, status]
+                properties:
+                  orderId: { type: string, format: uuid }
+                  status: { $ref: '#/components/schemas/OrderStatus' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: Search users by mobile, name or id (max 50)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminUser' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/orders:
+    get:
+      operationId: adminListOrders
+      tags: [admin]
+      summary: Latest orders (max 100), optionally filtered
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, required: false, schema: { $ref: '#/components/schemas/OrderStatus' } }
+        - { name: refundStatus, in: query, required: false, schema: { $ref: '#/components/schemas/RefundStatus' } }
+        - { name: userId, in: query, required: false, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminOrder' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/refunds/{id}/decision:
+    post:
+      operationId: adminDecideRefund
+      tags: [admin]
+      summary: Approve (order refunded, plan cancelled) or reject a refund request. Role, admin
+      description: The money itself is returned outside the system; put the transfer reference in the note.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, reject] }
+                note: { type: string, maxLength: 1000 }
+      responses:
+        '200':
+          description: Refund after the decision
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Refund' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/series:
@@ -686,6 +967,139 @@ components:
         status: { type: string, enum: [active, cancelled] }
         origin: { type: string, enum: [manual, order] }
         note: { type: string }
+
+    BillingPeriod:
+      type: string
+      enum: [month, quarter, year]
+
+    OrderStatus:
+      type: string
+      enum: [pending, paid, failed, expired, refunded]
+
+    RefundStatus:
+      type: string
+      enum: [requested, approved, rejected]
+
+    Me:
+      type: object
+      required: [id, username, tier]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        phone: { type: string, description: E.164 }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        tier: { $ref: '#/components/schemas/Tier' }
+        current: { $ref: '#/components/schemas/MySubscription' }
+        next: { $ref: '#/components/schemas/MySubscription' }
+
+    MySubscription:
+      type: object
+      required: [id, plan, startsAt, endsAt, status, origin]
+      properties:
+        id: { type: string, format: uuid }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        status: { type: string, enum: [active, cancelled, replaced] }
+        origin: { type: string, enum: [manual, order] }
+
+    CheckoutInput:
+      type: object
+      required: [plan, period]
+      properties:
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        period: { $ref: '#/components/schemas/BillingPeriod' }
+
+    CheckoutQuote:
+      type: object
+      required: [plan, period, kind, price, credit, amount, startsAt, endsAt]
+      properties:
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        period: { $ref: '#/components/schemas/BillingPeriod' }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        price: { $ref: '#/components/schemas/Money' }
+        credit: { $ref: '#/components/schemas/Money' }
+        amount: { $ref: '#/components/schemas/Money' }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+
+    CheckoutResult:
+      type: object
+      required: [order]
+      properties:
+        order: { $ref: '#/components/schemas/Order' }
+        redirectUrl: { type: string, description: Gateway payment page; absent when nothing is left to pay }
+
+    Order:
+      type: object
+      required: [id, plan, period, kind, price, credit, amount, status, createdAt, refundable]
+      properties:
+        id: { type: string, format: uuid }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        period: { $ref: '#/components/schemas/BillingPeriod' }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        price: { $ref: '#/components/schemas/Money' }
+        credit: { $ref: '#/components/schemas/Money' }
+        amount: { $ref: '#/components/schemas/Money' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        createdAt: { type: string, format: date-time }
+        paidAt: { type: string, format: date-time }
+        refId: { type: string, description: Gateway receipt number }
+        refundStatus: { $ref: '#/components/schemas/RefundStatus' }
+        refundable: { type: boolean, description: A refund can be requested now }
+
+    Refund:
+      type: object
+      required: [id, orderId, amount, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        orderId: { type: string, format: uuid }
+        amount: { $ref: '#/components/schemas/Money' }
+        status: { $ref: '#/components/schemas/RefundStatus' }
+        reason: { type: string }
+        note: { type: string }
+        createdAt: { type: string, format: date-time }
+        decidedAt: { type: string, format: date-time }
+
+    AdminUser:
+      type: object
+      required: [id, username, createdAt, lastSeenAt, blocked, currentPlan]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        phone: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        createdAt: { type: string, format: date-time }
+        lastSeenAt: { type: string, format: date-time }
+        blocked: { type: boolean }
+        currentPlan: { $ref: '#/components/schemas/Tier' }
+        currentEndsAt: { type: string, format: date-time }
+
+    AdminOrder:
+      type: object
+      required: [id, userId, plan, period, kind, price, credit, amount, status, createdAt, gateway]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        username: { type: string }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        period: { $ref: '#/components/schemas/BillingPeriod' }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        price: { $ref: '#/components/schemas/Money' }
+        credit: { $ref: '#/components/schemas/Money' }
+        amount: { $ref: '#/components/schemas/Money' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        createdAt: { type: string, format: date-time }
+        paidAt: { type: string, format: date-time }
+        gateway: { type: string }
+        refId: { type: string }
+        refundId: { type: string, format: uuid }
+        refundStatus: { $ref: '#/components/schemas/RefundStatus' }
+        refundReason: { type: string }
 
     Problem:
       type: object

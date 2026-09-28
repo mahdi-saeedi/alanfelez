@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/alanfelez/alanfelez/services/api/internal/audit"
+	"github.com/alanfelez/alanfelez/services/api/internal/access"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
@@ -205,7 +205,7 @@ func (s *Server) AdminReviewPrice(ctx context.Context, req AdminReviewPriceReque
 	if err != nil {
 		return AdminReviewPrice404ApplicationProblemPlusJSONResponse(notFound(ctx, "point")), nil
 	}
-	rp, err := s.prices.Review(ctx, id, req.Body.Decision == Approve, actorOf(ctx, p))
+	rp, err := s.prices.Review(ctx, id, req.Body.Decision == AdminReviewPriceJSONBodyDecisionApprove, actorOf(ctx, p))
 	switch {
 	case errors.Is(err, prices.ErrNotFound):
 		return AdminReviewPrice404ApplicationProblemPlusJSONResponse(notFound(ctx, "point")), nil
@@ -293,27 +293,11 @@ func (s *Server) AdminGrantSubscription(ctx context.Context, req AdminGrantSubsc
 	if b.Plan != PaidPlanSilver && b.Plan != PaidPlanGold {
 		return AdminGrantSubscription400ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(badRequest(ctx, "unknown plan"))}, nil
 	}
-	now := s.now().UTC()
-	var note pgtype.Text
+	note := ""
 	if b.Note != nil {
-		note = pgtype.Text{String: *b.Note, Valid: *b.Note != ""}
+		note = *b.Note
 	}
-	var row dbq.InsertSubscriptionRow
-	err := s.inTx(ctx, func(q *dbq.Queries) error {
-		var err error
-		row, err = q.InsertSubscription(ctx, dbq.InsertSubscriptionParams{
-			UserID: pgtype.UUID{Bytes: b.UserId, Valid: true}, PlanCode: string(b.Plan),
-			StartsAt: pgtype.Timestamptz{Time: now, Valid: true}, EndsAt: pgtype.Timestamptz{Time: now.AddDate(0, 0, b.Days), Valid: true},
-			Note: note, GrantedBy: p.ID,
-		})
-		if err != nil {
-			return fmt.Errorf("insert subscription: %w", err)
-		}
-		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{
-			Action: "subscription.grant", Entity: "subscription", EntityID: uuid.UUID(row.ID.Bytes).String(),
-			Data: map[string]any{"userId": b.UserId.String(), "plan": b.Plan, "days": b.Days, "note": b.Note},
-		})
-	})
+	row, err := s.billing.Grant(ctx, actorOf(ctx, p), pgtype.UUID{Bytes: b.UserId, Valid: true}, access.Tier(b.Plan), b.Days, note)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +343,7 @@ func (s *Server) manualSourceID(ctx context.Context) (int16, error) {
 func adminPointOf(r prices.Result, q prices.Quote, p *auth.Principal) AdminPoint {
 	a := AdminPoint{
 		Id: i64s(r.PointID), Series: q.Series, Amount: i64s(q.Price), ObservedAt: q.ObservedAt,
-		Status: Published, IsManual: true, Source: "manual", EnteredBy: uuidString(p.ID), CreatedAt: time.Now().UTC(),
+		Status: AdminPointStatusPublished, IsManual: true, Source: "manual", EnteredBy: uuidString(p.ID), CreatedAt: time.Now().UTC(),
 	}
 	if r.Previous != nil {
 		a.PreviousAmount = strp(i64s(*r.Previous))

@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -35,7 +36,11 @@ import (
 
 	"github.com/alanfelez/alanfelez/services/api/internal/api"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
+	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/jobs"
+	"github.com/alanfelez/alanfelez/services/api/internal/notify"
+	"github.com/alanfelez/alanfelez/services/api/internal/payment"
+	"github.com/alanfelez/alanfelez/services/api/internal/payment/mock"
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/config"
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/db"
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/httpx"
@@ -127,7 +132,16 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 		"redis":    redisPinger{rdb},
 	})
 	verifier := auth.NewOIDCVerifier(ctx, cfg.OIDC.IssuerURL, cfg.OIDC.JWKSURL, cfg.OIDC.Audience)
-	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log))
+	gw, mockGW, err := newGateway(cfg, rdb)
+	if err != nil {
+		return err
+	}
+	bill := billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: cfg.PaymentCallbackURL(), Log: log})
+	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill)
+	if mockGW != nil {
+		mockGW.Routes(router) // the fake gateway page (never in production: config refuses it)
+		log.Warn("payments use the MOCK gateway (no real money)", "page", cfg.PublicURL+mock.PathPrefix)
+	}
 
 	// Live prices: one Redis subscription per process, fanned out to SSE clients. streams is cancelled on
 	// shutdown so open streams end (browsers reconnect to another pod) instead of holding the drain.
@@ -169,8 +183,24 @@ func worker(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	if cfg.Prices.DemoAllowed {
 		reg.Register(demo.Provider, demo.New)
 	}
+	gw, _, err := newGateway(cfg, rdb)
+	if err != nil {
+		return err
+	}
+	var sms notify.SMS
+	switch cfg.SMSProvider {
+	case "console":
+		sms = notify.Console{Log: log}
+	case "none":
+		log.Warn("SMS_PROVIDER=none: renewal reminders are off")
+	default:
+		return fmt.Errorf("unknown SMS_PROVIDER %q", cfg.SMSProvider)
+	}
 	client, err := jobs.NewClient(startCtx, jobs.Config{
 		Pool: pool, Prices: prices.NewService(pool, live.NewPublisher(rdb), log), Registry: reg, Log: log,
+		Billing:  billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: cfg.PaymentCallbackURL(), Log: log}),
+		SMS:      sms,
+		PlansURL: strings.TrimSuffix(cfg.WebURL, "/") + "/plans",
 		RiverLog: logx.New(os.Stdout, "warn", cfg.LogFormat).With("app", "alanfelez", "cmd", "worker", "component", "river"),
 	})
 	if err != nil {
@@ -218,6 +248,19 @@ func listen(ctx context.Context, srv *http.Server, cfg config.Config, log *slog.
 		return fmt.Errorf("http server shutdown: %w", err)
 	}
 	return nil
+}
+
+// newGateway picks the payment gateway (PAYMENTS_GATEWAY). The mock is returned separately so serve can mount its page.
+func newGateway(cfg config.Config, rdb *redis.Client) (payment.Gateway, *mock.Gateway, error) {
+	switch cfg.Payments.Gateway {
+	case mock.Name:
+		g := mock.New(rdb, strings.TrimSuffix(cfg.PublicURL, "/"))
+		return g, g, nil
+	case "none":
+		return payment.Disabled{}, nil, nil
+	default:
+		return nil, nil, fmt.Errorf("unknown PAYMENTS_GATEWAY %q", cfg.Payments.Gateway)
+	}
 }
 
 func connectRedis(cfg config.Config) (*redis.Client, error) {

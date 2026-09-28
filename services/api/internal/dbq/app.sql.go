@@ -13,7 +13,7 @@ import (
 
 const activeSubscription = `-- name: ActiveSubscription :one
 
-SELECT sub.plan_code, sub.ends_at
+SELECT sub.id, sub.plan_code, sub.ends_at
 FROM app.subscriptions sub
 JOIN app.plans pl ON pl.code = sub.plan_code
 WHERE sub.user_id = $1 AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
@@ -22,6 +22,7 @@ LIMIT 1
 `
 
 type ActiveSubscriptionRow struct {
+	ID       pgtype.UUID
 	PlanCode string
 	EndsAt   pgtype.Timestamptz
 }
@@ -31,7 +32,7 @@ type ActiveSubscriptionRow struct {
 func (q *Queries) ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error) {
 	row := q.db.QueryRow(ctx, activeSubscription, userID)
 	var i ActiveSubscriptionRow
-	err := row.Scan(&i.PlanCode, &i.EndsAt)
+	err := row.Scan(&i.ID, &i.PlanCode, &i.EndsAt)
 	return i, err
 }
 
@@ -116,7 +117,7 @@ const listSubscriptions = `-- name: ListSubscriptions :many
 SELECT id, user_id, plan_code, starts_at, ends_at, status, origin, note
 FROM app.subscriptions
 WHERE $1::uuid IS NULL OR user_id = $1::uuid
-ORDER BY created_at DESC
+ORDER BY starts_at DESC
 LIMIT 100
 `
 

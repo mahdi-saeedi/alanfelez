@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -33,6 +34,27 @@ type Config struct {
 	OIDC            OIDC          `envPrefix:"OIDC_"`
 	Seed            Seed          `envPrefix:"SEED_"`
 	Prices          Prices        `envPrefix:"PRICES_"`
+	Payments        Payments      `envPrefix:"PAYMENTS_"`
+	// PublicURL is the API as browsers reach it (the mock gateway page is served there).
+	PublicURL string `env:"PUBLIC_URL" envDefault:"http://localhost:8080"`
+	// WebURL is the public website (links in SMS, payment callback default).
+	WebURL      string `env:"WEB_URL" envDefault:"http://localhost:3000"`
+	SMSProvider string `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | <real provider, F7>
+}
+
+// Payments configures checkout (internal/billing, internal/payment).
+type Payments struct {
+	Gateway string `env:"GATEWAY" envDefault:"mock"` // mock | none | <real gateway, F13>
+	// CallbackURL is the website route the gateway redirects back to. Empty = WEB_URL + /checkout/callback.
+	CallbackURL string `env:"CALLBACK_URL"`
+}
+
+// PaymentCallbackURL returns the effective callback URL.
+func (c Config) PaymentCallbackURL() string {
+	if c.Payments.CallbackURL != "" {
+		return c.Payments.CallbackURL
+	}
+	return strings.TrimSuffix(c.WebURL, "/") + "/checkout/callback"
 }
 
 // Prices configures price ingestion (`alanfelez worker`).
@@ -84,6 +106,12 @@ func (c Config) validate() error {
 	}
 	if c.Env == EnvProduction && c.Prices.DemoAllowed {
 		errs = append(errs, errors.New("PRICES_DEMO_ALLOWED must be false in production"))
+	}
+	if c.Env == EnvProduction && c.Payments.Gateway == "mock" {
+		errs = append(errs, errors.New("PAYMENTS_GATEWAY=mock is not allowed in production"))
+	}
+	if c.Env == EnvProduction && c.SMSProvider == "console" {
+		errs = append(errs, errors.New("SMS_PROVIDER=console is not allowed in production"))
 	}
 	return errors.Join(errs...)
 }

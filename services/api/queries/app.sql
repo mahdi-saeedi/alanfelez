@@ -2,7 +2,7 @@
 
 -- name: ActiveSubscription :one
 -- The highest-ranked plan the user holds right now.
-SELECT sub.plan_code, sub.ends_at
+SELECT sub.id, sub.plan_code, sub.ends_at
 FROM app.subscriptions sub
 JOIN app.plans pl ON pl.code = sub.plan_code
 WHERE sub.user_id = $1 AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
@@ -18,7 +18,7 @@ RETURNING id, user_id, plan_code, starts_at, ends_at, status, origin, note;
 SELECT id, user_id, plan_code, starts_at, ends_at, status, origin, note
 FROM app.subscriptions
 WHERE sqlc.narg(user_id)::uuid IS NULL OR user_id = sqlc.narg(user_id)::uuid
-ORDER BY created_at DESC
+ORDER BY starts_at DESC
 LIMIT 100;
 
 -- name: InsertAudit :exec

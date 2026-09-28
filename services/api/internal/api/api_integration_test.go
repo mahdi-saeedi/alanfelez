@@ -21,7 +21,9 @@ import (
 
 	"github.com/alanfelez/alanfelez/services/api/internal/api"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
+	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
+	"github.com/alanfelez/alanfelez/services/api/internal/payment/mock"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/live"
 	"github.com/alanfelez/alanfelez/services/api/internal/testdb"
@@ -54,10 +56,12 @@ func uid(s string) pgtype.UUID {
 }
 
 type env struct {
-	t      *testing.T
-	pool   *pgxpool.Pool
-	prices *prices.Service
-	srv    *httptest.Server
+	t       *testing.T
+	pool    *pgxpool.Pool
+	prices  *prices.Service
+	billing *billing.Service
+	gw      *mock.Gateway
+	srv     *httptest.Server
 }
 
 func setup(t *testing.T) *env {
@@ -65,15 +69,23 @@ func setup(t *testing.T) *env {
 	pool := testdb.New(t)
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	ps := prices.NewService(pool, nil, log)
+	gw := mock.NewMemory("http://api.test")
+	bs := billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: "http://web.test/checkout/callback", Log: log})
 	r := chi.NewRouter()
-	api.Mount(r, api.NewServer(pool, ps), fakeVerifier{}, live.NewHub(nil, log), log)
+	api.Mount(r, api.NewServer(pool, ps, bs), fakeVerifier{}, live.NewHub(nil, log), log)
 	srv := httptest.NewServer(r)
 	t.Cleanup(srv.Close)
-	return &env{t: t, pool: pool, prices: ps, srv: srv}
+	return &env{t: t, pool: pool, prices: ps, billing: bs, gw: gw, srv: srv}
 }
 
 // call does an HTTP request and returns the status and the decoded JSON body.
 func (e *env) call(method, path, token string, body any) (int, map[string]any, string) {
+	e.t.Helper()
+	return e.callH(method, path, token, body, nil)
+}
+
+// callH is call with extra request headers.
+func (e *env) callH(method, path, token string, body any, headers map[string]string) (int, map[string]any, string) {
 	e.t.Helper()
 	var rd io.Reader
 	if body != nil {
@@ -86,6 +98,9 @@ func (e *env) call(method, path, token string, body any) (int, map[string]any, s
 	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

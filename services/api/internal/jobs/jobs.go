@@ -2,6 +2,8 @@
 //
 //	prices.fetch            every source's fetch_interval_s: fetch → ingest (outlier gate) → publish
 //	source_runs.cleanup     daily: delete fetch history older than 90 days (DATA_MODEL §4)
+//	orders.expire           every 5 min: pending orders past their deadline → expired
+//	subscriptions.remind    hourly: SMS 3 days before a plan ends (once per subscription)
 //
 // Periodic jobs are built from market.sources when the worker starts; restart the worker (a rollout)
 // after adding or re-timing a source.
@@ -20,7 +22,9 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivertype"
 
+	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
+	"github.com/alanfelez/alanfelez/services/api/internal/notify"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/source"
 )
@@ -180,11 +184,66 @@ func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) err
 	return nil
 }
 
+// ExpireOrdersArgs abandons stale pending orders.
+type ExpireOrdersArgs struct{}
+
+// Kind implements river.JobArgs.
+func (ExpireOrdersArgs) Kind() string { return "orders.expire" }
+
+// ExpireOrdersWorker runs ExpireOrdersArgs.
+type ExpireOrdersWorker struct {
+	river.WorkerDefaults[ExpireOrdersArgs]
+	Billing *billing.Service
+	Log     *slog.Logger
+}
+
+// Work implements river.Worker.
+func (w *ExpireOrdersWorker) Work(ctx context.Context, _ *river.Job[ExpireOrdersArgs]) error {
+	n, err := w.Billing.ExpirePending(ctx)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		w.Log.InfoContext(ctx, "pending orders expired", "orders", n)
+	}
+	return nil
+}
+
+// RemindArgs sends renewal reminders.
+type RemindArgs struct{}
+
+// Kind implements river.JobArgs.
+func (RemindArgs) Kind() string { return "subscriptions.remind" }
+
+// RemindWorker runs RemindArgs.
+type RemindWorker struct {
+	river.WorkerDefaults[RemindArgs]
+	Billing  *billing.Service
+	SMS      notify.SMS
+	PlansURL string
+	Log      *slog.Logger
+}
+
+// Work implements river.Worker.
+func (w *RemindWorker) Work(ctx context.Context, _ *river.Job[RemindArgs]) error {
+	n, err := w.Billing.SendReminders(ctx, w.SMS, w.PlansURL)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		w.Log.InfoContext(ctx, "renewal reminders sent", "sms", n)
+	}
+	return nil
+}
+
 // Config wires the River client.
 type Config struct {
 	Pool     *pgxpool.Pool
 	Prices   *prices.Service
 	Registry *source.Registry
+	Billing  *billing.Service
+	SMS      notify.SMS // nil: no reminders (SMS_PROVIDER=none)
+	PlansURL string     // link in reminder messages
 	Log      *slog.Logger
 	// RiverLog receives River's own logs (keep it at warn: River is chatty at debug/info).
 	RiverLog *slog.Logger
@@ -195,6 +254,8 @@ func NewClient(ctx context.Context, c Config) (*river.Client[pgx.Tx], error) {
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &FetchWorker{Pool: c.Pool, Prices: c.Prices, Registry: c.Registry, Log: c.Log})
 	river.AddWorker(workers, &CleanupWorker{Pool: c.Pool, Log: c.Log})
+	river.AddWorker(workers, &ExpireOrdersWorker{Billing: c.Billing, Log: c.Log})
+	river.AddWorker(workers, &RemindWorker{Billing: c.Billing, SMS: c.SMS, PlansURL: c.PlansURL, Log: c.Log})
 
 	sources, err := dbq.New(c.Pool).ListSources(ctx)
 	if err != nil {
@@ -204,6 +265,14 @@ func NewClient(ctx context.Context, c Config) (*river.Client[pgx.Tx], error) {
 		river.NewPeriodicJob(river.PeriodicInterval(24*time.Hour), func() (river.JobArgs, *river.InsertOpts) {
 			return CleanupArgs{}, nil
 		}, &river.PeriodicJobOpts{ID: "source_runs.cleanup"}),
+		river.NewPeriodicJob(river.PeriodicInterval(5*time.Minute), func() (river.JobArgs, *river.InsertOpts) {
+			return ExpireOrdersArgs{}, nil
+		}, &river.PeriodicJobOpts{ID: "orders.expire", RunOnStart: true}),
+	}
+	if c.SMS != nil {
+		periodic = append(periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Hour), func() (river.JobArgs, *river.InsertOpts) {
+			return RemindArgs{}, nil
+		}, &river.PeriodicJobOpts{ID: "subscriptions.remind", RunOnStart: true}))
 	}
 	for _, s := range sources {
 		if !s.Active || s.Provider == source.ProviderManual {

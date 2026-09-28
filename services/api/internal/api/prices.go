@@ -39,6 +39,14 @@ func (s *Server) ListPrices(ctx context.Context, req ListPricesRequestObject) (L
 		}
 		out.Items = append(out.Items, priceRow(lang, r))
 	}
+	if seeAll && !access.Allowed(access.Free, access.PricesFull) {
+		for _, r := range out.Items {
+			if !r.Series.IsBase { // paid content was delivered: counts for the refund rule (SCOPE §6)
+				s.billing.RecordUsage(ctx, cur.SubscriptionID, access.PricesFull)
+				break
+			}
+		}
+	}
 	if out.LockedCount > 0 {
 		plan, _ := access.RequiredTier(access.PricesFull)
 		out.LockedFeature = &FeatureLock{Feature: string(access.PricesFull), RequiredPlan: Tier(plan)}
@@ -72,6 +80,13 @@ func (s *Server) ListSeriesPoints(ctx context.Context, req ListSeriesPointsReque
 	}
 	if !r.AllowedBy(access.Limit(cur.Tier, access.ChartHistoryDays)) {
 		return ListSeriesPoints403ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(lockedProblem(ctx, access.ChartFull))}, nil
+	}
+
+	if !sr.IsBase {
+		s.billing.RecordUsage(ctx, cur.SubscriptionID, access.PricesFull)
+	}
+	if !r.AllowedBy(access.Limit(access.Free, access.ChartHistoryDays)) {
+		s.billing.RecordUsage(ctx, cur.SubscriptionID, access.ChartFull)
 	}
 
 	lang := langOf((*string)(req.Params.AcceptLanguage))

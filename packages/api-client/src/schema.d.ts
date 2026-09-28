@@ -153,6 +153,204 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in user's profile and current plan (refreshes the local profile from the token) */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's subscriptions, newest first (includes queued ones) */
+        get: operations["listMySubscriptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's orders (billing history), newest first */
+        get: operations["listMyOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of the user's orders (payment result page) */
+        get: operations["getMyOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/orders/{id}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask for a refund (within 7 days of payment, if no paid feature was used) */
+        post: operations["requestRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/checkout/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything */
+        post: operations["quoteCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an order and start its payment. Returns the gateway URL to send the browser to
+         * @description Idempotent per Idempotency-Key: repeating the request returns the same order (and payment page).
+         *     When credit covers the whole price, the plan is activated at once and no redirect is returned.
+         */
+        post: operations["startCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/payments/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete a payment after the gateway redirected the browser back (called by the website's callback page)
+         * @description No authentication: the callback can arrive after the session ended. Nothing in the request is trusted; the
+         *     API asks the gateway server-to-server and checks the order, authority and amount. Safe to repeat.
+         */
+        post: operations["verifyPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search users by mobile, name or id (max 50) */
+        get: operations["adminListUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest orders (max 100), optionally filtered */
+        get: operations["adminListOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve (order refunded, plan cancelled) or reject a refund request. Role, admin
+         * @description The money itself is returned outside the system; put the transfer reference in the note.
+         */
+        post: operations["adminDecideRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/series": {
         parameters: {
             query?: never;
@@ -527,6 +725,137 @@ export interface components {
             origin: "manual" | "order";
             note?: string;
         };
+        /** @enum {string} */
+        BillingPeriod: "month" | "quarter" | "year";
+        /** @enum {string} */
+        OrderStatus: "pending" | "paid" | "failed" | "expired" | "refunded";
+        /** @enum {string} */
+        RefundStatus: "requested" | "approved" | "rejected";
+        Me: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            /** @description E.164 */
+            phone?: string;
+            firstName?: string;
+            lastName?: string;
+            email?: string;
+            tier: components["schemas"]["Tier"];
+            current?: components["schemas"]["MySubscription"];
+            next?: components["schemas"]["MySubscription"];
+        };
+        MySubscription: {
+            /** Format: uuid */
+            id: string;
+            plan: components["schemas"]["PaidPlan"];
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** @enum {string} */
+            status: "active" | "cancelled" | "replaced";
+            /** @enum {string} */
+            origin: "manual" | "order";
+        };
+        CheckoutInput: {
+            plan: components["schemas"]["PaidPlan"];
+            period: components["schemas"]["BillingPeriod"];
+        };
+        CheckoutQuote: {
+            plan: components["schemas"]["PaidPlan"];
+            period: components["schemas"]["BillingPeriod"];
+            /** @enum {string} */
+            kind: "new" | "renewal" | "upgrade" | "downgrade";
+            price: components["schemas"]["Money"];
+            credit: components["schemas"]["Money"];
+            amount: components["schemas"]["Money"];
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+        };
+        CheckoutResult: {
+            order: components["schemas"]["Order"];
+            /** @description Gateway payment page; absent when nothing is left to pay */
+            redirectUrl?: string;
+        };
+        Order: {
+            /** Format: uuid */
+            id: string;
+            plan: components["schemas"]["PaidPlan"];
+            period: components["schemas"]["BillingPeriod"];
+            /** @enum {string} */
+            kind: "new" | "renewal" | "upgrade" | "downgrade";
+            price: components["schemas"]["Money"];
+            credit: components["schemas"]["Money"];
+            amount: components["schemas"]["Money"];
+            status: components["schemas"]["OrderStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            paidAt?: string;
+            /** @description Gateway receipt number */
+            refId?: string;
+            refundStatus?: components["schemas"]["RefundStatus"];
+            /** @description A refund can be requested now */
+            refundable: boolean;
+        };
+        Refund: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            orderId: string;
+            amount: components["schemas"]["Money"];
+            status: components["schemas"]["RefundStatus"];
+            reason?: string;
+            note?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string;
+        };
+        AdminUser: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            phone?: string;
+            firstName?: string;
+            lastName?: string;
+            email?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastSeenAt: string;
+            blocked: boolean;
+            currentPlan: components["schemas"]["Tier"];
+            /** Format: date-time */
+            currentEndsAt?: string;
+        };
+        AdminOrder: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            username?: string;
+            plan: components["schemas"]["PaidPlan"];
+            period: components["schemas"]["BillingPeriod"];
+            /** @enum {string} */
+            kind: "new" | "renewal" | "upgrade" | "downgrade";
+            price: components["schemas"]["Money"];
+            credit: components["schemas"]["Money"];
+            amount: components["schemas"]["Money"];
+            status: components["schemas"]["OrderStatus"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            paidAt?: string;
+            gateway: string;
+            refId?: string;
+            /** Format: uuid */
+            refundId?: string;
+            refundStatus?: components["schemas"]["RefundStatus"];
+            refundReason?: string;
+        };
         Problem: {
             /** Format: uri */
             type: string;
@@ -655,6 +984,8 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["Plan"][];
+                        /** @description Whether plans can be bought now (feature flag payments.enabled) */
+                        purchasable: boolean;
                     };
                 };
             };
@@ -760,6 +1091,325 @@ export interface operations {
                     "application/json": components["schemas"]["Entitlements"];
                 };
             };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listMySubscriptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscriptions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MySubscription"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listMyOrders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Orders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Order"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMyOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    requestRefund: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    reason?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Refund requested */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Refund"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    quoteCheckout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutInput"];
+            };
+        };
+        responses: {
+            /** @description Quote */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutQuote"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    startCheckout: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutInput"];
+            };
+        };
+        responses: {
+            /** @description Order created (or the existing one for this key) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutResult"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    verifyPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    orderId: string;
+                    /** @description The gateway's callback query parameters, as received */
+                    params: {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Order status after verification */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        orderId: string;
+                        status: components["schemas"]["OrderStatus"];
+                    };
+                };
+            };
+            400: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            503: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListUsers: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Users */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminUser"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListOrders: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["OrderStatus"];
+                refundStatus?: components["schemas"]["RefundStatus"];
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Orders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminOrder"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDecideRefund: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    decision: "approve" | "reject";
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Refund after the decision */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Refund"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
             default: components["responses"]["Problem"];
         };
     };

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/alanfelez/alanfelez/services/api/internal/access"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
@@ -24,8 +25,9 @@ func NewResolver(q dbq.Querier) *Resolver { return &Resolver{q: q} }
 
 // Current is the caller's tier and, for paid tiers, when it ends.
 type Current struct {
-	Tier   access.Tier
-	EndsAt *time.Time
+	Tier           access.Tier
+	EndsAt         *time.Time
+	SubscriptionID pgtype.UUID // the subscription granting Tier (not valid for free)
 }
 
 // Tier resolves the caller's tier. p may be nil (anonymous).
@@ -45,5 +47,5 @@ func (r *Resolver) Tier(ctx context.Context, p *auth.Principal) (Current, error)
 		return Current{Tier: access.Free}, nil
 	}
 	end := row.EndsAt.Time
-	return Current{Tier: t, EndsAt: &end}, nil
+	return Current{Tier: t, EndsAt: &end, SubscriptionID: row.ID}, nil
 }
