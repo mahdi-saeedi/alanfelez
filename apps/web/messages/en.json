@@ -15,7 +15,8 @@
     "about": "About us",
     "contact": "Contact",
     "terms": "Terms",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "licenses": "Licences & trust"
   },
   "auth": {
     "login": "Log in",
@@ -82,7 +83,14 @@
     "body": "This section is under construction."
   },
   "footer": {
-    "rights": "© 2026 Alan Felez — All rights reserved"
+    "rights": "© 2026 Alan Felez — All rights reserved",
+    "social": {
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn",
+      "bale": "Bale",
+      "eitaa": "Eitaa"
+    }
   },
   "error": {
     "apiDown": "We can't load data right now. Please try again shortly."
@@ -265,5 +273,125 @@
       "send": "Send request"
     },
     "loginTitle": "Sign in to see your account"
+  },
+  "analysis": {
+    "title": "Metals market news & analysis",
+    "subtitle": "Follow the latest news and analysis that move the metals market.",
+    "all": "All",
+    "topNews": "Today’s top news",
+    "indicators": "Key market prices",
+    "insights": "Alan Felez expert analysis",
+    "insightsSub": "Market analysis and possible price scenarios by Alan Felez analysts.",
+    "readToUnlock": "Upgrade to read",
+    "read": "Read",
+    "minutes": "{n} min read",
+    "empty": "Nothing has been published here yet.",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {pages}",
+    "type": {
+      "news": "News",
+      "analysis": "Market analysis",
+      "forecast": "Price forecast"
+    },
+    "outlook": {
+      "up": "Bullish",
+      "down": "Bearish",
+      "neutral": "Neutral"
+    },
+    "outlookLabel": "Analyst view",
+    "by": "By {name}",
+    "published": "Published {date}",
+    "back": "Back to news & analysis",
+    "lockedTitle": "This article is for {plan} subscribers",
+    "lockedBody": "The full text of analyses and forecasts is available to {plan} subscribers.",
+    "disclaimer": "This content is an estimate based on the data and conditions available when it was published. It is not a recommendation to buy or sell and gives no guarantee of future market outcomes.",
+    "source": "Price source: {source}"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Answers to common questions about prices, subscriptions and Alan Felez services",
+    "search": "Search the questions…",
+    "searchLabel": "Search the questions",
+    "all": "All",
+    "popular": "Most asked",
+    "noResults": "No question matches that search.",
+    "copyLink": "Copy a link to this question",
+    "copied": "Link copied",
+    "ctaTitle": "Didn’t find your answer?",
+    "ctaBody": "The Alan Felez support team is ready to answer your questions.",
+    "ctaButton": "Contact support"
+  },
+  "pages": {
+    "updated": "Last updated: {date}",
+    "contactTitle": "Contact details",
+    "phone": "Phone",
+    "email": "E-mail",
+    "address": "Address",
+    "hours": "Hours",
+    "markets": "Markets we cover",
+    "ctaPrices": "See metal prices",
+    "ctaChart": "See price charts",
+    "ctaPlans": "See subscription plans"
+  },
+  "contact": {
+    "title": "Contact Alan Felez",
+    "subtitle": "Get in touch for questions, support, business partnerships or to report a problem.",
+    "formTitle": "Send a message",
+    "name": "Full name",
+    "phone": "Mobile number",
+    "email": "E-mail (optional)",
+    "subject": "Subject",
+    "message": "Message",
+    "messagePlaceholder": "Write your message…",
+    "choose": "Choose…",
+    "subjects": {
+      "general": "General question",
+      "support": "Technical support",
+      "billing": "Subscription & payment",
+      "partnership": "Business partnership",
+      "feedback": "Feedback",
+      "other": "Other"
+    },
+    "send": "Send message",
+    "sending": "Sending…",
+    "sent": "Your message was received. We’ll get back to you as soon as we can.",
+    "invalid": "Please check the fields: a name, a valid mobile number and a message of at least 10 characters are required.",
+    "limited": "Too many messages from this device. Please try again a little later.",
+    "failed": "The message couldn’t be sent. Please try again.",
+    "signedInHint": "To follow up on a request, you can open a ticket in the support section of your account.",
+    "ticketsLink": "My tickets",
+    "faqTitle": "Have a common question?",
+    "faqBody": "Most questions are answered in the FAQ.",
+    "faqLink": "See the FAQ",
+    "hours": "Support hours",
+    "phoneCard": "Call us",
+    "emailCard": "E-mail",
+    "addressCard": "Head office"
+  },
+  "tickets": {
+    "title": "Support",
+    "subtitle": "Tell us your question or problem; support replies appear right here.",
+    "new": "New ticket",
+    "subject": "Subject",
+    "body": "Describe your request",
+    "create": "Open ticket",
+    "none": "You haven’t opened any tickets yet.",
+    "number": "Ticket {n}",
+    "status": {
+      "open": "Awaiting reply",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "priorityHigh": "High priority",
+    "reply": "Reply",
+    "send": "Send",
+    "close": "Close ticket",
+    "you": "You",
+    "support": "Alan Felez support",
+    "back": "Back to account",
+    "invalid": "A subject (at least 3 characters) and a description (at least 10 characters) are required.",
+    "closedHint": "This ticket is closed. Replying reopens it.",
+    "lastActivity": "Last activity: {date}"
   }
 }

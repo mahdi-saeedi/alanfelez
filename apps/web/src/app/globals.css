@@ -7,3 +7,24 @@
 @layer base {
   html, body { @apply bg-bg font-sans text-text antialiased; }
 }
+
+/* CMS rich text (sanitized HTML from the Go API, ADR-0025). Logical properties only, so it flips for RTL/LTR. */
+@layer components {
+  .rich { @apply leading-8 text-text-2; }
+  .rich > * + * { margin-block-start: 1rem; }
+  .rich h2 { @apply mt-8 text-xl font-extrabold text-text; }
+  .rich h3 { @apply mt-6 text-lg font-bold text-text; }
+  .rich h4 { @apply mt-4 font-bold text-text; }
+  .rich strong, .rich b { @apply font-bold text-text; }
+  .rich a { @apply font-medium text-info underline underline-offset-4 hover:text-gold-dark; }
+  .rich ul { @apply list-disc space-y-1.5 ps-6; }
+  .rich ol { @apply list-decimal space-y-1.5 ps-6; }
+  .rich li::marker { @apply text-gold; }
+  .rich blockquote { @apply border-s-4 border-gold bg-surface-2 px-4 py-2 text-text; }
+  .rich hr { @apply my-8 border-border; }
+  .rich img { @apply h-auto max-w-full rounded-card; }
+  .rich table { @apply w-full border-collapse text-sm; }
+  .rich th, .rich td { @apply border border-border px-3 py-2 text-start; }
+  .rich th { @apply bg-surface-2 font-bold text-text; }
+  .rich code { @apply rounded bg-surface-2 px-1 text-sm; }
+}

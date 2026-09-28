@@ -1,0 +1,87 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { formatDate, type Locale } from "@alanfelez/ui/format";
+import { Link } from "@/i18n/navigation";
+import { getArticle } from "@/lib/content";
+import { Cover, Meta, RichText, TopicChip } from "@/components/content/parts";
+import { Locked } from "@/components/Locked";
+
+export const dynamic = "force-dynamic";
+
+type Params = { params: Promise<{ locale: Locale; slug: string }> };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const a = await getArticle(locale, slug);
+  if (!a) return {};
+  return {
+    title: a.title,
+    description: a.summary,
+    alternates: { languages: { fa: `/analysis/${slug}`, en: `/en/analysis/${slug}` } },
+    openGraph: { type: "article", title: a.title, description: a.summary, publishedTime: a.publishedAt, ...(a.coverUrl ? { images: [a.coverUrl] } : {}) },
+  };
+}
+
+/** One article. A locked analysis / forecast shows its teaser and the upgrade box: the API sent no body. */
+export default async function ArticlePage({ params }: Params) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
+  const a = await getArticle(locale, slug);
+  if (a === null) notFound();
+  if (!a) return <p className="mx-auto max-w-3xl px-4 py-16 text-down">{t("error.apiDown")}</p>;
+  const plan = a.requiredPlan ?? "gold";
+  const insight = a.type !== "news";
+
+  // Structured data only for what the page really shows (a locked body isn't there, so no articleBody).
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": a.type === "news" ? "NewsArticle" : "Article",
+    headline: a.title,
+    description: a.summary,
+    datePublished: a.publishedAt,
+    dateModified: a.updatedAt,
+    inLanguage: locale,
+    ...(a.author ? { author: { "@type": "Person", name: a.author } } : {}),
+    ...(a.coverUrl ? { image: [a.coverUrl] } : {}),
+    isAccessibleForFree: !a.locked,
+  };
+
+  return (
+    <article className="mx-auto max-w-3xl px-4 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <Link href="/analysis" className="text-sm text-text-2 hover:text-gold-dark">{t("analysis.back")}</Link>
+
+      <header className="mt-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${insight ? "bg-gold/15 text-gold-dark" : "bg-surface-2 text-text-2"}`}>{t(`analysis.type.${a.type}`)}</span>
+          <TopicChip a={a} />
+        </div>
+        <h1 className="text-2xl font-extrabold leading-10 sm:text-3xl">{a.title}</h1>
+        <p className="text-text-2">{a.summary}</p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
+          {a.author && <span>{t("analysis.by", { name: a.author })}</span>}
+          <Meta a={a} locale={locale} />
+        </div>
+      </header>
+
+      {a.coverUrl && <Cover a={a} className="mt-6 h-48 rounded-card sm:h-72" />}
+
+      <div className="mt-8">
+        {a.body ? (
+          <RichText html={a.body} />
+        ) : (
+          <Locked plan={plan} title={t("analysis.lockedTitle", { plan: t(`lock.plan.${plan}`) })}>
+            {t("analysis.lockedBody", { plan: t(`lock.plan.${plan}`) })}
+          </Locked>
+        )}
+      </div>
+
+      {insight && <p className="mt-8 rounded-card border border-border bg-surface-2 p-4 text-xs leading-6 text-text-2">{t("analysis.disclaimer")}</p>}
+      {Date.parse(a.updatedAt) - Date.parse(a.publishedAt) > 3_600_000 && ( // edited after publishing
+        <p className="mt-4 text-xs text-text-3">{t("pages.updated", { date: formatDate(a.updatedAt, locale) })}</p>
+      )}
+    </article>
+  );
+}

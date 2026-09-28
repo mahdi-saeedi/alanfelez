@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
-import { getMe, getMyOrders, type Order } from "@/lib/account";
+import { getMe, getMyOrders, getMyTickets, type Order, type Ticket } from "@/lib/account";
 import { keycloakAction, signInTo } from "@/lib/actions";
 import { TierBadge } from "@/components/Locked";
-import { refundAction } from "./actions";
+import { TicketStatus } from "@/components/TicketStatus";
+import { createTicketAction, refundAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ locale: Locale }> };
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ ticket?: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -17,9 +18,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: t("title"), robots: { index: false } };
 }
 
-/** Account (SCOPE §5 #15): profile, plan, billing history. Alerts, saved calculations and tickets come in M4/M5. */
-export default async function AccountPage({ params }: Params) {
+/** Account (SCOPE §5 #15): profile, plan, billing history, support tickets. Alerts and saved calculations come in M5. */
+export default async function AccountPage({ params, searchParams }: Params) {
   const { locale } = await params;
+  const { ticket: ticketError } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations();
   const here = `${locale === "en" ? "/en" : ""}/account`;
@@ -34,7 +36,7 @@ export default async function AccountPage({ params }: Params) {
       </section>
     );
   }
-  const orders = await getMyOrders();
+  const [orders, tickets] = await Promise.all([getMyOrders(), getMyTickets()]);
   const name = [me.firstName, me.lastName].filter(Boolean).join(" ");
   const toman = (rial: string) => `${formatNumber(BigInt(rial) / 10n, locale)} ${locale === "fa" ? "تومان" : "Toman"}`;
 
@@ -115,7 +117,51 @@ export default async function AccountPage({ params }: Params) {
           </div>
         )}
       </section>
+
+      <Tickets tickets={tickets} locale={locale} t={t} invalid={ticketError === "invalid"} />
     </div>
+  );
+}
+
+/** Support tickets (SCOPE §12): the list and a "new ticket" form. */
+function Tickets({ tickets, locale, t, invalid }: { tickets: Ticket[]; locale: Locale; t: Awaited<ReturnType<typeof getTranslations>>; invalid: boolean }) {
+  return (
+    <section id="tickets" className="scroll-mt-24 overflow-hidden rounded-card border border-border bg-surface shadow-soft">
+      <div className="border-b border-border px-5 py-4">
+        <h2 className="font-bold">{t("tickets.title")}</h2>
+        <p className="mt-1 text-xs text-text-2">{t("tickets.subtitle")}</p>
+      </div>
+      {tickets.length === 0 ? (
+        <p className="px-5 py-6 text-sm text-text-2">{t("tickets.none")}</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {tickets.map((k) => (
+            <li key={k.id}>
+              <Link href={`/account/tickets/${k.id}`} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 hover:bg-surface-2">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-bold">{k.subject}</span>
+                  <span className="text-xs text-text-3">
+                    {t("tickets.number", { n: formatNumber(k.number, locale) })} · {t("tickets.lastActivity", { date: formatDate(k.lastMessageAt, locale, true) })}
+                  </span>
+                </span>
+                <TicketStatus status={k.status} label={t(`tickets.status.${k.status}`)} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <details className="border-t border-border px-5 py-4" open={invalid || tickets.length === 0}>
+        <summary className="cursor-pointer text-sm font-bold text-gold-dark">{t("tickets.new")}</summary>
+        <form action={createTicketAction} className="mt-3 space-y-3">
+          {invalid && <p role="alert" className="rounded-control bg-down-bg px-3 py-2 text-sm text-down">{t("tickets.invalid")}</p>}
+          <input type="hidden" name="key" value={crypto.randomUUID()} />
+          <input type="hidden" name="locale" value={locale} />
+          <input name="subject" required minLength={3} maxLength={150} placeholder={t("tickets.subject")} className="w-full rounded-control border border-border px-3 py-2 text-sm outline-none focus:border-gold" />
+          <textarea name="body" required minLength={10} maxLength={5000} rows={4} placeholder={t("tickets.body")} className="w-full rounded-control border border-border px-3 py-2 text-sm outline-none focus:border-gold" />
+          <button className="rounded-lg bg-graphite px-4 py-2 text-sm font-bold text-white hover:bg-graphite-2">{t("tickets.create")}</button>
+        </form>
+      </details>
+    </section>
   );
 }
 
