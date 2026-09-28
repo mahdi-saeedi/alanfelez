@@ -1,0 +1,19 @@
+# Root "app of apps" for staging. Apply once after installing Argo CD:
+#   kubectl apply -f deploy/argocd/projects/alanfelez.yaml -f deploy/argocd/roots/root-staging.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-staging
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: alanfelez
+  source:
+    repoURL: https://github.com/alanfelez/alanfelez.git
+    targetRevision: main
+    path: deploy/argocd/envs/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }

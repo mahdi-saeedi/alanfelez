@@ -1,0 +1,19 @@
+# Staging - auto-deployed from main. CI (release workflow) rewrites images.*.tag on every merge.
+global:
+  env: staging
+  hosts:
+    web: staging.alanfelez.ir
+    api: api.staging.alanfelez.ir
+    auth: auth.staging.alanfelez.ir
+    admin: admin.staging.alanfelez.ir
+  imageRegistry: REGISTRY_HOST/alanfelez   # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
+  imagePullSecrets: [{ name: arvan-registry }]
+images:
+  api: { repository: api, tag: "0.0.0" }
+  web: { repository: web, tag: "0.0.0" }
+  keycloak: { repository: keycloak, tag: "0.0.0" }
+  admin: { repository: admin, tag: "0.0.0" }
+api:
+  seedProfiles: reference,demo
+keycloak:
+  otp: { smsProvider: console, consoleAllowed: true }   # switch to the real provider when available (F7)

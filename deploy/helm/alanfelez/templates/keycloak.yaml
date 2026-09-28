@@ -1,0 +1,67 @@
+# Custom Keycloak image (phone OTP + SMS SPI + Keycloakify theme; the realm file is baked in and imported once).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-keycloak
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.keycloak.replicas }}
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "keycloak") | nindent 6 }}
+  strategy:
+    {{- if eq .Values.keycloak.strategy "Recreate" }}
+    type: Recreate
+    {{- else }}
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+    {{- end }}
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "keycloak") | nindent 8 }}
+    spec:
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      containers:
+        - name: keycloak
+          image: {{ include "af.image" (dict "root" . "name" "keycloak") }}
+          imagePullPolicy: {{ .Values.images.keycloak.pullPolicy }}
+          args: ["start", "--optimized", "--import-realm"]
+          env:
+            - { name: KC_DB_URL, value: "jdbc:postgresql://{{ .Values.dataRelease }}-pg-rw:5432/keycloak" }
+            - name: KC_DB_USERNAME
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakDb }}, key: username } }
+            - name: KC_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakDb }}, key: password } }
+            - { name: KC_HOSTNAME, value: {{ include "af.url" (dict "root" . "host" "auth") | quote }} }
+            - { name: KC_HTTP_ENABLED, value: "true" }       # TLS ends at the ingress
+            - { name: KC_PROXY_HEADERS, value: xforwarded }
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: username } }
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: password } }
+            # Realm file placeholders
+            - { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
+            - { name: ADMIN_URL, value: {{ include "af.url" (dict "root" . "host" "admin") | quote }} }
+            - name: KC_WEB_CLIENT_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.app }}, key: KC_WEB_CLIENT_SECRET } }
+            # Phone OTP (ADR-0022)
+            - { name: OTP_SMS_PROVIDER, value: {{ .Values.keycloak.otp.smsProvider | quote }} }
+            - { name: KC_SPI_SMS_SENDER__CONSOLE__ALLOWED, value: {{ .Values.keycloak.otp.consoleAllowed | quote }} }
+            {{- range $k, $v := .Values.keycloak.extraEnv }}
+            - { name: {{ $k }}, value: {{ $v | quote }} }
+            {{- end }}
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: management, containerPort: 9000 }
+          startupProbe: { httpGet: { path: /health/started, port: management }, periodSeconds: 5, failureThreshold: 60 }
+          livenessProbe: { httpGet: { path: /health/live, port: management }, periodSeconds: 15 }
+          readinessProbe: { httpGet: { path: /health/ready, port: management }, periodSeconds: 10 }
+          resources: {{- toYaml .Values.keycloak.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-keycloak
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "af.selector" (dict "root" . "name" "keycloak") | nindent 4 }}
+  ports: [{ name: http, port: 8080, targetPort: http }]

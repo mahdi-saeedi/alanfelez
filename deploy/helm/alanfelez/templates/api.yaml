@@ -1,0 +1,82 @@
+{{ include "af.workloadHeader" (dict "root" .) }}
+metadata:
+  name: {{ .Release.Name }}-api
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicas }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "api") | nindent 6 }}
+  {{- include "af.strategy" (dict "root" . "name" "api") | nindent 2 }}
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "api") | nindent 8 }}
+    spec:
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, runAsGroup: 65532 }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: api
+          image: {{ include "af.image" (dict "root" . "name" "api") }}
+          imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+          args: ["serve"]
+          env: {{- include "af.apiEnv" . | nindent 12 }}
+          ports: [{ name: http, containerPort: 8080 }]
+          startupProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 2, failureThreshold: 60 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 10 }
+          readinessProbe: { httpGet: { path: /readyz, port: http }, periodSeconds: 5, failureThreshold: 2 }
+          resources: {{- toYaml .Values.api.resources | nindent 12 }}
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-api
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "af.selector" (dict "root" . "name" "api") | nindent 4 }}
+  ports: [{ name: http, port: 8080, targetPort: http }]
+{{- if .Values.rollout.enabled }}
+---
+# Canary-only Service (Argo Rollouts manages the selector); the analysis below measures the new version through it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-api-canary
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  # Selector completed at runtime by Argo Rollouts (rollouts-pod-template-hash of the canary ReplicaSet).
+  selector: {{- include "af.selector" (dict "root" . "name" "api") | nindent 4 }}
+  ports: [{ name: http, port: 8080, targetPort: http }]
+---
+# Canary health gate: the new version must report ready on every check, otherwise the rollout aborts
+# and traffic returns to the stable version automatically. Production adds Prometheus error-rate checks.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: {{ .Release.Name }}-api-readiness
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  metrics:
+    - name: canary-ready
+      interval: {{ .Values.rollout.analysis.interval }}
+      count: {{ .Values.rollout.analysis.count }}
+      failureLimit: {{ .Values.rollout.analysis.failureLimit }}
+      consecutiveErrorLimit: {{ .Values.rollout.analysis.consecutiveErrorLimit }}   # canary unreachable = error
+      successCondition: result == "ready"
+      provider:
+        web:
+          url: "http://{{ .Release.Name }}-api-canary.{{ .Release.Namespace }}.svc.cluster.local:8080/readyz"
+          jsonPath: "{$.status}"
+          timeoutSeconds: 5
+{{- end }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-api
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "api") | nindent 6 }}

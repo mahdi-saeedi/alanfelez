@@ -1,0 +1,20 @@
+# Argo CD itself on a local k3d cluster (task k8s:up). Staging/production: same chart, values-cluster.yaml.
+global:
+  domain: argocd.alanfelez.localhost
+configs:
+  params:
+    # Compare via the API server (dry-run apply): defaults added by Kubernetes/operators are not drift.
+    controller.diff.server.side: "true"
+    server.insecure: true            # TLS ends at the ingress (none locally)
+  cm:
+    timeout.reconciliation: 30s      # poll git every 30s (a webhook is used in staging/production)
+dex: { enabled: false }
+notifications: { enabled: false }
+applicationSet: { replicas: 0 }   # not used locally; saves memory
+redis:
+  image: { repository: public.ecr.aws/docker/library/redis, tag: 8-alpine }
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.alanfelez.localhost

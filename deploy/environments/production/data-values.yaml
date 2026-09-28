@@ -1,0 +1,10 @@
+postgres:
+  instances: 2
+  storage: { size: 50Gi }
+  resources:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits: { memory: 2Gi }
+  backup:
+    enabled: true
+    destinationPath: s3://alanfelez-backups/production/postgres
+    endpointURL: https://s3.ir-thr-at1.arvanstorage.ir

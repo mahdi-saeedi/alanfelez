@@ -1,0 +1,35 @@
+{{- if .Values.bootstrap.enabled }}
+# Runs `alanfelez bootstrap` (migrations + seed) before every sync, so any environment starts from scratch
+# and upgrades migrate before new pods start (ADR-0021). Idempotent and lock-protected.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-bootstrap
+  labels: {{- include "af.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 900
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "bootstrap") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, runAsGroup: 65532 }
+      containers:
+        - name: bootstrap
+          image: {{ include "af.image" (dict "root" . "name" "api") }}
+          imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+          args: ["bootstrap"]
+          env:
+            {{- include "af.apiEnv" . | nindent 12 }}
+            - { name: STARTUP_TIMEOUT, value: {{ .Values.bootstrap.startupTimeout | quote }} }
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { memory: 256Mi } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+{{- end }}

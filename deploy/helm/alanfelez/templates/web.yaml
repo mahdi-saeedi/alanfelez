@@ -1,0 +1,71 @@
+{{ include "af.workloadHeader" (dict "root" .) }}
+metadata:
+  name: {{ .Release.Name }}-web
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "web") | nindent 6 }}
+  {{- include "af.strategy" (dict "root" . "name" "web") | nindent 2 }}
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "web") | nindent 8 }}
+    spec:
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000 }
+      containers:
+        - name: web
+          image: {{ include "af.image" (dict "root" . "name" "web") }}
+          imagePullPolicy: {{ .Values.images.web.pullPolicy }}
+          env:
+            - { name: API_INTERNAL_URL, value: "http://{{ .Release.Name }}-api:8080" }
+            - { name: AUTH_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
+            - { name: AUTH_KEYCLOAK_ID, value: alanfelez-web }
+            - { name: AUTH_KEYCLOAK_ISSUER, value: "{{ include "af.url" (dict "root" . "host" "auth") }}/realms/alanfelez" }
+            # Server-side OIDC calls go straight to the Keycloak service (no hairpin through the ingress/CDN).
+            - { name: AUTH_KEYCLOAK_INTERNAL_URL, value: "http://{{ .Release.Name }}-keycloak:8080" }
+            - name: AUTH_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.app }}, key: AUTH_SECRET } }
+            - name: AUTH_KEYCLOAK_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.app }}, key: KC_WEB_CLIENT_SECRET } }
+            {{- range $k, $v := .Values.web.extraEnv }}
+            - { name: {{ $k }}, value: {{ $v | quote }} }
+            {{- end }}
+          ports: [{ name: http, containerPort: 3000 }]
+          startupProbe: { httpGet: { path: /api/health, port: http }, periodSeconds: 2, failureThreshold: 60 }
+          livenessProbe: { httpGet: { path: /api/health, port: http }, periodSeconds: 10 }
+          readinessProbe: { httpGet: { path: /api/health, port: http }, periodSeconds: 5 }
+          resources: {{- toYaml .Values.web.resources | nindent 12 }}
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-web
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "af.selector" (dict "root" . "name" "web") | nindent 4 }}
+  ports: [{ name: http, port: 3000, targetPort: http }]
+{{- if .Values.rollout.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-web-canary
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  # Selector completed at runtime by Argo Rollouts (rollouts-pod-template-hash of the canary ReplicaSet).
+  selector: {{- include "af.selector" (dict "root" . "name" "web") | nindent 4 }}
+  ports: [{ name: http, port: 3000, targetPort: http }]
+{{- end }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-web
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "web") | nindent 6 }}

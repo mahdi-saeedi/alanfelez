@@ -1,0 +1,38 @@
+# Local-only git server so Argo CD can do real GitOps against this repo (task k8s:up / k8s:deploy).
+apiVersion: v1
+kind: Namespace
+metadata: { name: gitea }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: gitea, namespace: gitea }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: gitea } }
+  template:
+    metadata: { labels: { app: gitea } }
+    spec:
+      containers:
+        - name: gitea
+          image: gitea/gitea:1.27.3-rootless
+          env:
+            - { name: GITEA__security__INSTALL_LOCK, value: "true" }
+            - { name: GITEA__server__ROOT_URL, value: "http://gitea-http.gitea.svc.cluster.local:3000/" }
+            - { name: GITEA__server__HTTP_PORT, value: "3000" }
+            - { name: GITEA__database__DB_TYPE, value: sqlite3 }
+            - { name: GITEA__service__DISABLE_REGISTRATION, value: "true" }
+            - { name: GITEA__repository__ENABLE_PUSH_CREATE_USER, value: "true" }
+            - { name: GITEA__repository__DEFAULT_PUSH_CREATE_PRIVATE, value: "false" }
+          ports: [{ containerPort: 3000 }]
+          readinessProbe: { httpGet: { path: /api/healthz, port: 3000 }, periodSeconds: 5 }
+          volumeMounts: [{ name: data, mountPath: /var/lib/gitea }, { name: config, mountPath: /etc/gitea }]
+      volumes:
+        - { name: data, emptyDir: {} }
+        - { name: config, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: gitea-http, namespace: gitea }
+spec:
+  selector: { app: gitea }
+  ports: [{ port: 3000, targetPort: 3000 }]

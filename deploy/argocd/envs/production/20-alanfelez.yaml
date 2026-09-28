@@ -1,0 +1,33 @@
+# Generated layout: see deploy/argocd/README.md
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alanfelez
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: alanfelez
+  source:
+    repoURL: https://github.com/alanfelez/alanfelez.git
+    targetRevision: main
+    path: deploy/helm/alanfelez
+    helm:
+      releaseName: alanfelez
+      valueFiles:
+        - ../../environments/production/values.yaml
+  # Argo Rollouts owns the canary Services' selectors (it adds the canary pod-template hash). Without this,
+  # self-heal would revert them and the canary analysis would measure the stable pods.
+  ignoreDifferences:
+    - { group: "", kind: Service, name: alanfelez-api-canary, jsonPointers: [/spec/selector] }
+    - { group: "", kind: Service, name: alanfelez-web-canary, jsonPointers: [/spec/selector] }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alanfelez
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true, ServerSideApply=true, RespectIgnoreDifferences=true]
+    retry:
+      limit: 10
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }

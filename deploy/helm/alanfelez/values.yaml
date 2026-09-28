@@ -1,0 +1,99 @@
+# Defaults are production-safe. Environment files in deploy/environments/<env>/values.yaml override them.
+global:
+  env: production                  # APP_ENV of the API: local | staging | production
+  scheme: https
+  publicPort: ""                   # e.g. ":8088" for a local cluster; empty for 80/443
+  hosts:
+    web: alanfelez.ir
+    api: api.alanfelez.ir
+    auth: auth.alanfelez.ir
+    admin: admin.alanfelez.ir
+  imageRegistry: ""                # e.g. registry.arvancloud.ir/alanfelez (prefix for images below)
+  imagePullSecrets: []
+
+# Release name of the alanfelez-data chart in the same namespace (Postgres + Redis).
+dataRelease: alanfelez-data
+
+images:                            # tags are written by CI (GitOps). Never "latest" outside local.
+  api: { repository: alanfelez/api, tag: "0.0.0", pullPolicy: IfNotPresent }
+  web: { repository: alanfelez/web, tag: "0.0.0", pullPolicy: IfNotPresent }
+  keycloak: { repository: alanfelez/keycloak, tag: "0.0.0", pullPolicy: IfNotPresent }
+  admin: { repository: alanfelez/admin, tag: "0.0.0", pullPolicy: IfNotPresent }
+
+# Secrets are never stored in this chart. Staging/production: SealedSecrets (deploy/environments/<env>/secrets).
+secrets:
+  app: alanfelez-app               # keys: AUTH_SECRET, KC_WEB_CLIENT_SECRET
+  keycloakAdmin: alanfelez-keycloak-admin   # keys: username, password (bootstrap admin, first start only)
+  keycloakDb: alanfelez-keycloak-db         # keys: username, password (also used by the data chart)
+
+api:
+  replicas: 2
+  logLevel: info
+  seedProfiles: reference          # "reference,demo" on staging; demo is refused in production
+  redisUrl: ""                     # default: the alanfelez-data Redis service
+  corsOrigins: []                  # defaults to the web origin
+  extraEnv: {}
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+web:
+  replicas: 2
+  extraEnv: {}
+  resources:
+    requests: { cpu: 100m, memory: 192Mi }
+    limits: { memory: 512Mi }
+
+admin:
+  replicas: 1
+  resources:
+    requests: { cpu: 20m, memory: 48Mi }
+    limits: { memory: 128Mi }
+
+keycloak:
+  replicas: 1
+  strategy: RollingUpdate          # Recreate for single-replica, memory-constrained clusters
+  otp:
+    smsProvider: console           # id of the SmsSender SPI provider
+    consoleAllowed: false          # the console sender only logs codes, never true in production
+  extraEnv: {}
+  resources:
+    requests: { cpu: 250m, memory: 768Mi }
+    limits: { memory: 1536Mi }
+
+bootstrap:
+  enabled: true                    # migrations + seed before every sync (Argo CD PreSync / Helm pre-install,pre-upgrade)
+  startupTimeout: 10m
+
+# Argo Rollouts canary for api and web (ADR-0020). enabled=false renders plain Deployments.
+rollout:
+  enabled: true
+  # 1. setWeight 50 completes only when the canary pods are Ready. If they never are, the progress deadline aborts.
+  # 2. The analysis step then measures the canary pods through the canary Service (which Argo Rollouts points at
+  #    the new ReplicaSet once it's available). Any failed check aborts, and the stable version keeps serving.
+  # "{{analysis}}" is replaced with the workload's AnalysisTemplate (api only; web skips it).
+  steps:
+    - setWeight: 50
+    - analysis: "{{analysis}}"
+    - pause: { duration: 30s }
+    - setWeight: 100
+  progressDeadlineSeconds: 180
+  analysis:
+    interval: 10s
+    count: 3
+    failureLimit: 0
+    consecutiveErrorLimit: 2
+
+ingress:
+  enabled: true
+  className: traefik
+  tls:
+    enabled: true
+    clusterIssuer: letsencrypt     # cert-manager ClusterIssuer
+
+# Local clusters only: render the secrets above from these values. Never in staging/production.
+devSecrets:
+  enabled: false
+  authSecret: local-only-auth-secret-change-me-0123456789
+  webClientSecret: local-web-secret-change-me
+  keycloakAdminPassword: admin

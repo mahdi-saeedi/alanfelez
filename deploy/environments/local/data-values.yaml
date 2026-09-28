@@ -1,0 +1,7 @@
+postgres:
+  storage: { size: 1Gi }
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 512Mi }
+devSecrets:
+  enabled: true

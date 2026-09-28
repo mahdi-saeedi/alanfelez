@@ -1,0 +1,38 @@
+# Staff admin panel (static SPA). Runtime config comes from env (server.mjs → /config.js).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-admin
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.admin.replicas }}
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "admin") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "admin") | nindent 8 }}
+    spec:
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000 }
+      containers:
+        - name: admin
+          image: {{ include "af.image" (dict "root" . "name" "admin") }}
+          imagePullPolicy: {{ .Values.images.admin.pullPolicy }}
+          env:
+            - { name: ADMIN_API_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
+            - { name: ADMIN_OIDC_AUTHORITY, value: "{{ include "af.url" (dict "root" . "host" "auth") }}/realms/alanfelez" }
+            - { name: ADMIN_OIDC_CLIENT_ID, value: alanfelez-admin }
+          ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 15 }
+          resources: {{- toYaml .Values.admin.resources | nindent 12 }}
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-admin
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "af.selector" (dict "root" . "name" "admin") | nindent 4 }}
+  ports: [{ name: http, port: 8080, targetPort: http }]

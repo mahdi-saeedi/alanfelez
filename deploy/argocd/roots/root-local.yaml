@@ -1,0 +1,19 @@
+# Root "app of apps" for local. Apply once after installing Argo CD:
+#   kubectl apply -f deploy/argocd/projects/alanfelez.yaml -f deploy/argocd/roots/root-local.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-local
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: alanfelez
+  source:
+    repoURL: http://gitea-http.gitea.svc.cluster.local:3000/alanfelez/alanfelez.git
+    targetRevision: main
+    path: deploy/argocd/envs/local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }

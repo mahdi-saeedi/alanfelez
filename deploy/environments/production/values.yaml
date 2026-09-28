@@ -1,0 +1,22 @@
+# Production - deployed from release tags through a reviewed PR (release workflow).
+global:
+  env: production
+  hosts:
+    web: alanfelez.ir
+    api: api.alanfelez.ir
+    auth: auth.alanfelez.ir
+  imageRegistry: REGISTRY_HOST/alanfelez
+  imagePullSecrets: [{ name: arvan-registry }]
+images:
+  api: { repository: api, tag: "0.0.0" }
+  web: { repository: web, tag: "0.0.0" }
+  keycloak: { repository: keycloak, tag: "0.0.0" }
+  admin: { repository: admin, tag: "0.0.0" }
+api:
+  replicas: 2
+  seedProfiles: reference
+web:
+  replicas: 2
+keycloak:
+  replicas: 2
+  otp: { smsProvider: console, consoleAllowed: false }   # a real provider must be configured before launch (F7)

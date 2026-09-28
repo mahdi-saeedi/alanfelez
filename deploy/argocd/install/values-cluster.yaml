@@ -1,0 +1,16 @@
+# Argo CD on staging/production clusters.
+global:
+  domain: argocd.alanfelez.ir
+configs:
+  params:
+    # Compare via the API server (dry-run apply): defaults added by Kubernetes/operators are not drift.
+    controller.diff.server.side: "true"
+    server.insecure: true            # TLS terminated by the ingress (cert-manager)
+dex: { enabled: false }
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.alanfelez.ir
+    annotations: { cert-manager.io/cluster-issuer: letsencrypt }
+    tls: true

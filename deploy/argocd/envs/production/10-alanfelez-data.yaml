@@ -1,0 +1,28 @@
+# Generated layout: see deploy/argocd/README.md
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alanfelez-data
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: alanfelez
+  source:
+    repoURL: https://github.com/alanfelez/alanfelez.git
+    targetRevision: main
+    path: deploy/helm/alanfelez-data
+    helm:
+      releaseName: alanfelez-data
+      valueFiles:
+        - ../../environments/production/data-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alanfelez
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
+    retry:
+      limit: 10
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }

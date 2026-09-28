@@ -1,0 +1,76 @@
+# PostgreSQL managed by the CloudNativePG operator (ADR-0019). The operator creates the secret
+# "{{ .Release.Name }}-pg-app" (username, password, host, uri, …) for the application database.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-pg
+  labels: {{- include "data.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.postgres.instances }}
+  imageName: {{ .Values.postgres.imageName }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgres.appDatabase }}
+      owner: {{ .Values.postgres.appDatabase }}
+  managed:
+    roles:
+      - name: keycloak
+        ensure: present
+        login: true
+        passwordSecret:
+          name: {{ .Values.postgres.keycloak.passwordSecret }}
+  storage:
+    size: {{ .Values.postgres.storage.size }}
+    {{- with .Values.postgres.storage.storageClass }}
+    storageClass: {{ . }}
+    {{- end }}
+  resources: {{- toYaml .Values.postgres.resources | nindent 4 }}
+  {{- if .Values.postgres.backup.enabled }}
+  backup:
+    retentionPolicy: {{ .Values.postgres.backup.retentionPolicy }}
+    barmanObjectStore:
+      destinationPath: {{ required "postgres.backup.destinationPath" .Values.postgres.backup.destinationPath }}
+      endpointURL: {{ required "postgres.backup.endpointURL" .Values.postgres.backup.endpointURL }}
+      s3Credentials:
+        accessKeyId: { name: {{ .Values.postgres.backup.s3CredentialsSecret }}, key: ACCESS_KEY_ID }
+        secretAccessKey: { name: {{ .Values.postgres.backup.s3CredentialsSecret }}, key: ACCESS_SECRET_KEY }
+      wal: { compression: gzip }
+      data: { compression: gzip }
+  {{- end }}
+---
+# Separate database for Keycloak, owned by its own role (identity data isolated from app data).
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ .Release.Name }}-keycloak-db
+  labels: {{- include "data.labels" . | nindent 4 }}
+spec:
+  cluster: { name: {{ .Release.Name }}-pg }
+  name: {{ .Values.postgres.keycloak.database }}
+  owner: keycloak
+{{- if .Values.postgres.backup.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ .Release.Name }}-pg-nightly
+  labels: {{- include "data.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.postgres.backup.schedule | quote }}
+  cluster: { name: {{ .Release.Name }}-pg }
+  backupOwnerReference: self
+{{- end }}
+{{- if .Values.devSecrets.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.postgres.keycloak.passwordSecret }}
+  labels:
+    {{- include "data.labels" . | nindent 4 }}
+    cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+  username: keycloak
+  password: {{ .Values.devSecrets.keycloakDbPassword | quote }}
+{{- end }}

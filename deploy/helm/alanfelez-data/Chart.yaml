@@ -1,0 +1,5 @@
+apiVersion: v2
+name: alanfelez-data
+description: Stateful services for Alan Felez - PostgreSQL (CloudNativePG) and Redis. Deployed before the app chart.
+type: application
+version: 0.1.0

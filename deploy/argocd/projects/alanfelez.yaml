@@ -1,0 +1,19 @@
+# Restricts what the alanfelez applications may deploy and where.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: alanfelez
+  namespace: argocd
+spec:
+  description: Alan Felez platform and application
+  sourceRepos:
+    - "*"                                   # narrowed per cluster to the app repo + the Helm chart repos below
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: alanfelez }
+    - { server: https://kubernetes.default.svc, namespace: argo-rollouts }
+    - { server: https://kubernetes.default.svc, namespace: cnpg-system }
+    - { server: https://kubernetes.default.svc, namespace: cert-manager }
+    - { server: https://kubernetes.default.svc, namespace: kube-system }
+    - { server: https://kubernetes.default.svc, namespace: argocd }
+  clusterResourceWhitelist:
+    - { group: "*", kind: "*" }             # operators install CRDs and cluster roles

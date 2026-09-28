@@ -1,0 +1,7 @@
+postgres:
+  instances: 1
+  storage: { size: 10Gi }
+  backup:
+    enabled: true
+    destinationPath: s3://alanfelez-backups/staging/postgres
+    endpointURL: https://s3.ir-thr-at1.arvanstorage.ir

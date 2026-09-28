@@ -1,0 +1,34 @@
+# Local Kubernetes (k3d) - exercised by `task k8s:up` / `task k8s:deploy`. Mirrors staging with local hostnames.
+global:
+  env: local
+  scheme: http
+  publicPort: ":8088"
+  hosts:
+    web: alanfelez.localhost
+    api: api.alanfelez.localhost
+    auth: auth.alanfelez.localhost
+    admin: admin.alanfelez.localhost
+images:
+  # Written by `task k8s:deploy` (images are built locally and imported into k3d), like CI does for staging.
+  api: { repository: alanfelez/api, tag: local-bootstrap }
+  web: { repository: alanfelez/web, tag: local-bootstrap }
+  keycloak: { repository: alanfelez/keycloak, tag: local-bootstrap }
+  admin: { repository: alanfelez/admin, tag: local-bootstrap }
+api:
+  replicas: 2
+  logLevel: debug
+  seedProfiles: reference,demo
+web:
+  replicas: 2
+keycloak:
+  strategy: Recreate   # 1 replica on a small node: don't wait for surge capacity
+  otp: { smsProvider: console, consoleAllowed: true }
+  extraEnv:
+    JAVA_OPTS_KC_HEAP: "-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=30"
+  resources:
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { memory: 768Mi }
+ingress:
+  tls: { enabled: false }
+devSecrets:
+  enabled: true

@@ -1,0 +1,45 @@
+{{- if .Values.redis.enabled }}
+# Redis: latest-price cache, SSE fan-out, rate limits. Data is rebuildable (Postgres is the source of truth).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels: {{- include "data.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ .Release.Name }}-redis
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: redis, app.kubernetes.io/instance: {{ .Release.Name }} }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: redis, app.kubernetes.io/instance: {{ .Release.Name }} }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 999, fsGroup: 999 }
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image }}
+          args: ["redis-server", "--appendonly", "yes"]
+          ports: [{ name: redis, containerPort: 6379 }]
+          readinessProbe: { exec: { command: ["redis-cli", "ping"] }, periodSeconds: 5 }
+          livenessProbe: { exec: { command: ["redis-cli", "ping"] }, periodSeconds: 15 }
+          resources: {{- toYaml .Values.redis.resources | nindent 12 }}
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          volumeMounts: [{ name: data, mountPath: /data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        {{- with .Values.redis.storage.storageClass }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources: { requests: { storage: {{ .Values.redis.storage.size }} } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels: {{- include "data.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/name: redis, app.kubernetes.io/instance: {{ .Release.Name }} }
+  ports: [{ name: redis, port: 6379, targetPort: redis }]
+{{- end }}
