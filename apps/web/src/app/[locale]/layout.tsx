@@ -6,6 +6,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { LivePricesProvider } from "@/components/prices/LivePrices";
+import { PriceTicker } from "@/components/prices/PriceTicker";
+import { getPrices } from "@/lib/prices";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -26,14 +29,20 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+  // One price fetch per request feeds the ticker and every live price on the page (tier-filtered by the API).
+  const prices = await getPrices(locale as "fa" | "en");
+  const rows = prices?.items ?? [];
 
   return (
     <html lang={locale} dir={locale === "fa" ? "rtl" : "ltr"}>
       <body className="flex min-h-screen flex-col">
         <NextIntlClientProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <LivePricesProvider initial={rows}>
+            <PriceTicker rows={rows} />
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </LivePricesProvider>
         </NextIntlClientProvider>
       </body>
     </html>

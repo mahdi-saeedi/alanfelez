@@ -1,5 +1,8 @@
 {
-  "brand": { "name": "Alan Felez", "tagline": "Metals market information at a glance" },
+  "brand": {
+    "name": "Alan Felez",
+    "tagline": "Metals market information at a glance"
+  },
   "nav": {
     "home": "Home",
     "prices": "Metal prices",
@@ -14,8 +17,17 @@
     "terms": "Terms",
     "privacy": "Privacy"
   },
-  "auth": { "login": "Log in", "signup": "Sign up", "start": "Get started", "logout": "Log out", "account": "Account" },
-  "locale": { "switch": "فارسی", "switchLabel": "Change language" },
+  "auth": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "start": "Get started",
+    "logout": "Log out",
+    "account": "Account"
+  },
+  "locale": {
+    "switch": "فارسی",
+    "switchLabel": "Change language"
+  },
   "home": {
     "badge": "Live market — real-time updates",
     "titleStart": "Follow the metals market",
@@ -24,10 +36,11 @@
     "subtitle": "Prices, charts, analysis and trading opportunities for metals in one specialised platform",
     "ctaPrices": "View metal prices",
     "ctaChart": "View price chart",
-    "metalsTitle": "Markets covered",
-    "marketsTitle": "Data sources",
     "plansTitle": "Find more opportunities with a professional plan",
-    "plansCta": "View plans and pricing"
+    "plansCta": "View plans and pricing",
+    "liveTitle": "Live metal prices",
+    "seeAll": "See all →",
+    "heroChange": "30-day change"
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
@@ -38,7 +51,92 @@
     "year": "year",
     "perPeriod": "{price} / {period}"
   },
-  "placeholder": { "title": "Coming soon", "body": "This section is under construction." },
-  "footer": { "rights": "© 2026 Alan Felez — All rights reserved" },
-  "error": { "apiDown": "We can't load data right now. Please try again shortly." }
+  "placeholder": {
+    "title": "Coming soon",
+    "body": "This section is under construction."
+  },
+  "footer": {
+    "rights": "© 2026 Alan Felez — All rights reserved"
+  },
+  "error": {
+    "apiDown": "We can't load data right now. Please try again shortly."
+  },
+  "prices": {
+    "title": "Live metal prices",
+    "subtitle": "The latest prices and market changes at a glance.",
+    "all": "All",
+    "col": {
+      "metal": "Metal",
+      "type": "Type",
+      "price": "Price ({unit})",
+      "unit": "Unit",
+      "change": "Daily change",
+      "changePct": "Change %",
+      "updated": "Last update",
+      "source": "Source"
+    },
+    "units": {
+      "kg": "kg",
+      "ton": "ton"
+    },
+    "showing": "Showing {shown} of {total} rows",
+    "lastUpdate": "Last update: {time}",
+    "gainers": "Top gainers ↑",
+    "losers": "Top losers ↓",
+    "sources": "Data sources",
+    "historyTitle": "Want to see the price history?",
+    "historySub": "Price history charts over different ranges",
+    "historyCta": "Open the price chart →",
+    "noData": "—",
+    "empty": "No prices for this filter yet.",
+    "lockedRows": "{count, plural, one {# more row} other {# more rows}} (every product, domestic and global markets) with the {plan} plan",
+    "info": "Prices are for information only.",
+    "live": "Live",
+    "reconnecting": "Reconnecting…"
+  },
+  "chart": {
+    "title": "Metal price chart",
+    "subtitle": "Price history and market trends over different time ranges",
+    "metal": "Metal",
+    "market": "Market",
+    "product": "Product",
+    "unit": "Unit",
+    "current": "Current price",
+    "change": "Change ({range})",
+    "high": "High",
+    "low": "Low",
+    "avg": "Average",
+    "ranges": {
+      "1D": "1D",
+      "1W": "1W",
+      "1M": "1M",
+      "3M": "3M",
+      "6M": "6M",
+      "1Y": "1Y",
+      "3Y": "3Y",
+      "MAX": "MAX"
+    },
+    "source": "Source: {source} | Last update: {time}",
+    "quickCompare": "Quick compare",
+    "advancedTitle": "Advanced market analysis",
+    "advancedBody": "Technical analysis, support/resistance levels, trend forecasts and market AI",
+    "lockedRange": "This range unlocks with the {plan} plan",
+    "lockedSeries": "This price is available with the {plan} plan",
+    "noHistory": "No history for this price yet.",
+    "unitOptions": {
+      "toman-kg": "Toman / kg",
+      "toman-ton": "Toman / ton",
+      "rial-kg": "Rial / kg",
+      "rial-ton": "Rial / ton",
+      "usd-ton": "USD / ton"
+    }
+  },
+  "lock": {
+    "upgrade": "Upgrade to {plan}",
+    "plan": {
+      "free": "Free",
+      "silver": "Silver",
+      "gold": "Gold"
+    }
+  }
 }

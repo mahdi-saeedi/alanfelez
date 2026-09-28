@@ -52,8 +52,8 @@ export async function Header() {
             </form>
           ) : (
             <form action={login} className="flex items-center gap-2">
-              <button className="rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.login")}</button>
-              <button className="rounded-lg bg-gold px-4 py-2 text-sm font-bold text-graphite hover:bg-gold-light">
+              <button className="whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.login")}</button>
+              <button className="whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold text-graphite hover:bg-gold-light">
                 {t("auth.start")}
               </button>
             </form>

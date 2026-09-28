@@ -36,4 +36,32 @@
   --radius-card: 14px;
   --radius-control: 10px;
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.06), 0 12px 32px rgb(16 24 40 / 0.18);
+  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04), 0 2px 8px rgb(16 24 40 / 0.04);
+
+  /* Motion from the prototype: scrolling ticker, chart line drawing in, flash on a price update. */
+  --animate-ticker: ticker-scroll 60s linear infinite;
+  --animate-draw: draw 1.2s ease-out forwards;
+  --animate-flash-up: flash-up 1.2s ease-out;
+  --animate-flash-down: flash-down 1.2s ease-out;
+
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(var(--ticker-shift, -50%)); }
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: var(--path-length, 2000); }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes flash-up {
+    from { background-color: var(--color-up-bg); }
+  }
+  @keyframes flash-down {
+    from { background-color: var(--color-down-bg); }
+  }
+}
+
+/* The ticker scrolls toward the reading direction's end; users who prefer less motion get a static bar. */
+[dir="rtl"] { --ticker-shift: 50%; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-ticker, .animate-draw { animation: none !important; }
 }

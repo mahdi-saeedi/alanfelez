@@ -1,25 +1,30 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { formatBp, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
-import { api } from "@/lib/api";
+import { getHistory, getPrices } from "@/lib/prices";
+import { PriceCard } from "@/components/prices/PriceCard";
+import { Sparkline } from "@/components/prices/Sparkline";
+import { LiveDot } from "@/components/prices/LiveDot";
 
-// Rendered per request (no API needed at build time); API responses are cached for 60s in Next's data cache.
+// Rendered per request (no API needed at build time); anonymous API responses are cached briefly in Next's data cache.
 export const dynamic = "force-dynamic";
-const CACHE = { next: { revalidate: 60 } } as const;
 
 export default async function HomePage({ params }: { params: Promise<{ locale: "fa" | "en" }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
-  const headers = { "Accept-Language": locale };
-  const [metals, markets] = await Promise.all([
-    api.GET("/v1/metals", { params: { header: headers }, ...CACHE }),
-    api.GET("/v1/markets", { params: { header: headers }, ...CACHE }),
-  ]);
+  const prices = await getPrices(locale);
+  const base = (prices?.items ?? []).filter((r) => r.series.isBase);
+  const hero = base.find((r) => r.series.metal.slug === "copper") ?? base[0];
+  const heroHistory = hero ? await getHistory(locale, hero.series.slug, "1M") : null;
+  const heroPoints = heroHistory && "data" in heroHistory && heroHistory.data ? heroHistory.data.points.map((p) => Number(p.amount)) : [];
+  const heroChange = heroPoints.length > 1 ? Math.trunc(((heroPoints.at(-1)! - heroPoints[0]!) * 10_000) / heroPoints[0]!) : undefined;
 
   return (
     <>
       <section className="bg-gradient-to-b from-graphite to-hero text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:py-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2">
+          <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-graphite-3 px-3 py-1 text-sm text-silver-light">
             <span className="h-2 w-2 animate-pulse rounded-full bg-up" aria-hidden />
             {t("home.badge")}
@@ -36,33 +41,54 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
               {t("home.ctaChart")}
             </Link>
           </div>
+          </div>
+          {hero?.price && (
+            <Link href={{ pathname: "/chart", query: { series: hero.series.slug } }} className="block rounded-card border border-graphite-3 bg-graphite-2/60 p-6 hover:border-gold">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="font-bold">
+                  {hero.series.metal.name} — {formatPriceValue(hero.price, locale)}{" "}
+                  <span className="text-sm font-normal text-silver-light" dir="ltr">{priceUnitLabel(hero.series, locale)}</span>
+                </span>
+                <span className="text-xs text-silver-light">
+                  {t("home.heroChange")} {heroChange !== undefined && <span className={heroChange >= 0 ? "text-up" : "text-down"} dir="ltr">{formatBp(heroChange, locale)}</span>}
+                </span>
+              </div>
+              <Sparkline values={heroPoints} className="mt-4 h-32 w-full" />
+              <ul className="mt-4 grid grid-cols-4 gap-2 text-center text-xs">
+                {base.slice(0, 4).map((r) => (
+                  <li key={r.series.slug}>
+                    <div className="text-silver-light">{r.series.metal.name}</div>
+                    <div className={(r.change?.bp ?? 0) >= 0 ? "text-up" : "text-down"} dir="ltr">{r.change ? formatBp(r.change.bp, locale) : "—"}</div>
+                  </li>
+                ))}
+              </ul>
+            </Link>
+          )}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12">
-        <h2 className="text-2xl font-extrabold">{t("home.metalsTitle")}</h2>
-        {metals.data ? (
-          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-            {metals.data.items.map((m) => (
-              <li key={m.slug} className="rounded-card border border-border bg-surface p-4 text-center font-bold">
-                {m.name}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-6 text-down">{t("error.apiDown")}</p>
-        )}
-
-        <h2 className="mt-12 text-2xl font-extrabold">{t("home.marketsTitle")}</h2>
-        <ul className="mt-6 flex flex-wrap gap-3">
-          {markets.data?.items.map((m) => (
-            <li key={m.slug} className="rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-2">
-              {m.name}
-            </li>
-          ))}
-        </ul>
+      <section className="bg-surface">
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="flex items-center gap-3 text-2xl font-extrabold">
+              {t("home.liveTitle")} <LiveDot />
+            </h2>
+            <Link href="/prices" className="text-sm font-bold text-gold-dark hover:text-gold">{t("home.seeAll")}</Link>
+          </div>
+          {base.length ? (
+            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              {base.map((r) => (
+                <li key={r.series.slug}><PriceCard row={r} /></li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-6 text-down">{t("error.apiDown")}</p>
+          )}
+          <p className="mt-4 text-xs text-text-3">{t("prices.info")}</p>
+        </div>
       </section>
 
+      <div className="h-12" />
       <section className="mx-auto max-w-7xl px-4">
         <div className="rounded-card bg-graphite p-8 text-center text-white sm:p-12">
           <h2 className="text-2xl font-extrabold sm:text-3xl">{t("home.plansTitle")}</h2>

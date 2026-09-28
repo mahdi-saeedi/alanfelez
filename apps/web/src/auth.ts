@@ -1,36 +1,38 @@
 import NextAuth, { customFetch } from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
+import { internalKeycloakUrl, keycloak } from "@/lib/keycloak";
+import { SESSION_MAX_AGE } from "@/lib/session-refresh";
 
 /**
- * Login through Keycloak (ADR-0005). The Next.js server keeps the session (encrypted JWT cookie) and never
- * exposes tokens to browser JavaScript.
- *
- * AUTH_KEYCLOAK_ISSUER is the PUBLIC issuer (what browsers see and what the `iss` claim contains).
- * When the server can't reach that URL (Docker: "localhost" is the container itself), set
- * AUTH_KEYCLOAK_INTERNAL_URL (e.g. http://keycloak:8081) and server-side calls are rewritten to it.
+ * Login through Keycloak (ADR-0005). The Next.js server keeps the session in an encrypted, httpOnly JWT cookie.
+ * The Keycloak access/refresh tokens live in that cookie only. The session object (which browsers can read at
+ * /api/auth/session) never contains them. Server code gets the token with accessToken() from src/lib/api.ts, and
+ * the proxy refreshes it (src/lib/session-refresh.ts).
  */
-const issuer = process.env.AUTH_KEYCLOAK_ISSUER ?? "http://localhost:8081/realms/alanfelez";
-const internal = process.env.AUTH_KEYCLOAK_INTERNAL_URL;
-const publicOrigin = new URL(issuer).origin;
-
 const rewritingFetch: typeof fetch = (input, init) => {
   const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-  return fetch(internal && url.startsWith(publicOrigin) ? internal + url.slice(publicOrigin.length) : url, init);
+  return fetch(internalKeycloakUrl(url), init);
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: SESSION_MAX_AGE },
   providers: [
     Keycloak({
-      issuer,
-      clientId: process.env.AUTH_KEYCLOAK_ID ?? "alanfelez-web",
-      clientSecret: process.env.AUTH_KEYCLOAK_SECRET ?? "local-web-secret-change-me",
-      ...(internal ? { [customFetch]: rewritingFetch } : {}),
+      issuer: keycloak.issuer,
+      clientId: keycloak.clientId,
+      clientSecret: keycloak.clientSecret,
+      ...(keycloak.internalUrl ? { [customFetch]: rewritingFetch } : {}),
     }),
   ],
   callbacks: {
-    jwt({ token, profile }) {
+    jwt({ token, account, profile }) {
+      if (account) {
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.expiresAt = account.expires_at;
+        token.error = undefined;
+      }
       if (profile) {
         token.username = profile.preferred_username as string | undefined;
       }

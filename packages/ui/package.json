@@ -10,5 +10,13 @@
     "./fonts/*": "./fonts/*",
     "./format": "./src/format.ts"
   },
-  "files": ["tokens.css", "fonts.css", "fonts", "src"]
+  "files": [
+    "tokens.css",
+    "fonts.css",
+    "fonts",
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test src/*.test.ts"
+  }
 }

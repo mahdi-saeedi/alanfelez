@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 // Placeholder routes for sections built in later milestones (M2–M5). Unknown slugs → 404.
-const SECTIONS = ["prices", "chart", "analysis", "auctions", "calculator", "faq", "about", "contact", "terms", "privacy"] as const;
+const SECTIONS = ["analysis", "auctions", "calculator", "faq", "about", "contact", "terms", "privacy"] as const;
 type Section = (typeof SECTIONS)[number];
 
 export function generateStaticParams() {
