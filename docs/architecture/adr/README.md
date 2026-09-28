@@ -26,3 +26,4 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0020](0020-gitops-argocd-rollouts.md) | GitOps delivery with Argo CD, canary releases with Argo Rollouts, one-step rollback | Accepted |
 | [0021](0021-bootstrap-and-seed-data.md) | Environments start from scratch: bootstrap job and config-driven seed data | Accepted |
 | [0022](0022-keycloak-custom-image-otp-theme.md) | Custom Keycloak image: phone-OTP authenticator, pluggable SMS SPI, Keycloakify theme | Accepted |
+| [0023](0023-web-tokens-and-live-stream.md) | Website token handling: refresh in the proxy, SSE through the website, federated logout | Accepted |

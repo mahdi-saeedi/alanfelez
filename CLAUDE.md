@@ -3,9 +3,9 @@
 A bilingual platform (Persian RTL as the default, plus English) for Iran's metals market: live prices, price charts,
 expert analysis and forecasts, IME daily auction data, a load-value calculator, and 3-tier subscriptions (Free / Silver / Gold).
 The client already runs Iranian servers (ArvanCloud) and owns both domains, alanfelez.ir and alanfelez.com.
-**Status:** M1 done. `task up` runs web (Next.js), admin (Refine), Go API, Postgres, Redis and the custom Keycloak (phone OTP,
-Keycloakify theme, staff TOTP). `task k8s:*` runs the same apps on local k3d with Argo CD + Rollouts (GitOps, canary, rollback).
-Next: M2 market data (prices, history, SSE, admin price entry).
+**Status:** M1 + M2 done. `task up` runs web (Next.js), admin (Refine), Go API + worker (River), Postgres, Redis and the custom
+Keycloak (phone OTP, Keycloakify theme, staff TOTP). Prices: demo generator locally, manual/CSV entry in the admin, live over SSE,
+tier-gated in Go. `task k8s:*` runs the same apps on local k3d with Argo CD + Rollouts. Next: M3 accounts, subscriptions, payments.
 **Stack:** Go backend (`services/api`: chi, spec-first OpenAPI, pgx/sqlc/goose, River, SSE) · Next.js public site · Refine admin ·
 Postgres · Redis · custom Keycloak · Docker Compose (local) · k3s + Helm + Argo CD/Rollouts (staging/prod) · GitHub Actions CI. **Contract first:** edit `contracts/openapi.yaml`, then `task generate`.
 There's one developer (the user) plus AI assistants, and the project must be easy to hand over to a future developer.

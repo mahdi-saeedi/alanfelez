@@ -142,6 +142,7 @@ browser ◄─ server-rendered snapshot from Next.js (calls GET /v1/prices), so 
 - **Keycloak** owns identities: mobile + **SMS OTP sign-up** (required), OTP or password login, reset, sessions, brute-force protection.
   ⚠️ This needs an SMS authenticator SPI (community phone provider or a small custom one) and a fa/en RTL theme. Budget time for it.
 - **Web:** Auth.js (Keycloak provider) on the Next.js server. Server components call Go with the user's access token (BFF). Anonymous calls are allowed for public data.
+  Tokens stay in the encrypted httpOnly cookie; the proxy refreshes them, live prices are proxied through `/api/prices/stream`, and logout ends the Keycloak session too (ADR-0023).
 - **Admin:** PKCE flow. Go requires the realm roles `admin` / `editor` / `support` on `/v1/admin/*`.
 - **Go** validates the JWT (issuer, audience, expiry, JWKS; `internal/auth`). An invalid token is a 401, never an anonymous request. The tier comes from `app.subscriptions` by `sub` (`internal/subscription`); a local `users` table comes with accounts/billing.
 - **Subscription tier isn't a Keycloak role.** It lives in Postgres (`subscriptions`) and is evaluated by `internal/access`.

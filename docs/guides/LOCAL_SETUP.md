@@ -67,6 +67,12 @@ Test users (local only, file `deploy/local/keycloak/alanfelez-users-0.json`). Us
 | `local-editor` | `local-editor-pass` | editor (staff) | same |
 | `09120000001` | `local-user-pass` | normal user | or log in with OTP |
 
+**Try the paid view:** sign in to the admin as `local-admin` → *Subscriptions* → paste the user's id (Keycloak console → Users →
+`09120000001` → ID) → Silver or Gold. Then sign in on the website as that user: all series, longer chart ranges, live updates for all of them.
+The admin also has *Prices & manual entry* (editor/admin), *Bulk entry (CSV)* with a preview before saving, the *Price review queue*
+(automated prices that jumped past the threshold) and *Source health*. `support` can view them but not change anything.
+Lost the TOTP device for a local staff user? Remove it in the Keycloak console (Users → user → Credentials → delete OTP).
+
 ## 5. Daily commands
 
 | Command | What it does |
