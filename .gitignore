@@ -36,4 +36,10 @@ playwright-report/
 test-results/
 
 # Local data volumes
-infra/volumes/
+deploy/local/volumes/
+
+# Host-built artifacts for the "prebuilt" Docker stages
+services/api/bin/
+
+# Local k8s deploy history (deploy/local/k8s.sh)
+deploy/local/.k8s-state/

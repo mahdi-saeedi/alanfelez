@@ -1,0 +1,178 @@
+# Single entry point for every developer command (ADR-0018). Run `task --list`.
+# Works on macOS, Linux and Windows (use PowerShell or WSL2, see docs/LOCAL_SETUP.md).
+version: "3"
+
+dotenv: [".env"]
+
+vars:
+  API_DIR: services/api
+  CHART: deploy/helm/alanfelez
+
+tasks:
+  default:
+    cmds: [task --list]
+    silent: true
+
+  setup:
+    desc: One-time setup. Installs pinned tools (mise) and git hooks (lefthook)
+    cmds:
+      - mise install
+      - lefthook install
+
+  # --- local stack (Docker Compose) -------------------------------------------------
+  up:
+    desc: Start the whole local stack from scratch (build, migrate, seed) in the background
+    cmds:
+      - docker compose up --build -d
+      - docker compose ps
+      - cmd: echo "API → http://localhost:{{.API_PORT | default "8080"}}/v1/metals · Keycloak → http://localhost:{{.KEYCLOAK_PORT | default "8081"}}/admin · OTP codes → task otp"
+        silent: true
+  down:
+    desc: Stop the local stack (keeps data)
+    cmds: [docker compose down]
+  reset:
+    desc: Stop and DELETE all local data (volumes), then start fresh
+    prompt: This deletes local databases and Keycloak data. Continue?
+    cmds:
+      - docker compose down -v --remove-orphans
+      - task: up
+  build:local:
+    desc: Build the API binary, Keycloak extension and login theme on the host (for the "prebuilt" Docker stages)
+    cmds:
+      - task: build:api-bin
+      - task: build:kc-jar
+      - task: build:theme-jar
+      - task: build:web
+      - task: build:admin
+  build:admin:
+    internal: true
+    dir: apps/admin
+    cmds:
+      - pnpm build
+  build:web:
+    internal: true
+    dir: apps/web
+    env: { NEXT_TELEMETRY_DISABLED: "1" }
+    cmds:
+      - pnpm build
+  build:theme-jar:
+    internal: true
+    dir: apps/keycloak-theme
+    cmds:
+      - pnpm build-keycloak-theme
+  theme:dev:
+    desc: Develop the login theme with hot reload and mock data (http://localhost:5173/?page=login-phone-otp.ftl&lang=en)
+    dir: apps/keycloak-theme
+    cmds:
+      - pnpm dev
+  build:api-bin:
+    internal: true
+    dir: "{{.API_DIR}}"
+    env: { CGO_ENABLED: "0", GOOS: linux }
+    cmds:
+      - go build -trimpath -ldflags "-s -w -X main.version=local" -o bin/alanfelez ./cmd/alanfelez
+  build:kc-jar:
+    internal: true
+    dir: services/keycloak/extensions
+    vars:
+      KC_VERSION: '{{.KEYCLOAK_VERSION | default "26.7.4"}}'
+    cmds:
+      - mvn -B -q -o -Dkeycloak.version={{.KC_VERSION}} package
+  otp:
+    desc: Show the latest phone OTP codes printed by the console SMS sender (local only)
+    cmds:
+      - docker compose logs keycloak --since 15m | grep "DEV SMS" || echo "No OTP sent in the last 15 minutes"
+  logs:
+    desc: Follow logs (task logs -- api)
+    cmds:
+      - 'docker compose logs -f {{.CLI_ARGS}}'
+  ps:
+    desc: Show local services
+    cmds: [docker compose ps]
+  smoke:
+    desc: Smoke-test the running local stack (API, web, Keycloak)
+    cmds:
+      - deploy/local/smoke.sh http://localhost:{{.API_PORT | default "8080"}} http://localhost:{{.WEB_PORT | default "3000"}} http://localhost:{{.KEYCLOAK_PORT | default "8081"}}
+  seed:
+    desc: Re-run seeding against the local stack (pass -- --force to re-apply unchanged files)
+    cmds:
+      - 'docker compose run --rm bootstrap seed {{.CLI_ARGS}}'
+
+  # --- backend (run outside Docker against the compose databases) -------------------
+  api:run:
+    desc: Run the API on the host with hot restart-free go run (start the stack first)
+    dir: "{{.API_DIR}}"
+    env: { LOG_FORMAT: text, SEED_DIR: ../../config/seed, SEED_PROFILES: "reference,demo" }
+    cmds: [go run ./cmd/alanfelez serve]
+
+  generate:
+    desc: Regenerate code from the OpenAPI spec and SQL (commit the result)
+    dir: "{{.API_DIR}}"
+    cmds:
+      - sqlc generate
+      - go tool oapi-codegen -config oapi-codegen.yaml ../../contracts/openapi.yaml
+  generate:check:
+    desc: Fail if generated code is out of date (used by CI and pre-push)
+    cmds:
+      - task: generate
+      - git diff --exit-code -- {{.API_DIR}}/internal/api {{.API_DIR}}/internal/dbq
+
+  fmt:
+    desc: Format Go code
+    dir: "{{.API_DIR}}"
+    cmds: [golangci-lint fmt ./...]
+  lint:
+    desc: Lint Go code and the Helm chart
+    cmds:
+      - task: lint:go
+      - task: helm:lint
+  lint:go:
+    desc: Lint Go code
+    dir: "{{.API_DIR}}"
+    cmds:
+      - golangci-lint run ./...
+  test:
+    desc: Unit tests (race detector on)
+    dir: "{{.API_DIR}}"
+    cmds: [go test -race -count=1 ./...]
+  test:cover:
+    desc: Unit tests with coverage report
+    dir: "{{.API_DIR}}"
+    cmds:
+      - go test -race -count=1 -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out
+
+  # --- local Kubernetes (k3d + Argo CD + Argo Rollouts), same flow as staging/production ------
+  k8s:up:
+    desc: Create a local Kubernetes cluster with Gitea + Argo CD and register the GitOps root app
+    cmds: [deploy/local/k8s.sh up]
+  k8s:deploy:
+    desc: Build images and deploy them through GitOps (commit → Argo CD → bootstrap job → canary)
+    cmds: [deploy/local/k8s.sh deploy]
+  k8s:deploy:broken:
+    desc: Deploy a deliberately broken API to watch the canary abort automatically (stable version keeps serving)
+    cmds: [deploy/local/k8s.sh deploy --broken]
+  k8s:sync:
+    desc: Push chart/config changes to the local cluster (GitOps commit with the current image tags)
+    cmds: [deploy/local/k8s.sh sync]
+  k8s:rollback:
+    desc: Roll back to the previously deployed version (GitOps revert, like the Rollback workflow)
+    cmds: [deploy/local/k8s.sh rollback]
+  k8s:status:
+    desc: Argo CD applications, rollouts and pods on the local cluster
+    cmds: [deploy/local/k8s.sh status]
+  k8s:down:
+    desc: Delete the local Kubernetes cluster
+    cmds: [deploy/local/k8s.sh down]
+
+  # --- deployment -------------------------------------------------------------------
+  helm:lint:
+    desc: Lint and render the Helm chart for every environment
+    cmds:
+      - helm lint {{.CHART}} -f deploy/environments/staging/values.yaml
+      - helm template alanfelez {{.CHART}} -f deploy/environments/staging/values.yaml > /dev/null
+      - helm template alanfelez {{.CHART}} -f deploy/environments/production/values.yaml > /dev/null
+  image:api:
+    desc: Build the backend image locally
+    cmds:
+      - docker build -f {{.API_DIR}}/Dockerfile -t alanfelez/api:local --build-arg VERSION=local .

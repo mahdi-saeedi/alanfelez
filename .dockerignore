@@ -1,0 +1,18 @@
+# Keep build contexts small and free of secrets.
+**/.git
+**/node_modules
+**/.next/cache
+**/dist
+**/coverage
+**/.turbo
+**/*.docx
+docs/
+.env
+.env.*
+!.env.example
+deploy/local/volumes/
+
+# The Next.js standalone output (used by the "prebuilt" web stage) carries its own node_modules.
+!apps/web/.next/standalone/**
+!apps/admin/dist
+!apps/admin/dist/**

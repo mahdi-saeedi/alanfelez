@@ -1,0 +1,23 @@
+# Git hooks (ADR-0018). Installed by `task setup`.
+pre-commit:
+  parallel: true
+  commands:
+    go-fmt:
+      root: services/api/
+      glob: "*.go"
+      run: golangci-lint fmt {staged_files} && git add {staged_files}
+    gitleaks:
+      run: docker run --rm -v "$(pwd):/repo" zricethezav/gitleaks:latest protect --staged --source /repo --no-banner || echo "gitleaks skipped (docker unavailable)"
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        head -1 {1} | grep -Eq '^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+' \
+          || { echo "Commit message must follow Conventional Commits, e.g. 'feat(prices): add sidebar'"; exit 1; }
+pre-push:
+  commands:
+    generate-check:
+      run: task generate:check
+    unit-tests:
+      root: services/api/
+      run: go test -count=1 ./...

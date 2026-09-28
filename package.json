@@ -1,0 +1,12 @@
+{
+  "name": "alanfelez",
+  "private": true,
+  "description": "Alan Felez monorepo (TypeScript side). Go backend lives in services/api.",
+  "packageManager": "pnpm@12.6.0",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

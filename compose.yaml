@@ -1,0 +1,164 @@
+# Local development stack: one command, from scratch.
+#
+#   docker compose up --build        (or: task up)
+#
+# First start creates the databases, imports the Keycloak realm, runs migrations and loads
+# seed data (reference + demo). No .env file is needed. Every value has a local default.
+# Ports are bound to 127.0.0.1 only. Production and staging use Kubernetes (deploy/).
+# Slow network? Every image and build strategy can be overridden in a local .env file
+# (see .env.example and docs/LOCAL_SETUP.md, "Slow or restricted network").
+name: alanfelez
+
+x-api-image: &api-image
+  image: alanfelez/api:local
+  build:
+    context: .
+    dockerfile: services/api/Dockerfile
+    args:
+      VERSION: local
+      COMMIT: ${GIT_COMMIT:-local}
+      BUILD_STAGE: ${API_BUILD_STAGE:-build}
+      RUNTIME_IMAGE: ${API_RUNTIME_IMAGE:-gcr.io/distroless/static-debian12:nonroot}
+
+x-api-env: &api-env
+  APP_ENV: local
+  LOG_FORMAT: ${LOG_FORMAT:-text}
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+  DATABASE_URL: postgres://alanfelez:${POSTGRES_PASSWORD:-alanfelez}@postgres:5432/alanfelez?sslmode=disable
+  REDIS_URL: redis://redis:6379/0
+  OIDC_ISSUER_URL: http://localhost:${KEYCLOAK_PORT:-8081}/realms/alanfelez
+  CORS_ORIGINS: http://localhost:${WEB_PORT:-3000},http://localhost:${ADMIN_PORT:-5173}
+  SEED_PROFILES: reference,demo
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17-alpine}
+    environment:
+      POSTGRES_DB: alanfelez
+      POSTGRES_USER: alanfelez
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alanfelez}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/local/postgres/init:/docker-entrypoint-initdb.d:ro
+    ports: ["127.0.0.1:${POSTGRES_PORT:-5432}:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alanfelez -d alanfelez"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:8-alpine}
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis-data:/data]
+    ports: ["127.0.0.1:${REDIS_PORT:-6379}:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  keycloak:
+    image: alanfelez/keycloak:local
+    build:
+      context: .
+      dockerfile: services/keycloak/Dockerfile
+      args:
+        KEYCLOAK_VERSION: ${KEYCLOAK_VERSION:-26.7.4}
+        EXTENSIONS_STAGE: ${KC_EXTENSIONS_STAGE:-extensions-build}
+        THEME_STAGE: ${KC_THEME_STAGE:-theme-build}
+    command: ["start-dev", "--import-realm", "--http-port=8081"]  # container port; host port = KEYCLOAK_PORT
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8081}
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      WEB_URL: http://localhost:${WEB_PORT:-3000}
+      ADMIN_URL: http://localhost:${ADMIN_PORT:-5173}
+      KC_WEB_CLIENT_SECRET: local-web-secret-change-me
+      # Phone OTP: the "console" SMS sender prints codes to this container's log (docker compose logs keycloak).
+      OTP_SMS_PROVIDER: console
+      KC_SPI_SMS_SENDER__CONSOLE__ALLOWED: "true"
+    volumes:
+      - ./services/keycloak/realm/alanfelez-realm.json:/opt/keycloak/data/import/alanfelez-realm.json:ro
+      - ./deploy/local/keycloak/alanfelez-users-0.json:/opt/keycloak/data/import/alanfelez-users-0.json:ro
+    ports: ["127.0.0.1:${KEYCLOAK_PORT:-8081}:8081"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      # Management interface (port 9000) serves /health/ready. The image has bash but no curl.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  # One-shot job: migrations + seed. The API only starts after it succeeds.
+  bootstrap:
+    <<: *api-image
+    command: ["bootstrap"]
+    environment: *api-env
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    <<: *api-image
+    command: ["serve"]
+    environment: *api-env
+    ports: ["127.0.0.1:${API_PORT:-8080}:8080"]
+    restart: unless-stopped
+    depends_on:
+      bootstrap: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      keycloak: { condition: service_healthy }
+
+  web:
+    image: alanfelez/web:local
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        BUILD_STAGE: ${WEB_BUILD_STAGE:-build}
+        NODE_IMAGE: ${NODE_IMAGE:-node:24-alpine}
+    environment:
+      API_INTERNAL_URL: http://api:8080
+      AUTH_SECRET: ${AUTH_SECRET:-local-only-auth-secret-change-me-0123456789}
+      AUTH_URL: http://localhost:${WEB_PORT:-3000}
+      AUTH_KEYCLOAK_ID: alanfelez-web
+      AUTH_KEYCLOAK_SECRET: local-web-secret-change-me
+      AUTH_KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8081}/realms/alanfelez
+      # The web server reaches Keycloak on the compose network; browsers use the public issuer above.
+      AUTH_KEYCLOAK_INTERNAL_URL: http://keycloak:8081
+    ports: ["127.0.0.1:${WEB_PORT:-3000}:3000"]
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+      keycloak: { condition: service_healthy }
+
+  admin:
+    image: alanfelez/admin:local
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        BUILD_STAGE: ${ADMIN_BUILD_STAGE:-build}
+        NODE_IMAGE: ${NODE_IMAGE:-node:24-alpine}
+    environment:
+      # Browser-facing URLs (the SPA calls them directly)
+      ADMIN_API_URL: http://localhost:${API_PORT:-8080}
+      ADMIN_OIDC_AUTHORITY: http://localhost:${KEYCLOAK_PORT:-8081}/realms/alanfelez
+      ADMIN_OIDC_CLIENT_ID: alanfelez-admin
+    ports: ["127.0.0.1:${ADMIN_PORT:-5173}:8080"]
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  postgres-data:
+  redis-data:
