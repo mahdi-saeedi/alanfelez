@@ -1,6 +1,8 @@
 packages:
   - "apps/*"
   - "packages/*"
+# pnpm 12 refuses to install while a dependency's install script is neither allowed nor denied.
+# Both ship prebuilt binaries as optional dependencies, so their build scripts aren't needed.
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  '@swc/core': set this to true or false
+  '@parcel/watcher': false
+  '@swc/core': false

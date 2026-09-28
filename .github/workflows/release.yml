@@ -21,6 +21,8 @@ env:
 
 jobs:
   images:
+    # Skipped until the registry is configured (DEPLOYMENT.md §3 step 2), so pushes to main stay green meanwhile.
+    if: vars.REGISTRY != ''
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
@@ -30,6 +32,7 @@ jobs:
           - { name: api, dockerfile: services/api/Dockerfile }
           - { name: web, dockerfile: apps/web/Dockerfile }
           - { name: keycloak, dockerfile: services/keycloak/Dockerfile }
+          - { name: admin, dockerfile: apps/admin/Dockerfile }
     steps:
       - uses: actions/checkout@v5
       - id: tag
@@ -56,7 +59,7 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.image.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
       - name: Scan pushed image
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           image-ref: ${{ env.REGISTRY }}/${{ matrix.image.name }}:${{ steps.tag.outputs.tag }}
           severity: CRITICAL
@@ -76,7 +79,7 @@ jobs:
       - name: Bump staging image tags (GitOps)
         env: { TAG: "${{ needs.images.outputs.tag }}" }
         run: |
-          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG)' \
+          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' \
             deploy/environments/staging/values.yaml
           git config user.name "alanfelez-bot"
           git config user.email "bot@alanfelez.ir"
@@ -93,7 +96,7 @@ jobs:
       - name: Bump production image tags
         env: { TAG: "${{ needs.images.outputs.tag }}" }
         run: |
-          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG)' \
+          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' \
             deploy/environments/production/values.yaml
       - uses: peter-evans/create-pull-request@v7
         with:

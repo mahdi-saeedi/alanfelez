@@ -39,7 +39,7 @@ jobs:
       - name: Commit rollback
         env: { FILE: "deploy/environments/${{ inputs.environment }}/values.yaml", TAG: "${{ steps.v.outputs.target }}" }
         run: |
-          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG)' "$FILE"
+          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' "$FILE"
           git config user.name "alanfelez-bot"
           git config user.email "bot@alanfelez.ir"
           git commit -am "revert(deploy): ${{ inputs.environment }} ${{ steps.v.outputs.current }} → ${TAG} (by @${{ github.actor }}) [skip ci]"

@@ -80,6 +80,7 @@ jobs:
           - { name: api, dockerfile: services/api/Dockerfile }
           - { name: web, dockerfile: apps/web/Dockerfile }
           - { name: keycloak, dockerfile: services/keycloak/Dockerfile }
+          - { name: admin, dockerfile: apps/admin/Dockerfile }
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
@@ -110,5 +111,5 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@v2
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
-      - uses: aquasecurity/trivy-action@0.33.1
+      - uses: aquasecurity/trivy-action@v0.33.1
         with: { scan-type: fs, severity: "HIGH,CRITICAL", ignore-unfixed: true, exit-code: "1" }
