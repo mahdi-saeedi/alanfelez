@@ -8,15 +8,25 @@ export type PriceList = Schemas["PriceList"];
 export type Entitlements = Schemas["Entitlements"];
 export type Locale = "fa" | "en";
 
-/** Latest prices the caller may see (deduplicated per request). Anonymous responses are cached for 5 s. */
+/**
+ * Latest prices the caller may see (deduplicated per request). Anonymous responses are cached for 5 s.
+ * Only pages that show the full table ask for it: fetching paid rows counts as using a paid feature (refund rule).
+ */
 export const getPrices = cache(async (locale: Locale, metal?: string, category?: string, market?: string): Promise<PriceList | null> => {
+  return fetchPrices(locale, { metal, category, market });
+});
+
+/** Base series only (ticker, home cards): the same for every tier, never counts as paid use. */
+export const getBasePrices = cache(async (locale: Locale): Promise<PriceList | null> => fetchPrices(locale, { base: true }));
+
+async function fetchPrices(locale: Locale, query: { metal?: string; category?: string; market?: string; base?: boolean }): Promise<PriceList | null> {
   const { client, personal } = await callerApi();
   const res = await client.GET("/v1/prices", {
-    params: { header: { "Accept-Language": locale }, query: { metal, category, market } },
+    params: { header: { "Accept-Language": locale }, query },
     ...(personal ? { cache: "no-store" as const } : { next: { revalidate: 5 } }),
   });
   return res.data ?? null;
-});
+}
 
 /** The caller's tier and features (never cached across users). */
 export const getEntitlements = cache(async (): Promise<Entitlements | null> => {

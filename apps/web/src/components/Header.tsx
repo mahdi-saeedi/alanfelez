@@ -57,9 +57,9 @@ export async function Header() {
           <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />
           {session?.user ? (
             <form action={logout} className="flex items-center gap-2">
-              <span className="hidden text-sm text-silver-light sm:inline" dir="ltr">
-                {session.user.name}
-              </span>
+              <Link href="/account" className="hidden rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white sm:inline">
+                {session.user.name || t("auth.account")}
+              </Link>
               <button className="rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.logout")}</button>
             </form>
           ) : (

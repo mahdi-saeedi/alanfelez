@@ -10,7 +10,7 @@ import { ChangePill } from "./ChangePill";
 /** Home-page card: metal, live price, unit, daily change and time (design 02-home-live-prices). */
 export function PriceCard({ row }: { row: Schemas["PriceRow"] }) {
   const locale = useLocale() as Locale;
-  const live = useLive(row.series.slug);
+  const live = useLive(row.series.slug, row);
   const flash = live?.flash === "up" ? "animate-flash-up" : live?.flash === "down" ? "animate-flash-down" : "";
   return (
     <Link

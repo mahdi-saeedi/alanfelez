@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatBp, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
-import { getHistory, getPrices } from "@/lib/prices";
+import { getBasePrices, getHistory } from "@/lib/prices";
 import { PriceCard } from "@/components/prices/PriceCard";
 import { Sparkline } from "@/components/prices/Sparkline";
 import { LiveDot } from "@/components/prices/LiveDot";
@@ -13,7 +13,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
-  const prices = await getPrices(locale);
+  const prices = await getBasePrices(locale);
   const base = (prices?.items ?? []).filter((r) => r.series.isBase);
   const hero = base.find((r) => r.series.metal.slug === "copper") ?? base[0];
   const heroHistory = hero ? await getHistory(locale, hero.series.slug, "1M") : null;

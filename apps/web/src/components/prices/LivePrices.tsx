@@ -75,9 +75,14 @@ export function LivePricesProvider({ initial, children }: { initial: Row[]; chil
   return <Ctx.Provider value={state}>{children}</Ctx.Provider>;
 }
 
-/** The live value of a series (or its server-rendered value until the stream connects). */
-export function useLive(slug: string): Live | undefined {
-  return useContext(Ctx).live[slug];
+/**
+ * The live value of a series. Pass the server-rendered row as fallback: rows that aren't in the page-wide initial set
+ * (the layout only preloads base series) show their server value until the stream sends one.
+ */
+export function useLive(slug: string, fallback?: Row): Live | undefined {
+  const live = useContext(Ctx).live[slug];
+  if (live || !fallback?.price || !fallback.observedAt) return live;
+  return { price: fallback.price, change: fallback.change, observedAt: fallback.observedAt, tick: 0 };
 }
 
 export function useLiveConnected(): boolean {

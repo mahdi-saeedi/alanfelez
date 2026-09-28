@@ -49,7 +49,33 @@
     "month": "month",
     "quarter": "quarter",
     "year": "year",
-    "perPeriod": "{price} / {period}"
+    "perPeriod": "{price} / {period}",
+    "unit": {
+      "month": "Toman / month",
+      "quarter": "Toman / 3 months",
+      "year": "Toman / year"
+    },
+    "save": {
+      "quarter": "10% off",
+      "year": "20% off"
+    },
+    "audience": {
+      "free": "To get to know the platform",
+      "silver": "For active buyers and sellers",
+      "gold": "For professional traders"
+    },
+    "cta": {
+      "free": "Start free",
+      "silver": "Choose Silver",
+      "gold": "Choose Gold"
+    },
+    "popular": "Popular",
+    "current": "Your current plan",
+    "soon": "Buying plans will be available soon.",
+    "compareTitle": "Compare all features",
+    "feature": "Features",
+    "limitDays": "last {days} days",
+    "unlimited": "full"
   },
   "placeholder": {
     "title": "Coming soon",
@@ -138,5 +164,106 @@
       "silver": "Silver",
       "gold": "Gold"
     }
+  },
+  "features": {
+    "prices_base": "Base metal prices",
+    "prices_full": "Full price table (every product, domestic and global markets)",
+    "chart_basic": "Price chart",
+    "chart_full": "Full chart history and compare",
+    "news_read": "Market news",
+    "analysis_read": "Expert market analysis",
+    "forecast_read": "Price forecast scenarios",
+    "auctions_read": "IME daily auctions",
+    "calculator_use": "Price calculator",
+    "alerts_sms": "SMS price alerts",
+    "support_priority": "Priority support"
+  },
+  "checkout": {
+    "title": "Review and pay",
+    "plan": "Plan",
+    "period": "Period",
+    "starts": "Starts",
+    "ends": "Ends",
+    "price": "Plan price",
+    "credit": "Credit from your current plan",
+    "amount": "Amount to pay",
+    "kind": {
+      "new": "The plan starts as soon as the payment is confirmed.",
+      "renewal": "This renewal starts on {date}, when your current plan ends.",
+      "upgrade": "The upgrade starts now; the unused days of your current plan are credited.",
+      "downgrade": "This plan starts on {date}, when your current plan ends.",
+      "upgradeNoCredit": "The upgrade starts as soon as the payment is confirmed."
+    },
+    "agree": "I have read and accept the terms of use and the refund policy.",
+    "terms": "Read the terms",
+    "pay": "Pay {amount}",
+    "activate": "Activate",
+    "refundNote": "Within 7 days of payment you can ask for a refund if you haven't used any paid feature.",
+    "loginTitle": "Sign in to buy a plan",
+    "loginBody": "Sign in or sign up with your mobile number.",
+    "back": "Back to plans",
+    "error": {
+      "PAYMENTS_DISABLED": "Buying plans isn't available yet.",
+      "UPSTREAM_UNAVAILABLE": "The payment gateway is unavailable. Please try again shortly.",
+      "FORBIDDEN": "This account can't make purchases. Please contact support.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "result": {
+      "paidTitle": "Payment successful",
+      "paidBody": "Your {plan} plan is active.",
+      "queuedBody": "Your {plan} plan is booked and starts on {date}.",
+      "failedTitle": "Payment not completed",
+      "failedBody": "If money was taken from your account, the bank usually returns it within 72 hours.",
+      "retryTitle": "Checking the payment",
+      "retryBody": "The gateway hasn't answered yet. Open this page again in a moment.",
+      "ref": "Reference: {ref}",
+      "account": "Go to my account",
+      "prices": "See prices",
+      "tryAgain": "Try again"
+    }
+  },
+  "account": {
+    "title": "My account",
+    "profile": "Profile",
+    "name": "Name",
+    "phone": "Mobile",
+    "email": "Email",
+    "notSet": "not set",
+    "editProfile": "Edit profile",
+    "setPassword": "Set a password",
+    "passwordHint": "With a password you can also sign in without an SMS code.",
+    "plan": "Subscription",
+    "until": "until {date}",
+    "next": "Next: {plan} from {date}",
+    "free": "You're on the free plan.",
+    "upgrade": "Upgrade",
+    "renew": "Renew",
+    "billing": "Billing history",
+    "noOrders": "No payments yet.",
+    "col": {
+      "date": "Date",
+      "plan": "Plan",
+      "period": "Period",
+      "amount": "Amount",
+      "status": "Status",
+      "ref": "Reference"
+    },
+    "status": {
+      "pending": "awaiting payment",
+      "paid": "paid",
+      "failed": "failed",
+      "expired": "expired",
+      "refunded": "refunded"
+    },
+    "refund": {
+      "request": "Request a refund",
+      "requested": "Refund requested",
+      "approved": "Refund approved",
+      "rejected": "Refund rejected",
+      "confirm": "Request a refund? Once approved, the plan from this payment is cancelled.",
+      "reason": "Reason (optional)",
+      "send": "Send request"
+    },
+    "loginTitle": "Sign in to see your account"
   }
 }

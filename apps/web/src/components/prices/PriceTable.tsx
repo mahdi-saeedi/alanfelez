@@ -12,7 +12,7 @@ type Row = Schemas["PriceRow"];
 function PriceRowView({ row }: { row: Row }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("prices");
-  const live = useLive(row.series.slug);
+  const live = useLive(row.series.slug, row);
   const s = row.series;
   const flash = live?.flash === "up" ? "animate-flash-up" : live?.flash === "down" ? "animate-flash-down" : "";
   const usd = s.currency === "USD";

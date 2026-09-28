@@ -11,7 +11,7 @@ type Row = Schemas["PriceRow"];
 
 function MoverItem({ row }: { row: Row }) {
   const locale = useLocale() as Locale;
-  const live = useLive(row.series.slug);
+  const live = useLive(row.series.slug, row);
   return (
     <li className="flex items-center justify-between gap-2 py-1.5 text-sm">
       <span className="truncate">{row.series.product.name}</span>
