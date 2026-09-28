@@ -59,6 +59,20 @@ func (s *Server) ListMetals(ctx context.Context, req ListMetalsRequestObject) (L
 	return ListMetals200JSONResponse{Items: items}, nil
 }
 
+// ListCategories returns product categories in display order.
+func (s *Server) ListCategories(ctx context.Context, req ListCategoriesRequestObject) (ListCategoriesResponseObject, error) {
+	rows, err := s.q.ListCategories(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list categories: %w", err)
+	}
+	lang := langOf((*string)(req.Params.AcceptLanguage))
+	items := make([]Localized, 0, len(rows))
+	for _, r := range rows {
+		items = append(items, Localized{Slug: r.Slug, Name: localized(lang, r.NameFa, r.NameEn)})
+	}
+	return ListCategories200JSONResponse{Items: items}, nil
+}
+
 // ListMarkets returns markets / price sources in display order.
 func (s *Server) ListMarkets(ctx context.Context, req ListMarketsRequestObject) (ListMarketsResponseObject, error) {
 	rows, err := s.q.ListMarkets(ctx)

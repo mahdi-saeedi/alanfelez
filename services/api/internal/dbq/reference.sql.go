@@ -47,6 +47,36 @@ func (q *Queries) ListActivePlans(ctx context.Context) ([]ListActivePlansRow, er
 	return items, nil
 }
 
+const listCategories = `-- name: ListCategories :many
+SELECT slug, name_fa, name_en FROM market.product_categories ORDER BY sort, slug
+`
+
+type ListCategoriesRow struct {
+	Slug   string
+	NameFa string
+	NameEn pgtype.Text
+}
+
+func (q *Queries) ListCategories(ctx context.Context) ([]ListCategoriesRow, error) {
+	rows, err := q.db.Query(ctx, listCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCategoriesRow{}
+	for rows.Next() {
+		var i ListCategoriesRow
+		if err := rows.Scan(&i.Slug, &i.NameFa, &i.NameEn); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCurrentPlanPrices = `-- name: ListCurrentPlanPrices :many
 SELECT plan_code, period, amount_rial
 FROM app.plan_prices

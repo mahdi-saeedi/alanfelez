@@ -31,6 +31,7 @@ type Querier interface {
 	LastCloseBefore(ctx context.Context, arg LastCloseBeforeParams) (int64, error)
 	LatestPriceBySlug(ctx context.Context) ([]LatestPriceBySlugRow, error)
 	ListActivePlans(ctx context.Context) ([]ListActivePlansRow, error)
+	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
 	// Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
 	// One row per active series, with its latest published point (NULL when the series has no data yet).

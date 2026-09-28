@@ -44,6 +44,27 @@ paths:
                     items: { $ref: '#/components/schemas/Metal' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/categories:
+    get:
+      operationId: listCategories
+      tags: [reference]
+      summary: List product categories (raw materials, intermediate products, scrap)
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Categories in display order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Localized' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/markets:
     get:
       operationId: listMarkets

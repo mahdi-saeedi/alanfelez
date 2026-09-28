@@ -1,6 +1,9 @@
 -- name: ListMetals :many
 SELECT slug, name_fa, name_en FROM market.metals ORDER BY sort, slug;
 
+-- name: ListCategories :many
+SELECT slug, name_fa, name_en FROM market.product_categories ORDER BY sort, slug;
+
 -- name: ListMarkets :many
 SELECT slug, name_fa, name_en, scope FROM market.markets ORDER BY sort, slug;
 
