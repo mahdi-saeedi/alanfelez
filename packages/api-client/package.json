@@ -1,0 +1,14 @@
+{
+  "name": "@alanfelez/api-client",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Typed API client generated from contracts/openapi.yaml (never edit src/schema.d.ts by hand)",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "generate": "openapi-typescript ../../contracts/openapi.yaml -o src/schema.d.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "openapi-fetch": "0.17.0" },
+  "devDependencies": { "openapi-typescript": "7.13.0", "typescript": "~5.9.3" }
+}
