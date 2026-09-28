@@ -1,6 +1,6 @@
 # API Guidelines
 
-> Applies to `api/openapi.yaml` and every Go handler. Contract-first (ADR-0014): change the spec, then run `task generate`, then implement.
+> Applies to `contracts/openapi.yaml` and every Go handler. Contract-first (ADR-0014): change the spec, then run `task generate`, then implement.
 
 ## 1. Basics
 - Base path **`/v1`**. JSON only (`application/json; charset=utf-8`). Field names are `camelCase`.

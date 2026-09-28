@@ -4,7 +4,7 @@
 > "corrections" become unlimited free work and the schedule slips. This doc protects both sides.
 
 ## 1. Scope baseline
-- **Baseline v1 = [SCOPE.md](SCOPE.md) + [NFR.md](NFR.md)** at the git tag `scope-v1`.
+- **Baseline v1 = [SCOPE.md](SCOPE.md) + [NFR.md](../architecture/NFR.md)** at the git tag `scope-v1`.
 - Step 1: send the client a **Persian summary of SCOPE.md** (including every 🛠 decision) and ask for written approval.
   Approval is recorded in `docs/client/` with the date.
 - After approval, changes to the baseline only go through §3.

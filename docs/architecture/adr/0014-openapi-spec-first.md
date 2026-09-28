@@ -7,7 +7,7 @@
 A Go backend and two TypeScript frontends must agree on every request and response. Hand-written types drift and break silently.
 
 ## Decision
-`api/openapi.yaml` (OpenAPI 3.1) is the single contract. **oapi-codegen** generates Go types and a strict server interface (implemented in handlers). **openapi-typescript + openapi-fetch** generate the typed TS client in `packages/api-client`. Request validation middleware runs from the spec. CI fails if generated code is stale or if a change is breaking without a version bump (**oasdiff**). Errors follow RFC 9457 problem JSON.
+`contracts/openapi.yaml` (OpenAPI 3.1) is the single contract. **oapi-codegen** generates Go types and a strict server interface (implemented in handlers). **openapi-typescript + openapi-fetch** generate the typed TS client in `packages/api-client`. Request validation middleware runs from the spec. CI fails if generated code is stale or if a change is breaking without a version bump (**oasdiff**). Errors follow RFC 9457 problem JSON.
 
 ## Consequences
 Type safety end to end, and the API docs come for free (Redoc/Scalar served in staging). Changes require editing YAML first, which is a small discipline.

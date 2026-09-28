@@ -1,6 +1,6 @@
 # ADR-0013: CI/CD with GitHub Actions, Arvan registry, staged deploys
 
-- **Status:** Accepted
+- **Status:** Accepted for CI (GitHub Actions quality gates, image builds to the Arvan registry). The deploy part is superseded by [ADR-0020](0020-gitops-argocd-rollouts.md) (Argo CD GitOps + Argo Rollouts).
 - **Date:** 2026-09-28
 
 ## Context

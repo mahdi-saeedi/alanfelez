@@ -1,12 +1,12 @@
 # Operations: Observability, Backups, Runbooks
 
-> Status: **Proposed**. Stack decision: ADR-0015. Targets: [NFR.md](NFR.md).
+> Status: **Proposed**. Stack decision: ADR-0015. Targets: [NFR.md](../architecture/NFR.md).
 
 ## 1. Observability stack (self-hosted on ArvanCloud)
 | Signal | Tool | Notes |
 |---|---|---|
 | Metrics | **Prometheus** (scrapes `/metrics` on api, worker, Caddy, Postgres exporter, Redis exporter, node exporter) | 30-day retention |
-| Dashboards | **Grafana** | Dashboards are kept as JSON in `infra/grafana/` |
+| Dashboards | **Grafana** | Dashboards are kept as JSON in `deploy/observability/grafana/` |
 | Logs | **Loki** + Promtail (Docker log driver) | JSON logs (Go `slog`, Next.js pino). 30-day retention. **No PII** |
 | Traces | **OpenTelemetry** SDK (Go + Next.js) → OTel Collector → **Tempo** | Phase 2+. Start with 10 % sampling, 100 % on errors |
 | Errors | **GlitchTip** (Sentry-compatible) | Go + web + admin SDKs, with release tagging from CI |

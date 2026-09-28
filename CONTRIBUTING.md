@@ -3,12 +3,12 @@
 This is how we work on الان‌فلز. Read [README.md](README.md) first.
 
 ## 1. Toolchain
-- The versions of Go, Node, pnpm and Task are pinned in **`.tool-versions`** and installed with **[mise](https://mise.jdx.dev)**: run `mise install` (ADR-0018).
+- The versions of Go, Node, pnpm and Task are pinned in **`mise.toml`** and installed with **[mise](https://mise.jdx.dev)**: run `mise install` (ADR-0018).
 - Git hooks are managed by **lefthook** (`lefthook install`, which `task setup` runs for you):
-  - `pre-commit`: gofmt / goimports, prettier, eslint --fix on staged files, **gitleaks**
+  - `pre-commit`: Go formatting (golangci-lint fmt) on staged files, **gitleaks**
   - `commit-msg`: Conventional Commits check
   - `pre-push`: `task generate:check` (generated code up to date), fast unit tests
-- Common commands (all in `Taskfile.yml`): `task setup` · `task dev` · `task generate` · `task lint` · `task test` · `task test:integration` · `task e2e` · `task seed`
+- Common commands (all in `Taskfile.yml`): `task setup` · `task up` / `task down` · `task smoke` · `task generate` · `task lint` · `task test` · `task seed` · `task k8s:*`. Run `task --list` for all of them
 
 ## 2. Branching (trunk-based)
 - `main` is always deployable and auto-deploys to **staging**. **Production = git tags** `vX.Y.Z`.
@@ -58,5 +58,5 @@ A change is done when **all** of these hold:
 - Text: `next-intl` messages or CMS fields. Numbers, dates and money go through the shared formatters (`packages/ui/format`).
 
 ## 7. Architecture changes
-Anything that changes how the system is built needs a **new ADR** in `docs/adr/`, in the same PR:
+Anything that changes how the system is built needs a **new ADR** in `docs/architecture/adr/`, in the same PR:
 a new dependency category, datastore, service, auth flow, or a cross-cutting convention.

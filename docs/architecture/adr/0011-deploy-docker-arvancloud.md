@@ -1,6 +1,6 @@
 # ADR-0011: Deploy with Docker Compose on ArvanCloud
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-0019](0019-kubernetes-helm.md) (staging/production on Kubernetes). Local development still uses Docker Compose.
 - **Date:** 2026-09-28
 
 ## Context

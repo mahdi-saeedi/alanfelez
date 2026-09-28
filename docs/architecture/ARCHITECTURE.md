@@ -1,8 +1,8 @@
 # Architecture & Tech Stack
 
 > **Status: ACCEPTED (rev. 2: Go backend + CI/CD), approved by the lead developer on 2026-09-28.**
-> Scope assumptions: [`SCOPE.md`](SCOPE.md). Each decision has an ADR in [`adr/`](adr/).
-> Related: [NFR](NFR.md) · [Data model](DATA_MODEL.md) · [API guidelines](API_GUIDELINES.md) · [Security](SECURITY.md) · [Operations](OPERATIONS.md) · [Testing](TESTING.md) · [Risks](RISKS.md)
+> Scope assumptions: [`SCOPE.md`](../product/SCOPE.md). Each decision has an ADR in [`adr/`](adr/).
+> Related: [NFR](NFR.md) · [Data model](DATA_MODEL.md) · [API guidelines](API_GUIDELINES.md) · [Security](SECURITY.md) · [Operations](../guides/OPERATIONS.md) · [Testing](../guides/TESTING.md) · [Risks](../product/RISKS.md)
 > Proposed ADRs may be revised until accepted. After that, a change means a new ADR that supersedes the old one.
 
 ## 1. Constraints that shaped this design
@@ -25,7 +25,7 @@
 |---|---|---|
 | Language | **Go** (latest stable, 1.25+) | Lead dev's choice. Fast, simple deployment (one static binary), great for SSE and many concurrent connections |
 | HTTP | **net/http + chi** router | Idiomatic, stdlib-compatible middleware |
-| API contract | **OpenAPI 3.1, spec-first** (`api/openapi.yaml`) → **oapi-codegen** (Go server interfaces + types) and **openapi-typescript / openapi-fetch** (TS client) | One contract. Go and TS can't drift apart, and CI fails if generated code is stale |
+| API contract | **OpenAPI 3.1, spec-first** (`contracts/openapi.yaml`) → **oapi-codegen** (Go server interfaces + types) and **openapi-typescript / openapi-fetch** (TS client) | One contract. Go and TS can't drift apart, and CI fails if generated code is stale |
 | Database | **PostgreSQL 16** via **pgx** | |
 | Queries | **sqlc** (type-safe Go generated from SQL) | Plain SQL, compile-time safety, no ORM magic. Easy for the next developer to read |
 | Migrations | **goose** (SQL migrations in `services/api/migrations/`) | Versioned, run as a one-off step on deploy |
@@ -53,59 +53,67 @@
 | Dates / numbers | **date-fns-jalali**, `Intl.NumberFormat` | Jalali + Persian digits (fa), Gregorian (en) |
 | Forms | react-hook-form + Zod (types generated from OpenAPI where possible) | |
 | Testing | **Vitest**, **Playwright** (e2e + fa/en screenshots) | |
-| Tooling | **pnpm workspaces + Turborepo**, ESLint, Prettier | |
+| Tooling | **pnpm workspaces** + Taskfile, golangci-lint, TypeScript strict | |
 
 ### Platform
 | Concern | Choice |
 |---|---|
 | Containers | One Docker image each: `api` (Go, distroless, also runs the worker via a subcommand), `web`, `admin` (static, served by Caddy) |
-| Runtime | **Docker Compose** on ArvanCloud cloud servers. **Caddy** reverse proxy (TLS, SSE-friendly). **Arvan CDN** in front |
+| Runtime | Local: **Docker Compose** (`compose.yaml`). Staging/production: **Kubernetes (k3s) on ArvanCloud**, Helm chart, **Arvan CDN** in front (ADR-0019) |
+| Delivery | **Argo CD** GitOps + **Argo Rollouts** canary with automatic rollback (ADR-0020, [DEPLOYMENT.md](../guides/DEPLOYMENT.md)) |
+| Auth server | Custom **Keycloak** image: phone-OTP authenticator + pluggable SMS SPI + Keycloakify theme (ADR-0022) |
 | Registry | **ArvanCloud Container Registry** |
 | CI/CD | **GitHub Actions** (see §6). The deploy step goes over SSH, or a self-hosted runner on the Arvan server |
-| Observability | OpenTelemetry → **Prometheus / Grafana / Loki / Tempo** + **GlitchTip** errors + Uptime Kuma (ADR-0015, [OPERATIONS.md](OPERATIONS.md)) |
+| Observability | OpenTelemetry → **Prometheus / Grafana / Loki / Tempo** + **GlitchTip** errors + Uptime Kuma (ADR-0015, [OPERATIONS.md](../guides/OPERATIONS.md)) |
 | Feature flags | DB-backed, admin-editable, evaluated in Go (ADR-0016) |
 | Analytics | Self-hosted **Umami**, cookieless, + web-vitals RUM (ADR-0017) |
-| Tooling | **mise** (pinned Go/Node/pnpm/Task), **Taskfile**, **lefthook**, Renovate, release-please (ADR-0018, [CONTRIBUTING.md](../CONTRIBUTING.md)) |
+| Tooling | **mise** (pinned Go/Node/pnpm/Task), **Taskfile**, **lefthook**, Renovate, release-please (ADR-0018, [CONTRIBUTING.md](../../CONTRIBUTING.md)) |
 
 ## 3. Repository layout (polyglot monorepo)
 
+Top level = one folder per concern. ✅ = exists today, ⏳ = planned.
+
 ```
 alanfelez/
-├─ api/
-│  └─ openapi.yaml              ← THE contract. Edit this first, then `task generate`
-├─ services/
-│  └─ api/                      Go module
-│     ├─ cmd/api/               HTTP server (REST + SSE)
-│     ├─ cmd/worker/            River workers: ingestion, IME auctions, alerts/SMS, reminders
-│     ├─ cmd/migrate/           goose runner (used by deploy)
-│     ├─ internal/
-│     │  ├─ market/             metals, products, sources, prices, history, SSE hub
-│     │  ├─ auctions/           IME daily auctions
-│     │  ├─ calculator/         pure load-value logic (+ golden test vectors)
-│     │  ├─ access/             tier/feature matrix, entitlements
-│     │  ├─ billing/            plans, subscriptions, payments, refunds
-│     │  ├─ content/            news, analyses, forecasts, FAQ, pages (localized)
-│     │  ├─ support/            contact messages, tickets
-│     │  ├─ users/              profile (identity itself lives in Keycloak), alert settings
-│     │  ├─ integrations/       payment/, sms/, pricesource/, auctionsource/ adapters
-│     │  └─ platform/           db, redis, httpx (middleware, errors), auth (OIDC), config, storage, log
-│     ├─ migrations/            goose SQL
-│     ├─ queries/               sqlc SQL files
-│     └─ sqlc.yaml
-├─ apps/
-│  ├─ web/                      Next.js public site (fa/en)
-│  └─ admin/                    Refine admin SPA
-├─ packages/
-│  ├─ ui/                       design tokens + shared React components
-│  ├─ api-client/               generated TS client from openapi.yaml (never hand-edited)
-│  └─ config/                   tsconfig / eslint / prettier presets
-├─ infra/
-│  ├─ compose/                  docker-compose.dev.yml, docker-compose.prod.yml
-│  ├─ caddy/                    Caddyfile
-│  └─ keycloak/                 realm export, themes (fa/en, RTL), SMS authenticator
-├─ .github/workflows/           ci.yml, deploy.yml
-├─ Taskfile.yml
-└─ docs/
+├─ apps/                         User-facing TypeScript apps
+│  ├─ keycloak-theme/        ✅  Login theme (Keycloakify + React + Tailwind), builds a theme jar
+│  ├─ web/                   ✅  Next.js public site (fa/en, SSR, Auth.js → Keycloak)
+│  └─ admin/                 ✅  Refine admin SPA (staff-only, OIDC PKCE, runtime config)
+├─ services/                     Backend services (each builds one Docker image)
+│  ├─ api/                   ✅  Go module, single binary `alanfelez` (serve | migrate | seed | bootstrap)
+│  │  ├─ cmd/alanfelez/          entrypoint and subcommands
+│  │  ├─ internal/
+│  │  │  ├─ access/              tier/feature matrix, entitlements
+│  │  │  ├─ calculator/          pure load-value logic (+ golden test vectors)
+│  │  │  ├─ seed/                idempotent initial-data loader
+│  │  │  ├─ api/                 HTTP handlers (+ generated api.gen.go)
+│  │  │  ├─ dbq/                 generated sqlc queries
+│  │  │  ├─ platform/            config, db, httpx (router, problems, health), logx
+│  │  │  └─ market/ billing/ content/ support/ users/ integrations/   ⏳ by milestone
+│  │  ├─ migrations/             goose SQL (embedded in the binary)
+│  │  ├─ queries/                sqlc SQL
+│  │  └─ Dockerfile
+│  └─ keycloak/              ✅  Custom Keycloak image
+│     ├─ extensions/             Java SPI: phone OTP authenticator + pluggable SmsSender
+│     ├─ realm/                  production-safe realm (clients, roles, flows, no users)
+│     └─ Dockerfile
+├─ packages/                 ✅  Shared TS: ui (tokens, Vazirmatn, formatters), api-client (generated from the contract)
+├─ contracts/
+│  └─ openapi.yaml           ✅  THE API contract. Edit first, then `task generate`
+├─ config/
+│  └─ seed/                  ✅  Initial data per profile (reference = all envs, demo = local/staging)
+├─ deploy/
+│  ├─ local/                 ✅  compose-only files, k8s.sh (local k3d + Gitea + Argo CD), smoke.sh
+│  ├─ helm/                  ✅  alanfelez-data (CNPG Postgres, Redis) + alanfelez (bootstrap, keycloak, api, web, admin)
+│  ├─ environments/          ✅  values per environment: local, staging, production (image tags bumped by CI = GitOps)
+│  ├─ argocd/                ✅  install values, AppProject, root app + child apps per environment (app-of-apps)
+│  └─ observability/         ⏳  Grafana dashboards, alert rules
+├─ docs/                         See docs/README.md
+├─ .github/                  ✅  CI, Release (images → GitOps bump), Rollback workflows; PR/issue templates
+├─ compose.yaml              ✅  Local stack: `docker compose up --build` / `task up`
+├─ Taskfile.yml              ✅  Every developer command (`task --list`)
+├─ mise.toml                 ✅  Pinned toolchain
+└─ package.json, pnpm-workspace.yaml   TypeScript workspace root
 ```
 
 ## 4. How the main flows work
@@ -160,7 +168,7 @@ browser ◄─ server-rendered snapshot from Next.js (calls GET /v1/prices), so 
 Rule: **never cache personalized or tier-gated responses in a shared cache.** The CDN only sees anonymous content.
 
 ## 5. Conventions (maintainability)
-- **Contract first:** API changes start in `api/openapi.yaml`, then `task generate`. CI fails if generated code isn't committed.
+- **Contract first:** API changes start in `contracts/openapi.yaml`, then `task generate`. CI fails if generated code isn't committed.
 - Go: package by domain under `internal/`. Handlers stay thin, logic lives in services, data access is via sqlc. Errors wrap `%w`, and domain errors map to RFC 9457 problem JSON.
   Pass `context.Context` everywhere. No global state except the config loaded in `main`.
 - **Money:** `bigint` Rial. **Dates:** `timestamptz` UTC, converted to Jalali or Gregorian only in the UI.
@@ -168,32 +176,32 @@ Rule: **never cache personalized or tier-gated responses in a shared cache.** Th
 - **Client copy verbatim** (`docs/content/`). Logical CSS only (RTL/LTR).
 - Conventional Commits, small PRs, CI green before merge, and an ADR for every architecture change.
 
-## 6. CI/CD (see ADR-0013)
+## 6. CI/CD (ADR-0013 for CI, ADR-0020 for delivery)
 
 ```
 PR opened/updated ──► CI (GitHub Actions)
-  ├─ go:    golangci-lint · go test -race (testcontainers) · govulncheck · sqlc/oapi generate + diff check
-  ├─ web/admin: eslint · tsc · vitest · build · generated api-client diff check
-  ├─ contract: openapi lint (Redocly/Spectral) · breaking-change check vs main (oasdiff)
-  ├─ e2e:   compose up (api+web+postgres+redis+keycloak) → Playwright smoke (fa + en)
-  └─ security: gitleaks (secrets) · Trivy (image + deps)
-merge to main ──► build images (tag = git SHA) → push to Arvan Container Registry
-              ──► deploy STAGING automatically: run migrations → docker compose pull && up → health checks → smoke tests
-tag vX.Y.Z   ──► deploy PRODUCTION (GitHub Environment, manual approval): DB backup → migrations → rolling restart → health checks
-rollback     ──► re-deploy the previous image tag (migrations must be backward compatible: expand → migrate → contract)
+  ├─ go:        golangci-lint · go test -race · govulncheck · sqlc/oapi generate + diff check
+  ├─ keycloak:  mvn test (OTP authenticator, SMS SPI) · image build
+  ├─ web/admin/theme: eslint · tsc · vitest · build · generated api-client diff check
+  ├─ contract:  openapi lint · breaking-change check vs main (oasdiff)
+  ├─ deploy:    helm lint + kubeconform on every environment's values
+  ├─ e2e:       compose up → Playwright smoke (fa + en)
+  └─ security:  gitleaks · Trivy (deps + images)
+merge to main ──► build images (tag = git SHA) → Arvan Container Registry
+              ──► commit tag bump to deploy/environments/staging → Argo CD syncs staging (PreSync bootstrap → canary)
+tag vX.Y.Z   ──► PR bumping deploy/environments/production → review/merge = approval → Argo CD syncs production
+rollback     ──► automatic (canary analysis) | "Rollback" workflow / git revert of the bump commit
 ```
-- Dependency updates: **Renovate**. Releases and changelog: **release-please** (from Conventional Commits).
-- Secrets live in GitHub Environments (staging/production) and are written to the server `.env` at deploy time. Never in git.
-- Branch protection on `main`: PR + green CI required.
+Step-by-step procedures: **[DEPLOYMENT.md](../guides/DEPLOYMENT.md)**. Dependency updates: Renovate. Releases and changelog: release-please.
 
 ## 7. Environments
 | Env | Where | Notes |
 |---|---|---|
-| local | `task dev`: compose (Postgres, Redis, Keycloak) + `go run` api/worker + `pnpm dev` web/admin | Seed data = the prototype's sample prices |
-| staging | ArvanCloud small server, auto-deployed from `main` | Client review. Gateway sandbox. SMS in test mode |
-| production | ArvanCloud server(s), deployed from tags | Nightly `pg_dump` to Arvan Object Storage. Keycloak DB backed up too |
+| local | `task up` (Docker Compose: Postgres, Redis, Keycloak, bootstrap, api) | Seed profiles `reference,demo`, OTP via console. [LOCAL_SETUP.md](../guides/LOCAL_SETUP.md) |
+| staging | k3s on ArvanCloud, auto-deployed from `main` by Argo CD | Client review. Gateway sandbox. Seed `reference,demo` |
+| production | k3s on ArvanCloud, deployed from release tags | Seed `reference` only. CloudNativePG WAL archiving + nightly backups |
 
-## 8. Decisions still open (see `docs/OPEN_QUESTIONS.md`)
+## 8. Decisions still open (see `docs/product/OPEN_QUESTIONS.md`)
 These don't change the stack:
 - Final tier/feature matrix (F2) → `internal/access` config only
 - Price APIs/providers (F5) → which `pricesource` adapters get written (manual entry works regardless)

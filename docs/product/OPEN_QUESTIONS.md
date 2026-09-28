@@ -1,8 +1,8 @@
 # Open Questions & Client Answers
 
-- Round 1 was sent as [`client/questions-round1-sent.docx`](client/questions-round1-sent.docx) and answered on **2026-09-28**
-  in [`client/questions-round1-answered.docx`](client/questions-round1-answered.docx).
-- The resulting scope is in [`SCOPE.md`](SCOPE.md). The full original question list is archived at [`archive/open-questions-round1.md`](archive/open-questions-round1.md).
+- Round 1 was sent as [`client/questions-round1-sent.docx`](../client/questions-round1-sent.docx) and answered on **2026-09-28**
+  in [`client/questions-round1-answered.docx`](../client/questions-round1-answered.docx).
+- The resulting scope is in [`SCOPE.md`](SCOPE.md). The full original question list is archived at [`archive/open-questions-round1.md`](../archive/open-questions-round1.md).
 - Status: ⏳ waiting on the client · ✅ closed.
 
 ## Follow-ups (round 2)

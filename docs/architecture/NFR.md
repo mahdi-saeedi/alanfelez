@@ -58,7 +58,7 @@ A closed market is **not** flagged as stale.
 | DR-1 | **RPO ≤ 15 min** for Postgres (WAL archiving to Arvan Object Storage) plus a nightly full backup |
 | DR-2 | **RTO ≤ 4 h** to restore production on a new server from backups + IaC/compose |
 | DR-3 | Retention: daily backups for 14 days, weekly for 8 weeks, monthly for 12 months |
-| DR-4 | A **restore drill every quarter** on staging, with the result logged in `docs/OPERATIONS.md` |
+| DR-4 | A **restore drill every quarter** on staging, with the result logged in `docs/guides/OPERATIONS.md` |
 
 ## 6. Security (details in [SECURITY.md](SECURITY.md))
 

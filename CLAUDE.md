@@ -3,25 +3,27 @@
 A bilingual platform (Persian RTL as the default, plus English) for Iran's metals market: live prices, price charts,
 expert analysis and forecasts, IME daily auction data, a load-value calculator, and 3-tier subscriptions (Free / Silver / Gold).
 The client already runs Iranian servers (ArvanCloud) and owns both domains, alanfelez.ir and alanfelez.com.
-**Status:** docs and planning are done. The stack is accepted (ADRs 0001–0018). M1 (foundation) is in progress.
+**Status:** M1 done. `task up` runs web (Next.js), admin (Refine), Go API, Postgres, Redis and the custom Keycloak (phone OTP,
+Keycloakify theme, staff TOTP). `task k8s:*` runs the same apps on local k3d with Argo CD + Rollouts (GitOps, canary, rollback).
+Next: M2 market data (prices, history, SSE, admin price entry).
 **Stack:** Go backend (`services/api`: chi, spec-first OpenAPI, pgx/sqlc/goose, River, SSE) · Next.js public site · Refine admin ·
-Postgres · Redis · Keycloak · Docker on ArvanCloud · GitHub Actions CI/CD. **Contract first:** edit `api/openapi.yaml`, then `task generate`.
+Postgres · Redis · custom Keycloak · Docker Compose (local) · k3s + Helm + Argo CD/Rollouts (staging/prod) · GitHub Actions CI. **Contract first:** edit `contracts/openapi.yaml`, then `task generate`.
 There's one developer (the user) plus AI assistants, and the project must be easy to hand over to a future developer.
 
 ## Read these first
 | Doc | What |
 |---|---|
-| [`docs/SCOPE.md`](docs/SCOPE.md) | **The primary spec.** Confirmed v1 scope, feature matrix, and all 🛠 dev decisions |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Tech stack, repo layout, main flows, conventions |
-| [`docs/adr/`](docs/adr/) | One file per architecture decision |
+| [`docs/product/SCOPE.md`](docs/product/SCOPE.md) | **The primary spec.** Confirmed v1 scope, feature matrix, and all 🛠 dev decisions |
+| [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) | Tech stack, repo layout, main flows, conventions |
+| [`docs/architecture/adr/`](docs/architecture/adr/) | One file per architecture decision |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Workflow, commits, **Definition of Done**, code conventions |
-| `docs/NFR.md`, `DATA_MODEL.md`, `API_GUIDELINES.md`, `SECURITY.md`, `OPERATIONS.md`, `TESTING.md`, `PROCESS.md`, `RISKS.md` | Engineering baselines. Follow them when writing code |
-| [`docs/OPEN_QUESTIONS.md`](docs/OPEN_QUESTIONS.md) | Client answers (round 1) and open follow-ups F1–F9 |
+| `docs/architecture/NFR.md`, `DATA_MODEL.md`, `API_GUIDELINES.md`, `SECURITY.md`, `OPERATIONS.md`, `TESTING.md`, `PROCESS.md`, `RISKS.md` | Engineering baselines. Follow them when writing code |
+| [`docs/product/OPEN_QUESTIONS.md`](docs/product/OPEN_QUESTIONS.md) | Client answers (round 1) and open follow-ups F1–F9 |
 | [`docs/content/`](docs/content/) | Client-provided copy: `faq.fa.txt`, `about.fa.txt`, `terms.fa.txt`. Source of truth for text |
-| [`docs/screenshots/summary-draft/`](docs/screenshots/summary-draft/) | Newest design screenshots (15, named by page) |
+| [`docs/design/screenshots/summary-draft/`](docs/design/screenshots/summary-draft/) | Newest design screenshots (15, named by page) |
 
 Source-of-truth order: **client Word files (content/features) > SCOPE.md > Figma design (look & feel) > older spec docs**.
-When sources conflict or something is unspecified, don't guess. Add it to `docs/OPEN_QUESTIONS.md` as a follow-up.
+When sources conflict or something is unspecified, don't guess. Add it to `docs/product/OPEN_QUESTIONS.md` as a follow-up.
 
 ## Hard rules
 - **Brand name is «الان‌فلز» / "Alan Felez"**, not «آلان‌فلز». The design and prototype still use the old spelling, so replace it.
@@ -64,7 +66,7 @@ When sources conflict or something is unspecified, don't guess. Add it to `docs/
 - Cards have rounded corners and a very subtle shadow. Prices are always bold and larger than the surrounding text.
 - Icons: a duotone icon set, not emoji (SCOPE §11).
 - Shared components: `PriceTicker`, `ChangePill` (arrow + color), `Locked`, `TierBadge`, `LiveDot`, `PriceCard`, `Sparkline`.
-- Logo: `docs/brand/logo-alanfelez.png`. It's low-res, and a vector is pending (F3).
+- Logo: `docs/design/brand/logo-alanfelez.png`. It's low-res, and a vector is pending (F3).
 
 ## FAQ page requirements (from FAQ.docx)
 - Accordion, collapsed by default, toggles without reloading.

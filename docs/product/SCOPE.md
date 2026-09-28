@@ -1,6 +1,6 @@
 # Product Scope — v1
 
-> **This is the primary spec.** Based on the client's answers of 2026-09-28 ([`client/questions-round1-answered.docx`](client/questions-round1-answered.docx),
+> **This is the primary spec.** Based on the client's answers of 2026-09-28 ([`client/questions-round1-answered.docx`](../client/questions-round1-answered.docx),
 > summarized in [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md)).
 > Tags: ✅ **Client** = the client decided. 🛠 **Dev proposal** = the client said "you decide", so this is our decision.
 > The client said he'll correct things later, so every 🛠 item should be shown to him on staging.
@@ -8,16 +8,16 @@
 ## 1. Sources of truth (client answer #1)
 
 - **Content and features:** the client's Word files, one per section: `FAQ.docx`, `درباره ما.docx`, `قوانین.docx`
-  (text copies in [`content/`](content/)). If they conflict with the Figma design, **the Word files win**.
+  (text copies in [`content/`](../content/)). If they conflict with the Figma design, **the Word files win**.
 - **Look and feel:** the Figma design. Visual style, layout, components and colors.
   ⚠️ The client says the latest design is at the link he sent, but https://ratio-donkey-94517275.figma.site/ still serves
   the older build (checked 2026-09-28). Until he sends the new link, use the newest screenshots in
-  [`screenshots/summary-draft/`](screenshots/summary-draft/) for navigation and page structure (follow-up F1).
+  [`screenshots/summary-draft/`](../design/screenshots/summary-draft/) for navigation and page structure (follow-up F1).
 
 ## 2. Brand (client answer #7)
 
 - Name: **«الان‌فلز»** (Latin: **Alan Felez**). ⚠️ **Not «آلان‌فلز».** The design and prototype use the old spelling, so replace it everywhere.
-- Logo: [`brand/logo-alanfelez.png`](brand/logo-alanfelez.png). It's only 215×215 raster, so we need a vector/high-res version (follow-up F3).
+- Logo: [`brand/logo-alanfelez.png`](../design/brand/logo-alanfelez.png). It's only 215×215 raster, so we need a vector/high-res version (follow-up F3).
   The logo is blue/teal on dark with an upward-arrow mark. The site gold (`#C9A227`) stays as the UI accent unless the client says otherwise.
 - Domains: **alanfelez.ir** and **alanfelez.com**, both owned. 🛠 `alanfelez.ir` is primary (Iranian server, local SEO, local gateways).
   `alanfelez.com` redirects with a 301. For English, use `alanfelez.ir/en` (or point `.com` at `/en`, to decide at launch).

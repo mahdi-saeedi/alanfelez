@@ -14,11 +14,15 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0008](0008-background-jobs-river.md) | Background jobs with River (Postgres-backed queue) | Accepted |
 | [0009](0009-i18n-fa-en.md) | Bilingual: Persian (default, RTL) and English | Accepted |
 | [0010](0010-access-control-in-go.md) | Config-driven tier access control owned by Go, exposed as entitlements | Accepted |
-| [0011](0011-deploy-docker-arvancloud.md) | Deploy with Docker Compose on ArvanCloud | Accepted |
+| [0011](0011-deploy-docker-arvancloud.md) | Deploy with Docker Compose on ArvanCloud | Superseded by ADR-0019 |
 | [0012](0012-provider-adapters.md) | Adapter interfaces for payments, SMS and data sources | Accepted |
-| [0013](0013-ci-cd-github-actions.md) | CI/CD with GitHub Actions, Arvan registry, staged deploys | Accepted |
+| [0013](0013-ci-cd-github-actions.md) | CI/CD with GitHub Actions, Arvan registry, staged deploys | CI part accepted; deploy part superseded by ADR-0020 |
 | [0014](0014-openapi-spec-first.md) | Spec-first OpenAPI contract with generated Go and TypeScript code | Accepted |
 | [0015](0015-observability-stack.md) | Self-hosted observability: OpenTelemetry, Prometheus, Grafana, Loki, Tempo, GlitchTip | Accepted |
 | [0016](0016-feature-flags.md) | Simple DB-backed feature flags | Accepted |
 | [0017](0017-product-analytics-umami.md) | Cookieless self-hosted product analytics with Umami | Accepted |
 | [0018](0018-developer-tooling.md) | Developer tooling: mise, Taskfile, lefthook, Renovate, release-please | Accepted |
+| [0019](0019-kubernetes-helm.md) | Staging and production on Kubernetes (k3s on ArvanCloud) with a Helm chart | Accepted |
+| [0020](0020-gitops-argocd-rollouts.md) | GitOps delivery with Argo CD, canary releases with Argo Rollouts, one-step rollback | Accepted |
+| [0021](0021-bootstrap-and-seed-data.md) | Environments start from scratch: bootstrap job and config-driven seed data | Accepted |
+| [0022](0022-keycloak-custom-image-otp-theme.md) | Custom Keycloak image: phone-OTP authenticator, pluggable SMS SPI, Keycloakify theme | Accepted |
