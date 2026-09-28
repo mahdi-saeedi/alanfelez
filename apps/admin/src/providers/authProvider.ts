@@ -25,11 +25,17 @@ export function rolesOf(user: User | null): string[] {
   return payload.roles ?? [];
 }
 
+/** Only same-site paths (no open redirect through the login round-trip). */
+export function safePath(p?: string | null): string {
+  return p && p.startsWith("/") && !p.startsWith("//") && !p.startsWith("/login") && !p.startsWith("/callback") ? p : "/";
+}
+
 export const isStaff = (user: User | null) => rolesOf(user).some((r) => (STAFF_ROLES as readonly string[]).includes(r));
 
 export const authProvider: AuthProvider = {
-  login: async () => {
-    await userManager.signinRedirect({ extraQueryParams: { ui_locales: document.documentElement.lang || "fa" } });
+  // `to` (the page that asked for login) travels in the OIDC state and is restored by /callback.
+  login: async (params?: { to?: string }) => {
+    await userManager.signinRedirect({ state: { to: safePath(params?.to) }, extraQueryParams: { ui_locales: document.documentElement.lang || "fa" } });
     return { success: true };
   },
   logout: async () => {

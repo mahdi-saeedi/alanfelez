@@ -22,11 +22,20 @@ export function unwrap<T>(res: { data?: T; error?: unknown; response: Response }
   throw Object.assign(new Error(p.detail ?? p.title ?? res.response.statusText), { problem: p, status: res.response.status });
 }
 
-/** A user-facing message for a failed call: translated from the problem code, never the developer `detail`. */
-export function errorText(err: unknown, t: (key: string) => string): string {
+/** For calls without a response body (204): throws the problem when the call failed. */
+export function ensureOk(res: { error?: unknown; response: Response }): void {
+  if (res.response.ok) return;
+  unwrap({ error: res.error, response: res.response });
+}
+
+/**
+ * A user-facing message for a failed call: translated from the problem code, never the developer `detail`.
+ * `overrides` maps a code to a page-specific message key (e.g. CONFLICT → "slug already used").
+ */
+export function errorText(err: unknown, t: (key: string) => string, overrides: Record<string, string> = {}): string {
   const code = problemOf(err)?.code;
   if (code) {
-    const key = `error.${code}`;
+    const key = overrides[code] ?? `error.${code}`;
     const msg = t(key);
     if (msg !== key) return msg;
   }
@@ -44,3 +53,6 @@ export async function currentRoles(): Promise<string[]> {
 
 export const canWritePrices = (roles: string[]) => roles.includes("editor") || roles.includes("admin");
 export const canGrant = (roles: string[]) => roles.includes("admin");
+export const canWriteContent = canWritePrices; // editor or admin (SCOPE §10)
+export const canAnswerSupport = (roles: string[]) => roles.includes("support") || roles.includes("admin");
+export const canEditSettings = canGrant;

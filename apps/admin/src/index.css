@@ -5,3 +5,18 @@
 @layer base {
   html, body { @apply bg-bg font-sans text-text antialiased; }
 }
+
+/* Editor content: same look as the website's .rich, so editors see what readers will. */
+@layer components {
+  .rich-editor { @apply leading-8 text-text-2; }
+  .rich-editor > * + * { margin-block-start: 0.75rem; }
+  .rich-editor h2 { @apply text-xl font-extrabold text-text; }
+  .rich-editor h3 { @apply text-lg font-bold text-text; }
+  .rich-editor h4 { @apply font-bold text-text; }
+  .rich-editor strong { @apply font-bold text-text; }
+  .rich-editor a { @apply text-info underline; }
+  .rich-editor ul { @apply list-disc ps-6; }
+  .rich-editor ol { @apply list-decimal ps-6; }
+  .rich-editor blockquote { @apply border-s-4 border-gold bg-surface-2 px-4 py-2; }
+  .rich-editor hr { @apply my-4 border-border; }
+}

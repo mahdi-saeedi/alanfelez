@@ -16,6 +16,12 @@ import { SourcesPage } from "./pages/Sources";
 import { SubscriptionsPage } from "./pages/Subscriptions";
 import { OrdersPage } from "./pages/Orders";
 import { UsersPage } from "./pages/Users";
+import { ArticlesPage, ArticleEditPage } from "./pages/Articles";
+import { ArticleCategoriesPage } from "./pages/Categories";
+import { FaqPage } from "./pages/Faq";
+import { PagesPage, PageEditPage } from "./pages/Pages";
+import { SettingsPage } from "./pages/Settings";
+import { ContactMessagesPage, TicketsPage, TicketPage } from "./pages/Support";
 import { LoginPage, CallbackPage, DeniedPage } from "./pages/AuthPages";
 import "./index.css";
 
@@ -55,6 +61,16 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/content/articles" element={<ArticlesPage />} />
+            <Route path="/content/articles/:id" element={<ArticleEditPage />} />
+            <Route path="/content/categories" element={<ArticleCategoriesPage />} />
+            <Route path="/content/faq" element={<FaqPage />} />
+            <Route path="/content/pages" element={<PagesPage />} />
+            <Route path="/content/pages/:slug" element={<PageEditPage />} />
+            <Route path="/support/tickets" element={<TicketsPage />} />
+            <Route path="/support/tickets/:id" element={<TicketPage />} />
+            <Route path="/support/messages" element={<ContactMessagesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/metals" element={<MetalsList />} />
             <Route path="/markets" element={<MarketsList />} />
             <Route path="/plans" element={<PlansList />} />

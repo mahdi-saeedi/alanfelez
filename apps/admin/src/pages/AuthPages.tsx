@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useLogin, useTranslate } from "@refinedev/core";
 import { useNavigate } from "react-router";
-import { userManager } from "../providers/authProvider";
+import { safePath, userManager } from "../providers/authProvider";
 
 /** /login: go straight to Keycloak (branded login theme, staff TOTP enforced there). */
 export function LoginPage() {
   const t = useTranslate();
-  const { mutate: login } = useLogin();
-  useEffect(() => login({}), [login]);
+  const { mutate: login } = useLogin<{ to?: string }>();
+  useEffect(() => login({ to: new URLSearchParams(window.location.search).get("to") ?? undefined }), [login]);
   return <p className="p-10 text-center text-text-2">{t("auth.signingIn")}</p>;
 }
 
@@ -22,7 +22,7 @@ export function CallbackPage() {
   useEffect(() => {
     callbackOnce ??= userManager.signinRedirectCallback();
     callbackOnce.then(
-      () => navigate("/", { replace: true }),
+      (user) => navigate(safePath((user as { state?: { to?: string } } | undefined)?.state?.to), { replace: true }),
       () => navigate("/login", { replace: true }),
     );
   }, [navigate]);

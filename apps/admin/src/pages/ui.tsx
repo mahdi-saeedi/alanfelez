@@ -52,3 +52,26 @@ export function Badge({ children, tone = "gray" }: { children: ReactNode; tone?:
   const tones = { gray: "bg-surface-2 text-text-2", green: "bg-up-bg text-up", red: "bg-down-bg text-down", gold: "bg-gold/15 text-gold-dark" };
   return <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${tones[tone]}`}>{children}</span>;
 }
+
+export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select {...props} className={`rounded-lg border border-border bg-surface px-2.5 py-1.5 text-sm ${props.className ?? ""}`} />;
+}
+
+export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea {...props} className={`w-full rounded-lg border border-border bg-surface p-2 text-sm ${props.className ?? ""}`} />;
+}
+
+/**
+ * A labelled form field with an optional hint under it. `plain` renders a div instead of a <label>, for children
+ * with their own buttons (the rich-text editor), where a label would forward clicks to the first button.
+ */
+export function Field({ label, hint, plain = false, children }: { label: string; hint?: string; plain?: boolean; children: ReactNode }) {
+  const Tag = plain ? "div" : "label";
+  return (
+    <Tag className="block space-y-1.5">
+      <span className="text-sm font-bold">{label}</span>
+      {children}
+      {hint && <span className="block text-xs text-text-3">{hint}</span>}
+    </Tag>
+  );
+}
