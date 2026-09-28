@@ -85,6 +85,8 @@ type claims struct {
 	RealmAccess struct {
 		Roles []string `json:"roles"`
 	} `json:"realm_access"`
+	// Roles is the flat claim the admin client's realm-roles mapper adds; merged with realm_access.roles.
+	Roles []string `json:"roles"`
 }
 
 // Verify implements Verifier.
@@ -101,7 +103,18 @@ func (o *OIDCVerifier) Verify(ctx context.Context, raw string) (*Principal, erro
 	if err := id.Scan(c.Sub); err != nil {
 		return nil, fmt.Errorf("auth: sub is not a uuid: %w", err)
 	}
-	return &Principal{ID: id, Username: c.Username, Roles: c.RealmAccess.Roles}, nil
+	return &Principal{ID: id, Username: c.Username, Roles: mergeRoles(c.RealmAccess.Roles, c.Roles)}, nil
+}
+
+// mergeRoles unions realm_access.roles (web tokens) with the flat roles claim (admin tokens), without duplicates.
+func mergeRoles(realm, flat []string) []string {
+	out := slices.Clone(realm)
+	for _, r := range flat {
+		if !slices.Contains(out, r) {
+			out = append(out, r)
+		}
+	}
+	return out
 }
 
 // ErrUnauthenticated is returned for a missing token on a protected route.

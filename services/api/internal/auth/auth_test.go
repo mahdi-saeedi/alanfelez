@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 )
 
@@ -65,5 +66,16 @@ func TestRoles(t *testing.T) {
 	p := &Principal{Roles: []string{RoleStaff, RoleEditor}}
 	if !p.HasRole(RoleEditor) || p.HasRole(RoleAdmin) || !p.HasAnyRole(RoleAdmin, RoleEditor) {
 		t.Fatal("role checks are wrong")
+	}
+}
+
+func TestMergeRoles(t *testing.T) {
+	got := mergeRoles([]string{RoleStaff, "default-roles-alanfelez"}, []string{RoleStaff, RoleEditor})
+	want := []string{RoleStaff, "default-roles-alanfelez", RoleEditor}
+	if !slices.Equal(got, want) {
+		t.Fatalf("mergeRoles = %v, want %v", got, want)
+	}
+	if got := mergeRoles(nil, []string{RoleAdmin}); !slices.Equal(got, []string{RoleAdmin}) {
+		t.Fatalf("flat only = %v", got)
 	}
 }
