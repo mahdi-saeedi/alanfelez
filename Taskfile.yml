@@ -71,6 +71,18 @@ tasks:
       - task: build:api-bin
       - docker compose up -d --build bootstrap api worker
 
+  web:reload:
+    desc: Rebuild the website and restart its container
+    cmds:
+      - task: build:web
+      - docker compose up -d --build web
+
+  admin:reload:
+    desc: Rebuild the admin panel and restart its container
+    cmds:
+      - task: build:admin
+      - docker compose up -d --build admin
+
   build:api-bin:
     internal: true
     dir: "{{.API_DIR}}"

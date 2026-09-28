@@ -47,7 +47,7 @@ jobs:
         working-directory: services/keycloak/extensions
 
   frontend:
-    name: Web + theme · typecheck, build, api-client check
+    name: Web + admin + theme · unit tests, typecheck, build, api-client check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -55,10 +55,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Generated API client is up to date
         run: pnpm --filter @alanfelez/api-client generate && git diff --exit-code -- packages/api-client
+      - run: pnpm --filter @alanfelez/ui test
       - run: pnpm --filter @alanfelez/keycloak-theme typecheck
       - run: pnpm --filter @alanfelez/web typecheck
+      - run: pnpm --filter @alanfelez/admin typecheck
       - run: pnpm --filter @alanfelez/web build
         env: { NEXT_TELEMETRY_DISABLED: "1" }
+      - run: pnpm --filter @alanfelez/admin build
 
   deploy-manifests:
     name: Helm · lint + render + schema validation (every environment)
