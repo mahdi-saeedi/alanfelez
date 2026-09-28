@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { displayAmount, formatBp, formatChangeValue, formatDate, formatPriceValue, formatTime, formatToman, priceUnitLabel } from "./format.ts";
+import { displayAmount, formatBp, formatChangeValue, formatDate, formatPriceValue, formatTime, formatToman, formatTons, parseDecimal, priceUnitLabel } from "./format.ts";
 
 const copper = { amount: "6400000", currency: "IRR", unit: "kg" } as const; // 6,400,000 Rial/kg
 const lme = { amount: "980012", currency: "USD", unit: "ton" } as const; // $9,800.12/ton
@@ -41,4 +41,19 @@ test("times are Tehran time; fa dates are Jalali", () => {
 
 test("plan prices stay in Toman", () => {
   assert.equal(formatToman("20000000", "en"), "2,000,000 Toman");
+});
+
+test("weights are shown in tonnes", () => {
+  assert.equal(formatTons(2_500_500, "en"), "2,500.5 t");
+  assert.equal(formatTons(100_000, "fa"), "۱۰۰ تن");
+});
+
+test("numbers typed with Persian digits and separators parse", () => {
+  assert.equal(parseDecimal("۱۲٬۵۰۰"), 12500);
+  assert.equal(parseDecimal("۲٫۵"), 2.5);
+  assert.equal(parseDecimal("1,000.25"), 1000.25);
+  assert.equal(parseDecimal(" 10 "), 10);
+  assert.equal(parseDecimal(""), undefined);
+  assert.equal(parseDecimal("abc"), undefined);
+  assert.equal(parseDecimal("1.2.3"), undefined);
 });

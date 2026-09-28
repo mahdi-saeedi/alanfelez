@@ -87,3 +87,25 @@ export function formatDate(iso: string, locale: Locale, withTime = false): strin
     timeZone: TEHRAN,
   }).format(new Date(iso));
 }
+
+/** A weight given in kg, shown in tonnes with at most one decimal ("۲٬۵۰۰٫۵ تن" / "2,500.5 t"). */
+export function formatTons(kg: number, locale: Locale): string {
+  const t = new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US", { maximumFractionDigits: 1 }).format(kg / 1000);
+  return `${t} ${locale === "fa" ? "تن" : "t"}`;
+}
+
+/**
+ * Parses a number typed by a user: Persian/Arabic digits, Persian decimal separator «٫» and thousands separators
+ * are accepted. Returns undefined for empty or invalid input.
+ */
+export function parseDecimal(input: string): number | undefined {
+  const s = input
+    .trim()
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[٬,\s]/g, "")
+    .replace(/[٫/]/g, ".");
+  if (!/^\d*\.?\d+$|^\d+\.$/.test(s)) return undefined;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : undefined;
+}
