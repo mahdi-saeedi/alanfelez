@@ -84,6 +84,11 @@ licenses) and *Site settings* (contact details, social links) work the same way.
 **Try support:** send the form at http://localhost:3000/contact, then open *Support → Contact messages* in the admin (menu badge).
 Signed in on the website, open a ticket under *Account → Support*; answer it in the admin under *Support → Tickets* (support/admin).
 The contact form allows 5 messages per hour per IP (Redis), so repeat tests may get «تعداد پیام‌ها زیاد است».
+**Try the Gold features (M5):** as a Gold user (buy Gold with the mock gateway, or grant it in the admin): http://localhost:3000/auctions
+(the demo profile seeds two IME sessions, `config/seed/demo/30-ime.yaml`; signed out you see only the summary),
+http://localhost:3000/calculator (pick a product, change the weight; save, share), and *Account → SMS price alerts*: add
+«تغییر روزانه بیش از ۰٫۵» on any product; within a minute the worker logs the SMS (`task logs -- worker`, console provider).
+Staff enter IME sessions under *Market & prices → IME auctions* (paste rows, "Check", then "Save").
 Lost the TOTP device for a local staff user? Remove it in the Keycloak console (Users → user → Credentials → delete OTP).
 
 ## 5. Daily commands

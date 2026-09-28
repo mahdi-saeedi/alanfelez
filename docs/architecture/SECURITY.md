@@ -48,7 +48,7 @@ Every limit is configurable. Defaults:
 | OTPs per IP | 10 / hour |
 | Allowed destinations | **Iranian mobile numbers only** (`+989…`), with format validation |
 | CAPTCHA (self-hosted, e.g. ALTCHA / proof-of-work, since Google reCAPTCHA is unreliable in Iran) | Required after 2 OTP requests from the same IP or phone within 1 h |
-| Global circuit breaker | If SMS spend exceeds the **daily budget** (setting), OTP sending pauses except for existing users, and staff get an alert |
+| Global circuit breaker | If SMS spend exceeds the **daily budget** (setting), OTP sending pauses except for existing users, and staff get an alert. Price alerts (M5) already pause at the budget (`internal/alerts`) and are capped at 10 SMS per user per day |
 | Monitoring | Alert on OTP rate above 3× the 7-day baseline |
 
 ### Contact form abuse (M4)

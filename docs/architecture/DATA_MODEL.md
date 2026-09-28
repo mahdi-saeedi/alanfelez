@@ -117,6 +117,9 @@ Key decisions:
 | `media` | ⏳ Not built yet (covers are URLs until uploads to Arvan Object Storage exist): object-storage key, mime type, size, dimensions, `alt_fa`/`alt_en` |
 | `contact_messages` | Contact form submissions (plain text): name, phone, optional e-mail, subject, body, `user_id` when signed in, client `ip` + `user_agent` (abuse review), `status` new / handled / spam, staff `note` |
 | `tickets`, `ticket_messages` | A thread per user request. `number` (shown to users), `status` = whose turn (open = support, answered = user, closed), `priority` (high = `support.priority` at creation), `Idempotency-Key` per user. Messages are plain text with `is_staff`; agents' names are shown only in the admin |
+| `market.ime_offerings` | IME session rows (SCOPE §7): `trade_date` (Tehran day), metal, product, producer, `offered_kg`, `base_price_rial` (Rial/kg), `demand_kg`, `traded_kg`, `clearing_price_rial` (null until traded), `source` manual / demo / api. Natural key (day, product, producer) = re-entry corrects |
+| `calculations` | Saved calculator runs (Gold, max 50 per user): name, series, `input` and `result` JSON frozen at save time |
+| `price_alerts` | SMS alerts (Gold, max 20): series, `kind` above / below / move, `threshold_minor` or `move_bp`, `active`, `armed` (edge trigger), `last_triggered_at`. Sent SMS go to `notifications` (template `price_alert_*`, dedupe key per firing) |
 | `audit_log` | `actor_id`, `actor_role`, `action`, `entity`, `entity_id`, `before jsonb`, `after jsonb`, `ip`, `user_agent`, `at`. **Append-only**: the app DB role has no UPDATE/DELETE on it |
 
 ## 4. Redis keys
@@ -131,6 +134,7 @@ Key decisions:
 | Data | Retention |
 |---|---|
 | `price_points`, `ime_offerings` | Forever (this is the product) |
+| `calculations`, `price_alerts` | Until the user deletes them or the account is deleted (cascade) |
 | `source_runs` | 90 days |
 | `audit_log` | 3 years |
 | `notifications` | 1 year |

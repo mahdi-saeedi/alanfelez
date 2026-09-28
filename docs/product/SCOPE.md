@@ -234,3 +234,26 @@ a reply yet (the account page shows the status; F15).
 **Admin (#10).** Roles: content (articles, categories, FAQ, pages) = editor or admin; tickets and contact inbox = support or admin;
 site settings = admin; everyone on staff can read. Every write is audit-logged. Rich text is edited in TipTap and sanitized
 on save (ADR-0025).
+
+## 17. Gold features — 🛠 decisions built in M5
+
+**Daily auctions (§7).** Page `/auctions`: pick a trading day and a metal; everyone sees the day's summary (offerings,
+volume offered / demanded / traded, trade value, volume-weighted average change vs base); the table (product, producer,
+offered, base price, demand, traded, discovered price, change) is Gold. Data is entered in the admin (*IME auctions*: a form
+row or a table pasted from Excel, checked before saving; re-entering a row corrects it) until an IME data source exists (F16).
+Prices Toman/kg, volumes tonnes. Viewing the table counts as "used" for refunds.
+
+**Calculator (§8).** As specified, computed by the API (`internal/calculator`), recalculated as you type. Products: the domestic
+(IRR) price series, grouped metal → product type → product; the base price is the series' latest price with its source and
+time, and a manual price overrides it. Weights in kg or tonnes; Persian digits and «٫» accepted. Save up to 50 calculations
+(the result is frozen at save time); "share" copies a link with the inputs (the recipient needs Gold to compute). Not built
+yet: USD prices × exchange rate for LME products, and the design's "advanced" box (multi-load compare, quality settings,
+PDF), which the client hasn't asked for.
+
+**SMS price alerts (#19).** On the account page (Gold): up to 20 alerts, each on any series the user can see —
+«بالاتر از» / «پایین‌تر از» a price, or «تغییر روزانه بیش از» a percentage (0.5–50 %). The worker checks every minute.
+Above/below fire once when the price crosses and re-arm only after it moves back 0.5 % (no SMS storms around a threshold),
+at most one SMS per alert per hour; a daily-move alert fires at most once a day. At most 10 alert SMS per user per day, and all
+alerts pause when the daily SMS budget (site setting `sms`) is spent. When the Gold plan ends, alerts stop and stay listed
+(paused / deletable). Texts are the `price_alert_*` entries of `sms_templates` (editable). Until the SMS provider exists (F7)
+the local/staging "console" provider only logs them.
