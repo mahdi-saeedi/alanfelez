@@ -1,0 +1,18 @@
+# Plans and prices (SCOPE.md §6). Amounts in Rial: 1,000,000 Toman = 10,000,000 Rial.
+# insert_missing: once live, prices are changed in the admin panel (versioned), not here.
+version: 1
+datasets:
+  - name: plans
+    rows:
+      - { code: free,   name_fa: رایگان,  name_en: Free,   rank: 0, active: true }
+      - { code: silver, name_fa: نقره‌ای, name_en: Silver, rank: 1, active: true }
+      - { code: gold,   name_fa: طلایی,   name_en: Gold,   rank: 2, active: true }
+
+  - name: plan_prices
+    rows:
+      - { plan_code: silver, period: month,   amount_rial: 10000000 }
+      - { plan_code: silver, period: quarter, amount_rial: 27000000 }   # −10 %
+      - { plan_code: silver, period: year,    amount_rial: 96000000 }   # −20 %
+      - { plan_code: gold,   period: month,   amount_rial: 20000000 }
+      - { plan_code: gold,   period: quarter, amount_rial: 54000000 }   # −10 %
+      - { plan_code: gold,   period: year,    amount_rial: 192000000 }  # −20 %

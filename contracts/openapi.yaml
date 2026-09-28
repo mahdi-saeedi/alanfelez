@@ -1,0 +1,145 @@
+openapi: 3.1.0
+info:
+  title: Alan Felez API
+  version: 0.1.0
+  description: |
+    Public, user and admin API for الان‌فلز. Contract-first (ADR-0014): edit this file,
+    then run `task generate`. Conventions: docs/architecture/API_GUIDELINES.md.
+servers:
+  - url: http://localhost:8080
+    description: local
+tags:
+  - name: reference
+    description: Reference data (metals, markets, plans)
+
+paths:
+  /v1/metals:
+    get:
+      operationId: listMetals
+      tags: [reference]
+      summary: List base metals
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Metals in display order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Metal' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/markets:
+    get:
+      operationId: listMarkets
+      tags: [reference]
+      summary: List markets / price sources
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Markets in display order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Market' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/plans:
+    get:
+      operationId: listPlans
+      tags: [reference]
+      summary: List active subscription plans with current prices
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Plans ordered by rank
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Plan' }
+        default: { $ref: '#/components/responses/Problem' }
+
+components:
+  parameters:
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      required: false
+      schema: { type: string, enum: [fa, en], default: fa }
+
+  responses:
+    Problem:
+      description: Error (RFC 9457)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Metal:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string, example: copper }
+        name: { type: string, example: مس }
+
+    Market:
+      type: object
+      required: [slug, name, scope]
+      properties:
+        slug: { type: string, example: ime }
+        name: { type: string }
+        scope: { type: string, enum: [domestic, global] }
+
+    Money:
+      type: object
+      description: Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
+      required: [amount, currency]
+      properties:
+        amount: { type: string, pattern: '^-?[0-9]+$', example: '10000000' }
+        currency: { type: string, enum: [IRR, USD] }
+
+    PlanPrice:
+      type: object
+      required: [period, price]
+      properties:
+        period: { type: string, enum: [month, quarter, year] }
+        price: { $ref: '#/components/schemas/Money' }
+
+    Plan:
+      type: object
+      required: [code, name, rank, prices]
+      properties:
+        code: { type: string, enum: [free, silver, gold] }
+        name: { type: string }
+        rank: { type: integer }
+        prices:
+          type: array
+          items: { $ref: '#/components/schemas/PlanPrice' }
+
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string, example: INTERNAL }
+        detail: { type: string }
+        requestId: { type: string }

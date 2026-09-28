@@ -1,0 +1,14 @@
+# Demo-only data for local development and client demos on staging. Never loaded in production.
+version: 1
+datasets:
+  - name: feature_flags
+    mode: upsert
+    rows:
+      - { key: locale.en,        enabled: true, rules: {}, owner: product, description: "Demo: English enabled" }
+      - { key: payments.enabled, enabled: true, rules: {}, owner: product, description: "Demo: payments via the mock gateway" }
+
+  - name: site_settings
+    mode: upsert
+    rows:
+      - key: contact
+        value: { phone: "۰۲۱-۰۰۰۰۰۰۰۰", email: "demo@alanfelez.ir", address_fa: "نشانی نمایشی", address_en: "Demo address", hours_fa: "شنبه تا چهارشنبه ۸ تا ۱۷", hours_en: "Sat–Wed 08:00–17:00" }

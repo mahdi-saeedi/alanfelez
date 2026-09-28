@@ -1,0 +1,30 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - misspell
+    - noctx
+    - revive
+    - sqlclosecheck
+    - unconvert
+    - unparam
+    - wrapcheck
+  settings:
+    wrapcheck:
+      ignore-package-globs:
+        - github.com/alanfelez/alanfelez/*
+  exclusions:
+    generated: strict
+    paths:
+      - internal/api/api.gen.go
+      - internal/dbq
+formatters:
+  enable: [gofmt, goimports]
+  settings:
+    goimports:
+      local-prefixes: [github.com/alanfelez/alanfelez]

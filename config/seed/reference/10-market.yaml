@@ -1,0 +1,24 @@
+version: 1
+datasets:
+  - name: metals
+    rows:
+      - { slug: aluminum,  name_fa: آلومینیوم, name_en: Aluminum,  sort: 1 }
+      - { slug: copper,    name_fa: مس,        name_en: Copper,    sort: 2 }
+      - { slug: brass,     name_fa: برنج,      name_en: Brass,     sort: 3 }
+      - { slug: zinc,      name_fa: روی,       name_en: Zinc,      sort: 4 }
+      - { slug: lead,      name_fa: سرب,       name_en: Lead,      sort: 5 }
+      - { slug: iron,      name_fa: آهن,       name_en: Iron,      sort: 6 }
+      - { slug: cast-iron, name_fa: چدن,       name_en: Cast iron, sort: 7 }
+
+  - name: product_categories
+    rows:
+      - { slug: raw,          name_fa: مواد اولیه,    name_en: Raw materials,         sort: 1 }
+      - { slug: intermediate, name_fa: محصولات میانی, name_en: Intermediate products, sort: 2 }
+      - { slug: scrap,        name_fa: ضایعات,        name_en: Scrap,                 sort: 3 }
+
+  - name: markets
+    rows:
+      - { slug: ime,  name_fa: بورس کالای ایران,   name_en: Iran Mercantile Exchange, scope: domestic, sort: 1 }
+      - { slug: iron, name_fa: تالار آهن ایران,     name_en: Iran Iron Market,         scope: domestic, sort: 2 }
+      - { slug: free, name_fa: بازار آزاد,          name_en: Free market,              scope: domestic, sort: 3 }
+      - { slug: lme,  name_fa: بورس فلزات لندن (LME), name_en: London Metal Exchange,  scope: global,   sort: 4 }

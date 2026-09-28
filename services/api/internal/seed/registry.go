@@ -1,0 +1,66 @@
+package seed
+
+// Column describes how a seed value is written.
+type Column struct {
+	JSON bool // value is marshalled to JSON and cast to jsonb
+	// Ref resolves a natural key to a foreign-key id with a sub-select, e.g. a product
+	// row written as `metal: copper` becomes (SELECT id FROM market.metals WHERE slug = $n).
+	Ref *Ref
+}
+
+// Ref is a natural-key reference to another table.
+type Ref struct {
+	Table    string // referenced table
+	By       string // natural-key column in the referenced table
+	IDColumn string // column written in this table
+}
+
+// Dataset whitelists a table that seed files may write to. Only tables and columns
+// listed here can be touched, so seed files cannot inject arbitrary SQL.
+type Dataset struct {
+	Table         string
+	Key           []string // conflict target (natural key)
+	ConflictWhere string   // predicate of a partial unique index, if the key is partial
+	Columns       map[string]Column
+}
+
+// Datasets is the registry of seedable data. Add an entry when a new table needs
+// initial data, together with a migration and a seed file.
+var Datasets = map[string]Dataset{
+	"metals": {
+		Table:   "market.metals",
+		Key:     []string{"slug"},
+		Columns: map[string]Column{"slug": {}, "name_fa": {}, "name_en": {}, "sort": {}},
+	},
+	"product_categories": {
+		Table:   "market.product_categories",
+		Key:     []string{"slug"},
+		Columns: map[string]Column{"slug": {}, "name_fa": {}, "name_en": {}, "sort": {}},
+	},
+	"markets": {
+		Table:   "market.markets",
+		Key:     []string{"slug"},
+		Columns: map[string]Column{"slug": {}, "name_fa": {}, "name_en": {}, "scope": {}, "sort": {}},
+	},
+	"plans": {
+		Table:   "app.plans",
+		Key:     []string{"code"},
+		Columns: map[string]Column{"code": {}, "name_fa": {}, "name_en": {}, "rank": {}, "active": {}},
+	},
+	"plan_prices": {
+		Table:         "app.plan_prices",
+		Key:           []string{"plan_code", "period"},
+		ConflictWhere: "valid_to IS NULL",
+		Columns:       map[string]Column{"plan_code": {}, "period": {}, "amount_rial": {}},
+	},
+	"feature_flags": {
+		Table:   "app.feature_flags",
+		Key:     []string{"key"},
+		Columns: map[string]Column{"key": {}, "enabled": {}, "rules": {JSON: true}, "description": {}, "owner": {}},
+	},
+	"site_settings": {
+		Table:   "app.site_settings",
+		Key:     []string{"key"},
+		Columns: map[string]Column{"key": {}, "value": {JSON: true}},
+	},
+}

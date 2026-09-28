@@ -1,0 +1,25 @@
+# Feature flags (ADR-0016) and default site settings. Everything here is editable in the admin.
+version: 1
+datasets:
+  - name: feature_flags
+    rows:
+      - { key: locale.en,              enabled: false, rules: {}, owner: product, description: "Expose the English site at /en (enable when English copy is reviewed)" }
+      - { key: payments.enabled,       enabled: false, rules: {}, owner: product, description: "Allow buying subscriptions (enable when the payment gateway is live)" }
+      - { key: page.licenses,          enabled: false, rules: {}, owner: product, description: "Show the licenses & trust page and footer badges" }
+      - { key: support.chat_widget,    enabled: false, rules: {}, owner: support, description: "Load the third-party live chat widget" }
+      - { key: auth.password_login,    enabled: true,  rules: {}, owner: tech,    description: "Allow mobile + password login in addition to OTP" }
+      - { key: prices.four_eyes,       enabled: false, rules: {}, owner: tech,    description: "Require a second staff approval for manual price changes above the outlier threshold" }
+
+  - name: site_settings
+    rows:
+      # Contact details are intentionally empty until the client provides them (client answer #30).
+      - key: contact
+        value: { phone: "", email: "", address_fa: "", address_en: "", hours_fa: "", hours_en: "" }
+      - key: social
+        value: { telegram: "", instagram: "", linkedin: "", bale: "", eitaa: "" }
+      - key: sms
+        value: { daily_budget_rial: 50000000, alert_at_percent: 80 }
+      - key: otp_limits
+        value: { resend_cooldown_seconds: 120, per_phone_hour: 5, per_phone_day: 10, per_ip_hour: 10, captcha_after: 2 }
+      - key: home_stats
+        value: { items: [tracked_products, data_sources, markets_covered, last_update] }
