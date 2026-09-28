@@ -47,6 +47,9 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 - { name: PUBLIC_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
 - { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }
+{{- with .Values.api.trustedProxies }}
+- { name: TRUSTED_PROXIES, value: {{ join "," . | quote }} }
+{{- end }}
 {{- range $k, $v := .Values.api.extraEnv }}
 - { name: {{ $k }}, value: {{ $v | quote }} }
 {{- end }}
