@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "@alanfelez/ui/fonts.css";
+@import "@alanfelez/ui/tokens.css";
+
+@layer base {
+  html, body { @apply font-sans text-text antialiased; }
+  body { @apply min-h-screen; background: radial-gradient(1200px 600px at 80% -10%, var(--color-hero), var(--color-graphite)) fixed; }
+  a { @apply text-gold-dark hover:text-graphite; }
+  /* Phone numbers and codes stay left-to-right inside RTL text */
+  input[type="tel"], input[autocomplete="one-time-code"] { direction: ltr; }
+}

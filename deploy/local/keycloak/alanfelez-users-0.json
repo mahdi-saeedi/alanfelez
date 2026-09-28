@@ -1,0 +1,33 @@
+{
+  "realm": "alanfelez",
+  "users": [
+    {
+      "username": "local-admin",
+      "enabled": true,
+      "firstName": "Local",
+      "lastName": "Admin",
+      "email": "admin@alanfelez.localhost",
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "local-admin-pass", "temporary": false }],
+      "realmRoles": ["default-roles-alanfelez", "admin"]
+    },
+    {
+      "username": "local-editor",
+      "enabled": true,
+      "firstName": "Local",
+      "lastName": "Editor",
+      "email": "editor@alanfelez.localhost",
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "local-editor-pass", "temporary": false }],
+      "realmRoles": ["default-roles-alanfelez", "editor"]
+    },
+    {
+      "username": "09120000001",
+      "enabled": true,
+      "firstName": "کاربر",
+      "lastName": "آزمایشی",
+      "credentials": [{ "type": "password", "value": "local-user-pass", "temporary": false }],
+      "realmRoles": ["default-roles-alanfelez"]
+    }
+  ]
+}
