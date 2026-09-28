@@ -1,0 +1,8 @@
+# Topic tabs of the analysis page besides the metals (🛠 from the design: اقتصاد · بازار جهانی · ضایعات). Editable in the admin.
+version: 1
+datasets:
+  - name: article_categories
+    rows:
+      - { slug: economy, name_fa: "اقتصاد",      name_en: "Economy",        sort: 10 }
+      - { slug: global,  name_fa: "بازار جهانی", name_en: "Global markets", sort: 20 }
+      - { slug: scrap,   name_fa: "ضایعات",      name_en: "Scrap",          sort: 30 }

@@ -1,0 +1,188 @@
+# Demo articles for local development and client demos on staging (never loaded in production). They're
+# illustrative placeholders, not real news or analysis: the client's experts write the real ones in the admin.
+# published_days_ago keeps them looking recent whenever a fresh environment is seeded.
+version: 1
+datasets:
+  - name: articles
+    rows:
+      - slug: demo-copper-global-rise
+        type: news
+        status: published
+        featured: true
+        metal: copper
+        category: global
+        outlook: up
+        published_days_ago: 0.1
+        read_minutes: 2
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "رشد قیمت مس در بازارهای جهانی پس از انتشار آمار تولید چین"
+        title_en: "Copper rises on global markets after China’s output data"
+        summary_fa: "بازارهای جهانی فلز پایه به گزارش‌های تولید صنعتی چین واکنش مثبت نشان دادند و قیمت مس در بورس فلزات لندن افزایش یافت."
+        summary_en: "Global base-metal markets reacted positively to China’s industrial output reports, and copper rose on the London Metal Exchange."
+        body_fa: |
+          <p>این یک خبر نمونه برای نمایش ساختار صفحه است. بازارهای جهانی فلز پایه در معاملات امروز به گزارش‌های تولید صنعتی چین واکنش نشان دادند و قیمت مس در بورس فلزات لندن (LME) روند افزایشی داشت.</p>
+          <h2>عوامل مؤثر</h2>
+          <ul>
+          <li>انتظار افزایش تقاضای صنعتی</li>
+          <li>کاهش موجودی انبارهای LME</li>
+          <li>نوسانات شاخص دلار</li>
+          </ul>
+          <p>فعالان بازار داخلی این تغییرات را در کنار نرخ ارز و شرایط عرضه داخلی دنبال می‌کنند.</p>
+        body_en: |
+          <p>This is a demo news item to show the page layout. Global base-metal markets reacted today to China’s industrial output reports, and copper trended higher on the London Metal Exchange (LME).</p>
+          <h2>Drivers</h2>
+          <ul>
+          <li>Expectations of stronger industrial demand</li>
+          <li>Lower LME warehouse stocks</li>
+          <li>Moves in the dollar index</li>
+          </ul>
+          <p>Domestic market players follow these changes alongside the exchange rate and local supply.</p>
+
+      - slug: demo-aluminum-energy-costs
+        type: news
+        status: published
+        metal: aluminum
+        outlook: down
+        published_days_ago: 1
+        read_minutes: 2
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "تغییر نرخ انرژی و تأثیر آن بر هزینه تولید آلومینیوم در ایران"
+        title_en: "Energy prices and their effect on aluminium production costs in Iran"
+        summary_fa: "تولیدکنندگان آلومینیوم داخلی با افزایش هزینه‌های انرژی دست‌وپنجه نرم می‌کنند؛ موضوعی که می‌تواند بر قیمت‌های داخلی اثر بگذارد."
+        summary_en: "Domestic aluminium producers face higher energy costs, which can affect domestic prices."
+        body_fa: |
+          <p>این یک خبر نمونه است. هزینه انرژی یکی از اصلی‌ترین اجزای بهای تمام‌شده تولید آلومینیوم است و تغییر آن می‌تواند در کوتاه‌مدت بر قیمت شمش در بازار داخلی اثر بگذارد.</p>
+        body_en: |
+          <p>This is a demo news item. Energy is one of the main parts of aluminium’s production cost, and changes in it can affect domestic ingot prices in the short term.</p>
+
+      - slug: demo-aluminum-scrap-isfahan
+        type: news
+        status: published
+        category: scrap
+        outlook: up
+        published_days_ago: 2
+        read_minutes: 1
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "رونق بازار ضایعات آلومینیوم در اصفهان"
+        title_en: "Aluminium scrap trade picks up in Isfahan"
+        summary_fa: "حجم معاملات ضایعات آلومینیوم در استان اصفهان در ماه گذشته نسبت به ماه قبل افزایش یافته است."
+        summary_en: "Aluminium scrap trading volume in Isfahan province rose last month compared with the month before."
+        body_fa: |
+          <p>این یک خبر نمونه است. بازار ضایعات فلزی به قیمت شمش و تقاضای ذوب‌کنندگان حساس است و معمولاً با کمی تأخیر از بازار شمش پیروی می‌کند.</p>
+        body_en: |
+          <p>This is a demo news item. The metal scrap market is sensitive to ingot prices and smelter demand and usually follows the ingot market with a lag.</p>
+
+      - slug: demo-fx-and-metals
+        type: news
+        status: published
+        category: economy
+        outlook: neutral
+        published_days_ago: 3
+        read_minutes: 2
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "نرخ ارز و اثر آن بر بازار داخلی فلزات"
+        title_en: "The exchange rate and its effect on the domestic metals market"
+        summary_fa: "نوسانات نرخ ارز همچنان یکی از عوامل اصلی قیمت‌گذاری فلزات در بازار داخلی است."
+        summary_en: "Exchange-rate swings remain one of the main drivers of domestic metal prices."
+        body_fa: |
+          <p>این یک خبر نمونه است. قیمت داخلی فلزات علاوه بر قیمت جهانی، تحت تأثیر نرخ ارز، هزینه حمل، عوارض و شرایط عرضه و تقاضای داخلی قرار دارد.</p>
+        body_en: |
+          <p>This is a demo news item. Besides global prices, domestic metal prices depend on the exchange rate, transport costs, duties and local supply and demand.</p>
+
+      - slug: demo-steel-sheet-supply
+        type: news
+        status: published
+        metal: iron
+        outlook: down
+        published_days_ago: 4
+        read_minutes: 1
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "ورق فولادی در بازار ایران؛ عرضه محدود و تقاضای پایدار"
+        title_en: "Steel sheet in Iran: limited supply, steady demand"
+        summary_fa: "کمبود نسبی عرضه ورق‌های فولادی در بازارهای داخلی باعث ثبات نسبی قیمت‌ها شده است."
+        summary_en: "A relative shortage of steel sheet on domestic markets has kept prices fairly stable."
+        body_fa: |
+          <p>این یک خبر نمونه است. عرضه ورق در تالار آهن و بورس کالا و میزان تقاضای صنایع پایین‌دستی، دو عامل اصلی قیمت این محصول در بازار داخلی هستند.</p>
+        body_en: |
+          <p>This is a demo news item. Sheet supply on the iron market and the commodity exchange, and demand from downstream industries, are the two main drivers of its domestic price.</p>
+
+      - slug: demo-aluminum-outlook
+        type: analysis
+        status: published
+        metal: aluminum
+        outlook: neutral
+        published_days_ago: 1.5
+        read_minutes: 4
+        author_fa: "کارشناس الان‌فلز (نمونه)"
+        author_en: "Alan Felez analyst (demo)"
+        title_fa: "چشم‌انداز قیمت آلومینیوم در ماه پیش رو"
+        title_en: "Aluminium price outlook for the coming month"
+        summary_fa: "بررسی عوامل عرضه، تقاضا، نرخ ارز و قیمت جهانی که در ماه پیش رو بر بازار آلومینیوم اثر می‌گذارند."
+        summary_en: "A review of the supply, demand, exchange-rate and global-price factors likely to shape the aluminium market next month."
+        body_fa: |
+          <p>این یک تحلیل نمونه برای نمایش بخش طلایی است و محتوای واقعی را کارشناسان الان‌فلز در پنل مدیریت می‌نویسند.</p>
+          <h2>عرضه و تقاضا</h2>
+          <p>عرضه شمش در بورس کالا و میزان تقاضای صنایع پایین‌دستی، مهم‌ترین عوامل داخلی هستند.</p>
+          <h2>قیمت جهانی و نرخ ارز</h2>
+          <p>روند قیمت LME و نرخ ارز، مبنای قیمت‌گذاری بخش بزرگی از معاملات است.</p>
+          <h2>جمع‌بندی</h2>
+          <p>این تحلیل بر اساس داده‌های موجود در زمان تهیه نوشته شده است و با تغییر شرایط بازار ممکن است تغییر کند.</p>
+        body_en: |
+          <p>This is a demo analysis to show the Gold section. The real content is written by Alan Felez’s experts in the admin panel.</p>
+          <h2>Supply and demand</h2>
+          <p>Ingot supply on the commodity exchange and demand from downstream industries are the main domestic factors.</p>
+          <h2>Global price and exchange rate</h2>
+          <p>The LME trend and the exchange rate are the pricing basis for much of the trade.</p>
+          <h2>Summary</h2>
+          <p>This analysis is based on the data available when it was written and may change as market conditions change.</p>
+
+      - slug: demo-copper-supply-demand
+        type: analysis
+        status: published
+        metal: copper
+        outlook: up
+        published_days_ago: 5
+        read_minutes: 5
+        author_fa: "کارشناس الان‌فلز (نمونه)"
+        author_en: "Alan Felez analyst (demo)"
+        title_fa: "تحلیل عرضه و تقاضا در بازار مس ایران"
+        title_en: "Supply and demand in Iran’s copper market"
+        summary_fa: "نگاهی به عرضه کاتد و مفتول مس، تقاضای صنایع سیم و کابل و اثر قیمت جهانی بر بازار داخلی."
+        summary_en: "A look at cathode and wire supply, demand from the cable industry and the effect of global prices on the domestic market."
+        body_fa: |
+          <p>این یک تحلیل نمونه است. تقاضای صنایع سیم و کابل و عرضه کاتد در بورس کالا، مسیر قیمت مس داخلی را شکل می‌دهند.</p>
+        body_en: |
+          <p>This is a demo analysis. Demand from the wire and cable industry and cathode supply on the commodity exchange shape the domestic copper price.</p>
+
+      - slug: demo-zinc-scenarios
+        type: forecast
+        status: published
+        metal: zinc
+        outlook: neutral
+        published_days_ago: 2.5
+        read_minutes: 3
+        author_fa: "کارشناس الان‌فلز (نمونه)"
+        author_en: "Alan Felez analyst (demo)"
+        title_fa: "سناریوهای احتمالی قیمت روی تا پایان فصل"
+        title_en: "Possible zinc price scenarios to the end of the season"
+        summary_fa: "سه سناریوی احتمالی برای مسیر قیمت روی بر اساس داده‌های موجود؛ برآوردی برای کمک به تصمیم‌گیری."
+        summary_en: "Three possible scenarios for the zinc price based on the data available: an estimate to support decisions."
+        body_fa: |
+          <p>این یک پیش‌بینی نمونه است. سناریوها برآوردهایی بر اساس داده‌های موجود هستند و هیچ‌کدام نتیجه آینده را تضمین نمی‌کنند.</p>
+          <ul>
+          <li><strong>سناریوی افزایشی:</strong> در صورت رشد تقاضای گالوانیزه</li>
+          <li><strong>سناریوی پایه:</strong> ادامه روند فعلی عرضه و تقاضا</li>
+          <li><strong>سناریوی کاهشی:</strong> در صورت افت قیمت جهانی</li>
+          </ul>
+        body_en: |
+          <p>This is a demo forecast. Scenarios are estimates based on the data available, and none of them guarantees a future outcome.</p>
+          <ul>
+          <li><strong>Upside:</strong> if galvanising demand grows</li>
+          <li><strong>Base case:</strong> current supply and demand continue</li>
+          <li><strong>Downside:</strong> if global prices fall</li>
+          </ul>

@@ -1,0 +1,537 @@
+# Static pages (app.pages). Edited in the admin afterwards: insert_missing never overwrites those edits, and every
+# save keeps the previous text as a revision.
+#  - about, terms: the client's Word files (docs/content/), Persian verbatim except the edits that drop the removed
+#    marketplace and fill the placeholders (SCOPE §11; listed in OPEN_QUESTIONS F14).
+#  - privacy, licenses: 🛠 our draft (client answer #27). A lawyer should review terms/privacy before launch (F8).
+#  - English: our draft for the client to review (F4).
+# The page template adds the title, the "last updated" date (the page's save time), contact details from the site
+# settings (terms, privacy) and the call-to-action buttons (about). HTML is the editor's safe subset (ADR-0025).
+version: 1
+datasets:
+  - name: pages
+    rows:
+      - slug: about
+        published: true
+        title_fa: "درباره الان‌فلز"
+        title_en: "About Alan Felez"
+        body_fa: |
+          <p><strong>بازار فلزات؛ شفاف‌تر، سریع‌تر و هوشمندانه تر</strong></p>
+          <p>الان‌فلز با هدف ایجاد دسترسی آسان، یکپارچه و کاربردی به اطلاعات بازار فلزات ایجاد شده است؛ بستری که تلاش می‌کند اطلاعات پراکنده بازار را در یک محیط منظم در اختیار فعالان این حوزه قرار دهد.</p>
+          <p>در بازار فلزات، تصمیم‌گیری، به اطلاعات دقیق و به‌موقع وابسته است. قیمت‌های جهانی، نرخ ارز، عرضه و تقاضا، شرایط بازار داخلی، معاملات بورس کالا و تغییرات اقتصادی می‌توانند در مدت کوتاهی بر ارزش یک محصول تأثیر بگذارند. الان‌فلز با تمرکز بر همین نیاز، اطلاعات و ابزارهای موردنیاز فعالان بازار را در یک پلتفرم گرد هم آورده است.</p>
+          <h2>الان‌فلز چه کاری انجام می‌دهد؟</h2>
+          <p>الان‌فلز یک پلتفرم تخصصی اطلاعات و خدمات بازار فلزات است که به کاربران کمک می‌کند بازار را بهتر رصد، اطلاعات را مقایسه و تصمیم‌های تجاری خود را بر اساس داده‌های در دسترس اتخاذ کنند.</p>
+          <p>در الان‌فلز می‌توانید به مجموعه‌ای از خدمات و اطلاعات از جمله موارد زیر دسترسی داشته باشید:</p>
+          <ul>
+          <li>قیمت فلزات در بازارهای داخلی و جهانی</li>
+          <li>نمودار و تاریخچه قیمت‌ها</li>
+          <li>اطلاعات و داده‌های مرتبط با بورس کالا</li>
+          <li>بررسی و تحلیل روند بازار</li>
+          <li>سناریوهای احتمالی تغییرات قیمت</li>
+          <li>ماشین حساب قیمت فلزات</li>
+          <li>اطلاعات حراج‌ها و عرضه‌های روزانه</li>
+          <li>هشدارها و پیامک‌های مرتبط با تغییرات بازار</li>
+          <li>اطلاعات مرتبط با مواد اولیه و محصولات میانی فلزی</li>
+          </ul>
+          <h2>چه کسانی می‌توانند از الان‌فلز استفاده کنند؟</h2>
+          <p>الان‌فلز برای طیف گسترده‌ای از فعالان صنعت و بازار فلزات طراحی شده است؛ از جمله:</p>
+          <ul>
+          <li><strong>تولیدکنندگان</strong> برای بررسی قیمت مواد اولیه، محصولات میانی و شرایط بازار.</li>
+          <li><strong>بازرگانان و تأمین‌کنندگان</strong> برای رصد قیمت‌ها، بررسی روند بازار و شناسایی فرصت‌های تجاری.</li>
+          <li><strong>خریداران و فروشندگان</strong> برای دسترسی به اطلاعات قیمت.</li>
+          <li><strong>کارشناسان و فعالان حوزه فلزات</strong> برای بررسی داده‌های بازار، نمودارها و روند تغییرات قیمت.</li>
+          <li><strong>سرمایه‌گذاران و علاقه‌مندان بازار</strong> برای دنبال کردن روند قیمت فلزات و عوامل مؤثر بر بازار.</li>
+          </ul>
+          <h2>چرا الان‌فلز؟</h2>
+          <p><strong>بازار فلزات تنها یک عدد قیمت نیست.</strong></p>
+          <p>قیمت یک محصول می‌تواند تحت تأثیر مجموعه‌ای از عوامل داخلی و خارجی تغییر کند. به همین دلیل، مشاهده یک قیمت بدون شناخت روند و عوامل مؤثر بر آن، همیشه تصویر کاملی از بازار ارائه نمی‌دهد.</p>
+          <p>الان‌فلز تلاش می‌کند این اطلاعات را در کنار یکدیگر قرار دهد تا کاربر بتواند به جای جست‌وجوی پراکنده در منابع مختلف، تصویری منسجم‌تر از بازار داشته باشد.</p>
+          <p>هدف ما ساده است:<br>اطلاعات بازار فلزات را دقیق، قابل فهم‌ و کاربردی‌ کنیم.</p>
+          <h2>یک پلتفرم؛ چند نیاز</h2>
+          <p>الان‌فلز تلاش می‌کند نیازهای مختلف کاربران بازار فلزات را در یک محیط واحد پوشش دهد.</p>
+          <p>از مشاهده قیمت جهانی و داخلی و بررسی نمودار و تاریخچه قیمت گرفته تا تحلیل بازار و ماشین حساب قیمت؛ هدف این است که کاربر برای انجام فعالیت‌های روزمره خود کمتر به منابع پراکنده نیاز داشته باشد.</p>
+          <h2>داده، تحلیل و تصمیم‌گیری</h2>
+          <p>در الان‌فلز تلاش می‌کنیم اطلاعات بازار را تنها به شکل یک عدد ارائه نکنیم.</p>
+          <p>قیمت، تغییرات روزانه، روند تاریخی، اطلاعات بازار داخلی و جهانی و عوامل مؤثر بر قیمت می‌توانند در کنار یکدیگر تصویر کامل‌تری از شرایط بازار ایجاد کنند.</p>
+          <p>به همین دلیل، بخشی از خدمات الان‌فلز به تحلیل و بررسی بازار اختصاص دارد تا کاربران بتوانند علاوه بر مشاهده وضعیت فعلی، روندها و سناریوهای احتمالی آینده را نیز بررسی کنند.</p>
+          <p>تمام تحلیل‌ها و پیش‌بینی‌ها بر اساس داده‌ها و شرایط موجود تهیه می‌شوند و نباید به‌عنوان تضمین نتیجه آینده بازار در نظر گرفته شوند.</p>
+          <h2>نگاه ما به آینده</h2>
+          <p>بازار فلزات همواره در حال تغییر است و ابزارهای موردنیاز فعالان آن نیز باید همراه با این تغییرات توسعه پیدا کنند.</p>
+          <p>ما در الان‌فلز به دنبال ایجاد یک مرجع کاربردی و پویا برای اطلاعات بازار فلزات هستیم؛ بستری که در طول زمان، محصولات، بازارها، داده‌ها و ابزارهای بیشتری را پوشش دهد.</p>
+          <p>هدف ما این است که الان‌فلز به بستری تبدیل شود که فعالان بازار بتوانند برای رصد قیمت، تحلیل بازار، بررسی فرصت‌های تجاری و تصمیم‌گیری مبتنی بر داده به آن مراجعه کنند.</p>
+          <h2>چشم‌انداز الان‌فلز</h2>
+          <p>ساخت یک مرجع جامع و قابل اتکا برای اطلاعات و خدمات بازار فلزات در ایران و توسعه آن در بازارهای بین‌المللی.</p>
+          <h2>مأموریت ما</h2>
+          <p>مأموریت الان‌فلز، فراهم کردن دسترسی ساده و یکپارچه به اطلاعات، داده‌ها و ابزارهای کاربردی بازار فلزات و کمک به فعالان این حوزه برای تصمیم‌گیری آگاهانه‌تر است.</p>
+          <h2>ارزش‌های ما</h2>
+          <ul>
+          <li><strong>ا — اعتماد:</strong> اعتماد را نه با شعار، بلکه با شفافیت منابع و صحت داده‌ها به دست می‌آوریم.</li>
+          <li><strong>ل — لحظه‌ای بودن اطلاعات:</strong> قیمت فلزات هر لحظه تغییر می‌کند؛ اطلاعات ما هم همان لحظه به‌روز می‌شود.</li>
+          <li><strong>ا — اطلاعات دقیق:</strong> هر عددی که می‌بینید، از منبعی مشخص و قابل استناد می‌آید.</li>
+          <li><strong>ن — نظم:</strong> داده‌های پراکنده بازار را در قالبی منظم و قابل‌اتکا در اختیارتان می‌گذاریم.</li>
+          <li><strong>ف — فایده و کاربرد:</strong> هر ابزاری که می‌سازیم، پاسخی به یک نیاز واقعی در زنجیره فلزات است، نه یک قابلیت اضافه.</li>
+          <li><strong>ل — لبریز از تخصص:</strong> پشت هر قابلیت سایت، ساعت‌ها تجربه واقعی از بازار فلزات نشسته است.</li>
+          <li><strong>ز — زلالیت و شفافیت:</strong> منبع هر قیمت را نشان می‌دهیم، چون معتقدیم شفافیت باید دیده شود، نه فقط ادعا شود.</li>
+          </ul>
+          <h2>الان‌فلز برای چه چیزی ساخته شده است؟</h2>
+          <p>برای اینکه وقتی یک فعال بازار فلزات می‌پرسد: «امروز قیمت چقدر است؟» فقط یک عدد نبیند.</p>
+          <p>بتواند ببیند: قیمت چقدر است، چقدر تغییر کرده، روند آن چگونه بوده، چه عواملی روی آن اثر گذاشته‌اند و چه اطلاعات دیگری برای تصمیم‌گیری در اختیار دارد.</p>
+          <p><strong>الان‌فلز؛ اطلاعات بازار فلزات، در یک نگاه.</strong></p>
+          <h2>دعوت به استفاده</h2>
+          <p>بازار فلزات را دقیق‌تر دنبال کنید.</p>
+        body_en: |
+          <p><strong>The metals market: clearer, faster and smarter</strong></p>
+          <p>Alan Felez was created to give easy, unified and practical access to metals market information: a place that brings the market’s scattered information together, in order, for the people who work in it.</p>
+          <p>In the metals market, decisions depend on accurate and timely information. Global prices, the exchange rate, supply and demand, domestic market conditions, commodity-exchange trades and economic changes can move the value of a product within a short time. Alan Felez brings the information and tools market players need into one platform.</p>
+          <h2>What does Alan Felez do?</h2>
+          <p>Alan Felez is a specialist information and services platform for the metals market. It helps users follow the market, compare information and make business decisions based on the data available.</p>
+          <p>On Alan Felez you can access, among other things:</p>
+          <ul>
+          <li>Metal prices in domestic and global markets</li>
+          <li>Price charts and history</li>
+          <li>Commodity exchange (IME) information and data</li>
+          <li>Market trend reviews and analysis</li>
+          <li>Possible price scenarios</li>
+          <li>A metal price calculator</li>
+          <li>Daily auction and offering information</li>
+          <li>Alerts and SMS about market changes</li>
+          <li>Information on raw materials and intermediate metal products</li>
+          </ul>
+          <h2>Who can use Alan Felez?</h2>
+          <p>Alan Felez is designed for a wide range of people in the metals industry and market, including:</p>
+          <ul>
+          <li><strong>Producers</strong>, to check the prices of raw materials and intermediate products and market conditions.</li>
+          <li><strong>Traders and suppliers</strong>, to track prices, review market trends and spot business opportunities.</li>
+          <li><strong>Buyers and sellers</strong>, to access price information.</li>
+          <li><strong>Metals experts and professionals</strong>, to review market data, charts and price trends.</li>
+          <li><strong>Investors and market followers</strong>, to follow metal price trends and the factors behind them.</li>
+          </ul>
+          <h2>Why Alan Felez?</h2>
+          <p><strong>The metals market is more than a single price.</strong></p>
+          <p>A product’s price can change under many domestic and external factors. That is why seeing a price without knowing its trend and drivers doesn’t always give a full picture of the market.</p>
+          <p>Alan Felez puts this information side by side, so instead of searching scattered sources you get a more coherent picture of the market.</p>
+          <p>Our goal is simple:<br>make metals market information accurate, understandable and useful.</p>
+          <h2>One platform, many needs</h2>
+          <p>Alan Felez aims to cover the different needs of metals market users in one place.</p>
+          <p>From global and domestic prices and price charts and history to market analysis and the price calculator, the aim is that you need fewer scattered sources for your daily work.</p>
+          <h2>Data, analysis and decisions</h2>
+          <p>We try not to present market information as just a number.</p>
+          <p>Price, daily change, historical trend, domestic and global market information and the factors behind a price together give a fuller picture of market conditions.</p>
+          <p>That is why part of Alan Felez is dedicated to market analysis, so that besides the current situation you can also review trends and possible future scenarios.</p>
+          <p>All analyses and forecasts are prepared from the data and conditions available and must not be taken as a guarantee of future market outcomes.</p>
+          <h2>Looking ahead</h2>
+          <p>The metals market keeps changing, and the tools its players need must develop with it.</p>
+          <p>We want Alan Felez to be a practical, living reference for metals market information that covers more products, markets, data and tools over time.</p>
+          <p>Our aim is for Alan Felez to become the place market players turn to for tracking prices, analysing the market, reviewing business opportunities and making data-driven decisions.</p>
+          <h2>Our vision</h2>
+          <p>To build a comprehensive and reliable reference for metals market information and services in Iran, and to extend it to international markets.</p>
+          <h2>Our mission</h2>
+          <p>To provide simple, unified access to metals market information, data and practical tools, and to help people in this field make better-informed decisions.</p>
+          <h2>Our values</h2>
+          <ul>
+          <li><strong>Trust:</strong> we earn trust through transparent sources and accurate data, not slogans.</li>
+          <li><strong>Timely information:</strong> metal prices change all the time, and so does our information.</li>
+          <li><strong>Accuracy:</strong> every number you see comes from a clear, citable source.</li>
+          <li><strong>Order:</strong> we put the market’s scattered data into a clear, dependable form.</li>
+          <li><strong>Usefulness:</strong> every tool we build answers a real need in the metals chain, not a nice-to-have.</li>
+          <li><strong>Expertise:</strong> behind every feature is real experience of the metals market.</li>
+          <li><strong>Transparency:</strong> we show the source of every price, because transparency should be visible, not just claimed.</li>
+          </ul>
+          <h2>What is Alan Felez built for?</h2>
+          <p>So that when someone in the metals market asks “what’s the price today?”, they don’t just see a number.</p>
+          <p>They can see what the price is, how much it has changed, how it has trended, what has affected it, and what other information they have for their decision.</p>
+          <p><strong>Alan Felez: metals market information at a glance.</strong></p>
+          <h2>Get started</h2>
+          <p>Follow the metals market more closely.</p>
+
+      - slug: terms
+        published: true
+        title_fa: "قوانین و شرایط استفاده از وب‌سایت الان فلز"
+        title_en: "Alan Felez terms of use"
+        body_fa: |
+          <p>استفاده از وب‌سایت «الان فلز» به نشانی Alanfelez.ir و Alanfelez.com به منزله مطالعه، آگاهی و پذیرش قوانین و شرایط مندرج در این صفحه است.</p>
+          <p>کاربر موظف است پیش از استفاده از خدمات سایت، این قوانین را مطالعه کند. در صورت عدم موافقت با هر یک از مفاد، کاربر باید از استفاده از خدمات سایت خودداری کند.</p>
+          <h2>۱. تعاریف</h2>
+          <p>در این قوانین:</p>
+          <ul>
+          <li><strong>الان فلز:</strong> وب‌سایت، سامانه، خدمات و محتوای ارائه‌شده تحت نام «الان فلز».</li>
+          <li><strong>کاربر:</strong> هر شخص حقیقی یا حقوقی که از سایت یا خدمات آن استفاده می‌کند.</li>
+          <li><strong>عضو:</strong> کاربری که در سایت ثبت‌نام کرده و حساب کاربری ایجاد کرده است.</li>
+          <li><strong>محتوا:</strong> شامل متن، تصویر، نمودار، قیمت، تحلیل، خبر، داده، آگهی، فایل، ویدئو و سایر اطلاعات منتشرشده در سایت است.</li>
+          </ul>
+          <h2>۲. ماهیت فعالیت الان فلز</h2>
+          <p>الان فلز یک پلتفرم تخصصی در حوزه اطلاعات، قیمت‌ها، داده‌ها و ارتباطات تجاری بازار فلزات است.</p>
+          <p>خدمات سایت می‌تواند شامل موارد زیر باشد:</p>
+          <ul>
+          <li>نمایش و ارائه اطلاعات قیمت فلزات و مواد مرتبط</li>
+          <li>نمایش نمودار و سوابق قیمتی</li>
+          <li>ارائه اخبار و تحلیل‌های بازار</li>
+          <li>ارائه ابزارهای محاسباتی</li>
+          <li>ارائه اطلاعات بازار داخلی و بین‌المللی</li>
+          <li>ارائه خدمات اشتراکی و امکانات ویژه به کاربران</li>
+          </ul>
+          <p>الان فلز در مواردی که صرفاً نقش ارائه‌دهنده اطلاعات یا بستر ارتباطی دارد، فروشنده، خریدار، مالک، تولیدکننده، نماینده یا واسطه قانونی کالاهای معرفی‌شده توسط کاربران محسوب نمی‌شود؛ مگر اینکه صراحتاً خلاف آن اعلام شده باشد.</p>
+          <h2>۳. دقت و به‌روز بودن اطلاعات</h2>
+          <p>الان فلز تلاش می‌کند اطلاعات منتشرشده در سایت را از منابع معتبر، داده‌های بازار و منابع قابل دسترس تهیه و به‌روزرسانی کند.</p>
+          <p>با این حال هیچ‌گونه تضمینی مبنی بر کامل، بدون خطا، قطعی، لحظه‌ای یا بدون تأخیر بودن تمام اطلاعات ارائه نمی‌شود.</p>
+          <p>ممکن است اطلاعات به دلایلی از جمله: تغییرات لحظه‌ای بازار، تأخیر منبع داده، خطای انسانی،خطای فنی، اختلال اینترنت یا سرویس‌دهنده، تغییر اطلاعات در منبع اصلی، تفاوت واحد پول یا واحد اندازه‌گیری، تغییر نرخ ارز، تعطیلی بازارها، محدودیت دسترسی به منابع با اطلاعات واقعی بازار اختلاف داشته باشد.</p>
+          <p>کاربر موظف است قبل از انجام هرگونه معامله، خرید، فروش یا تصمیم مالی، اطلاعات مورد نیاز خود را از منبع مربوطه بررسی و صحت‌سنجی کند.</p>
+          <h2>۴. عدم تضمین قیمت</h2>
+          <p>قیمت‌های نمایش داده‌شده در الان فلز، در صورت وجود، صرفاً جهت اطلاع و استفاده از خدمات اطلاعاتی سایت هستند؛ مگر اینکه صراحتاً قیمت قطعی و معتبر یک معامله توسط فروشنده یا ارائه‌دهنده مربوطه اعلام شده باشد.</p>
+          <p>نمایش یک قیمت در سایت به معنی تضمین امکان خرید یا فروش کالا با همان قیمت نیست.</p>
+          <p>قیمت نهایی هر معامله می‌تواند تحت تأثیر عواملی مانند: کیفیت و آنالیز کالا، مقدار و حجم معامله، محل تحویل، شرایط پرداخت، هزینه حمل، بسته‌بندی، مالیات و عوارض، نرخ ارز، زمان معامله، شرایط بازار، مشخصات فنی کالا تغییر کند.</p>
+          <h2>۵. عدم ارائه توصیه سرمایه‌گذاری</h2>
+          <p>اطلاعات، نمودارها، اخبار، تحلیل‌ها، پیش‌بینی‌ها و محتوای منتشرشده در الان فلز صرفاً با هدف اطلاع‌رسانی و کمک به درک بهتر بازار ارائه می‌شوند.</p>
+          <p>این محتوا نباید به عنوان توصیه سرمایه‌گذاری، توصیه خرید یا فروش، تضمین سود، تضمین افزایش یا کاهش قیمت، مشاوره مالی، مشاوره حقوقی، مشاوره مالیاتی تلقی شود.</p>
+          <p>تصمیم نهایی درباره خرید، فروش، سرمایه‌گذاری یا انجام معامله بر عهده کاربر است.</p>
+          <p>الان فلز مسئول زیان یا خسارتی که صرفاً در نتیجه اتکا به تحلیل، پیش‌بینی یا اطلاعات سایت ایجاد شده باشد، نخواهد بود؛ مگر در مواردی که مسئولیت آن به موجب قوانین لازم‌الاجرا قابل اسقاط نباشد.</p>
+          <h2>۶. تحلیل‌ها و پیش‌بینی‌های بازار</h2>
+          <p>تحلیل‌ها و پیش‌بینی‌های منتشرشده در سایت بر اساس داده‌ها و اطلاعات موجود در زمان تهیه محتوا ارائه می‌شوند. بازار فلزات تحت تأثیر عوامل متعددی قرار دارد و هیچ پیش‌بینی‌ای نمی‌تواند نتیجه قطعی آینده بازار را تضمین کند. بنابراین پیش‌بینی قیمت، تحلیل بازار یا سناریوهای احتمالی منتشرشده در سایت، اظهارنظر قطعی درباره آینده بازار محسوب نمی‌شود.</p>
+          <h2>۷. ماشین‌حساب قیمت</h2>
+          <p>نتایج ابزارهای محاسباتی سایت بر اساس اطلاعات و پارامترهایی که کاربر وارد می‌کند محاسبه می‌شوند.</p>
+          <p>مسئولیت بررسی ورودی‌ها و تطبیق نتیجه با شرایط واقعی معامله بر عهده کاربر است.</p>
+          <p>نتیجه ماشین‌حساب صرفاً یک محاسبه اطلاعاتی بوده و به منزله اعلام قیمت قطعی، پیشنهاد خرید یا فروش یا تعهد الان فلز به انجام معامله نیست.</p>
+          <h2>۸. ممنوعیت انتشار اطلاعات خلاف واقع</h2>
+          <p>کاربر متعهد است هنگام ثبت آگهی یا استفاده از خدمات سایت، اطلاعات صحیح و قابل استناد ارائه کند.</p>
+          <p>ثبت اطلاعات خلاف واقع، گمراه‌کننده، جعلی یا ناقص با هدف فریب سایر کاربران ممنوع است.</p>
+          <p>الان فلز می‌تواند در صورت مشاهده یا دریافت گزارش درباره چنین محتوایی، نسبت به:</p>
+          <ul>
+          <li>حذف یا ویرایش آگهی</li>
+          <li>محدود کردن حساب کاربری</li>
+          <li>تعلیق حساب</li>
+          <li>حذف دائمی حساب</li>
+          <li>جلوگیری از انتشار مجدد محتوا</li>
+          </ul>
+          <p>اقدام کند.</p>
+          <h2>۹. محتوای کاربران</h2>
+          <p>مسئولیت محتوایی که توسط کاربران در سایت منتشر می‌شود بر عهده منتشرکننده آن محتواست.</p>
+          <p>کاربر نباید محتوایی منتشر کند که:</p>
+          <ul>
+          <li>خلاف قوانین جمهوری اسلامی ایران باشد؛</li>
+          <li>حاوی اطلاعات جعلی یا گمراه‌کننده باشد؛</li>
+          <li>حقوق اشخاص ثالث را نقض کند؛</li>
+          <li>حاوی توهین، افترا یا تهدید باشد؛</li>
+          <li>ناقض حقوق مالکیت فکری دیگران باشد؛</li>
+          <li>حاوی اطلاعات محرمانه اشخاص یا شرکت‌ها بدون مجوز باشد؛</li>
+          <li>موجب فریب سایر کاربران شود؛</li>
+          <li>حاوی بدافزار یا کد مخرب باشد؛</li>
+          <li>برای انجام فعالیت غیرقانونی استفاده شود.</li>
+          </ul>
+          <h2>۱۰. حق بررسی و حذف محتوا</h2>
+          <p>الان فلز می‌تواند برای حفظ کیفیت و امنیت پلتفرم، محتوای منتشرشده توسط کاربران را بررسی کند.</p>
+          <p>در صورت مغایرت محتوا با قوانین سایت یا قوانین لازم‌الاجرا، الان فلز می‌تواند بدون الزام به انتشار یا حفظ آن محتوا، نسبت به حذف، عدم انتشار یا محدود کردن دسترسی به آن اقدام کند.</p>
+          <p>این موضوع به معنی تأیید صحت سایر آگهی‌ها یا محتوای باقی‌مانده در سایت نیست.</p>
+          <h2>۱۱. حساب کاربری</h2>
+          <p>کاربر موظف است اطلاعات صحیح هنگام ثبت‌نام ارائه کند و مسئولیت حفظ اطلاعات ورود به حساب کاربری خود را بر عهده دارد.</p>
+          <p>هرگونه فعالیت انجام‌شده از طریق حساب کاربری، تا زمانی که خلاف آن اثبات نشده باشد، منتسب به دارنده حساب خواهد بود.</p>
+          <p>در صورت مشاهده دسترسی غیرمجاز، کاربر باید در اسرع وقت موضوع را به الان فلز اطلاع دهد.</p>
+          <h2>۱۲. اشتراک‌ها و خدمات پولی</h2>
+          <p>برخی امکانات سایت ممکن است صرفاً برای کاربران دارای اشتراک فعال ارائه شوند.</p>
+          <p>جزئیات هر اشتراک، امکانات، مدت اعتبار و هزینه آن در صفحه مربوط به همان خدمت اعلام می‌شود.</p>
+          <p>الان فلز می‌تواند در آینده امکانات، شرایط یا قیمت خدمات را تغییر دهد. تغییرات مربوط به اشتراک‌های فعال باید مطابق شرایط اعلام‌شده در زمان خرید یا قوانین لازم‌الاجرا اعمال شود.</p>
+          <h2>۱۳. پرداخت‌ها</h2>
+          <p>کاربر موظف است پرداخت‌های خود را صرفاً از روش‌های رسمی اعلام‌شده توسط الان فلز انجام دهد.</p>
+          <p>الان فلز مسئول پرداخت‌هایی که خارج از درگاه‌ها یا روش‌های رسمی اعلام‌شده سایت انجام شوند نیست.</p>
+          <p>در صورت بروز خطا در پرداخت، کاربر باید اطلاعات تراکنش را از طریق مسیرهای رسمی پشتیبانی اعلام کند.</p>
+          <h2>۱۴. مالکیت فکری</h2>
+          <p>تمام حقوق مربوط به طراحی سایت، نام تجاری، لوگو، ساختار صفحات، طراحی گرافیکی، محتوای اختصاصی، نرم‌افزار، پایگاه داده و سایر عناصر اختصاصی الان فلز، متعلق به الان فلز یا صاحبان قانونی آنهاست.</p>
+          <p>استفاده، کپی، بازنشر، استخراج، فروش، تغییر یا انتشار مجدد بخش‌های اختصاصی سایت بدون مجوز کتبی ممنوع است؛ مگر در مواردی که استفاده از محتوا طبق قوانین مربوطه مجاز باشد.</p>
+          <h2>۱۵. منابع و لینک‌های خارجی</h2>
+          <p>ممکن است الان فلز برای تکمیل اطلاعات، لینک یا ارجاع به وب‌سایت‌ها و منابع دیگر ارائه کند.</p>
+          <p>وجود لینک به یک وب‌سایت خارجی به معنی تأیید محتوای آن، صحت اطلاعات آن یا مسئولیت الان فلز نسبت به خدمات آن وب‌سایت نیست.</p>
+          <p>کاربر هنگام استفاده از وب‌سایت‌های خارجی باید قوانین و سیاست‌های همان وب‌سایت را مطالعه کند.</p>
+          <h2>۱۶. اختلالات فنی و خارج از کنترل</h2>
+          <p>الان فلز تلاش می‌کند خدمات سایت را به شکل پایدار ارائه کند؛ با این حال استمرار بدون وقفه خدمات تضمین نمی‌شود.</p>
+          <p>مواردی مانند:</p>
+          <ul>
+          <li>قطعی اینترنت</li>
+          <li>اختلال سرورها</li>
+          <li>حملات سایبری</li>
+          <li>اختلال سرویس‌دهندگان</li>
+          <li>مشکلات زیرساختی</li>
+          <li>حوادث طبیعی</li>
+          <li>محدودیت‌های قانونی</li>
+          <li>قطعی برق</li>
+          <li>اختلال منابع داده</li>
+          <li>سایر حوادث خارج از کنترل متعارف</li>
+          </ul>
+          <p>ممکن است موجب اختلال یا توقف موقت خدمات شود.</p>
+          <p>در چنین شرایطی الان فلز در حدود قوانین مربوطه مسئولیتی بابت خسارت ناشی از عدم دسترسی موقت به سایت نخواهد داشت.</p>
+          <h2>۱۷. امنیت اطلاعات</h2>
+          <p>الان فلز اقدامات متعارف و متناسب برای حفاظت از اطلاعات کاربران را انجام می‌دهد.</p>
+          <p>با این حال هیچ سامانه‌ای در فضای اینترنت نمی‌تواند امنیت مطلق اطلاعات را تضمین کند.</p>
+          <p>کاربر نیز موظف است از اطلاعات ورود، رمز عبور و دستگاه مورد استفاده خود محافظت کند.</p>
+          <h2>۱۸. حریم خصوصی</h2>
+          <p>اطلاعات کاربران صرفاً در چارچوب سیاست حفظ حریم خصوصی الان فلز و قوانین لازم‌الاجرا مورد استفاده قرار می‌گیرد.</p>
+          <p>اطلاعات مربوط به نحوه جمع‌آوری، استفاده، نگهداری و حفاظت از داده‌های کاربران در صفحه <a href="/privacy">«حریم خصوصی»</a> سایت توضیح داده خواهد شد.</p>
+          <h2>۱۹. پیامک، ایمیل و اطلاع‌رسانی</h2>
+          <p>در صورت فعال‌سازی خدمات مربوطه توسط کاربر، الان فلز ممکن است اطلاع‌رسانی‌هایی مانند:</p>
+          <ul>
+          <li>تغییرات قیمت</li>
+          <li>اعلان‌های حساب کاربری</li>
+          <li>وضعیت اشتراک</li>
+          <li>اطلاعیه‌های خدمات</li>
+          <li>اخبار و محتوای بازار</li>
+          <li>هشدارهای قیمتی</li>
+          </ul>
+          <p>را از طریق کانال‌های ارتباطی اعلام‌شده ارسال کند.</p>
+          <p>کاربر می‌تواند در مواردی که امکان لغو وجود دارد، دریافت اطلاع‌رسانی‌های تبلیغاتی را مدیریت یا لغو کند.</p>
+          <h2>۲۰. محدودیت مسئولیت</h2>
+          <p>اطلاعات و خدمات سایت با هدف ارائه خدمات اطلاعاتی و ایجاد ابزارهای کاربردی برای کاربران ارائه می‌شوند.</p>
+          <p>الان فلز تا حدی که قوانین لازم‌الاجرا اجازه می‌دهد، مسئول خسارات غیرمستقیم، تبعی یا ناشی از تصمیمات تجاری کاربران نخواهد بود؛ از جمله خسارات ناشی از:</p>
+          <ul>
+          <li>تصمیم خرید یا فروش</li>
+          <li>تغییر قیمت بازار</li>
+          <li>کاهش یا افزایش ارزش کالا</li>
+          <li>عدم انجام معامله توسط طرف مقابل</li>
+          <li>اختلاف میان خریدار و فروشنده</li>
+          <li>اطلاعات نادرست ارائه‌شده توسط کاربر دیگر</li>
+          <li>اختلال موقت سایت</li>
+          <li>اتکا به تحلیل یا پیش‌بینی</li>
+          <li>استفاده نادرست از ابزارهای محاسباتی</li>
+          </ul>
+          <p>این بند نافی مسئولیت‌هایی که طبق قوانین لازم‌الاجرا قابل اسقاط یا محدودسازی نیستند نخواهد بود.</p>
+          <h2>۲۱. مسئولیت کاربر</h2>
+          <p>کاربر مسئول استفاده صحیح و قانونی از سایت است و متعهد می‌شود از خدمات الان فلز برای فعالیت‌های غیرقانونی، فریب، کلاهبرداری، پولشویی، انتشار اطلاعات جعلی، نقض حقوق دیگران یا هر فعالیت ممنوع استفاده نکند.</p>
+          <p>در صورت ورود خسارت به الان فلز یا اشخاص ثالث در نتیجه تخلف کاربر، مسئولیت قانونی مربوطه متوجه کاربر خواهد بود.</p>
+          <h2>۲۲. تغییر قوانین</h2>
+          <p>الان فلز می‌تواند در صورت نیاز قوانین و شرایط استفاده را اصلاح یا به‌روزرسانی کند.</p>
+          <p>نسخه جدید قوانین از زمان انتشار در سایت معتبر خواهد بود، مگر آنکه در متن اصلاحیه زمان دیگری تعیین شده باشد.</p>
+          <p>ادامه استفاده از سایت پس از انتشار تغییرات، به منزله پذیرش نسخه جدید قوانین در حدود قوانین لازم‌الاجرا خواهد بود.</p>
+          <h2>۲۳. توقف یا تعلیق خدمات</h2>
+          <p>الان فلز می‌تواند در شرایطی مانند نقض قوانین، استفاده غیرمجاز، ایجاد اختلال در عملکرد سایت، انتشار محتوای ممنوع یا درخواست مراجع قانونی، دسترسی کاربر یا بخشی از خدمات را محدود، تعلیق یا متوقف کند.</p>
+          <h2>۲۴. حل اختلاف</h2>
+          <p>در صورت بروز اختلاف میان کاربر و الان فلز، طرفین ابتدا تلاش خواهند کرد موضوع را از طریق ارتباط با پشتیبانی و مذاکره حل‌وفصل کنند.</p>
+          <p>در صورت عدم حصول توافق، موضوع مطابق قوانین و مقررات لازم‌الاجرا و از طریق مراجع صالح پیگیری خواهد شد.</p>
+          <h2>۲۵. پذیرش قوانین</h2>
+          <p>با ثبت‌نام، ورود، استفاده از خدمات یا ادامه استفاده از سایت، کاربر تأیید می‌کند که قوانین و شرایط استفاده از الان فلز را مطالعه کرده و در حدود قوانین لازم‌الاجرا با آنها موافقت کرده است.</p>
+          <h2>هشدار مهم</h2>
+          <p>اطلاعات موجود در الان فلز برای اهداف اطلاع‌رسانی و تسهیل دسترسی کاربران به داده‌های بازار ارائه می‌شود. پیش از انجام هرگونه معامله یا تصمیم مالی، اطلاعات مربوطه را از منابع معتبر و طرف معامله بررسی و صحت‌سنجی کنید.</p>
+          <p>الان فلز هیچ‌گونه تضمینی نسبت به سودآوری معاملات، ثبات قیمت‌ها، تحقق پیش‌بینی‌ها یا انجام معامله میان کاربران ارائه نمی‌کند، مگر در مواردی که صراحتاً و به صورت کتبی خلاف آن اعلام شده باشد.</p>
+          <h2>راه‌های ارتباطی</h2>
+          <p>برای طرح پرسش، گزارش تخلف، اعلام مشکل یا پیگیری موضوعات مرتبط با قوانین سایت می‌توانید از بخش <a href="/contact">«تماس با ما»</a> یا کانال‌های رسمی ارتباطی الان فلز استفاده کنید.</p>
+          <p>وب‌سایت: Alanfelez.ir — وب‌سایت: Alanfelez.com</p>
+        body_en: |
+          <p>Using the Alan Felez website at Alanfelez.ir and Alanfelez.com means you have read, understood and accepted the terms on this page.</p>
+          <p>Please read these terms before using the site’s services. If you disagree with any part of them, please do not use the site’s services.</p>
+          <h2>1. Definitions</h2>
+          <p>In these terms:</p>
+          <ul>
+          <li><strong>Alan Felez:</strong> the website, system, services and content provided under the name “Alan Felez”.</li>
+          <li><strong>User:</strong> any natural or legal person who uses the site or its services.</li>
+          <li><strong>Member:</strong> a user who has signed up and created an account.</li>
+          <li><strong>Content:</strong> text, images, charts, prices, analyses, news, data, listings, files, videos and any other information published on the site.</li>
+          </ul>
+          <h2>2. What Alan Felez does</h2>
+          <p>Alan Felez is a specialist platform for metals market information, prices, data and business connections.</p>
+          <p>The site’s services can include:</p>
+          <ul>
+          <li>Showing metal and related material prices</li>
+          <li>Showing price charts and history</li>
+          <li>Market news and analysis</li>
+          <li>Calculation tools</li>
+          <li>Domestic and international market information</li>
+          <li>Subscription services and premium features</li>
+          </ul>
+          <p>Where Alan Felez only provides information or a means of connection, it is not the seller, buyer, owner, producer, agent or legal intermediary of goods presented by users, unless explicitly stated otherwise.</p>
+          <h2>3. Accuracy and timeliness of information</h2>
+          <p>Alan Felez tries to prepare and update the information on the site from reputable sources, market data and accessible sources.</p>
+          <p>However, no guarantee is given that all information is complete, error-free, final, real-time or without delay.</p>
+          <p>Information may differ from actual market information for reasons including real-time market changes, source delays, human or technical error, internet or provider outages, changes at the original source, differences in currency or units, exchange-rate changes, market closures and limited access to sources.</p>
+          <p>Before any trade, purchase, sale or financial decision, you must check and verify the information you need with the relevant source.</p>
+          <h2>4. No price guarantee</h2>
+          <p>Prices shown on Alan Felez are for information and for using the site’s information services only, unless a final, valid deal price has been explicitly announced by the relevant seller or provider.</p>
+          <p>Showing a price on the site does not guarantee that goods can be bought or sold at that price.</p>
+          <p>The final price of a deal can change with factors such as quality and analysis of the goods, quantity and volume, delivery location, payment terms, transport, packaging, taxes and duties, exchange rate, timing, market conditions and technical specifications.</p>
+          <h2>5. No investment advice</h2>
+          <p>Information, charts, news, analyses, forecasts and content on Alan Felez are provided only to inform and to help you understand the market better.</p>
+          <p>They must not be treated as investment advice, a recommendation to buy or sell, a guarantee of profit or of a price rise or fall, or financial, legal or tax advice.</p>
+          <p>The final decision to buy, sell, invest or trade is yours.</p>
+          <p>Alan Felez is not responsible for losses caused solely by relying on the site’s analyses, forecasts or information, except where liability cannot be excluded under applicable law.</p>
+          <h2>6. Market analyses and forecasts</h2>
+          <p>Analyses and forecasts on the site are based on the data and information available when they were prepared. The metals market is affected by many factors and no forecast can guarantee a certain future outcome. Price forecasts, market analyses and possible scenarios on the site are therefore not definitive statements about the future of the market.</p>
+          <h2>7. Price calculator</h2>
+          <p>The site’s calculators work from the information and parameters you enter.</p>
+          <p>You are responsible for checking the inputs and matching the result to the real conditions of your deal.</p>
+          <p>A calculator result is an informational calculation only, not a final price, an offer to buy or sell, or a commitment by Alan Felez to any deal.</p>
+          <h2>8. No false information</h2>
+          <p>You agree to provide correct, verifiable information when using the site’s services.</p>
+          <p>Entering false, misleading, fake or incomplete information to deceive other users is prohibited.</p>
+          <p>If Alan Felez sees or receives a report of such content, it may remove or edit it, restrict, suspend or permanently delete the account, and prevent the content from being published again.</p>
+          <h2>9. User content</h2>
+          <p>Responsibility for content that users publish on the site lies with whoever published it.</p>
+          <p>You must not publish content that breaks the laws of the Islamic Republic of Iran; is fake or misleading; infringes third-party rights; is insulting, defamatory or threatening; infringes others’ intellectual property; discloses confidential information of people or companies without permission; deceives other users; contains malware or malicious code; or is used for illegal activity.</p>
+          <h2>10. Right to review and remove content</h2>
+          <p>To protect the quality and security of the platform, Alan Felez may review content published by users.</p>
+          <p>If content conflicts with the site’s rules or applicable law, Alan Felez may remove it, not publish it or restrict access to it, without any obligation to publish or keep it.</p>
+          <p>This does not mean that other content remaining on the site has been verified.</p>
+          <h2>11. Your account</h2>
+          <p>You must give correct information when signing up and are responsible for keeping your login details safe.</p>
+          <p>Any activity through your account is attributed to you unless proven otherwise.</p>
+          <p>If you notice unauthorised access, tell Alan Felez as soon as possible.</p>
+          <h2>12. Subscriptions and paid services</h2>
+          <p>Some features may be available only to users with an active subscription.</p>
+          <p>The details, features, validity and price of each subscription are shown on that service’s page.</p>
+          <p>Alan Felez may change its features, terms or prices in the future. Changes affecting active subscriptions will follow the terms shown at purchase or applicable law.</p>
+          <h2>13. Payments</h2>
+          <p>Only pay through the official methods announced by Alan Felez.</p>
+          <p>Alan Felez is not responsible for payments made outside the site’s official gateways or methods.</p>
+          <p>If a payment goes wrong, report the transaction details through the official support channels.</p>
+          <h2>14. Intellectual property</h2>
+          <p>All rights to the site’s design, brand, logo, page structure, graphics, proprietary content, software, database and other proprietary elements belong to Alan Felez or their legal owners.</p>
+          <p>Using, copying, republishing, extracting, selling, modifying or redistributing proprietary parts of the site without written permission is prohibited, except where the law allows it.</p>
+          <h2>15. External sources and links</h2>
+          <p>Alan Felez may link to or cite other websites and sources to complete its information.</p>
+          <p>A link to an external website does not mean Alan Felez endorses its content, vouches for its accuracy or is responsible for its services.</p>
+          <p>When using external websites, read their own terms and policies.</p>
+          <h2>16. Technical disruptions beyond our control</h2>
+          <p>Alan Felez works to provide a stable service, but uninterrupted service is not guaranteed.</p>
+          <p>Internet outages, server problems, cyber attacks, provider disruptions, infrastructure problems, natural disasters, legal restrictions, power cuts, data-source outages and other events beyond reasonable control may disrupt or temporarily stop the service.</p>
+          <p>In such cases, and within the limits of the law, Alan Felez is not liable for losses caused by temporary unavailability of the site.</p>
+          <h2>17. Information security</h2>
+          <p>Alan Felez takes reasonable, proportionate measures to protect user information.</p>
+          <p>However, no system on the internet can guarantee absolute security.</p>
+          <p>You must also protect your login details, password and device.</p>
+          <h2>18. Privacy</h2>
+          <p>User information is used only within Alan Felez’s privacy policy and applicable law.</p>
+          <p>How user data is collected, used, kept and protected is explained on the <a href="/en/privacy">Privacy</a> page.</p>
+          <h2>19. SMS, e-mail and notifications</h2>
+          <p>If you turn on the relevant services, Alan Felez may send notifications such as price changes, account notices, subscription status, service announcements, market news and content, and price alerts through the announced channels.</p>
+          <p>Where opting out is possible, you can manage or stop promotional notifications.</p>
+          <h2>20. Limitation of liability</h2>
+          <p>The site’s information and services are provided as information services and practical tools.</p>
+          <p>To the extent applicable law allows, Alan Felez is not liable for indirect or consequential losses or losses arising from users’ business decisions, including those caused by buy or sell decisions, market price changes, a fall or rise in the value of goods, a counterparty not completing a deal, disputes between buyer and seller, incorrect information from another user, temporary site disruption, reliance on analyses or forecasts, or misuse of calculation tools.</p>
+          <p>This clause does not exclude liabilities that cannot be excluded or limited under applicable law.</p>
+          <h2>21. Your responsibility</h2>
+          <p>You are responsible for using the site correctly and lawfully and agree not to use Alan Felez’s services for illegal activity, deception, fraud, money laundering, publishing fake information, infringing others’ rights or any prohibited activity.</p>
+          <p>If your violation causes loss to Alan Felez or third parties, the related legal liability is yours.</p>
+          <h2>22. Changes to these terms</h2>
+          <p>Alan Felez may amend or update these terms when needed.</p>
+          <p>The new version applies from the time it is published on the site, unless the amendment sets another time.</p>
+          <p>Continuing to use the site after changes are published means accepting the new version, within the limits of applicable law.</p>
+          <h2>23. Suspension of service</h2>
+          <p>Alan Felez may restrict, suspend or stop a user’s access or part of the services in cases such as breach of these terms, unauthorised use, disrupting the site, publishing prohibited content or a request from the legal authorities.</p>
+          <h2>24. Disputes</h2>
+          <p>If a dispute arises between you and Alan Felez, both sides will first try to resolve it through support and negotiation.</p>
+          <p>If no agreement is reached, it will be pursued under applicable law through the competent authorities.</p>
+          <h2>25. Acceptance</h2>
+          <p>By signing up, logging in, using the services or continuing to use the site, you confirm that you have read these terms and agree to them within the limits of applicable law.</p>
+          <h2>Important notice</h2>
+          <p>Information on Alan Felez is provided to inform and to make market data easier to access. Before any trade or financial decision, check and verify the relevant information with reputable sources and your counterparty.</p>
+          <p>Alan Felez gives no guarantee of profitable trades, stable prices, forecasts coming true or deals between users, unless explicitly stated otherwise in writing.</p>
+          <h2>Contact</h2>
+          <p>For questions, reporting violations or problems, or anything about these terms, use the <a href="/en/contact">Contact us</a> page or Alan Felez’s official channels.</p>
+          <p>Website: Alanfelez.ir — Website: Alanfelez.com</p>
+
+      - slug: privacy
+        published: true
+        title_fa: "سیاست حفظ حریم خصوصی"
+        title_en: "Privacy policy"
+        body_fa: |
+          <p>الان‌فلز به حریم خصوصی کاربران خود احترام می‌گذارد. این صفحه توضیح می‌دهد چه اطلاعاتی از شما جمع‌آوری می‌کنیم، برای چه کاری از آن استفاده می‌کنیم، چه مدت نگه می‌داریم و چه حقوقی درباره آن دارید. استفاده از سایت به معنی پذیرش این سیاست است.</p>
+          <h2>۱. اطلاعاتی که جمع‌آوری می‌کنیم</h2>
+          <ul>
+          <li><strong>اطلاعات حساب کاربری:</strong> شماره موبایل (برای ثبت‌نام و ورود با کد یک‌بار مصرف)، نام و نام خانوادگی و در صورت تمایل، ایمیل.</li>
+          <li><strong>سوابق خرید و پرداخت:</strong> اشتراک خریداری‌شده، مبلغ، زمان پرداخت و شماره پیگیری درگاه. اطلاعات کارت بانکی شما در صفحه درگاه پرداخت وارد می‌شود و در سامانه الان‌فلز ذخیره نمی‌شود.</li>
+          <li><strong>پیام‌ها و درخواست‌های پشتیبانی:</strong> متن پیام‌های فرم تماس و تیکت‌ها، به همراه اطلاعات تماسی که خودتان وارد می‌کنید.</li>
+          <li><strong>اطلاعات فنی و استفاده:</strong> نشانی IP، نوع مرورگر و دستگاه، زمان ورود و استفاده از امکانات اشتراکی. این اطلاعات برای امنیت، جلوگیری از سوءاستفاده و اجرای قواعد اشتراک (از جمله شرایط بازگشت وجه) نگهداری می‌شوند.</li>
+          </ul>
+          <h2>۲. هدف استفاده از اطلاعات</h2>
+          <ul>
+          <li>ایجاد و مدیریت حساب کاربری و ورود امن به آن</li>
+          <li>فعال‌سازی، تمدید و ارتقای اشتراک و رسیدگی به درخواست‌های بازگشت وجه</li>
+          <li>ارسال کد تأیید، پیامک‌های مربوط به حساب و اشتراک (مانند یادآوری پایان اشتراک) و هشدارهای قیمتی که خودتان فعال کرده‌اید</li>
+          <li>پاسخ به پیام‌ها و تیکت‌های پشتیبانی</li>
+          <li>حفظ امنیت سامانه، پیشگیری از تقلب و سوءاستفاده و رعایت الزامات قانونی</li>
+          <li>بهبود خدمات با استفاده از آمار تجمیعی و بدون شناسایی افراد</li>
+          </ul>
+          <p>اطلاعات شما فروخته نمی‌شود و برای تبلیغات اشخاص دیگر در اختیار آن‌ها قرار نمی‌گیرد.</p>
+          <h2>۳. اشتراک اطلاعات با دیگران</h2>
+          <p>اطلاعات شما فقط در حد لازم برای ارائه خدمت در اختیار این ارائه‌دهندگان قرار می‌گیرد:</p>
+          <ul>
+          <li><strong>سرویس پیامک:</strong> شماره موبایل و متن پیامک، برای ارسال کد تأیید و اطلاع‌رسانی‌ها.</li>
+          <li><strong>درگاه پرداخت:</strong> مبلغ و شناسه سفارش، برای انجام و تأیید پرداخت.</li>
+          <li><strong>میزبانی:</strong> اطلاعات روی سرورهای داخل ایران نگهداری می‌شوند.</li>
+          </ul>
+          <p>در صورت درخواست مراجع قانونی صالح، اطلاعات مطابق قوانین لازم‌الاجرا در اختیار آن‌ها قرار می‌گیرد.</p>
+          <h2>۴. کوکی‌ها و آمار بازدید</h2>
+          <p>سایت فقط از کوکی‌های ضروری برای ورود و حفظ نشست کاربری استفاده می‌کند. آمار بازدید با ابزاری جمع‌آوری می‌شود که روی سرورهای خود الان‌فلز اجرا می‌شود، کوکی ردیابی ندارد و افراد را شناسایی نمی‌کند.</p>
+          <h2>۵. مدت نگهداری</h2>
+          <ul>
+          <li>اطلاعات حساب کاربری: تا زمانی که حساب فعال است.</li>
+          <li>سوابق مالی (سفارش، پرداخت و بازگشت وجه): تا ۱۰ سال، مطابق الزامات نگهداری اسناد مالی.</li>
+          <li>پیام‌های فرم تماس و تیکت‌های بسته‌شده: تا ۲ سال.</li>
+          <li>سوابق پیامک‌های ارسال‌شده: تا ۱ سال.</li>
+          <li>گزارش‌های فنی سامانه: تا ۳۰ روز.</li>
+          </ul>
+          <h2>۶. امنیت اطلاعات</h2>
+          <p>ارتباط با سایت رمزنگاری‌شده (HTTPS) است، دسترسی کارکنان به اطلاعات محدود به نیاز کاری و همراه با احراز هویت دومرحله‌ای است، تغییرات کارکنان ثبت می‌شود و از اطلاعات به‌صورت منظم نسخه پشتیبان تهیه می‌شود. با این حال هیچ سامانه‌ای امنیت مطلق را تضمین نمی‌کند؛ لطفاً از اطلاعات ورود و دستگاه خود محافظت کنید.</p>
+          <h2>۷. حقوق شما</h2>
+          <ul>
+          <li>مشاهده و ویرایش اطلاعات حساب در بخش حساب کاربری</li>
+          <li>درخواست حذف حساب از طریق پشتیبانی (سوابق مالی به مدت الزامی قانونی نگهداری می‌شوند)</li>
+          <li>مدیریت یا لغو دریافت پیامک‌های اطلاع‌رسانی و هشدارها</li>
+          <li>پرسش درباره اطلاعاتی که از شما نگهداری می‌شود</li>
+          </ul>
+          <h2>۸. تغییرات این سیاست</h2>
+          <p>این سیاست ممکن است به‌روزرسانی شود. تاریخ آخرین به‌روزرسانی در همین صفحه نمایش داده می‌شود و تغییرات مهم از طریق سایت اطلاع‌رسانی خواهد شد.</p>
+          <h2>۹. تماس با ما</h2>
+          <p>برای هر پرسش درباره حریم خصوصی از صفحه <a href="/contact">«تماس با ما»</a> یا تیکت پشتیبانی در حساب کاربری استفاده کنید.</p>
+        body_en: |
+          <p>Alan Felez respects your privacy. This page explains what information we collect, what we use it for, how long we keep it and what rights you have. Using the site means you accept this policy.</p>
+          <h2>1. What we collect</h2>
+          <ul>
+          <li><strong>Account details:</strong> your mobile number (to sign up and log in with a one-time code), first and last name and, if you choose, an e-mail address.</li>
+          <li><strong>Purchase and payment records:</strong> the plan bought, amount, payment time and the gateway’s reference number. Your card details are entered on the payment gateway’s page and are never stored by Alan Felez.</li>
+          <li><strong>Messages and support requests:</strong> contact-form messages and tickets, with the contact details you enter.</li>
+          <li><strong>Technical and usage data:</strong> IP address, browser and device type, login times and use of paid features. We keep these for security, abuse prevention and applying the subscription rules (including the refund conditions).</li>
+          </ul>
+          <h2>2. Why we use it</h2>
+          <ul>
+          <li>To create and manage your account and let you log in securely</li>
+          <li>To activate, renew and upgrade subscriptions and handle refund requests</li>
+          <li>To send verification codes, account and subscription SMS (such as expiry reminders) and the price alerts you turned on</li>
+          <li>To answer contact messages and support tickets</li>
+          <li>To keep the system secure, prevent fraud and abuse and meet legal obligations</li>
+          <li>To improve the service using aggregated statistics that don’t identify anyone</li>
+          </ul>
+          <p>We don’t sell your information or share it with others for their advertising.</p>
+          <h2>3. Who we share it with</h2>
+          <p>Only what each provider needs to deliver the service:</p>
+          <ul>
+          <li><strong>SMS provider:</strong> your mobile number and the message, to send codes and notifications.</li>
+          <li><strong>Payment gateway:</strong> the amount and order id, to take and verify the payment.</li>
+          <li><strong>Hosting:</strong> data is stored on servers in Iran.</li>
+          </ul>
+          <p>If a competent legal authority requests it, information is disclosed as applicable law requires.</p>
+          <h2>4. Cookies and analytics</h2>
+          <p>The site only uses cookies that are needed to log in and keep your session. Visit statistics are collected with a tool that runs on Alan Felez’s own servers, uses no tracking cookies and doesn’t identify people.</p>
+          <h2>5. How long we keep it</h2>
+          <ul>
+          <li>Account details: while your account is active.</li>
+          <li>Financial records (orders, payments, refunds): up to 10 years, as financial record-keeping requires.</li>
+          <li>Contact messages and closed tickets: up to 2 years.</li>
+          <li>Records of SMS sent: up to 1 year.</li>
+          <li>Technical system logs: up to 30 days.</li>
+          </ul>
+          <h2>6. Security</h2>
+          <p>Connections to the site are encrypted (HTTPS), staff access is limited to what their work needs and requires two-factor authentication, staff changes are logged and data is backed up regularly. No system can guarantee absolute security, so please protect your login details and device.</p>
+          <h2>7. Your rights</h2>
+          <ul>
+          <li>View and edit your account details in your account</li>
+          <li>Ask support to delete your account (financial records are kept for the legally required period)</li>
+          <li>Manage or stop notification SMS and alerts</li>
+          <li>Ask what information we hold about you</li>
+          </ul>
+          <h2>8. Changes to this policy</h2>
+          <p>We may update this policy. The date of the last update is shown on this page, and important changes will be announced on the site.</p>
+          <h2>9. Contact</h2>
+          <p>For any privacy question, use the <a href="/en/contact">Contact us</a> page or a support ticket in your account.</p>
+
+      - slug: licenses
+        published: true   # still hidden: the page and its footer link need the feature flag page.licenses (#29)
+        title_fa: "مجوزها و اعتبار"
+        title_en: "Licences & trust"
+        body_fa: |
+          <p>مجوزها، نمادهای اعتماد و گواهی‌های رسمی الان‌فلز در این صفحه منتشر می‌شوند. برای هر مجوز، عنوان، مرجع صادرکننده و وضعیت اعتبار آن نمایش داده می‌شود.</p>
+        body_en: |
+          <p>Alan Felez’s licences, trust seals and official certificates are published on this page, with the title, issuing authority and validity of each.</p>

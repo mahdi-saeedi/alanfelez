@@ -1,0 +1,380 @@
+# FAQ from the client's FAQ.docx (docs/content/faq.fa.txt), Persian verbatim except the edits that drop the removed
+# marketplace (SCOPE §4, §11; listed in OPEN_QUESTIONS F14). English is our draft for the client to review (F4).
+# Generated once from the Word file; from now on the admin panel is the source (insert_missing never overwrites edits).
+# 🛠 Popular («سوالات پر تکرار»): 1, 5, 12, 16, 33, 50. Q47 is unpublished until the licenses page exists (#29).
+version: 1
+datasets:
+  - name: faq_categories
+    rows:
+      - { slug: about, name_fa: "درباره الان‌فلز", name_en: "About Alan Felez", sort: 10 }
+      - { slug: prices, name_fa: "قیمت فلزات", name_en: "Metal prices", sort: 20 }
+      - { slug: plans, name_fa: "اشتراک‌ها", name_en: "Subscriptions", sort: 30 }
+      - { slug: ime, name_fa: "بورس کالا و حراج‌های روزانه", name_en: "Commodity exchange & daily auctions", sort: 40 }
+      - { slug: analysis, name_fa: "تحلیل و پیش‌بینی", name_en: "Analysis & forecasts", sort: 50 }
+      - { slug: calculator, name_fa: "ماشین حساب قیمت", name_en: "Price calculator", sort: 60 }
+      - { slug: sms, name_fa: "پیامک و اعلان‌ها", name_en: "SMS & notifications", sort: 70 }
+      - { slug: account, name_fa: "حساب کاربری", name_en: "Account", sort: 80 }
+      - { slug: trust, name_fa: "اعتبار، امنیت و پشتیبانی", name_en: "Trust, security & support", sort: 90 }
+
+  - name: faq_items
+    rows:
+      - slug: what-is-alanfelez  # FAQ.docx #1
+        category: about
+        sort: 10
+        popular: true
+        published: true
+        question_fa: "الان‌فلز چیست و چه خدماتی ارائه می‌دهد؟"
+        answer_fa: "<p>الان‌فلز یک پلتفرم تخصصی برای دسترسی به اطلاعات بازار فلزات و مواد اولیه است. کاربران می‌توانند قیمت‌های داخلی و جهانی، نمودار و تاریخچه قیمت، اطلاعات بازار، تحلیل‌ها و ماشین حساب قیمت را در یک محیط یکپارچه مشاهده و بررسی کنند.</p>"
+        question_en: "What is Alan Felez and what does it offer?"
+        answer_en: "<p>Alan Felez is a specialist platform for metals and raw-materials market information. Users can view and review domestic and global prices, price charts and history, market data, analyses and the price calculator in one place.</p>"
+      - slug: who-is-it-for  # FAQ.docx #2
+        category: about
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "الان‌فلز برای چه کسانی طراحی شده است؟"
+        answer_fa: "<p>الان‌فلز برای تولیدکنندگان، بازرگانان، تأمین‌کنندگان، خریداران، فروشندگان، کارشناسان و سایر فعالان بازار فلزات طراحی شده است؛ همچنین افرادی که برای تصمیم‌گیری به اطلاعات قیمت و روند بازار فلزات نیاز دارند می‌توانند از خدمات این پلتفرم استفاده کنند.</p>"
+        question_en: "Who is Alan Felez for?"
+        answer_en: "<p>Alan Felez is designed for producers, traders, suppliers, buyers, sellers, experts and other players in the metals market, as well as anyone who needs price and trend information to make decisions.</p>"
+      - slug: covered-metals  # FAQ.docx #3
+        category: about
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "چه فلزات و محصولاتی در الان‌فلز پوشش داده می‌شوند؟"
+        answer_fa: "<p>در حال حاضر تمرکز الان‌فلز بر فلزات و مواد اولیه و میانی منتخب از جمله آلومینیوم، مس، برنج، سرب، روی، آهن و چدن است. گروه‌ها و محصولات جدید نیز متناسب با نیاز بازار به مرور به پلتفرم اضافه خواهند شد.</p>"
+        question_en: "Which metals and products does Alan Felez cover?"
+        answer_en: "<p>Alan Felez currently focuses on selected metals and raw and intermediate materials, including aluminium, copper, brass, lead, zinc, iron and cast iron. New groups and products will be added over time as the market needs them.</p>"
+      - slug: does-alanfelez-sell-metals  # FAQ.docx #4
+        category: about
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "آیا الان‌فلز فروشنده فلزات است؟"
+        answer_fa: "<p>الان‌فلز در درجه اول یک پلتفرم اطلاعات بازار و ارتباط تجاری است و خود را به‌عنوان فروشنده تمامی محصولات معرفی نمی‌کند.</p>"
+        question_en: "Does Alan Felez sell metals?"
+        answer_en: "<p>Alan Felez is first and foremost a market-information and business-connection platform, and does not present itself as the seller of all products.</p>"
+      - slug: price-sources  # FAQ.docx #5
+        category: prices
+        sort: 10
+        popular: true
+        published: true
+        question_fa: "قیمت‌های الان‌فلز از چه منابعی دریافت می‌شوند؟"
+        answer_fa: "<p>قیمت‌های الان‌فلز بر اساس منابع معتبر داخلی و بین‌المللی و متناسب با نوع محصول و بازار مربوطه جمع‌آوری و پردازش می‌شوند. منبع و نوع قیمت، بسته به بازار و محصول، می‌تواند متفاوت باشد.</p>"
+        question_en: "Where do Alan Felez prices come from?"
+        answer_en: "<p>Alan Felez prices are collected and processed from reputable domestic and international sources, according to the product and its market. The source and type of price can differ by market and product.</p>"
+      - slug: are-prices-live  # FAQ.docx #6
+        category: prices
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "آیا قیمت‌های الان‌فلز لحظه‌ای هستند؟"
+        answer_fa: "<p>سرعت به‌روزرسانی قیمت‌ها به منبع اطلاعات و نوع بازار بستگی دارد. برخی قیمت‌ها به‌صورت لحظه‌ای یا نزدیک به لحظه و برخی دیگر به‌صورت روزانه یا در بازه‌های مشخص به‌روزرسانی می‌شوند. زمان آخرین به‌روزرسانی در بخش مربوط به قیمت نمایش داده شود.</p>"
+        question_en: "Are Alan Felez prices live?"
+        answer_en: "<p>How often prices update depends on the data source and the market. Some prices update live or near-live, others daily or at set intervals. The last-updated time is shown next to each price.</p>"
+      - slug: what-is-lme  # FAQ.docx #7
+        category: prices
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "قیمت LME چیست؟"
+        answer_fa: "<p>LME یا بورس فلزات لندن یکی از مهم‌ترین مراجع بین‌المللی قیمت‌گذاری فلزات پایه مانند آلومینیوم، مس، روی و سرب است. قیمت‌های LME یکی از مراجع مورد استفاده فعالان بازار برای بررسی روند قیمت جهانی فلزات محسوب می‌شود.</p>"
+        question_en: "What is the LME price?"
+        answer_en: "<p>The LME (London Metal Exchange) is one of the most important international price references for base metals such as aluminium, copper, zinc and lead. Market players use LME prices as one reference for following global price trends.</p>"
+      - slug: iran-vs-global-prices  # FAQ.docx #8
+        category: prices
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "چرا قیمت فلزات در ایران با قیمت جهانی متفاوت است؟"
+        answer_fa: "<p>قیمت داخلی علاوه بر قیمت جهانی، تحت تأثیر عواملی مانند نرخ ارز، هزینه حمل‌ونقل، عوارض و مالیات، عرضه و تقاضای داخلی، کیفیت و خلوص محصول، هزینه تولید و شرایط بازار قرار دارد.</p>"
+        question_en: "Why do metal prices in Iran differ from global prices?"
+        answer_en: "<p>Besides the global price, domestic prices are affected by factors such as the exchange rate, transport costs, duties and taxes, domestic supply and demand, product quality and purity, production costs and market conditions.</p>"
+      - slug: price-history  # FAQ.docx #9
+        category: prices
+        sort: 50
+        popular: false
+        published: true
+        question_fa: "آیا تاریخچه قیمت فلزات در الان‌فلز قابل مشاهده است؟"
+        answer_fa: "<p>بله. کاربران می‌توانند در بخش «نمودار و تاریخچه قیمت» تغییرات قیمت محصولات مختلف را در بازه‌های زمانی مختلف مشاهده و روند بازار را بررسی کنند. سطح دسترسی به تاریخچه و امکانات نمودار می‌تواند بر اساس نوع اشتراک متفاوت باشد.</p>"
+        question_en: "Can I see the price history of metals on Alan Felez?"
+        answer_en: "<p>Yes. In the price chart and history section you can see how the prices of different products changed over various time ranges and review market trends. Access to history and chart features can depend on your subscription.</p>"
+      - slug: compare-prices  # FAQ.docx #10
+        category: prices
+        sort: 60
+        popular: false
+        published: true
+        question_fa: "آیا می‌توان قیمت فلزات مختلف را با یکدیگر مقایسه کرد؟"
+        answer_fa: "<p>در بخش‌هایی که ابزار مقایسه فعال است، کاربران می‌توانند قیمت و روند تغییرات محصولات مختلف را در کنار یکدیگر بررسی کنند.</p>"
+        question_en: "Can I compare the prices of different metals?"
+        answer_en: "<p>Where the comparison tool is available, you can review the prices and trends of different products side by side.</p>"
+      - slug: price-units  # FAQ.docx #11
+        category: prices
+        sort: 70
+        popular: false
+        published: true
+        question_fa: "قیمت‌ها با چه واحدی نمایش داده می‌شوند؟"
+        answer_fa: "<p>واحد قیمت متناسب با نوع محصول و بازار تعیین می‌شود و می‌تواند شامل ریال، تومان، دلار، تن، کیلوگرم یا سایر واحدهای مرتبط باشد. واحد و مبنای قیمت در کنار داده مربوطه نمایش داده می‌شود.</p>"
+        question_en: "In which units are prices shown?"
+        answer_en: "<p>The unit depends on the product and the market and can be Rial, Toman, US dollars, tonnes, kilograms or other relevant units. The unit and basis of each price are shown next to it.</p>"
+      - slug: subscription-plans  # FAQ.docx #12
+        category: plans
+        sort: 10
+        popular: true
+        published: true
+        question_fa: "الان‌فلز چه نوع اشتراک‌هایی دارد؟"
+        answer_fa: "<p>الان‌فلز خدمات خود را در سه سطح «رایگان»، «نقره‌ای» و «طلایی» ارائه می‌کند. هر سطح دارای امکانات و میزان دسترسی متفاوتی به اطلاعات و ابزارهای سایت است.</p>"
+        question_en: "What subscriptions does Alan Felez offer?"
+        answer_en: "<p>Alan Felez offers its services at three levels: Free, Silver and Gold. Each level has different features and a different level of access to the site’s information and tools.</p>"
+      - slug: free-plan  # FAQ.docx #13
+        category: plans
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "اشتراک رایگان چه امکاناتی دارد؟"
+        answer_fa: "<p>کاربران رایگان می‌توانند به اطلاعات عمومی و بخشی از قیمت‌های داخلی و جهانی بازار دسترسی داشته باشند. برخی امکانات تخصصی مانند بخشی از تاریخچه قیمت، تحلیل‌ها، ابزارها و خدمات ویژه برای کاربران دارای اشتراک در نظر گرفته شده است.</p>"
+        question_en: "What does the Free plan include?"
+        answer_en: "<p>Free users can access general information and part of the domestic and global market prices. Some specialist features, such as part of the price history, analyses, tools and special services, are reserved for subscribers.</p>"
+      - slug: silver-plan  # FAQ.docx #14
+        category: plans
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "اشتراک نقره‌ای چه امکاناتی دارد؟"
+        answer_fa: "<p>اشتراک نقره‌ای دسترسی گسترده‌تری به اطلاعات بازار، قیمت محصولات، نمودارها و تاریخچه قیمت در اختیار کاربر قرار می‌دهد و برای کاربرانی مناسب است که به بررسی دقیق‌تر قیمت و روند بازار نیاز دارند.</p>"
+        question_en: "What does the Silver plan include?"
+        answer_en: "<p>The Silver plan gives wider access to market information, product prices, charts and price history, and suits users who need a closer look at prices and market trends.</p>"
+      - slug: gold-plan  # FAQ.docx #15
+        category: plans
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "اشتراک طلایی چه امکاناتی دارد؟"
+        answer_fa: "<p>اشتراک طلایی کامل‌ترین سطح دسترسی الان‌فلز است و علاوه بر امکانات اشتراک نقره‌ای، خدماتی مانند تحلیل بازار، پیش‌بینی سناریوهای احتمالی قیمت، اطلاعات حراج‌های روزانه، ماشین حساب قیمت و سرویس‌های اعلان و پیامک را ارائه می‌دهد.</p>"
+        question_en: "What does the Gold plan include?"
+        answer_en: "<p>Gold is the most complete level of access. On top of everything in Silver, it offers market analysis, possible price scenarios, daily auction information, the price calculator, and notification and SMS services.</p>"
+      - slug: upgrade-plan  # FAQ.docx #16
+        category: plans
+        sort: 50
+        popular: true
+        published: true
+        question_fa: "آیا می‌توان اشتراک را ارتقا داد؟"
+        answer_fa: "<p>بله. کاربران می‌توانند در صورت نیاز سطح اشتراک خود را ارتقا دهند. جزئیات هزینه، مدت اعتبار و مابه‌التفاوت احتمالی در زمان ارتقا نمایش داده خواهد شد.</p>"
+        question_en: "Can I upgrade my subscription?"
+        answer_en: "<p>Yes. You can upgrade your subscription whenever you need. The cost, validity period and any difference to pay are shown when you upgrade.</p>"
+      - slug: subscription-duration  # FAQ.docx #17
+        category: plans
+        sort: 60
+        popular: false
+        published: true
+        question_fa: "مدت اعتبار اشتراک چقدر است؟"
+        answer_fa: "<p>مدت اعتبار هر اشتراک در زمان خرید مشخص می‌شود و کاربر می‌تواند تاریخ شروع و پایان اشتراک فعال خود را از طریق حساب کاربری مشاهده کند.</p>"
+        question_en: "How long is a subscription valid?"
+        answer_en: "<p>Each subscription’s validity is set when you buy it, and you can see the start and end dates of your active subscription in your account.</p>"
+      - slug: auto-renewal  # FAQ.docx #18
+        category: plans
+        sort: 70
+        popular: false
+        published: true
+        question_fa: "آیا اشتراک به‌صورت خودکار تمدید می‌شود؟"
+        answer_fa: "<p>تمدید اشتراک مطابق شرایط اعلام‌شده هنگام خرید انجام می‌شود. وضعیت تمدید و تاریخ پایان اشتراک از طریق حساب کاربری قابل مشاهده خواهد بود.</p>"
+        question_en: "Does my subscription renew automatically?"
+        answer_en: "<p>Renewal follows the terms shown when you buy. The renewal status and end date of your subscription are visible in your account.</p>"
+      - slug: ime-data  # FAQ.docx #27
+        category: ime
+        sort: 10
+        popular: false
+        published: true
+        question_fa: "اطلاعات بورس کالا در الان‌فلز چگونه نمایش داده می‌شود؟"
+        answer_fa: "<p>اطلاعات مرتبط با معاملات و قیمت‌های بورس کالا، متناسب با نوع محصول و داده‌های در دسترس، در بخش مربوطه ارائه می‌شود تا کاربران بتوانند وضعیت بازار داخلی را بهتر بررسی کنند.</p>"
+        question_en: "How is commodity exchange (IME) information shown on Alan Felez?"
+        answer_en: "<p>Information on Iran Mercantile Exchange trades and prices is presented in the relevant section, depending on the product and the data available, so users can better assess the domestic market.</p>"
+      - slug: ime-trades-and-prices  # FAQ.docx #28
+        category: ime
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "آیا می‌توان معاملات و قیمت‌های بورس کالا را مشاهده کرد؟"
+        answer_fa: "<p>بسته به نوع داده و سطح دسترسی کاربر، اطلاعات مرتبط با معاملات، عرضه‌ها و قیمت‌های بورس کالا در بخش مربوطه قابل مشاهده و بررسی خواهد بود.</p>"
+        question_en: "Can I see commodity exchange trades and prices?"
+        answer_en: "<p>Depending on the type of data and your access level, information on IME trades, offerings and prices can be viewed and reviewed in the relevant section.</p>"
+      - slug: daily-auctions  # FAQ.docx #29
+        category: ime
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "حراج‌های روزانه چیست؟"
+        answer_fa: "<p>حراج‌های روزانه شامل اطلاعات مربوط به عرضه‌ها و معاملات روزانه محصولات مختلف است که می‌تواند برای بررسی وضعیت عرضه، قیمت و شرایط بازار مورد استفاده قرار گیرد.</p>"
+        question_en: "What are the daily auctions?"
+        answer_en: "<p>Daily auctions cover information on the daily offerings and trades of different products, which can be used to assess supply, prices and market conditions.</p>"
+      - slug: who-uses-auction-data  # FAQ.docx #30
+        category: ime
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "تحلیل حراج‌های روزانه برای چه کسانی کاربرد دارد؟"
+        answer_fa: "<p>این اطلاعات می‌تواند برای تولیدکنندگان، بازرگانان، تأمین‌کنندگان و سایر فعالان بازار که روند عرضه و قیمت محصولات را دنبال می‌کنند مفید باشد.</p>"
+        question_en: "Who is daily auction analysis useful for?"
+        answer_en: "<p>This information can be useful for producers, traders, suppliers and other market players who follow supply and price trends.</p>"
+      - slug: analysis-basis  # FAQ.docx #31
+        category: analysis
+        sort: 10
+        popular: false
+        published: true
+        question_fa: "تحلیل‌های الان‌فلز بر چه اساسی انجام می‌شوند؟"
+        answer_fa: "<p>تحلیل بازار با بررسی مجموعه‌ای از عوامل مؤثر بر قیمت، از جمله روند قیمت جهانی، نرخ ارز، عرضه و تقاضا، شرایط بازار داخلی، اخبار اقتصادی و سایر متغیرهای مرتبط انجام می‌شود.</p>"
+        question_en: "What are Alan Felez analyses based on?"
+        answer_en: "<p>Market analysis reviews a set of factors that affect prices, including global price trends, the exchange rate, supply and demand, domestic market conditions, economic news and other relevant variables.</p>"
+      - slug: price-forecasts  # FAQ.docx #32
+        category: analysis
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "آیا الان‌فلز پیش‌بینی قیمت ارائه می‌دهد؟"
+        answer_fa: "<p>در سطح خدمات مربوط به این قابلیت، الان‌فلز بر اساس داده‌ها و شرایط موجود، سناریوهای احتمالی حرکت قیمت و تحلیل بازار را ارائه می‌کند.</p>"
+        question_en: "Does Alan Felez offer price forecasts?"
+        answer_en: "<p>For the services that include this feature, Alan Felez presents possible price scenarios and market analysis based on the data and conditions available.</p>"
+      - slug: are-forecasts-certain  # FAQ.docx #33
+        category: analysis
+        sort: 30
+        popular: true
+        published: true
+        question_fa: "آیا پیش‌بینی قیمت قطعی است؟"
+        answer_fa: "<p>خیر. هیچ پیش‌بینی بازار نمی‌تواند نتیجه آینده را به‌صورت قطعی تضمین کند. تحلیل‌ها و پیش‌بینی‌ها بر اساس داده‌ها و شرایط موجود در زمان تهیه آن‌ها ارائه می‌شوند و با تغییر شرایط بازار ممکن است تغییر کنند.</p>"
+        question_en: "Are price forecasts certain?"
+        answer_en: "<p>No. No market forecast can guarantee a future outcome. Analyses and forecasts are based on the data and conditions available when they were prepared and may change as market conditions change.</p>"
+      - slug: price-vs-analysis-vs-forecast  # FAQ.docx #34
+        category: analysis
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "تفاوت قیمت فعلی، تحلیل و پیش‌بینی چیست؟"
+        answer_fa: "<p>قیمت فعلی نشان‌دهنده آخرین داده موجود از بازار است. تحلیل به بررسی عوامل و روندهای مؤثر بر بازار می‌پردازد و پیش‌بینی، سناریوهای احتمالی حرکت قیمت در آینده را بر اساس اطلاعات موجود بررسی می‌کند.</p>"
+        question_en: "What is the difference between the current price, an analysis and a forecast?"
+        answer_en: "<p>The current price is the latest market data available. An analysis looks at the factors and trends affecting the market, and a forecast explores possible future price scenarios based on the information available.</p>"
+      - slug: how-calculator-works  # FAQ.docx #35
+        category: calculator
+        sort: 10
+        popular: false
+        published: true
+        question_fa: "ماشین حساب قیمت الان‌فلز چگونه کار می‌کند؟"
+        answer_fa: "<p>ماشین حساب قیمت با دریافت اطلاعاتی مانند نوع محصول، مقدار، قیمت پایه، نرخ ارز و سایر پارامترهای مورد نیاز، ارزش تقریبی محصول یا معامله را محاسبه می‌کند.</p>"
+        question_en: "How does the Alan Felez price calculator work?"
+        answer_en: "<p>The calculator takes inputs such as the product type, quantity, base price, exchange rate and other required parameters and estimates the approximate value of the product or deal.</p>"
+      - slug: calculator-for-scrap  # FAQ.docx #36
+        category: calculator
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "آیا ماشین حساب برای ضایعات فلزی هم کاربرد دارد؟"
+        answer_fa: "<p>بله. در مواردی که فرمول و پارامترهای مربوط به نوع ضایعات در سامانه تعریف شده باشد، می‌توان از ماشین حساب برای برآورد ارزش ضایعات فلزی استفاده کرد.</p>"
+        question_en: "Can the calculator be used for metal scrap?"
+        answer_en: "<p>Yes. Where the formula and parameters for a type of scrap are defined in the system, you can use the calculator to estimate the value of metal scrap.</p>"
+      - slug: is-calculator-result-final  # FAQ.docx #37
+        category: calculator
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "آیا نتیجه ماشین حساب قیمت قطعی است؟"
+        answer_fa: "<p>خیر. نتیجه ماشین حساب بر اساس اطلاعات واردشده توسط کاربر و داده‌های موجود در سامانه محاسبه می‌شود و باید به‌عنوان یک برآورد محاسباتی در نظر گرفته شود. قیمت نهایی معامله ممکن است با نتیجه ماشین حساب متفاوت باشد.</p>"
+        question_en: "Is the calculator result a final price?"
+        answer_en: "<p>No. The result is calculated from the information you enter and the data in the system, and should be treated as a computational estimate. The final price of a deal may differ from it.</p>"
+      - slug: sms-service  # FAQ.docx #38
+        category: sms
+        sort: 10
+        popular: false
+        published: true
+        question_fa: "سرویس پیامک الان‌فلز چیست؟"
+        answer_fa: "<p>این سرویس به کاربران اجازه می‌دهد اطلاعات منتخب بازار مانند قیمت یک کالای مشخص یا هشدارهای مربوط به تغییرات قابل توجه قیمت را از طریق پیامک دریافت کنند.</p>"
+        question_en: "What is the Alan Felez SMS service?"
+        answer_en: "<p>It lets users receive selected market information by SMS, such as the price of a specific product or alerts about significant price changes.</p>"
+      - slug: choose-sms-metals  # FAQ.docx #39
+        category: sms
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "آیا می‌توان فلز موردنظر را برای دریافت پیامک انتخاب کرد؟"
+        answer_fa: "<p>در صورت فعال بودن این قابلیت برای سطح اشتراک کاربر، امکان انتخاب کالاها یا فلزات موردنظر برای دریافت اعلان وجود خواهد داشت.</p>"
+        question_en: "Can I choose which metals I get SMS for?"
+        answer_en: "<p>If this feature is available on your plan, you will be able to choose the products or metals you want notifications for.</p>"
+      - slug: price-alerts  # FAQ.docx #40
+        category: sms
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "هشدار تغییر شدید قیمت چگونه کار می‌کند؟"
+        answer_fa: "<p>در صورت عبور تغییرات قیمت از محدوده تعریف‌شده، سیستم می‌تواند هشدار مربوطه را برای کاربرانی که این سرویس را فعال کرده‌اند ارسال کند.</p>"
+        question_en: "How do sharp price-change alerts work?"
+        answer_en: "<p>When a price moves beyond a set range, the system can send an alert to users who have turned this service on.</p>"
+      - slug: sms-cost  # FAQ.docx #41
+        category: sms
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "آیا دریافت پیامک هزینه جداگانه دارد؟"
+        answer_fa: "<p>هزینه و شرایط استفاده از سرویس پیامک مطابق بسته خدماتی و نوع اشتراک کاربر در صفحه اشتراک‌ها اعلام می‌شود.</p>"
+        question_en: "Does the SMS service cost extra?"
+        answer_en: "<p>The cost and terms of the SMS service are shown on the subscriptions page, according to the service package and your plan.</p>"
+      - slug: do-i-need-to-sign-up  # FAQ.docx #42
+        category: account
+        sort: 10
+        popular: false
+        published: true
+        question_fa: "آیا برای استفاده از الان‌فلز باید ثبت‌نام کنم؟"
+        answer_fa: "<p>برای مشاهده برخی اطلاعات عمومی نیازی به ثبت‌نام نیست؛ اما استفاده از امکانات اختصاصی، خرید اشتراک و برخی خدمات دیگر نیازمند ایجاد حساب کاربری است.</p>"
+        question_en: "Do I need to sign up to use Alan Felez?"
+        answer_en: "<p>You don’t need to sign up to see some general information, but using exclusive features, buying a subscription and some other services require an account.</p>"
+      - slug: forgot-password  # FAQ.docx #44
+        category: account
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "اگر رمز عبورم را فراموش کنم چه کار کنم؟"
+        answer_fa: "<p>در صفحه ورود، گزینه «فراموشی رمز عبور» را انتخاب کنید و اطلاعات مورد نیاز را وارد کنید. مراحل بازیابی حساب از طریق روش ارتباطی ثبت‌شده برای شما ارسال خواهد شد.</p>"
+        question_en: "What if I forget my password?"
+        answer_en: "<p>On the login page choose “Forgot password” and enter the requested details. The account recovery steps will be sent to the contact method registered for you.</p>"
+      - slug: edit-account  # FAQ.docx #45
+        category: account
+        sort: 30
+        popular: false
+        published: true
+        question_fa: "آیا می‌توان اطلاعات حساب کاربری را تغییر داد؟"
+        answer_fa: "<p>بله. اطلاعات قابل ویرایش حساب کاربری از طریق بخش «پروفایل» یا «حساب کاربری» قابل تغییر است.</p>"
+        question_en: "Can I change my account details?"
+        answer_en: "<p>Yes. Editable account details can be changed in the profile or account section.</p>"
+      - slug: personal-data  # FAQ.docx #46
+        category: account
+        sort: 40
+        popular: false
+        published: true
+        question_fa: "آیا اطلاعات شخصی کاربران محفوظ می‌ماند؟"
+        answer_fa: "<p>الان‌فلز اطلاعات کاربران را مطابق قوانین و سیاست حفظ حریم خصوصی خود نگهداری و در چارچوب خدمات سایت استفاده می‌کند. اطلاعات کاربران بدون مجوز قانونی یا رضایت لازم در اختیار اشخاص غیرمجاز قرار نخواهد گرفت.</p>"
+        question_en: "Is my personal information kept safe?"
+        answer_en: "<p>Alan Felez keeps user information in line with the law and its privacy policy and uses it within the site’s services. User information is not shared with unauthorised parties without a legal basis or the required consent.</p>"
+      - slug: licenses-and-trust  # FAQ.docx #47
+        category: trust
+        sort: 10
+        popular: false
+        published: false
+        question_fa: "آیا الان‌فلز دارای مجوز و نماد اعتماد است؟"
+        answer_fa: "<p>مجوزها، نمادهای اعتماد و گواهی‌های رسمی الان‌فلز در بخش «مجوزها و اعتبار» سایت قابل مشاهده خواهند بود. اطلاعات هر مجوز شامل عنوان، مرجع صادرکننده و وضعیت اعتبار آن نمایش داده می‌شود.</p>"
+        question_en: "Does Alan Felez hold licences and trust seals?"
+        answer_en: "<p>Alan Felez’s licences, trust seals and official certificates will be shown in the site’s “Licences & trust” section, with the title, issuing authority and validity of each.</p>"
+      - slug: payment-security  # FAQ.docx #48
+        category: trust
+        sort: 20
+        popular: false
+        published: true
+        question_fa: "آیا پرداخت در الان‌فلز امن است؟"
+        answer_fa: "<p>پرداخت‌های آنلاین از طریق درگاه‌های پرداخت معتبر انجام می‌شوند. کاربران هنگام پرداخت باید تنها از درگاه رسمی و آدرس معتبر سایت استفاده کنند و اطلاعات بانکی خود را در اختیار اشخاص دیگر قرار ندهند.</p>"
+        question_en: "Are payments on Alan Felez secure?"
+        answer_en: "<p>Online payments go through reputable payment gateways. When paying, only use the official gateway and the site’s genuine address, and never share your bank details with anyone.</p>"
+      - slug: contact-support  # FAQ.docx #50
+        category: trust
+        sort: 30
+        popular: true
+        published: true
+        question_fa: "چگونه با پشتیبانی الان‌فلز تماس بگیرم؟"
+        answer_fa: "<p>کاربران می‌توانند از طریق بخش «تماس با ما» و روش‌های ارتباطی اعلام‌شده در سایت، مانند تلفن، ایمیل، پیام‌رسان یا تیکت پشتیبانی با تیم الان‌فلز در ارتباط باشند.</p>"
+        question_en: "How do I contact Alan Felez support?"
+        answer_en: "<p>You can reach the Alan Felez team through the “Contact us” section and the contact methods listed on the site, such as phone, e-mail, messengers or a support ticket.</p>"
