@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@alanfelez/ui/fonts.css";
+@import "@alanfelez/ui/tokens.css";
+
+@source "../../../../packages/ui/src";
+
+@layer base {
+  html, body { @apply bg-bg font-sans text-text antialiased; }
+}

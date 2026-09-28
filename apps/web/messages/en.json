@@ -1,0 +1,44 @@
+{
+  "brand": { "name": "Alan Felez", "tagline": "Metals market information at a glance" },
+  "nav": {
+    "home": "Home",
+    "prices": "Metal prices",
+    "chart": "Price chart",
+    "analysis": "Forecast & analysis",
+    "auctions": "Daily auctions",
+    "calculator": "Calculator",
+    "plans": "Plans",
+    "faq": "FAQ",
+    "about": "About us",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  },
+  "auth": { "login": "Log in", "signup": "Sign up", "start": "Get started", "logout": "Log out", "account": "Account" },
+  "locale": { "switch": "فارسی", "switchLabel": "Change language" },
+  "home": {
+    "badge": "Live market — real-time updates",
+    "titleStart": "Follow the metals market",
+    "titleHighlight": "smarter",
+    "titleEnd": "",
+    "subtitle": "Prices, charts, analysis and trading opportunities for metals in one specialised platform",
+    "ctaPrices": "View metal prices",
+    "ctaChart": "View price chart",
+    "metalsTitle": "Markets covered",
+    "marketsTitle": "Data sources",
+    "plansTitle": "Find more opportunities with a professional plan",
+    "plansCta": "View plans and pricing"
+  },
+  "plans": {
+    "title": "Choose the plan that fits your activity",
+    "subtitle": "Pick the access level that matches how active you are in the market.",
+    "free": "0 Toman",
+    "month": "month",
+    "quarter": "quarter",
+    "year": "year",
+    "perPeriod": "{price} / {period}"
+  },
+  "placeholder": { "title": "Coming soon", "body": "This section is under construction." },
+  "footer": { "rights": "© 2026 Alan Felez — All rights reserved" },
+  "error": { "apiDown": "We can't load data right now. Please try again shortly." }
+}
