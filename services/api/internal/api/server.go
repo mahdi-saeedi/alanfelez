@@ -5,6 +5,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -14,8 +15,10 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/access"
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
+	"github.com/alanfelez/alanfelez/services/api/internal/platform/ratelimit"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/subscription"
+	"github.com/alanfelez/alanfelez/services/api/internal/support"
 )
 
 //go:generate go tool oapi-codegen -config ../../oapi-codegen.yaml ../../../../contracts/openapi.yaml
@@ -27,14 +30,40 @@ type Server struct {
 	q       dbq.Querier
 	prices  *prices.Service
 	billing *billing.Service
+	support *support.Service
+	limiter ratelimit.Limiter
+	log     *slog.Logger
 	tiers   *subscription.Resolver
 	now     func() time.Time
 }
 
+// Option customises a Server.
+type Option func(*Server)
+
+// WithLimiter sets the rate limiter for anonymous writes (default: none).
+func WithLimiter(l ratelimit.Limiter) Option { return func(s *Server) { s.limiter = l } }
+
+// WithLogger sets the logger for handler events (default: slog.Default()).
+func WithLogger(l *slog.Logger) Option { return func(s *Server) { s.log = l } }
+
+func (s *Server) logger() *slog.Logger {
+	if s.log == nil {
+		return slog.Default()
+	}
+	return s.log
+}
+
 // NewServer wires the API implementation.
-func NewServer(pool *pgxpool.Pool, ps *prices.Service, bs *billing.Service) *Server {
+func NewServer(pool *pgxpool.Pool, ps *prices.Service, bs *billing.Service, opts ...Option) *Server {
 	q := dbq.New(pool)
-	return &Server{pool: pool, q: q, prices: ps, billing: bs, tiers: subscription.NewResolver(q), now: time.Now}
+	s := &Server{
+		pool: pool, q: q, prices: ps, billing: bs, support: support.NewService(pool), limiter: ratelimit.None{},
+		tiers: subscription.NewResolver(q), now: time.Now,
+	}
+	for _, o := range opts {
+		o(s)
+	}
+	return s
 }
 
 var _ StrictServerInterface = (*Server)(nil)

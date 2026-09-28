@@ -24,6 +24,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/payment/mock"
+	"github.com/alanfelez/alanfelez/services/api/internal/platform/httpx"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/live"
 	"github.com/alanfelez/alanfelez/services/api/internal/testdb"
@@ -36,6 +37,7 @@ var principals = map[string]*auth.Principal{
 	"support": {ID: uid("00000000-0000-0000-0000-00000000000c"), Username: "support", Roles: []string{auth.RoleStaff, auth.RoleSupport}},
 	"user":    {ID: uid("00000000-0000-0000-0000-000000000001"), Username: "09120000001"},
 	"silver":  {ID: uid("00000000-0000-0000-0000-000000000002"), Username: "09120000002"},
+	"gold":    {ID: uid("00000000-0000-0000-0000-000000000003"), Username: "09120000003", GivenName: "Gol", FamilyName: "Test"},
 }
 
 type fakeVerifier struct{}
@@ -64,7 +66,7 @@ type env struct {
 	srv     *httptest.Server
 }
 
-func setup(t *testing.T) *env {
+func setup(t *testing.T, opts ...api.Option) *env {
 	t.Helper()
 	pool := testdb.New(t)
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -72,7 +74,9 @@ func setup(t *testing.T) *env {
 	gw := mock.NewMemory("http://api.test")
 	bs := billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: "http://web.test/checkout/callback", Log: log})
 	r := chi.NewRouter()
-	api.Mount(r, api.NewServer(pool, ps, bs), fakeVerifier{}, live.NewHub(nil, log), log)
+	trusted, _ := httpx.ParsePrefixes([]string{"127.0.0.0/8", "::1/128"}) // the test client may set X-Forwarded-For
+	r.Use(httpx.ClientInfo(trusted))
+	api.Mount(r, api.NewServer(pool, ps, bs, opts...), fakeVerifier{}, live.NewHub(nil, log), log)
 	srv := httptest.NewServer(r)
 	t.Cleanup(srv.Close)
 	return &env{t: t, pool: pool, prices: ps, billing: bs, gw: gw, srv: srv}

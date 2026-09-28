@@ -479,6 +479,526 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Published articles, newest first. Bodies are never listed
+         * @description Locked articles (analysis / forecast without the feature) are listed as teasers with `locked = true`.
+         */
+        get: operations["listArticles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/articles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One published article. `body` is present only when the caller's plan includes its type */
+        get: operations["getArticle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/article-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Topic tabs of the analysis page (besides metals) */
+        get: operations["listArticleCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/faq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published FAQ by category (the page, its search and its FAQPage schema use exactly this) */
+        get: operations["getFaq"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pages/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A static page (about, terms, privacy, licenses). 404 when unpublished */
+        get: operations["getPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public site settings (contact details, social links, which optional pages are on) */
+        get: operations["getSite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Contact form (anonymous allowed; rate-limited per IP → 429 RATE_LIMITED) */
+        post: operations["sendContactMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's tickets, latest activity first */
+        get: operations["listMyTickets"];
+        put?: never;
+        /** Open a ticket with its first message. The same Idempotency-Key returns the first ticket (200) */
+        post: operations["createTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of the caller's tickets with its messages */
+        get: operations["getMyTicket"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply to one of the caller's tickets (reopens it if closed) */
+        post: operations["replyMyTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/tickets/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close one of the caller's tickets */
+        post: operations["closeMyTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Articles in any status, recently edited first (max 200) */
+        get: operations["adminListArticles"];
+        put?: never;
+        /** Create an article. Bodies are sanitized (ADR-0025). Roles, editor, admin */
+        post: operations["adminCreateArticle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One article for editing */
+        get: operations["adminGetArticle"];
+        /** Replace an article (archive = status archived). Roles, editor, admin */
+        put: operations["adminUpdateArticle"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/article-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Article categories */
+        get: operations["adminListArticleCategories"];
+        put?: never;
+        /** Add an article category. Roles, editor, admin */
+        post: operations["adminCreateArticleCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/article-categories/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename or reorder an article category (the slug stays). Roles, editor, admin */
+        put: operations["adminUpdateArticleCategory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/faq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every FAQ category and item, published or not */
+        get: operations["adminGetFaq"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/faq/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add an FAQ category. Roles, editor, admin */
+        post: operations["adminCreateFaqCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/faq/categories/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename or reorder an FAQ category. Roles, editor, admin */
+        put: operations["adminUpdateFaqCategory"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/faq/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a question. Its slug is the permanent deep link. Roles, editor, admin */
+        post: operations["adminCreateFaqItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/faq/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit a question (the slug can't change, so shared links keep working). Roles, editor, admin */
+        put: operations["adminUpdateFaqItem"];
+        post?: never;
+        /** Delete a question (prefer unpublishing). Roles, editor, admin */
+        delete: operations["adminDeleteFaqItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Static pages */
+        get: operations["adminListPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/pages/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page for editing */
+        get: operations["adminGetPage"];
+        /** Save a page. `version` must be the one you loaded (409 CONFLICT if someone saved in between). Roles, editor, admin */
+        put: operations["adminUpdatePage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Editable site settings (contact details, social links) */
+        get: operations["adminGetSettings"];
+        /** Save site settings. Role, admin */
+        put: operations["adminUpdateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/support/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Counts for the admin menu badges */
+        get: operations["adminSupportSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contact-messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Contact form messages, newest first (max 200) */
+        get: operations["adminListContactMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/contact-messages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a message handled / spam, with a note. Roles, support, admin */
+        put: operations["adminUpdateContactMessage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The support queue (open first, high priority first, oldest waiting first) */
+        get: operations["adminListTickets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A ticket with its messages */
+        get: operations["adminGetTicket"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply as support (the ticket becomes "answered"). Roles, support, admin */
+        post: operations["adminReplyTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tickets/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a ticket's status. Roles, support, admin */
+        put: operations["adminSetTicketStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -863,6 +1383,280 @@ export interface components {
             refundId?: string;
             refundStatus?: components["schemas"]["RefundStatus"];
             refundReason?: string;
+        };
+        /** @enum {string} */
+        ArticleType: "news" | "analysis" | "forecast";
+        /** @enum {string} */
+        ArticleStatus: "draft" | "published" | "archived";
+        /**
+         * @description The author's view of the price direction (an estimate, never a promise)
+         * @enum {string}
+         */
+        Outlook: "up" | "down" | "neutral";
+        ArticleSummary: {
+            slug: string;
+            type: components["schemas"]["ArticleType"];
+            title: string;
+            /** @description Plain text */
+            summary: string;
+            category?: components["schemas"]["Localized"];
+            metal?: components["schemas"]["Localized"];
+            outlook?: components["schemas"]["Outlook"];
+            featured: boolean;
+            coverUrl?: string;
+            readMinutes: number;
+            /** Format: date-time */
+            publishedAt: string;
+            /** @description The caller's plan doesn't include this type; the body won't be sent */
+            locked: boolean;
+            requiredPlan?: components["schemas"]["Tier"];
+        };
+        Article: components["schemas"]["ArticleSummary"] & {
+            /** @description Sanitized HTML. Absent when locked */
+            body?: string;
+            author?: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ArticleList: {
+            items: components["schemas"]["ArticleSummary"][];
+            total: number;
+            page: number;
+            limit: number;
+        };
+        FaqItem: {
+            /** @description Stable deep link (/faq#slug) */
+            slug: string;
+            question: string;
+            /** @description Sanitized HTML */
+            answer: string;
+            popular: boolean;
+        };
+        FaqCategory: {
+            slug: string;
+            name: string;
+            items: components["schemas"]["FaqItem"][];
+        };
+        Page: {
+            slug: string;
+            title: string;
+            /** @description Sanitized HTML */
+            body: string;
+            version: number;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description Empty fields are omitted (client answer #30: filled in later in the admin) */
+        ContactInfo: {
+            phone?: string;
+            email?: string;
+            address?: string;
+            hours?: string;
+        };
+        SiteInfo: {
+            contact: components["schemas"]["ContactInfo"];
+            /** @description Network → URL, only the ones set */
+            social: {
+                [key: string]: string;
+            };
+            /** @description Show the licenses page and its footer link (flag page.licenses) */
+            licensesPage: boolean;
+        };
+        /** @enum {string} */
+        ContactSubject: "general" | "support" | "billing" | "partnership" | "feedback" | "other";
+        /** @enum {string} */
+        ContactStatus: "new" | "handled" | "spam";
+        ContactInput: {
+            name: string;
+            /** @description Persian digits are accepted */
+            phone: string;
+            email?: string;
+            subject: components["schemas"]["ContactSubject"];
+            body: string;
+            /** @description Honeypot. Humans leave it empty; filled = silently dropped */
+            website?: string;
+        };
+        /**
+         * @description open = waiting for support, answered = waiting for the user
+         * @enum {string}
+         */
+        TicketStatus: "open" | "answered" | "closed";
+        Ticket: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int64 */
+            number: number;
+            subject: string;
+            status: components["schemas"]["TicketStatus"];
+            /** @enum {string} */
+            priority: "normal" | "high";
+            /** Format: date-time */
+            lastMessageAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            closedAt?: string;
+        };
+        TicketMessage: {
+            /** Format: uuid */
+            id: string;
+            /** @description The user's name */
+            author?: string;
+            staff: boolean;
+            /** @description Plain text */
+            body: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TicketThread: {
+            ticket: components["schemas"]["Ticket"];
+            messages: components["schemas"]["TicketMessage"][];
+        };
+        MessageInput: {
+            body: string;
+        };
+        AdminCategory: {
+            slug: string;
+            nameFa: string;
+            nameEn?: string;
+            sort: number;
+        };
+        AdminArticleRow: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ArticleType"];
+            slug: string;
+            status: components["schemas"]["ArticleStatus"];
+            featured: boolean;
+            titleFa: string;
+            titleEn?: string;
+            category?: string;
+            metal?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminArticleInput: {
+            type: components["schemas"]["ArticleType"];
+            slug: string;
+            status: components["schemas"]["ArticleStatus"];
+            /** @description Article category slug */
+            category?: string;
+            /** @description Metal slug */
+            metal?: string;
+            outlook?: components["schemas"]["Outlook"];
+            featured: boolean;
+            titleFa: string;
+            titleEn?: string;
+            summaryFa: string;
+            summaryEn?: string;
+            /** @description HTML from the editor (sanitized on save) */
+            bodyFa: string;
+            bodyEn?: string;
+            authorFa?: string;
+            authorEn?: string;
+            coverUrl?: string;
+            /**
+             * Format: date-time
+             * @description Defaults to the first publish time
+             */
+            publishedAt?: string;
+        };
+        AdminArticle: components["schemas"]["AdminArticleInput"] & {
+            /** Format: uuid */
+            id: string;
+            readMinutes: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminFaqInput: {
+            /** @description Ignored on update */
+            slug: string;
+            category: string;
+            questionFa: string;
+            questionEn?: string;
+            answerFa: string;
+            answerEn?: string;
+            popular: boolean;
+            published: boolean;
+            sort: number;
+        };
+        AdminFaqItem: components["schemas"]["AdminFaqInput"] & {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminPageRow: {
+            slug: string;
+            titleFa: string;
+            titleEn?: string;
+            published: boolean;
+            version: number;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminPageInput: {
+            titleFa: string;
+            titleEn?: string;
+            bodyFa: string;
+            bodyEn?: string;
+            published: boolean;
+            /** @description The version being edited (optimistic lock) */
+            version: number;
+        };
+        AdminPage: components["schemas"]["AdminPageInput"] & {
+            slug: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminSettings: {
+            contact: {
+                phone: string;
+                email: string;
+                addressFa: string;
+                addressEn: string;
+                hoursFa: string;
+                hoursEn: string;
+            };
+            social: {
+                telegram: string;
+                instagram: string;
+                linkedin: string;
+                bale: string;
+                eitaa: string;
+            };
+        };
+        AdminContactMessage: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            phone: string;
+            email?: string;
+            subject: components["schemas"]["ContactSubject"];
+            body: string;
+            /** Format: uuid */
+            userId?: string;
+            status: components["schemas"]["ContactStatus"];
+            note?: string;
+            /** Format: date-time */
+            handledAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminTicket: components["schemas"]["Ticket"] & {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            /** @description First and last name */
+            userName?: string;
+        };
+        AdminTicketThread: {
+            ticket: components["schemas"]["AdminTicket"];
+            messages: components["schemas"]["TicketMessage"][];
         };
         Problem: {
             /** Format: uri */
@@ -1659,6 +2453,950 @@ export interface operations {
             400: components["responses"]["Problem"];
             401: components["responses"]["Problem"];
             403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listArticles: {
+        parameters: {
+            query?: {
+                type?: components["schemas"]["ArticleType"][];
+                category?: string;
+                metal?: string;
+                page?: number;
+                limit?: number;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of articles */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getArticle: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The article */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Article"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listArticleCategories: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Categories in display order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Localized"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getFaq: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FAQ */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: components["schemas"]["FaqCategory"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getPage: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getSite: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Site settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteInfo"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    sendContactMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactInput"];
+            };
+        };
+        responses: {
+            /** @description Received */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listMyTickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tickets */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Ticket"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createTicket: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    subject: string;
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Already created with this key */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ticket"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ticket"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketThread"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    replyMyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageInput"];
+            };
+        };
+        responses: {
+            /** @description Added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketMessage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    closeMyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Closed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ticket"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListArticles: {
+        parameters: {
+            query?: {
+                type?: components["schemas"]["ArticleType"];
+                status?: components["schemas"]["ArticleStatus"];
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Articles */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminArticleRow"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticle"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Article */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticle"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminArticleInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticle"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListArticleCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Categories */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminCategory"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateArticleCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCategory"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateArticleCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCategory"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetFaq: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FAQ */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: components["schemas"]["AdminCategory"][];
+                        items: components["schemas"]["AdminFaqItem"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateFaqCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCategory"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateFaqCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCategory"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategory"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateFaqItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminFaqInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminFaqItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateFaqItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminFaqInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminFaqItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteFaqItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pages (without bodies) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminPageRow"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdatePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPageInput"];
+            };
+        };
+        responses: {
+            /** @description Saved (version + 1; the previous text is kept as a revision) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSettings"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSupportSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Counts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        openTickets: number;
+                        newMessages: number;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListContactMessages: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ContactStatus"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Messages */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminContactMessage"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateContactMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    status: components["schemas"]["ContactStatus"];
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminContactMessage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListTickets: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["TicketStatus"];
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tickets */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminTicket"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTicketThread"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminReplyTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageInput"];
+            };
+        };
+        responses: {
+            /** @description Added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketMessage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetTicketStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    status: components["schemas"]["TicketStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTicket"];
+                };
+            };
             default: components["responses"]["Problem"];
         };
     };

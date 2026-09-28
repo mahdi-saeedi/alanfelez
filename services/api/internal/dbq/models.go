@@ -5,8 +5,46 @@
 package dbq
 
 import (
+	"net/netip"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AppArticle struct {
+	ID          pgtype.UUID
+	Type        string
+	Slug        string
+	Status      string
+	CategoryID  pgtype.Int2
+	MetalID     pgtype.Int2
+	Outlook     pgtype.Text
+	Featured    bool
+	TitleFa     string
+	TitleEn     pgtype.Text
+	SummaryFa   string
+	SummaryEn   pgtype.Text
+	BodyFa      string
+	BodyEn      pgtype.Text
+	AuthorFa    pgtype.Text
+	AuthorEn    pgtype.Text
+	CoverUrl    pgtype.Text
+	ReadMinutes int32
+	PublishedAt pgtype.Timestamptz
+	CreatedBy   pgtype.UUID
+	UpdatedBy   pgtype.UUID
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+}
+
+type AppArticleCategory struct {
+	ID        int16
+	Slug      string
+	NameFa    string
+	NameEn    pgtype.Text
+	Sort      int32
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
 
 type AppAuditLog struct {
 	ID        int64
@@ -20,10 +58,53 @@ type AppAuditLog struct {
 	RequestID pgtype.Text
 }
 
+type AppContactMessage struct {
+	ID        pgtype.UUID
+	Name      string
+	Phone     string
+	Email     pgtype.Text
+	Subject   string
+	Body      string
+	UserID    pgtype.UUID
+	Ip        *netip.Addr
+	UserAgent pgtype.Text
+	Status    string
+	Note      pgtype.Text
+	HandledBy pgtype.UUID
+	HandledAt pgtype.Timestamptz
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
 type AppEntitlementUsage struct {
 	SubscriptionID pgtype.UUID
 	Feature        string
 	FirstUsedAt    pgtype.Timestamptz
+}
+
+type AppFaqCategory struct {
+	ID        int16
+	Slug      string
+	NameFa    string
+	NameEn    pgtype.Text
+	Sort      int32
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type AppFaqItem struct {
+	ID         pgtype.UUID
+	Slug       string
+	CategoryID int16
+	QuestionFa string
+	QuestionEn pgtype.Text
+	AnswerFa   string
+	AnswerEn   pgtype.Text
+	Popular    bool
+	Published  bool
+	Sort       int32
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
 }
 
 type AppFeatureFlag struct {
@@ -69,6 +150,30 @@ type AppOrder struct {
 	PaidAt         pgtype.Timestamptz
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+}
+
+type AppPage struct {
+	Slug      string
+	TitleFa   string
+	TitleEn   pgtype.Text
+	BodyFa    string
+	BodyEn    pgtype.Text
+	Published bool
+	Version   int32
+	UpdatedBy pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type AppPageRevision struct {
+	Slug      string
+	Version   int32
+	TitleFa   string
+	TitleEn   pgtype.Text
+	BodyFa    string
+	BodyEn    pgtype.Text
+	CreatedBy pgtype.UUID
+	CreatedAt pgtype.Timestamptz
 }
 
 type AppPayment struct {
@@ -147,6 +252,30 @@ type AppSubscription struct {
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
 	OrderID   pgtype.UUID
+}
+
+type AppTicket struct {
+	ID             pgtype.UUID
+	Number         pgtype.Int8
+	UserID         pgtype.UUID
+	Subject        string
+	Status         string
+	Priority       string
+	IdempotencyKey string
+	LastMessageAt  pgtype.Timestamptz
+	ClosedAt       pgtype.Timestamptz
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+}
+
+type AppTicketMessage struct {
+	ID         pgtype.UUID
+	TicketID   pgtype.UUID
+	AuthorID   pgtype.UUID
+	AuthorName pgtype.Text
+	IsStaff    bool
+	Body       string
+	CreatedAt  pgtype.Timestamptz
 }
 
 type AppUser struct {

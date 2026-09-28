@@ -220,6 +220,8 @@ func buildRow(ds Dataset, mode Mode, row map[string]any) (string, []any, error) 
 			}
 			args[len(args)-1] = string(b)
 			cols, vals = append(cols, name), append(vals, ph+"::jsonb")
+		case col.Ago != "":
+			cols, vals = append(cols, col.Ago), append(vals, "now() - ("+ph+"::float8 * interval '1 day')")
 		case col.Ref != nil:
 			cols = append(cols, col.Ref.IDColumn)
 			vals = append(vals, fmt.Sprintf("(SELECT id FROM %s WHERE %s = %s)", col.Ref.Table, col.Ref.By, ph))

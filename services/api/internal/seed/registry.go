@@ -6,6 +6,9 @@ type Column struct {
 	// Ref resolves a natural key to a foreign-key id with a sub-select, e.g. a product
 	// row written as `metal: copper` becomes (SELECT id FROM market.metals WHERE slug = $n).
 	Ref *Ref
+	// Ago writes the value (a number of days) as a time relative to when the seed runs, into the column named
+	// here, e.g. `published_days_ago: 2` → published_at = now() − 2 days. For demo content that should look fresh.
+	Ago string
 }
 
 // Ref is a natural-key reference to another table.
@@ -88,5 +91,40 @@ var Datasets = map[string]Dataset{
 		Table:   "app.site_settings",
 		Key:     []string{"key"},
 		Columns: map[string]Column{"key": {}, "value": {JSON: true}},
+	},
+	"article_categories": {
+		Table:   "app.article_categories",
+		Key:     []string{"slug"},
+		Columns: map[string]Column{"slug": {}, "name_fa": {}, "name_en": {}, "sort": {}},
+	},
+	"articles": {
+		Table: "app.articles",
+		Key:   []string{"slug"},
+		Columns: map[string]Column{
+			"slug": {}, "type": {}, "status": {}, "outlook": {}, "featured": {}, "title_fa": {}, "title_en": {},
+			"summary_fa": {}, "summary_en": {}, "body_fa": {}, "body_en": {}, "author_fa": {}, "author_en": {},
+			"cover_url": {}, "read_minutes": {},
+			"published_days_ago": {Ago: "published_at"},
+			"category":           {Ref: &Ref{Table: "app.article_categories", By: "slug", IDColumn: "category_id"}},
+			"metal":              {Ref: &Ref{Table: "market.metals", By: "slug", IDColumn: "metal_id"}},
+		},
+	},
+	"faq_categories": {
+		Table:   "app.faq_categories",
+		Key:     []string{"slug"},
+		Columns: map[string]Column{"slug": {}, "name_fa": {}, "name_en": {}, "sort": {}},
+	},
+	"faq_items": {
+		Table: "app.faq_items",
+		Key:   []string{"slug"},
+		Columns: map[string]Column{
+			"slug": {}, "question_fa": {}, "question_en": {}, "answer_fa": {}, "answer_en": {}, "popular": {}, "published": {}, "sort": {},
+			"category": {Ref: &Ref{Table: "app.faq_categories", By: "slug", IDColumn: "category_id"}},
+		},
+	},
+	"pages": {
+		Table:   "app.pages",
+		Key:     []string{"slug"},
+		Columns: map[string]Column{"slug": {}, "title_fa": {}, "title_en": {}, "body_fa": {}, "body_en": {}, "published": {}},
 	},
 }

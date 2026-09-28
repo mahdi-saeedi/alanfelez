@@ -69,6 +69,66 @@ func (e AdminPointStatus) Valid() bool {
 	}
 }
 
+// Defines values for AdminTicketPriority.
+const (
+	AdminTicketPriorityHigh   AdminTicketPriority = "high"
+	AdminTicketPriorityNormal AdminTicketPriority = "normal"
+)
+
+// Valid indicates whether the value is a known member of the AdminTicketPriority enum.
+func (e AdminTicketPriority) Valid() bool {
+	switch e {
+	case AdminTicketPriorityHigh:
+		return true
+	case AdminTicketPriorityNormal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ArticleStatus.
+const (
+	ArticleStatusArchived  ArticleStatus = "archived"
+	ArticleStatusDraft     ArticleStatus = "draft"
+	ArticleStatusPublished ArticleStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the ArticleStatus enum.
+func (e ArticleStatus) Valid() bool {
+	switch e {
+	case ArticleStatusArchived:
+		return true
+	case ArticleStatusDraft:
+		return true
+	case ArticleStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ArticleType.
+const (
+	Analysis ArticleType = "analysis"
+	Forecast ArticleType = "forecast"
+	News     ArticleType = "news"
+)
+
+// Valid indicates whether the value is a known member of the ArticleType enum.
+func (e ArticleType) Valid() bool {
+	switch e {
+	case Analysis:
+		return true
+	case Forecast:
+		return true
+	case News:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for BillingPeriod.
 const (
 	BillingPeriodMonth   BillingPeriod = "month"
@@ -171,6 +231,57 @@ func (e CheckoutQuoteKind) Valid() bool {
 	case CheckoutQuoteKindRenewal:
 		return true
 	case CheckoutQuoteKindUpgrade:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ContactStatus.
+const (
+	ContactStatusHandled ContactStatus = "handled"
+	ContactStatusNew     ContactStatus = "new"
+	ContactStatusSpam    ContactStatus = "spam"
+)
+
+// Valid indicates whether the value is a known member of the ContactStatus enum.
+func (e ContactStatus) Valid() bool {
+	switch e {
+	case ContactStatusHandled:
+		return true
+	case ContactStatusNew:
+		return true
+	case ContactStatusSpam:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ContactSubject.
+const (
+	Billing     ContactSubject = "billing"
+	Feedback    ContactSubject = "feedback"
+	General     ContactSubject = "general"
+	Other       ContactSubject = "other"
+	Partnership ContactSubject = "partnership"
+	Support     ContactSubject = "support"
+)
+
+// Valid indicates whether the value is a known member of the ContactSubject enum.
+func (e ContactSubject) Valid() bool {
+	switch e {
+	case Billing:
+		return true
+	case Feedback:
+		return true
+	case General:
+		return true
+	case Other:
+		return true
+	case Partnership:
+		return true
+	case Support:
 		return true
 	default:
 		return false
@@ -303,6 +414,27 @@ func (e OrderStatus) Valid() bool {
 	}
 }
 
+// Defines values for Outlook.
+const (
+	Down    Outlook = "down"
+	Neutral Outlook = "neutral"
+	Up      Outlook = "up"
+)
+
+// Valid indicates whether the value is a known member of the Outlook enum.
+func (e Outlook) Valid() bool {
+	switch e {
+	case Down:
+		return true
+	case Neutral:
+		return true
+	case Up:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PaidPlan.
 const (
 	PaidPlanGold   PaidPlan = "gold"
@@ -417,6 +549,45 @@ func (e SubscriptionStatus) Valid() bool {
 	}
 }
 
+// Defines values for TicketPriority.
+const (
+	TicketPriorityHigh   TicketPriority = "high"
+	TicketPriorityNormal TicketPriority = "normal"
+)
+
+// Valid indicates whether the value is a known member of the TicketPriority enum.
+func (e TicketPriority) Valid() bool {
+	switch e {
+	case TicketPriorityHigh:
+		return true
+	case TicketPriorityNormal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TicketStatus.
+const (
+	Answered TicketStatus = "answered"
+	Closed   TicketStatus = "closed"
+	Open     TicketStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the TicketStatus enum.
+func (e TicketStatus) Valid() bool {
+	switch e {
+	case Answered:
+		return true
+	case Closed:
+		return true
+	case Open:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Tier.
 const (
 	TierFree   Tier = "free"
@@ -510,6 +681,60 @@ func (e AdminDecideRefundJSONBodyDecision) Valid() bool {
 	}
 }
 
+// Defines values for ListArticleCategoriesParamsAcceptLanguage.
+const (
+	ListArticleCategoriesParamsAcceptLanguageEn ListArticleCategoriesParamsAcceptLanguage = "en"
+	ListArticleCategoriesParamsAcceptLanguageFa ListArticleCategoriesParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the ListArticleCategoriesParamsAcceptLanguage enum.
+func (e ListArticleCategoriesParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case ListArticleCategoriesParamsAcceptLanguageEn:
+		return true
+	case ListArticleCategoriesParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListArticlesParamsAcceptLanguage.
+const (
+	ListArticlesParamsAcceptLanguageEn ListArticlesParamsAcceptLanguage = "en"
+	ListArticlesParamsAcceptLanguageFa ListArticlesParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the ListArticlesParamsAcceptLanguage enum.
+func (e ListArticlesParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case ListArticlesParamsAcceptLanguageEn:
+		return true
+	case ListArticlesParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetArticleParamsAcceptLanguage.
+const (
+	GetArticleParamsAcceptLanguageEn GetArticleParamsAcceptLanguage = "en"
+	GetArticleParamsAcceptLanguageFa GetArticleParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the GetArticleParamsAcceptLanguage enum.
+func (e GetArticleParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case GetArticleParamsAcceptLanguageEn:
+		return true
+	case GetArticleParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListCategoriesParamsAcceptLanguage.
 const (
 	ListCategoriesParamsAcceptLanguageEn ListCategoriesParamsAcceptLanguage = "en"
@@ -546,6 +771,24 @@ func (e StartCheckoutParamsAcceptLanguage) Valid() bool {
 	}
 }
 
+// Defines values for GetFaqParamsAcceptLanguage.
+const (
+	GetFaqParamsAcceptLanguageEn GetFaqParamsAcceptLanguage = "en"
+	GetFaqParamsAcceptLanguageFa GetFaqParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the GetFaqParamsAcceptLanguage enum.
+func (e GetFaqParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case GetFaqParamsAcceptLanguageEn:
+		return true
+	case GetFaqParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListMarketsParamsAcceptLanguage.
 const (
 	ListMarketsParamsAcceptLanguageEn ListMarketsParamsAcceptLanguage = "en"
@@ -576,6 +819,24 @@ func (e ListMetalsParamsAcceptLanguage) Valid() bool {
 	case ListMetalsParamsAcceptLanguageEn:
 		return true
 	case ListMetalsParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetPageParamsAcceptLanguage.
+const (
+	GetPageParamsAcceptLanguageEn GetPageParamsAcceptLanguage = "en"
+	GetPageParamsAcceptLanguageFa GetPageParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the GetPageParamsAcceptLanguage enum.
+func (e GetPageParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case GetPageParamsAcceptLanguageEn:
+		return true
+	case GetPageParamsAcceptLanguageFa:
 		return true
 	default:
 		return false
@@ -636,6 +897,160 @@ func (e ListSeriesPointsParamsAcceptLanguage) Valid() bool {
 	}
 }
 
+// Defines values for GetSiteParamsAcceptLanguage.
+const (
+	GetSiteParamsAcceptLanguageEn GetSiteParamsAcceptLanguage = "en"
+	GetSiteParamsAcceptLanguageFa GetSiteParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the GetSiteParamsAcceptLanguage enum.
+func (e GetSiteParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case GetSiteParamsAcceptLanguageEn:
+		return true
+	case GetSiteParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// AdminArticle defines model for AdminArticle.
+type AdminArticle struct {
+	AuthorEn *string `json:"authorEn,omitempty"`
+	AuthorFa *string `json:"authorFa,omitempty"`
+	BodyEn   *string `json:"bodyEn,omitempty"`
+
+	// BodyFa HTML from the editor (sanitized on save)
+	BodyFa string `json:"bodyFa"`
+
+	// Category Article category slug
+	Category  *string            `json:"category,omitempty"`
+	CoverUrl  *string            `json:"coverUrl,omitempty"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Featured  bool               `json:"featured"`
+	Id        openapi_types.UUID `json:"id"`
+
+	// Metal Metal slug
+	Metal *string `json:"metal,omitempty"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook *Outlook `json:"outlook,omitempty"`
+
+	// PublishedAt Defaults to the first publish time
+	PublishedAt *time.Time    `json:"publishedAt,omitempty"`
+	ReadMinutes int           `json:"readMinutes"`
+	Slug        string        `json:"slug"`
+	Status      ArticleStatus `json:"status"`
+	SummaryEn   *string       `json:"summaryEn,omitempty"`
+	SummaryFa   string        `json:"summaryFa"`
+	TitleEn     *string       `json:"titleEn,omitempty"`
+	TitleFa     string        `json:"titleFa"`
+	Type        ArticleType   `json:"type"`
+	UpdatedAt   time.Time     `json:"updatedAt"`
+}
+
+// AdminArticleInput defines model for AdminArticleInput.
+type AdminArticleInput struct {
+	AuthorEn *string `json:"authorEn,omitempty"`
+	AuthorFa *string `json:"authorFa,omitempty"`
+	BodyEn   *string `json:"bodyEn,omitempty"`
+
+	// BodyFa HTML from the editor (sanitized on save)
+	BodyFa string `json:"bodyFa"`
+
+	// Category Article category slug
+	Category *string `json:"category,omitempty"`
+	CoverUrl *string `json:"coverUrl,omitempty"`
+	Featured bool    `json:"featured"`
+
+	// Metal Metal slug
+	Metal *string `json:"metal,omitempty"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook *Outlook `json:"outlook,omitempty"`
+
+	// PublishedAt Defaults to the first publish time
+	PublishedAt *time.Time    `json:"publishedAt,omitempty"`
+	Slug        string        `json:"slug"`
+	Status      ArticleStatus `json:"status"`
+	SummaryEn   *string       `json:"summaryEn,omitempty"`
+	SummaryFa   string        `json:"summaryFa"`
+	TitleEn     *string       `json:"titleEn,omitempty"`
+	TitleFa     string        `json:"titleFa"`
+	Type        ArticleType   `json:"type"`
+}
+
+// AdminArticleRow defines model for AdminArticleRow.
+type AdminArticleRow struct {
+	Category    *string            `json:"category,omitempty"`
+	Featured    bool               `json:"featured"`
+	Id          openapi_types.UUID `json:"id"`
+	Metal       *string            `json:"metal,omitempty"`
+	PublishedAt *time.Time         `json:"publishedAt,omitempty"`
+	Slug        string             `json:"slug"`
+	Status      ArticleStatus      `json:"status"`
+	TitleEn     *string            `json:"titleEn,omitempty"`
+	TitleFa     string             `json:"titleFa"`
+	Type        ArticleType        `json:"type"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
+}
+
+// AdminCategory defines model for AdminCategory.
+type AdminCategory struct {
+	NameEn *string `json:"nameEn,omitempty"`
+	NameFa string  `json:"nameFa"`
+	Slug   string  `json:"slug"`
+	Sort   int     `json:"sort"`
+}
+
+// AdminContactMessage defines model for AdminContactMessage.
+type AdminContactMessage struct {
+	Body      string              `json:"body"`
+	CreatedAt time.Time           `json:"createdAt"`
+	Email     *string             `json:"email,omitempty"`
+	HandledAt *time.Time          `json:"handledAt,omitempty"`
+	Id        openapi_types.UUID  `json:"id"`
+	Name      string              `json:"name"`
+	Note      *string             `json:"note,omitempty"`
+	Phone     string              `json:"phone"`
+	Status    ContactStatus       `json:"status"`
+	Subject   ContactSubject      `json:"subject"`
+	UserId    *openapi_types.UUID `json:"userId,omitempty"`
+}
+
+// AdminFaqInput defines model for AdminFaqInput.
+type AdminFaqInput struct {
+	AnswerEn   *string `json:"answerEn,omitempty"`
+	AnswerFa   string  `json:"answerFa"`
+	Category   string  `json:"category"`
+	Popular    bool    `json:"popular"`
+	Published  bool    `json:"published"`
+	QuestionEn *string `json:"questionEn,omitempty"`
+	QuestionFa string  `json:"questionFa"`
+
+	// Slug Ignored on update
+	Slug string `json:"slug"`
+	Sort int    `json:"sort"`
+}
+
+// AdminFaqItem defines model for AdminFaqItem.
+type AdminFaqItem struct {
+	AnswerEn   *string            `json:"answerEn,omitempty"`
+	AnswerFa   string             `json:"answerFa"`
+	Category   string             `json:"category"`
+	Id         openapi_types.UUID `json:"id"`
+	Popular    bool               `json:"popular"`
+	Published  bool               `json:"published"`
+	QuestionEn *string            `json:"questionEn,omitempty"`
+	QuestionFa string             `json:"questionFa"`
+
+	// Slug Ignored on update
+	Slug      string    `json:"slug"`
+	Sort      int       `json:"sort"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 // AdminOrder defines model for AdminOrder.
 type AdminOrder struct {
 	// Amount Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
@@ -664,6 +1079,42 @@ type AdminOrder struct {
 
 // AdminOrderKind defines model for AdminOrder.Kind.
 type AdminOrderKind string
+
+// AdminPage defines model for AdminPage.
+type AdminPage struct {
+	BodyEn    *string   `json:"bodyEn,omitempty"`
+	BodyFa    string    `json:"bodyFa"`
+	Published bool      `json:"published"`
+	Slug      string    `json:"slug"`
+	TitleEn   *string   `json:"titleEn,omitempty"`
+	TitleFa   string    `json:"titleFa"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	// Version The version being edited (optimistic lock)
+	Version int `json:"version"`
+}
+
+// AdminPageInput defines model for AdminPageInput.
+type AdminPageInput struct {
+	BodyEn    *string `json:"bodyEn,omitempty"`
+	BodyFa    string  `json:"bodyFa"`
+	Published bool    `json:"published"`
+	TitleEn   *string `json:"titleEn,omitempty"`
+	TitleFa   string  `json:"titleFa"`
+
+	// Version The version being edited (optimistic lock)
+	Version int `json:"version"`
+}
+
+// AdminPageRow defines model for AdminPageRow.
+type AdminPageRow struct {
+	Published bool      `json:"published"`
+	Slug      string    `json:"slug"`
+	TitleEn   *string   `json:"titleEn,omitempty"`
+	TitleFa   string    `json:"titleFa"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Version   int       `json:"version"`
+}
 
 // AdminPoint defines model for AdminPoint.
 type AdminPoint struct {
@@ -704,6 +1155,53 @@ type AdminSeries struct {
 	Unit         Unit       `json:"unit"`
 }
 
+// AdminSettings defines model for AdminSettings.
+type AdminSettings struct {
+	Contact struct {
+		AddressEn string `json:"addressEn"`
+		AddressFa string `json:"addressFa"`
+		Email     string `json:"email"`
+		HoursEn   string `json:"hoursEn"`
+		HoursFa   string `json:"hoursFa"`
+		Phone     string `json:"phone"`
+	} `json:"contact"`
+	Social struct {
+		Bale      string `json:"bale"`
+		Eitaa     string `json:"eitaa"`
+		Instagram string `json:"instagram"`
+		Linkedin  string `json:"linkedin"`
+		Telegram  string `json:"telegram"`
+	} `json:"social"`
+}
+
+// AdminTicket defines model for AdminTicket.
+type AdminTicket struct {
+	ClosedAt      *time.Time          `json:"closedAt,omitempty"`
+	CreatedAt     time.Time           `json:"createdAt"`
+	Id            openapi_types.UUID  `json:"id"`
+	LastMessageAt time.Time           `json:"lastMessageAt"`
+	Number        int64               `json:"number"`
+	Priority      AdminTicketPriority `json:"priority"`
+
+	// Status open = waiting for support, answered = waiting for the user
+	Status  TicketStatus       `json:"status"`
+	Subject string             `json:"subject"`
+	UserId  openapi_types.UUID `json:"userId"`
+
+	// UserName First and last name
+	UserName *string `json:"userName,omitempty"`
+	Username string  `json:"username"`
+}
+
+// AdminTicketPriority defines model for AdminTicket.Priority.
+type AdminTicketPriority string
+
+// AdminTicketThread defines model for AdminTicketThread.
+type AdminTicketThread struct {
+	Messages []TicketMessage `json:"messages"`
+	Ticket   AdminTicket     `json:"ticket"`
+}
+
 // AdminUser defines model for AdminUser.
 type AdminUser struct {
 	Blocked       bool       `json:"blocked"`
@@ -720,6 +1218,75 @@ type AdminUser struct {
 	Phone       *string            `json:"phone,omitempty"`
 	Username    string             `json:"username"`
 }
+
+// Article defines model for Article.
+type Article struct {
+	Author *string `json:"author,omitempty"`
+
+	// Body Sanitized HTML. Absent when locked
+	Body     *string    `json:"body,omitempty"`
+	Category *Localized `json:"category,omitempty"`
+	CoverUrl *string    `json:"coverUrl,omitempty"`
+	Featured bool       `json:"featured"`
+
+	// Locked The caller's plan doesn't include this type; the body won't be sent
+	Locked bool       `json:"locked"`
+	Metal  *Localized `json:"metal,omitempty"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook     *Outlook  `json:"outlook,omitempty"`
+	PublishedAt time.Time `json:"publishedAt"`
+	ReadMinutes int       `json:"readMinutes"`
+
+	// RequiredPlan Subscription tier (plan code)
+	RequiredPlan *Tier  `json:"requiredPlan,omitempty"`
+	Slug         string `json:"slug"`
+
+	// Summary Plain text
+	Summary   string      `json:"summary"`
+	Title     string      `json:"title"`
+	Type      ArticleType `json:"type"`
+	UpdatedAt time.Time   `json:"updatedAt"`
+}
+
+// ArticleList defines model for ArticleList.
+type ArticleList struct {
+	Items []ArticleSummary `json:"items"`
+	Limit int              `json:"limit"`
+	Page  int              `json:"page"`
+	Total int              `json:"total"`
+}
+
+// ArticleStatus defines model for ArticleStatus.
+type ArticleStatus string
+
+// ArticleSummary defines model for ArticleSummary.
+type ArticleSummary struct {
+	Category *Localized `json:"category,omitempty"`
+	CoverUrl *string    `json:"coverUrl,omitempty"`
+	Featured bool       `json:"featured"`
+
+	// Locked The caller's plan doesn't include this type; the body won't be sent
+	Locked bool       `json:"locked"`
+	Metal  *Localized `json:"metal,omitempty"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook     *Outlook  `json:"outlook,omitempty"`
+	PublishedAt time.Time `json:"publishedAt"`
+	ReadMinutes int       `json:"readMinutes"`
+
+	// RequiredPlan Subscription tier (plan code)
+	RequiredPlan *Tier  `json:"requiredPlan,omitempty"`
+	Slug         string `json:"slug"`
+
+	// Summary Plain text
+	Summary string      `json:"summary"`
+	Title   string      `json:"title"`
+	Type    ArticleType `json:"type"`
+}
+
+// ArticleType defines model for ArticleType.
+type ArticleType string
 
 // BillingPeriod defines model for BillingPeriod.
 type BillingPeriod string
@@ -774,6 +1341,34 @@ type CheckoutResult struct {
 	RedirectUrl *string `json:"redirectUrl,omitempty"`
 }
 
+// ContactInfo Empty fields are omitted (client answer #30: filled in later in the admin)
+type ContactInfo struct {
+	Address *string `json:"address,omitempty"`
+	Email   *string `json:"email,omitempty"`
+	Hours   *string `json:"hours,omitempty"`
+	Phone   *string `json:"phone,omitempty"`
+}
+
+// ContactInput defines model for ContactInput.
+type ContactInput struct {
+	Body  string  `json:"body"`
+	Email *string `json:"email,omitempty"`
+	Name  string  `json:"name"`
+
+	// Phone Persian digits are accepted
+	Phone   string         `json:"phone"`
+	Subject ContactSubject `json:"subject"`
+
+	// Website Honeypot. Humans leave it empty; filled = silently dropped
+	Website *string `json:"website,omitempty"`
+}
+
+// ContactStatus defines model for ContactStatus.
+type ContactStatus string
+
+// ContactSubject defines model for ContactSubject.
+type ContactSubject string
+
 // Currency defines model for Currency.
 type Currency string
 
@@ -788,6 +1383,24 @@ type Entitlements struct {
 	// Tier Subscription tier (plan code)
 	Tier       Tier       `json:"tier"`
 	TierEndsAt *time.Time `json:"tierEndsAt,omitempty"`
+}
+
+// FaqCategory defines model for FaqCategory.
+type FaqCategory struct {
+	Items []FaqItem `json:"items"`
+	Name  string    `json:"name"`
+	Slug  string    `json:"slug"`
+}
+
+// FaqItem defines model for FaqItem.
+type FaqItem struct {
+	// Answer Sanitized HTML
+	Answer   string `json:"answer"`
+	Popular  bool   `json:"popular"`
+	Question string `json:"question"`
+
+	// Slug Stable deep link (/faq#slug)
+	Slug string `json:"slug"`
 }
 
 // FeatureLock defines model for FeatureLock.
@@ -844,6 +1457,11 @@ type Me struct {
 	// Tier Subscription tier (plan code)
 	Tier     Tier   `json:"tier"`
 	Username string `json:"username"`
+}
+
+// MessageInput defines model for MessageInput.
+type MessageInput struct {
+	Body string `json:"body"`
 }
 
 // Metal defines model for Metal.
@@ -905,6 +1523,19 @@ type OrderKind string
 
 // OrderStatus defines model for OrderStatus.
 type OrderStatus string
+
+// Outlook The author's view of the price direction (an estimate, never a promise)
+type Outlook string
+
+// Page defines model for Page.
+type Page struct {
+	// Body Sanitized HTML
+	Body      string    `json:"body"`
+	Slug      string    `json:"slug"`
+	Title     string    `json:"title"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Version   int       `json:"version"`
+}
 
 // PaidPlan defines model for PaidPlan.
 type PaidPlan string
@@ -1041,6 +1672,18 @@ type SeriesRef struct {
 	Unit    Unit      `json:"unit"`
 }
 
+// SiteInfo defines model for SiteInfo.
+type SiteInfo struct {
+	// Contact Empty fields are omitted (client answer #30: filled in later in the admin)
+	Contact ContactInfo `json:"contact"`
+
+	// LicensesPage Show the licenses page and its footer link (flag page.licenses)
+	LicensesPage bool `json:"licensesPage"`
+
+	// Social Network → URL, only the ones set
+	Social map[string]string `json:"social"`
+}
+
 // SourceHealth defines model for SourceHealth.
 type SourceHealth struct {
 	Active               bool                       `json:"active"`
@@ -1080,6 +1723,44 @@ type SubscriptionOrigin string
 // SubscriptionStatus defines model for Subscription.Status.
 type SubscriptionStatus string
 
+// Ticket defines model for Ticket.
+type Ticket struct {
+	ClosedAt      *time.Time         `json:"closedAt,omitempty"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	Id            openapi_types.UUID `json:"id"`
+	LastMessageAt time.Time          `json:"lastMessageAt"`
+	Number        int64              `json:"number"`
+	Priority      TicketPriority     `json:"priority"`
+
+	// Status open = waiting for support, answered = waiting for the user
+	Status  TicketStatus `json:"status"`
+	Subject string       `json:"subject"`
+}
+
+// TicketPriority defines model for Ticket.Priority.
+type TicketPriority string
+
+// TicketMessage defines model for TicketMessage.
+type TicketMessage struct {
+	// Author The user's name
+	Author *string `json:"author,omitempty"`
+
+	// Body Plain text
+	Body      string             `json:"body"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Staff     bool               `json:"staff"`
+}
+
+// TicketStatus open = waiting for support, answered = waiting for the user
+type TicketStatus string
+
+// TicketThread defines model for TicketThread.
+type TicketThread struct {
+	Messages []TicketMessage `json:"messages"`
+	Ticket   Ticket          `json:"ticket"`
+}
+
 // Tier Subscription tier (plan code)
 type Tier string
 
@@ -1088,6 +1769,24 @@ type Unit string
 
 // AcceptLanguage defines model for AcceptLanguage.
 type AcceptLanguage string
+
+// AdminListArticlesParams defines parameters for AdminListArticles.
+type AdminListArticlesParams struct {
+	Type   *ArticleType   `form:"type,omitempty" json:"type,omitempty"`
+	Status *ArticleStatus `form:"status,omitempty" json:"status,omitempty"`
+	Q      *string        `form:"q,omitempty" json:"q,omitempty"`
+}
+
+// AdminListContactMessagesParams defines parameters for AdminListContactMessages.
+type AdminListContactMessagesParams struct {
+	Status *ContactStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// AdminUpdateContactMessageJSONBody defines parameters for AdminUpdateContactMessage.
+type AdminUpdateContactMessageJSONBody struct {
+	Note   *string       `json:"note,omitempty"`
+	Status ContactStatus `json:"status"`
+}
 
 // AdminListOrdersParams defines parameters for AdminListOrders.
 type AdminListOrdersParams struct {
@@ -1134,10 +1833,51 @@ type AdminGrantSubscriptionJSONBody struct {
 	UserId openapi_types.UUID `json:"userId"`
 }
 
+// AdminListTicketsParams defines parameters for AdminListTickets.
+type AdminListTicketsParams struct {
+	Status *TicketStatus       `form:"status,omitempty" json:"status,omitempty"`
+	UserId *openapi_types.UUID `form:"userId,omitempty" json:"userId,omitempty"`
+}
+
+// AdminSetTicketStatusJSONBody defines parameters for AdminSetTicketStatus.
+type AdminSetTicketStatusJSONBody struct {
+	// Status open = waiting for support, answered = waiting for the user
+	Status TicketStatus `json:"status"`
+}
+
 // AdminListUsersParams defines parameters for AdminListUsers.
 type AdminListUsersParams struct {
 	Q *string `form:"q,omitempty" json:"q,omitempty"`
 }
+
+// ListArticleCategoriesParams defines parameters for ListArticleCategories.
+type ListArticleCategoriesParams struct {
+	AcceptLanguage *ListArticleCategoriesParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// ListArticleCategoriesParamsAcceptLanguage defines parameters for ListArticleCategories.
+type ListArticleCategoriesParamsAcceptLanguage string
+
+// ListArticlesParams defines parameters for ListArticles.
+type ListArticlesParams struct {
+	Type           *[]ArticleType                    `form:"type,omitempty" json:"type,omitempty"`
+	Category       *string                           `form:"category,omitempty" json:"category,omitempty"`
+	Metal          *string                           `form:"metal,omitempty" json:"metal,omitempty"`
+	Page           *int                              `form:"page,omitempty" json:"page,omitempty"`
+	Limit          *int                              `form:"limit,omitempty" json:"limit,omitempty"`
+	AcceptLanguage *ListArticlesParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// ListArticlesParamsAcceptLanguage defines parameters for ListArticles.
+type ListArticlesParamsAcceptLanguage string
+
+// GetArticleParams defines parameters for GetArticle.
+type GetArticleParams struct {
+	AcceptLanguage *GetArticleParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// GetArticleParamsAcceptLanguage defines parameters for GetArticle.
+type GetArticleParamsAcceptLanguage string
 
 // ListCategoriesParams defines parameters for ListCategories.
 type ListCategoriesParams struct {
@@ -1156,6 +1896,14 @@ type StartCheckoutParams struct {
 // StartCheckoutParamsAcceptLanguage defines parameters for StartCheckout.
 type StartCheckoutParamsAcceptLanguage string
 
+// GetFaqParams defines parameters for GetFaq.
+type GetFaqParams struct {
+	AcceptLanguage *GetFaqParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// GetFaqParamsAcceptLanguage defines parameters for GetFaq.
+type GetFaqParamsAcceptLanguage string
+
 // ListMarketsParams defines parameters for ListMarkets.
 type ListMarketsParams struct {
 	AcceptLanguage *ListMarketsParamsAcceptLanguage `json:"Accept-Language,omitempty"`
@@ -1169,6 +1917,17 @@ type RequestRefundJSONBody struct {
 	Reason *string `json:"reason,omitempty"`
 }
 
+// CreateTicketJSONBody defines parameters for CreateTicket.
+type CreateTicketJSONBody struct {
+	Body    string `json:"body"`
+	Subject string `json:"subject"`
+}
+
+// CreateTicketParams defines parameters for CreateTicket.
+type CreateTicketParams struct {
+	IdempotencyKey string `json:"Idempotency-Key"`
+}
+
 // ListMetalsParams defines parameters for ListMetals.
 type ListMetalsParams struct {
 	AcceptLanguage *ListMetalsParamsAcceptLanguage `json:"Accept-Language,omitempty"`
@@ -1176,6 +1935,14 @@ type ListMetalsParams struct {
 
 // ListMetalsParamsAcceptLanguage defines parameters for ListMetals.
 type ListMetalsParamsAcceptLanguage string
+
+// GetPageParams defines parameters for GetPage.
+type GetPageParams struct {
+	AcceptLanguage *GetPageParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// GetPageParamsAcceptLanguage defines parameters for GetPage.
+type GetPageParamsAcceptLanguage string
 
 // VerifyPaymentJSONBody defines parameters for VerifyPayment.
 type VerifyPaymentJSONBody struct {
@@ -1216,6 +1983,44 @@ type ListSeriesPointsParams struct {
 // ListSeriesPointsParamsAcceptLanguage defines parameters for ListSeriesPoints.
 type ListSeriesPointsParamsAcceptLanguage string
 
+// GetSiteParams defines parameters for GetSite.
+type GetSiteParams struct {
+	AcceptLanguage *GetSiteParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// GetSiteParamsAcceptLanguage defines parameters for GetSite.
+type GetSiteParamsAcceptLanguage string
+
+// AdminCreateArticleCategoryJSONRequestBody defines body for AdminCreateArticleCategory for application/json ContentType.
+type AdminCreateArticleCategoryJSONRequestBody = AdminCategory
+
+// AdminUpdateArticleCategoryJSONRequestBody defines body for AdminUpdateArticleCategory for application/json ContentType.
+type AdminUpdateArticleCategoryJSONRequestBody = AdminCategory
+
+// AdminCreateArticleJSONRequestBody defines body for AdminCreateArticle for application/json ContentType.
+type AdminCreateArticleJSONRequestBody = AdminArticleInput
+
+// AdminUpdateArticleJSONRequestBody defines body for AdminUpdateArticle for application/json ContentType.
+type AdminUpdateArticleJSONRequestBody = AdminArticleInput
+
+// AdminUpdateContactMessageJSONRequestBody defines body for AdminUpdateContactMessage for application/json ContentType.
+type AdminUpdateContactMessageJSONRequestBody AdminUpdateContactMessageJSONBody
+
+// AdminCreateFaqCategoryJSONRequestBody defines body for AdminCreateFaqCategory for application/json ContentType.
+type AdminCreateFaqCategoryJSONRequestBody = AdminCategory
+
+// AdminUpdateFaqCategoryJSONRequestBody defines body for AdminUpdateFaqCategory for application/json ContentType.
+type AdminUpdateFaqCategoryJSONRequestBody = AdminCategory
+
+// AdminCreateFaqItemJSONRequestBody defines body for AdminCreateFaqItem for application/json ContentType.
+type AdminCreateFaqItemJSONRequestBody = AdminFaqInput
+
+// AdminUpdateFaqItemJSONRequestBody defines body for AdminUpdateFaqItem for application/json ContentType.
+type AdminUpdateFaqItemJSONRequestBody = AdminFaqInput
+
+// AdminUpdatePageJSONRequestBody defines body for AdminUpdatePage for application/json ContentType.
+type AdminUpdatePageJSONRequestBody = AdminPageInput
+
 // AdminCreatePriceJSONRequestBody defines body for AdminCreatePrice for application/json ContentType.
 type AdminCreatePriceJSONRequestBody = ManualPriceInput
 
@@ -1228,8 +2033,17 @@ type AdminReviewPriceJSONRequestBody AdminReviewPriceJSONBody
 // AdminDecideRefundJSONRequestBody defines body for AdminDecideRefund for application/json ContentType.
 type AdminDecideRefundJSONRequestBody AdminDecideRefundJSONBody
 
+// AdminUpdateSettingsJSONRequestBody defines body for AdminUpdateSettings for application/json ContentType.
+type AdminUpdateSettingsJSONRequestBody = AdminSettings
+
 // AdminGrantSubscriptionJSONRequestBody defines body for AdminGrantSubscription for application/json ContentType.
 type AdminGrantSubscriptionJSONRequestBody AdminGrantSubscriptionJSONBody
+
+// AdminReplyTicketJSONRequestBody defines body for AdminReplyTicket for application/json ContentType.
+type AdminReplyTicketJSONRequestBody = MessageInput
+
+// AdminSetTicketStatusJSONRequestBody defines body for AdminSetTicketStatus for application/json ContentType.
+type AdminSetTicketStatusJSONRequestBody AdminSetTicketStatusJSONBody
 
 // StartCheckoutJSONRequestBody defines body for StartCheckout for application/json ContentType.
 type StartCheckoutJSONRequestBody = CheckoutInput
@@ -1237,17 +2051,80 @@ type StartCheckoutJSONRequestBody = CheckoutInput
 // QuoteCheckoutJSONRequestBody defines body for QuoteCheckout for application/json ContentType.
 type QuoteCheckoutJSONRequestBody = CheckoutInput
 
+// SendContactMessageJSONRequestBody defines body for SendContactMessage for application/json ContentType.
+type SendContactMessageJSONRequestBody = ContactInput
+
 // RequestRefundJSONRequestBody defines body for RequestRefund for application/json ContentType.
 type RequestRefundJSONRequestBody RequestRefundJSONBody
+
+// CreateTicketJSONRequestBody defines body for CreateTicket for application/json ContentType.
+type CreateTicketJSONRequestBody CreateTicketJSONBody
+
+// ReplyMyTicketJSONRequestBody defines body for ReplyMyTicket for application/json ContentType.
+type ReplyMyTicketJSONRequestBody = MessageInput
 
 // VerifyPaymentJSONRequestBody defines body for VerifyPayment for application/json ContentType.
 type VerifyPaymentJSONRequestBody VerifyPaymentJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// AdminListArticleCategories Article categories
+	// (GET /v1/admin/article-categories)
+	AdminListArticleCategories(w http.ResponseWriter, r *http.Request)
+	// AdminCreateArticleCategory Add an article category. Roles, editor, admin
+	// (POST /v1/admin/article-categories)
+	AdminCreateArticleCategory(w http.ResponseWriter, r *http.Request)
+	// AdminUpdateArticleCategory Rename or reorder an article category (the slug stays). Roles, editor, admin
+	// (PUT /v1/admin/article-categories/{slug})
+	AdminUpdateArticleCategory(w http.ResponseWriter, r *http.Request, slug string)
+	// AdminListArticles Articles in any status, recently edited first (max 200)
+	// (GET /v1/admin/articles)
+	AdminListArticles(w http.ResponseWriter, r *http.Request, params AdminListArticlesParams)
+	// AdminCreateArticle Create an article. Bodies are sanitized (ADR-0025). Roles, editor, admin
+	// (POST /v1/admin/articles)
+	AdminCreateArticle(w http.ResponseWriter, r *http.Request)
+	// AdminGetArticle One article for editing
+	// (GET /v1/admin/articles/{id})
+	AdminGetArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminUpdateArticle Replace an article (archive = status archived). Roles, editor, admin
+	// (PUT /v1/admin/articles/{id})
+	AdminUpdateArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminListContactMessages Contact form messages, newest first (max 200)
+	// (GET /v1/admin/contact-messages)
+	AdminListContactMessages(w http.ResponseWriter, r *http.Request, params AdminListContactMessagesParams)
+	// AdminUpdateContactMessage Mark a message handled / spam, with a note. Roles, support, admin
+	// (PUT /v1/admin/contact-messages/{id})
+	AdminUpdateContactMessage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminGetFaq Every FAQ category and item, published or not
+	// (GET /v1/admin/faq)
+	AdminGetFaq(w http.ResponseWriter, r *http.Request)
+	// AdminCreateFaqCategory Add an FAQ category. Roles, editor, admin
+	// (POST /v1/admin/faq/categories)
+	AdminCreateFaqCategory(w http.ResponseWriter, r *http.Request)
+	// AdminUpdateFaqCategory Rename or reorder an FAQ category. Roles, editor, admin
+	// (PUT /v1/admin/faq/categories/{slug})
+	AdminUpdateFaqCategory(w http.ResponseWriter, r *http.Request, slug string)
+	// AdminCreateFaqItem Add a question. Its slug is the permanent deep link. Roles, editor, admin
+	// (POST /v1/admin/faq/items)
+	AdminCreateFaqItem(w http.ResponseWriter, r *http.Request)
+	// AdminDeleteFaqItem Delete a question (prefer unpublishing). Roles, editor, admin
+	// (DELETE /v1/admin/faq/items/{id})
+	AdminDeleteFaqItem(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminUpdateFaqItem Edit a question (the slug can't change, so shared links keep working). Roles, editor, admin
+	// (PUT /v1/admin/faq/items/{id})
+	AdminUpdateFaqItem(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// AdminListOrders Latest orders (max 100), optionally filtered
 	// (GET /v1/admin/orders)
 	AdminListOrders(w http.ResponseWriter, r *http.Request, params AdminListOrdersParams)
+	// AdminListPages Static pages
+	// (GET /v1/admin/pages)
+	AdminListPages(w http.ResponseWriter, r *http.Request)
+	// AdminGetPage One page for editing
+	// (GET /v1/admin/pages/{slug})
+	AdminGetPage(w http.ResponseWriter, r *http.Request, slug string)
+	// AdminUpdatePage Save a page. `version` must be the one you loaded (409 CONFLICT if someone saved in between). Roles, editor, admin
+	// (PUT /v1/admin/pages/{slug})
+	AdminUpdatePage(w http.ResponseWriter, r *http.Request, slug string)
 	// AdminCreatePrice Manual price entry (fallback when a source is down, SCOPE §13)
 	// (POST /v1/admin/prices)
 	AdminCreatePrice(w http.ResponseWriter, r *http.Request)
@@ -1266,6 +2143,12 @@ type ServerInterface interface {
 	// AdminListSeries Every series with its latest price and outlier threshold
 	// (GET /v1/admin/series)
 	AdminListSeries(w http.ResponseWriter, r *http.Request)
+	// AdminGetSettings Editable site settings (contact details, social links)
+	// (GET /v1/admin/settings)
+	AdminGetSettings(w http.ResponseWriter, r *http.Request)
+	// AdminUpdateSettings Save site settings. Role, admin
+	// (PUT /v1/admin/settings)
+	AdminUpdateSettings(w http.ResponseWriter, r *http.Request)
 	// AdminListSources Source health (last run, last success, stale flag)
 	// (GET /v1/admin/sources)
 	AdminListSources(w http.ResponseWriter, r *http.Request)
@@ -1275,9 +2158,33 @@ type ServerInterface interface {
 	// AdminGrantSubscription Grant a subscription manually (until checkout exists). Role, admin
 	// (POST /v1/admin/subscriptions)
 	AdminGrantSubscription(w http.ResponseWriter, r *http.Request)
+	// AdminSupportSummary Counts for the admin menu badges
+	// (GET /v1/admin/support/summary)
+	AdminSupportSummary(w http.ResponseWriter, r *http.Request)
+	// AdminListTickets The support queue (open first, high priority first, oldest waiting first)
+	// (GET /v1/admin/tickets)
+	AdminListTickets(w http.ResponseWriter, r *http.Request, params AdminListTicketsParams)
+	// AdminGetTicket A ticket with its messages
+	// (GET /v1/admin/tickets/{id})
+	AdminGetTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminReplyTicket Reply as support (the ticket becomes "answered"). Roles, support, admin
+	// (POST /v1/admin/tickets/{id}/messages)
+	AdminReplyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminSetTicketStatus Change a ticket's status. Roles, support, admin
+	// (PUT /v1/admin/tickets/{id}/status)
+	AdminSetTicketStatus(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// AdminListUsers Search users by mobile, name or id (max 50)
 	// (GET /v1/admin/users)
 	AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams)
+	// ListArticleCategories Topic tabs of the analysis page (besides metals)
+	// (GET /v1/article-categories)
+	ListArticleCategories(w http.ResponseWriter, r *http.Request, params ListArticleCategoriesParams)
+	// ListArticles Published articles, newest first. Bodies are never listed
+	// (GET /v1/articles)
+	ListArticles(w http.ResponseWriter, r *http.Request, params ListArticlesParams)
+	// GetArticle One published article. `body` is present only when the caller's plan includes its type
+	// (GET /v1/articles/{slug})
+	GetArticle(w http.ResponseWriter, r *http.Request, slug string, params GetArticleParams)
 	// ListCategories List product categories (raw materials, intermediate products, scrap)
 	// (GET /v1/categories)
 	ListCategories(w http.ResponseWriter, r *http.Request, params ListCategoriesParams)
@@ -1287,6 +2194,12 @@ type ServerInterface interface {
 	// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
 	// (POST /v1/checkout/quote)
 	QuoteCheckout(w http.ResponseWriter, r *http.Request)
+	// SendContactMessage Contact form (anonymous allowed; rate-limited per IP → 429 RATE_LIMITED)
+	// (POST /v1/contact)
+	SendContactMessage(w http.ResponseWriter, r *http.Request)
+	// GetFaq Published FAQ by category (the page, its search and its FAQPage schema use exactly this)
+	// (GET /v1/faq)
+	GetFaq(w http.ResponseWriter, r *http.Request, params GetFaqParams)
 	// ListMarkets List markets / price sources
 	// (GET /v1/markets)
 	ListMarkets(w http.ResponseWriter, r *http.Request, params ListMarketsParams)
@@ -1308,9 +2221,27 @@ type ServerInterface interface {
 	// ListMySubscriptions The user's subscriptions, newest first (includes queued ones)
 	// (GET /v1/me/subscriptions)
 	ListMySubscriptions(w http.ResponseWriter, r *http.Request)
+	// ListMyTickets The caller's tickets, latest activity first
+	// (GET /v1/me/tickets)
+	ListMyTickets(w http.ResponseWriter, r *http.Request)
+	// CreateTicket Open a ticket with its first message. The same Idempotency-Key returns the first ticket (200)
+	// (POST /v1/me/tickets)
+	CreateTicket(w http.ResponseWriter, r *http.Request, params CreateTicketParams)
+	// GetMyTicket One of the caller's tickets with its messages
+	// (GET /v1/me/tickets/{id})
+	GetMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// CloseMyTicket Close one of the caller's tickets
+	// (POST /v1/me/tickets/{id}/close)
+	CloseMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// ReplyMyTicket Reply to one of the caller's tickets (reopens it if closed)
+	// (POST /v1/me/tickets/{id}/messages)
+	ReplyMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// ListMetals List base metals
 	// (GET /v1/metals)
 	ListMetals(w http.ResponseWriter, r *http.Request, params ListMetalsParams)
+	// GetPage A static page (about, terms, privacy, licenses). 404 when unpublished
+	// (GET /v1/pages/{slug})
+	GetPage(w http.ResponseWriter, r *http.Request, slug string, params GetPageParams)
 	// VerifyPayment Complete a payment after the gateway redirected the browser back (called by the website's callback page)
 	// (POST /v1/payments/verify)
 	VerifyPayment(w http.ResponseWriter, r *http.Request)
@@ -1323,15 +2254,126 @@ type ServerInterface interface {
 	// ListSeriesPoints Price history of one series, downsampled to at most ~300 points
 	// (GET /v1/series/{slug}/points)
 	ListSeriesPoints(w http.ResponseWriter, r *http.Request, slug string, params ListSeriesPointsParams)
+	// GetSite Public site settings (contact details, social links, which optional pages are on)
+	// (GET /v1/site)
+	GetSite(w http.ResponseWriter, r *http.Request, params GetSiteParams)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
 
+// AdminListArticleCategories Article categories
+// (GET /v1/admin/article-categories)
+func (_ Unimplemented) AdminListArticleCategories(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminCreateArticleCategory Add an article category. Roles, editor, admin
+// (POST /v1/admin/article-categories)
+func (_ Unimplemented) AdminCreateArticleCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateArticleCategory Rename or reorder an article category (the slug stays). Roles, editor, admin
+// (PUT /v1/admin/article-categories/{slug})
+func (_ Unimplemented) AdminUpdateArticleCategory(w http.ResponseWriter, r *http.Request, slug string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminListArticles Articles in any status, recently edited first (max 200)
+// (GET /v1/admin/articles)
+func (_ Unimplemented) AdminListArticles(w http.ResponseWriter, r *http.Request, params AdminListArticlesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminCreateArticle Create an article. Bodies are sanitized (ADR-0025). Roles, editor, admin
+// (POST /v1/admin/articles)
+func (_ Unimplemented) AdminCreateArticle(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminGetArticle One article for editing
+// (GET /v1/admin/articles/{id})
+func (_ Unimplemented) AdminGetArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateArticle Replace an article (archive = status archived). Roles, editor, admin
+// (PUT /v1/admin/articles/{id})
+func (_ Unimplemented) AdminUpdateArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminListContactMessages Contact form messages, newest first (max 200)
+// (GET /v1/admin/contact-messages)
+func (_ Unimplemented) AdminListContactMessages(w http.ResponseWriter, r *http.Request, params AdminListContactMessagesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateContactMessage Mark a message handled / spam, with a note. Roles, support, admin
+// (PUT /v1/admin/contact-messages/{id})
+func (_ Unimplemented) AdminUpdateContactMessage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminGetFaq Every FAQ category and item, published or not
+// (GET /v1/admin/faq)
+func (_ Unimplemented) AdminGetFaq(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminCreateFaqCategory Add an FAQ category. Roles, editor, admin
+// (POST /v1/admin/faq/categories)
+func (_ Unimplemented) AdminCreateFaqCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateFaqCategory Rename or reorder an FAQ category. Roles, editor, admin
+// (PUT /v1/admin/faq/categories/{slug})
+func (_ Unimplemented) AdminUpdateFaqCategory(w http.ResponseWriter, r *http.Request, slug string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminCreateFaqItem Add a question. Its slug is the permanent deep link. Roles, editor, admin
+// (POST /v1/admin/faq/items)
+func (_ Unimplemented) AdminCreateFaqItem(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminDeleteFaqItem Delete a question (prefer unpublishing). Roles, editor, admin
+// (DELETE /v1/admin/faq/items/{id})
+func (_ Unimplemented) AdminDeleteFaqItem(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateFaqItem Edit a question (the slug can't change, so shared links keep working). Roles, editor, admin
+// (PUT /v1/admin/faq/items/{id})
+func (_ Unimplemented) AdminUpdateFaqItem(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // AdminListOrders Latest orders (max 100), optionally filtered
 // (GET /v1/admin/orders)
 func (_ Unimplemented) AdminListOrders(w http.ResponseWriter, r *http.Request, params AdminListOrdersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminListPages Static pages
+// (GET /v1/admin/pages)
+func (_ Unimplemented) AdminListPages(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminGetPage One page for editing
+// (GET /v1/admin/pages/{slug})
+func (_ Unimplemented) AdminGetPage(w http.ResponseWriter, r *http.Request, slug string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdatePage Save a page. `version` must be the one you loaded (409 CONFLICT if someone saved in between). Roles, editor, admin
+// (PUT /v1/admin/pages/{slug})
+func (_ Unimplemented) AdminUpdatePage(w http.ResponseWriter, r *http.Request, slug string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1371,6 +2413,18 @@ func (_ Unimplemented) AdminListSeries(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// AdminGetSettings Editable site settings (contact details, social links)
+// (GET /v1/admin/settings)
+func (_ Unimplemented) AdminGetSettings(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateSettings Save site settings. Role, admin
+// (PUT /v1/admin/settings)
+func (_ Unimplemented) AdminUpdateSettings(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // AdminListSources Source health (last run, last success, stale flag)
 // (GET /v1/admin/sources)
 func (_ Unimplemented) AdminListSources(w http.ResponseWriter, r *http.Request) {
@@ -1389,9 +2443,57 @@ func (_ Unimplemented) AdminGrantSubscription(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// AdminSupportSummary Counts for the admin menu badges
+// (GET /v1/admin/support/summary)
+func (_ Unimplemented) AdminSupportSummary(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminListTickets The support queue (open first, high priority first, oldest waiting first)
+// (GET /v1/admin/tickets)
+func (_ Unimplemented) AdminListTickets(w http.ResponseWriter, r *http.Request, params AdminListTicketsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminGetTicket A ticket with its messages
+// (GET /v1/admin/tickets/{id})
+func (_ Unimplemented) AdminGetTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminReplyTicket Reply as support (the ticket becomes "answered"). Roles, support, admin
+// (POST /v1/admin/tickets/{id}/messages)
+func (_ Unimplemented) AdminReplyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminSetTicketStatus Change a ticket's status. Roles, support, admin
+// (PUT /v1/admin/tickets/{id}/status)
+func (_ Unimplemented) AdminSetTicketStatus(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // AdminListUsers Search users by mobile, name or id (max 50)
 // (GET /v1/admin/users)
 func (_ Unimplemented) AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListArticleCategories Topic tabs of the analysis page (besides metals)
+// (GET /v1/article-categories)
+func (_ Unimplemented) ListArticleCategories(w http.ResponseWriter, r *http.Request, params ListArticleCategoriesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListArticles Published articles, newest first. Bodies are never listed
+// (GET /v1/articles)
+func (_ Unimplemented) ListArticles(w http.ResponseWriter, r *http.Request, params ListArticlesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetArticle One published article. `body` is present only when the caller's plan includes its type
+// (GET /v1/articles/{slug})
+func (_ Unimplemented) GetArticle(w http.ResponseWriter, r *http.Request, slug string, params GetArticleParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1410,6 +2512,18 @@ func (_ Unimplemented) StartCheckout(w http.ResponseWriter, r *http.Request, par
 // QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
 // (POST /v1/checkout/quote)
 func (_ Unimplemented) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// SendContactMessage Contact form (anonymous allowed; rate-limited per IP → 429 RATE_LIMITED)
+// (POST /v1/contact)
+func (_ Unimplemented) SendContactMessage(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetFaq Published FAQ by category (the page, its search and its FAQPage schema use exactly this)
+// (GET /v1/faq)
+func (_ Unimplemented) GetFaq(w http.ResponseWriter, r *http.Request, params GetFaqParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1455,9 +2569,45 @@ func (_ Unimplemented) ListMySubscriptions(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// ListMyTickets The caller's tickets, latest activity first
+// (GET /v1/me/tickets)
+func (_ Unimplemented) ListMyTickets(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateTicket Open a ticket with its first message. The same Idempotency-Key returns the first ticket (200)
+// (POST /v1/me/tickets)
+func (_ Unimplemented) CreateTicket(w http.ResponseWriter, r *http.Request, params CreateTicketParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetMyTicket One of the caller's tickets with its messages
+// (GET /v1/me/tickets/{id})
+func (_ Unimplemented) GetMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CloseMyTicket Close one of the caller's tickets
+// (POST /v1/me/tickets/{id}/close)
+func (_ Unimplemented) CloseMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ReplyMyTicket Reply to one of the caller's tickets (reopens it if closed)
+// (POST /v1/me/tickets/{id}/messages)
+func (_ Unimplemented) ReplyMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // ListMetals List base metals
 // (GET /v1/metals)
 func (_ Unimplemented) ListMetals(w http.ResponseWriter, r *http.Request, params ListMetalsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetPage A static page (about, terms, privacy, licenses). 404 when unpublished
+// (GET /v1/pages/{slug})
+func (_ Unimplemented) GetPage(w http.ResponseWriter, r *http.Request, slug string, params GetPageParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1485,6 +2635,12 @@ func (_ Unimplemented) ListSeriesPoints(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// GetSite Public site settings (contact details, social links, which optional pages are on)
+// (GET /v1/site)
+func (_ Unimplemented) GetSite(w http.ResponseWriter, r *http.Request, params GetSiteParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // ServerInterfaceWrapper converts contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler            ServerInterface
@@ -1493,6 +2649,364 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// AdminListArticleCategories operation middleware
+func (siw *ServerInterfaceWrapper) AdminListArticleCategories(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListArticleCategories(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateArticleCategory operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateArticleCategory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateArticleCategory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateArticleCategory operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateArticleCategory(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateArticleCategory(w, r, slug)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListArticles operation middleware
+func (siw *ServerInterfaceWrapper) AdminListArticles(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListArticlesParams
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", r.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "q", r.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListArticles(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateArticle operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateArticle(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateArticle(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminGetArticle operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetArticle(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetArticle(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateArticle operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateArticle(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateArticle(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListContactMessages operation middleware
+func (siw *ServerInterfaceWrapper) AdminListContactMessages(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListContactMessagesParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListContactMessages(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateContactMessage operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateContactMessage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateContactMessage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminGetFaq operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetFaq(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetFaq(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateFaqCategory operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateFaqCategory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateFaqCategory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateFaqCategory operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateFaqCategory(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateFaqCategory(w, r, slug)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateFaqItem operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateFaqItem(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateFaqItem(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminDeleteFaqItem operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteFaqItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteFaqItem(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateFaqItem operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateFaqItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateFaqItem(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // AdminListOrders operation middleware
 func (siw *ServerInterfaceWrapper) AdminListOrders(w http.ResponseWriter, r *http.Request) {
@@ -1544,6 +3058,72 @@ func (siw *ServerInterfaceWrapper) AdminListOrders(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminListOrders(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListPages operation middleware
+func (siw *ServerInterfaceWrapper) AdminListPages(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListPages(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminGetPage operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetPage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetPage(w, r, slug)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdatePage operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdatePage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdatePage(w, r, slug)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1661,6 +3241,34 @@ func (siw *ServerInterfaceWrapper) AdminListSeries(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// AdminGetSettings operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetSettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateSettings operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateSettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // AdminListSources operation middleware
 func (siw *ServerInterfaceWrapper) AdminListSources(w http.ResponseWriter, r *http.Request) {
 
@@ -1722,6 +3330,144 @@ func (siw *ServerInterfaceWrapper) AdminGrantSubscription(w http.ResponseWriter,
 	handler.ServeHTTP(w, r)
 }
 
+// AdminSupportSummary operation middleware
+func (siw *ServerInterfaceWrapper) AdminSupportSummary(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminSupportSummary(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListTickets operation middleware
+func (siw *ServerInterfaceWrapper) AdminListTickets(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListTicketsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "userId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "userId", r.URL.Query(), &params.UserId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "userId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListTickets(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminGetTicket operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetTicket(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminReplyTicket operation middleware
+func (siw *ServerInterfaceWrapper) AdminReplyTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminReplyTicket(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminSetTicketStatus operation middleware
+func (siw *ServerInterfaceWrapper) AdminSetTicketStatus(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminSetTicketStatus(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // AdminListUsers operation middleware
 func (siw *ServerInterfaceWrapper) AdminListUsers(w http.ResponseWriter, r *http.Request) {
 
@@ -1746,6 +3492,203 @@ func (siw *ServerInterfaceWrapper) AdminListUsers(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminListUsers(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListArticleCategories operation middleware
+func (siw *ServerInterfaceWrapper) ListArticleCategories(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListArticleCategoriesParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage ListArticleCategoriesParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListArticleCategories(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListArticles operation middleware
+func (siw *ServerInterfaceWrapper) ListArticles(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListArticlesParams
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", r.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "category" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category", r.URL.Query(), &params.Category, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "metal" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "metal", r.URL.Query(), &params.Metal, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "metal"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "metal", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "page", r.URL.Query(), &params.Page, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "page"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage ListArticlesParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListArticles(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetArticle operation middleware
+func (siw *ServerInterfaceWrapper) GetArticle(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetArticleParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage GetArticleParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetArticle(w, r, slug, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1865,6 +3808,61 @@ func (siw *ServerInterfaceWrapper) QuoteCheckout(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.QuoteCheckout(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SendContactMessage operation middleware
+func (siw *ServerInterfaceWrapper) SendContactMessage(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SendContactMessage(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetFaq operation middleware
+func (siw *ServerInterfaceWrapper) GetFaq(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetFaqParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage GetFaqParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFaq(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2023,6 +4021,143 @@ func (siw *ServerInterfaceWrapper) ListMySubscriptions(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// ListMyTickets operation middleware
+func (siw *ServerInterfaceWrapper) ListMyTickets(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMyTickets(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTicket operation middleware
+func (siw *ServerInterfaceWrapper) CreateTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateTicketParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTicket(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMyTicket operation middleware
+func (siw *ServerInterfaceWrapper) GetMyTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMyTicket(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CloseMyTicket operation middleware
+func (siw *ServerInterfaceWrapper) CloseMyTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CloseMyTicket(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReplyMyTicket operation middleware
+func (siw *ServerInterfaceWrapper) ReplyMyTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReplyMyTicket(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListMetals operation middleware
 func (siw *ServerInterfaceWrapper) ListMetals(w http.ResponseWriter, r *http.Request) {
 
@@ -2055,6 +4190,56 @@ func (siw *ServerInterfaceWrapper) ListMetals(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListMetals(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPage operation middleware
+func (siw *ServerInterfaceWrapper) GetPage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "slug" -------------
+	var slug string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "slug", chi.URLParam(r, "slug"), &slug, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "slug", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetPageParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage GetPageParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPage(w, r, slug, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2275,6 +4460,47 @@ func (siw *ServerInterfaceWrapper) ListSeriesPoints(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// GetSite operation middleware
+func (siw *ServerInterfaceWrapper) GetSite(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSiteParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage GetSiteParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSite(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -2466,11 +4692,713 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/admin/subscriptions", wrapper.AdminGrantSubscription)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/articles", wrapper.ListArticles)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/articles/{slug}", wrapper.GetArticle)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/article-categories", wrapper.ListArticleCategories)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/faq", wrapper.GetFaq)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/pages/{slug}", wrapper.GetPage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/site", wrapper.GetSite)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/contact", wrapper.SendContactMessage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me/tickets", wrapper.ListMyTickets)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/me/tickets", wrapper.CreateTicket)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me/tickets/{id}", wrapper.GetMyTicket)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/me/tickets/{id}/messages", wrapper.ReplyMyTicket)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/me/tickets/{id}/close", wrapper.CloseMyTicket)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/articles", wrapper.AdminListArticles)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/articles", wrapper.AdminCreateArticle)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/articles/{id}", wrapper.AdminGetArticle)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/articles/{id}", wrapper.AdminUpdateArticle)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/article-categories", wrapper.AdminListArticleCategories)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/article-categories", wrapper.AdminCreateArticleCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/article-categories/{slug}", wrapper.AdminUpdateArticleCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/faq", wrapper.AdminGetFaq)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/faq/categories", wrapper.AdminCreateFaqCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/faq/categories/{slug}", wrapper.AdminUpdateFaqCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/faq/items", wrapper.AdminCreateFaqItem)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/admin/faq/items/{id}", wrapper.AdminDeleteFaqItem)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/faq/items/{id}", wrapper.AdminUpdateFaqItem)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/pages", wrapper.AdminListPages)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/pages/{slug}", wrapper.AdminGetPage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/pages/{slug}", wrapper.AdminUpdatePage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/settings", wrapper.AdminGetSettings)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/settings", wrapper.AdminUpdateSettings)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/support/summary", wrapper.AdminSupportSummary)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/contact-messages", wrapper.AdminListContactMessages)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/contact-messages/{id}", wrapper.AdminUpdateContactMessage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/tickets", wrapper.AdminListTickets)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/tickets/{id}", wrapper.AdminGetTicket)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/tickets/{id}/messages", wrapper.AdminReplyTicket)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/tickets/{id}/status", wrapper.AdminSetTicketStatus)
+	})
 
 	return r
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
+
+type AdminListArticleCategoriesRequestObject struct {
+}
+
+type AdminListArticleCategoriesResponseObject interface {
+	VisitAdminListArticleCategoriesResponse(w http.ResponseWriter) error
+}
+
+type AdminListArticleCategories200JSONResponse struct {
+	Items []AdminCategory `json:"items"`
+}
+
+func (response AdminListArticleCategories200JSONResponse) VisitAdminListArticleCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListArticleCategoriesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListArticleCategoriesdefaultApplicationProblemPlusJSONResponse) VisitAdminListArticleCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateArticleCategoryRequestObject struct {
+	Body *AdminCreateArticleCategoryJSONRequestBody
+}
+
+type AdminCreateArticleCategoryResponseObject interface {
+	VisitAdminCreateArticleCategoryResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateArticleCategory201JSONResponse AdminCategory
+
+func (response AdminCreateArticleCategory201JSONResponse) VisitAdminCreateArticleCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateArticleCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateArticleCategorydefaultApplicationProblemPlusJSONResponse) VisitAdminCreateArticleCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateArticleCategoryRequestObject struct {
+	Slug string `json:"slug"`
+	Body *AdminUpdateArticleCategoryJSONRequestBody
+}
+
+type AdminUpdateArticleCategoryResponseObject interface {
+	VisitAdminUpdateArticleCategoryResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateArticleCategory200JSONResponse AdminCategory
+
+func (response AdminUpdateArticleCategory200JSONResponse) VisitAdminUpdateArticleCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateArticleCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateArticleCategorydefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateArticleCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListArticlesRequestObject struct {
+	Params AdminListArticlesParams
+}
+
+type AdminListArticlesResponseObject interface {
+	VisitAdminListArticlesResponse(w http.ResponseWriter) error
+}
+
+type AdminListArticles200JSONResponse struct {
+	Items []AdminArticleRow `json:"items"`
+}
+
+func (response AdminListArticles200JSONResponse) VisitAdminListArticlesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListArticlesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListArticlesdefaultApplicationProblemPlusJSONResponse) VisitAdminListArticlesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateArticleRequestObject struct {
+	Body *AdminCreateArticleJSONRequestBody
+}
+
+type AdminCreateArticleResponseObject interface {
+	VisitAdminCreateArticleResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateArticle201JSONResponse AdminArticle
+
+func (response AdminCreateArticle201JSONResponse) VisitAdminCreateArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateArticledefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateArticledefaultApplicationProblemPlusJSONResponse) VisitAdminCreateArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetArticleRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type AdminGetArticleResponseObject interface {
+	VisitAdminGetArticleResponse(w http.ResponseWriter) error
+}
+
+type AdminGetArticle200JSONResponse AdminArticle
+
+func (response AdminGetArticle200JSONResponse) VisitAdminGetArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetArticledefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminGetArticledefaultApplicationProblemPlusJSONResponse) VisitAdminGetArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateArticleRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminUpdateArticleJSONRequestBody
+}
+
+type AdminUpdateArticleResponseObject interface {
+	VisitAdminUpdateArticleResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateArticle200JSONResponse AdminArticle
+
+func (response AdminUpdateArticle200JSONResponse) VisitAdminUpdateArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateArticledefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateArticledefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListContactMessagesRequestObject struct {
+	Params AdminListContactMessagesParams
+}
+
+type AdminListContactMessagesResponseObject interface {
+	VisitAdminListContactMessagesResponse(w http.ResponseWriter) error
+}
+
+type AdminListContactMessages200JSONResponse struct {
+	Items []AdminContactMessage `json:"items"`
+}
+
+func (response AdminListContactMessages200JSONResponse) VisitAdminListContactMessagesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListContactMessagesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListContactMessagesdefaultApplicationProblemPlusJSONResponse) VisitAdminListContactMessagesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateContactMessageRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminUpdateContactMessageJSONRequestBody
+}
+
+type AdminUpdateContactMessageResponseObject interface {
+	VisitAdminUpdateContactMessageResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateContactMessage200JSONResponse AdminContactMessage
+
+func (response AdminUpdateContactMessage200JSONResponse) VisitAdminUpdateContactMessageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateContactMessagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateContactMessagedefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateContactMessageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetFaqRequestObject struct {
+}
+
+type AdminGetFaqResponseObject interface {
+	VisitAdminGetFaqResponse(w http.ResponseWriter) error
+}
+
+type AdminGetFaq200JSONResponse struct {
+	Categories []AdminCategory `json:"categories"`
+	Items      []AdminFaqItem  `json:"items"`
+}
+
+func (response AdminGetFaq200JSONResponse) VisitAdminGetFaqResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetFaqdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminGetFaqdefaultApplicationProblemPlusJSONResponse) VisitAdminGetFaqResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateFaqCategoryRequestObject struct {
+	Body *AdminCreateFaqCategoryJSONRequestBody
+}
+
+type AdminCreateFaqCategoryResponseObject interface {
+	VisitAdminCreateFaqCategoryResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateFaqCategory201JSONResponse AdminCategory
+
+func (response AdminCreateFaqCategory201JSONResponse) VisitAdminCreateFaqCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateFaqCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateFaqCategorydefaultApplicationProblemPlusJSONResponse) VisitAdminCreateFaqCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateFaqCategoryRequestObject struct {
+	Slug string `json:"slug"`
+	Body *AdminUpdateFaqCategoryJSONRequestBody
+}
+
+type AdminUpdateFaqCategoryResponseObject interface {
+	VisitAdminUpdateFaqCategoryResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateFaqCategory200JSONResponse AdminCategory
+
+func (response AdminUpdateFaqCategory200JSONResponse) VisitAdminUpdateFaqCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateFaqCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateFaqCategorydefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateFaqCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateFaqItemRequestObject struct {
+	Body *AdminCreateFaqItemJSONRequestBody
+}
+
+type AdminCreateFaqItemResponseObject interface {
+	VisitAdminCreateFaqItemResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateFaqItem201JSONResponse AdminFaqItem
+
+func (response AdminCreateFaqItem201JSONResponse) VisitAdminCreateFaqItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateFaqItemdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminCreateFaqItemdefaultApplicationProblemPlusJSONResponse) VisitAdminCreateFaqItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDeleteFaqItemRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type AdminDeleteFaqItemResponseObject interface {
+	VisitAdminDeleteFaqItemResponse(w http.ResponseWriter) error
+}
+
+type AdminDeleteFaqItem204Response struct {
+}
+
+func (response AdminDeleteFaqItem204Response) VisitAdminDeleteFaqItemResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AdminDeleteFaqItemdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminDeleteFaqItemdefaultApplicationProblemPlusJSONResponse) VisitAdminDeleteFaqItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateFaqItemRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminUpdateFaqItemJSONRequestBody
+}
+
+type AdminUpdateFaqItemResponseObject interface {
+	VisitAdminUpdateFaqItemResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateFaqItem200JSONResponse AdminFaqItem
+
+func (response AdminUpdateFaqItem200JSONResponse) VisitAdminUpdateFaqItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateFaqItemdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateFaqItemdefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateFaqItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type AdminListOrdersRequestObject struct {
 	Params AdminListOrdersParams
@@ -2532,6 +5460,125 @@ type AdminListOrdersdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminListOrdersdefaultApplicationProblemPlusJSONResponse) VisitAdminListOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListPagesRequestObject struct {
+}
+
+type AdminListPagesResponseObject interface {
+	VisitAdminListPagesResponse(w http.ResponseWriter) error
+}
+
+type AdminListPages200JSONResponse struct {
+	Items []AdminPageRow `json:"items"`
+}
+
+func (response AdminListPages200JSONResponse) VisitAdminListPagesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListPagesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListPagesdefaultApplicationProblemPlusJSONResponse) VisitAdminListPagesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetPageRequestObject struct {
+	Slug string `json:"slug"`
+}
+
+type AdminGetPageResponseObject interface {
+	VisitAdminGetPageResponse(w http.ResponseWriter) error
+}
+
+type AdminGetPage200JSONResponse AdminPage
+
+func (response AdminGetPage200JSONResponse) VisitAdminGetPageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetPagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminGetPagedefaultApplicationProblemPlusJSONResponse) VisitAdminGetPageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdatePageRequestObject struct {
+	Slug string `json:"slug"`
+	Body *AdminUpdatePageJSONRequestBody
+}
+
+type AdminUpdatePageResponseObject interface {
+	VisitAdminUpdatePageResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdatePage200JSONResponse AdminPage
+
+func (response AdminUpdatePage200JSONResponse) VisitAdminUpdatePageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdatePagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdatePagedefaultApplicationProblemPlusJSONResponse) VisitAdminUpdatePageResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3090,6 +6137,83 @@ func (response AdminListSeriesdefaultApplicationProblemPlusJSONResponse) VisitAd
 	return err
 }
 
+type AdminGetSettingsRequestObject struct {
+}
+
+type AdminGetSettingsResponseObject interface {
+	VisitAdminGetSettingsResponse(w http.ResponseWriter) error
+}
+
+type AdminGetSettings200JSONResponse AdminSettings
+
+func (response AdminGetSettings200JSONResponse) VisitAdminGetSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetSettingsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminGetSettingsdefaultApplicationProblemPlusJSONResponse) VisitAdminGetSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateSettingsRequestObject struct {
+	Body *AdminUpdateSettingsJSONRequestBody
+}
+
+type AdminUpdateSettingsResponseObject interface {
+	VisitAdminUpdateSettingsResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateSettings200JSONResponse AdminSettings
+
+func (response AdminUpdateSettings200JSONResponse) VisitAdminUpdateSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateSettingsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateSettingsdefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type AdminListSourcesRequestObject struct {
 }
 
@@ -3314,6 +6438,207 @@ func (response AdminGrantSubscriptiondefaultApplicationProblemPlusJSONResponse) 
 	return err
 }
 
+type AdminSupportSummaryRequestObject struct {
+}
+
+type AdminSupportSummaryResponseObject interface {
+	VisitAdminSupportSummaryResponse(w http.ResponseWriter) error
+}
+
+type AdminSupportSummary200JSONResponse struct {
+	NewMessages int `json:"newMessages"`
+	OpenTickets int `json:"openTickets"`
+}
+
+func (response AdminSupportSummary200JSONResponse) VisitAdminSupportSummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminSupportSummarydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminSupportSummarydefaultApplicationProblemPlusJSONResponse) VisitAdminSupportSummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListTicketsRequestObject struct {
+	Params AdminListTicketsParams
+}
+
+type AdminListTicketsResponseObject interface {
+	VisitAdminListTicketsResponse(w http.ResponseWriter) error
+}
+
+type AdminListTickets200JSONResponse struct {
+	Items []AdminTicket `json:"items"`
+}
+
+func (response AdminListTickets200JSONResponse) VisitAdminListTicketsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListTicketsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListTicketsdefaultApplicationProblemPlusJSONResponse) VisitAdminListTicketsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetTicketRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type AdminGetTicketResponseObject interface {
+	VisitAdminGetTicketResponse(w http.ResponseWriter) error
+}
+
+type AdminGetTicket200JSONResponse AdminTicketThread
+
+func (response AdminGetTicket200JSONResponse) VisitAdminGetTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetTicketdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminGetTicketdefaultApplicationProblemPlusJSONResponse) VisitAdminGetTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminReplyTicketRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminReplyTicketJSONRequestBody
+}
+
+type AdminReplyTicketResponseObject interface {
+	VisitAdminReplyTicketResponse(w http.ResponseWriter) error
+}
+
+type AdminReplyTicket201JSONResponse TicketMessage
+
+func (response AdminReplyTicket201JSONResponse) VisitAdminReplyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminReplyTicketdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminReplyTicketdefaultApplicationProblemPlusJSONResponse) VisitAdminReplyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminSetTicketStatusRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminSetTicketStatusJSONRequestBody
+}
+
+type AdminSetTicketStatusResponseObject interface {
+	VisitAdminSetTicketStatusResponse(w http.ResponseWriter) error
+}
+
+type AdminSetTicketStatus200JSONResponse AdminTicket
+
+func (response AdminSetTicketStatus200JSONResponse) VisitAdminSetTicketStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminSetTicketStatusdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminSetTicketStatusdefaultApplicationProblemPlusJSONResponse) VisitAdminSetTicketStatusResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type AdminListUsersRequestObject struct {
 	Params AdminListUsersParams
 }
@@ -3374,6 +6699,126 @@ type AdminListUsersdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminListUsersdefaultApplicationProblemPlusJSONResponse) VisitAdminListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListArticleCategoriesRequestObject struct {
+	Params ListArticleCategoriesParams
+}
+
+type ListArticleCategoriesResponseObject interface {
+	VisitListArticleCategoriesResponse(w http.ResponseWriter) error
+}
+
+type ListArticleCategories200JSONResponse struct {
+	Items []Localized `json:"items"`
+}
+
+func (response ListArticleCategories200JSONResponse) VisitListArticleCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListArticleCategoriesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListArticleCategoriesdefaultApplicationProblemPlusJSONResponse) VisitListArticleCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListArticlesRequestObject struct {
+	Params ListArticlesParams
+}
+
+type ListArticlesResponseObject interface {
+	VisitListArticlesResponse(w http.ResponseWriter) error
+}
+
+type ListArticles200JSONResponse ArticleList
+
+func (response ListArticles200JSONResponse) VisitListArticlesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListArticlesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListArticlesdefaultApplicationProblemPlusJSONResponse) VisitListArticlesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetArticleRequestObject struct {
+	Slug   string `json:"slug"`
+	Params GetArticleParams
+}
+
+type GetArticleResponseObject interface {
+	VisitGetArticleResponse(w http.ResponseWriter) error
+}
+
+type GetArticle200JSONResponse Article
+
+func (response GetArticle200JSONResponse) VisitGetArticleResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetArticledefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetArticledefaultApplicationProblemPlusJSONResponse) VisitGetArticleResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3624,6 +7069,88 @@ type QuoteCheckoutdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response QuoteCheckoutdefaultApplicationProblemPlusJSONResponse) VisitQuoteCheckoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SendContactMessageRequestObject struct {
+	Body *SendContactMessageJSONRequestBody
+}
+
+type SendContactMessageResponseObject interface {
+	VisitSendContactMessageResponse(w http.ResponseWriter) error
+}
+
+type SendContactMessage202JSONResponse struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+func (response SendContactMessage202JSONResponse) VisitSendContactMessageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(202)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SendContactMessagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SendContactMessagedefaultApplicationProblemPlusJSONResponse) VisitSendContactMessageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetFaqRequestObject struct {
+	Params GetFaqParams
+}
+
+type GetFaqResponseObject interface {
+	VisitGetFaqResponse(w http.ResponseWriter) error
+}
+
+type GetFaq200JSONResponse struct {
+	Categories []FaqCategory `json:"categories"`
+}
+
+func (response GetFaq200JSONResponse) VisitGetFaqResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetFaqdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetFaqdefaultApplicationProblemPlusJSONResponse) VisitGetFaqResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -4043,6 +7570,218 @@ func (response ListMySubscriptionsdefaultApplicationProblemPlusJSONResponse) Vis
 	return err
 }
 
+type ListMyTicketsRequestObject struct {
+}
+
+type ListMyTicketsResponseObject interface {
+	VisitListMyTicketsResponse(w http.ResponseWriter) error
+}
+
+type ListMyTickets200JSONResponse struct {
+	Items []Ticket `json:"items"`
+}
+
+func (response ListMyTickets200JSONResponse) VisitListMyTicketsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMyTicketsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListMyTicketsdefaultApplicationProblemPlusJSONResponse) VisitListMyTicketsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTicketRequestObject struct {
+	Params CreateTicketParams
+	Body   *CreateTicketJSONRequestBody
+}
+
+type CreateTicketResponseObject interface {
+	VisitCreateTicketResponse(w http.ResponseWriter) error
+}
+
+type CreateTicket200JSONResponse Ticket
+
+func (response CreateTicket200JSONResponse) VisitCreateTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTicket201JSONResponse Ticket
+
+func (response CreateTicket201JSONResponse) VisitCreateTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTicketdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateTicketdefaultApplicationProblemPlusJSONResponse) VisitCreateTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMyTicketRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type GetMyTicketResponseObject interface {
+	VisitGetMyTicketResponse(w http.ResponseWriter) error
+}
+
+type GetMyTicket200JSONResponse TicketThread
+
+func (response GetMyTicket200JSONResponse) VisitGetMyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMyTicketdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMyTicketdefaultApplicationProblemPlusJSONResponse) VisitGetMyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CloseMyTicketRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type CloseMyTicketResponseObject interface {
+	VisitCloseMyTicketResponse(w http.ResponseWriter) error
+}
+
+type CloseMyTicket200JSONResponse Ticket
+
+func (response CloseMyTicket200JSONResponse) VisitCloseMyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CloseMyTicketdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CloseMyTicketdefaultApplicationProblemPlusJSONResponse) VisitCloseMyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReplyMyTicketRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *ReplyMyTicketJSONRequestBody
+}
+
+type ReplyMyTicketResponseObject interface {
+	VisitReplyMyTicketResponse(w http.ResponseWriter) error
+}
+
+type ReplyMyTicket201JSONResponse TicketMessage
+
+func (response ReplyMyTicket201JSONResponse) VisitReplyMyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReplyMyTicketdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ReplyMyTicketdefaultApplicationProblemPlusJSONResponse) VisitReplyMyTicketResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListMetalsRequestObject struct {
 	Params ListMetalsParams
 }
@@ -4073,6 +7812,46 @@ type ListMetalsdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response ListMetalsdefaultApplicationProblemPlusJSONResponse) VisitListMetalsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPageRequestObject struct {
+	Slug   string `json:"slug"`
+	Params GetPageParams
+}
+
+type GetPageResponseObject interface {
+	VisitGetPageResponse(w http.ResponseWriter) error
+}
+
+type GetPage200JSONResponse Page
+
+func (response GetPage200JSONResponse) VisitGetPageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetPagedefaultApplicationProblemPlusJSONResponse) VisitGetPageResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -4333,11 +8112,104 @@ func (response ListSeriesPointsdefaultApplicationProblemPlusJSONResponse) VisitL
 	return err
 }
 
+type GetSiteRequestObject struct {
+	Params GetSiteParams
+}
+
+type GetSiteResponseObject interface {
+	VisitGetSiteResponse(w http.ResponseWriter) error
+}
+
+type GetSite200JSONResponse SiteInfo
+
+func (response GetSite200JSONResponse) VisitGetSiteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSitedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetSitedefaultApplicationProblemPlusJSONResponse) VisitGetSiteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// AdminListArticleCategories Article categories
+	// (GET /v1/admin/article-categories)
+	AdminListArticleCategories(ctx context.Context, request AdminListArticleCategoriesRequestObject) (AdminListArticleCategoriesResponseObject, error)
+	// AdminCreateArticleCategory Add an article category. Roles, editor, admin
+	// (POST /v1/admin/article-categories)
+	AdminCreateArticleCategory(ctx context.Context, request AdminCreateArticleCategoryRequestObject) (AdminCreateArticleCategoryResponseObject, error)
+	// AdminUpdateArticleCategory Rename or reorder an article category (the slug stays). Roles, editor, admin
+	// (PUT /v1/admin/article-categories/{slug})
+	AdminUpdateArticleCategory(ctx context.Context, request AdminUpdateArticleCategoryRequestObject) (AdminUpdateArticleCategoryResponseObject, error)
+	// AdminListArticles Articles in any status, recently edited first (max 200)
+	// (GET /v1/admin/articles)
+	AdminListArticles(ctx context.Context, request AdminListArticlesRequestObject) (AdminListArticlesResponseObject, error)
+	// AdminCreateArticle Create an article. Bodies are sanitized (ADR-0025). Roles, editor, admin
+	// (POST /v1/admin/articles)
+	AdminCreateArticle(ctx context.Context, request AdminCreateArticleRequestObject) (AdminCreateArticleResponseObject, error)
+	// AdminGetArticle One article for editing
+	// (GET /v1/admin/articles/{id})
+	AdminGetArticle(ctx context.Context, request AdminGetArticleRequestObject) (AdminGetArticleResponseObject, error)
+	// AdminUpdateArticle Replace an article (archive = status archived). Roles, editor, admin
+	// (PUT /v1/admin/articles/{id})
+	AdminUpdateArticle(ctx context.Context, request AdminUpdateArticleRequestObject) (AdminUpdateArticleResponseObject, error)
+	// AdminListContactMessages Contact form messages, newest first (max 200)
+	// (GET /v1/admin/contact-messages)
+	AdminListContactMessages(ctx context.Context, request AdminListContactMessagesRequestObject) (AdminListContactMessagesResponseObject, error)
+	// AdminUpdateContactMessage Mark a message handled / spam, with a note. Roles, support, admin
+	// (PUT /v1/admin/contact-messages/{id})
+	AdminUpdateContactMessage(ctx context.Context, request AdminUpdateContactMessageRequestObject) (AdminUpdateContactMessageResponseObject, error)
+	// AdminGetFaq Every FAQ category and item, published or not
+	// (GET /v1/admin/faq)
+	AdminGetFaq(ctx context.Context, request AdminGetFaqRequestObject) (AdminGetFaqResponseObject, error)
+	// AdminCreateFaqCategory Add an FAQ category. Roles, editor, admin
+	// (POST /v1/admin/faq/categories)
+	AdminCreateFaqCategory(ctx context.Context, request AdminCreateFaqCategoryRequestObject) (AdminCreateFaqCategoryResponseObject, error)
+	// AdminUpdateFaqCategory Rename or reorder an FAQ category. Roles, editor, admin
+	// (PUT /v1/admin/faq/categories/{slug})
+	AdminUpdateFaqCategory(ctx context.Context, request AdminUpdateFaqCategoryRequestObject) (AdminUpdateFaqCategoryResponseObject, error)
+	// AdminCreateFaqItem Add a question. Its slug is the permanent deep link. Roles, editor, admin
+	// (POST /v1/admin/faq/items)
+	AdminCreateFaqItem(ctx context.Context, request AdminCreateFaqItemRequestObject) (AdminCreateFaqItemResponseObject, error)
+	// AdminDeleteFaqItem Delete a question (prefer unpublishing). Roles, editor, admin
+	// (DELETE /v1/admin/faq/items/{id})
+	AdminDeleteFaqItem(ctx context.Context, request AdminDeleteFaqItemRequestObject) (AdminDeleteFaqItemResponseObject, error)
+	// AdminUpdateFaqItem Edit a question (the slug can't change, so shared links keep working). Roles, editor, admin
+	// (PUT /v1/admin/faq/items/{id})
+	AdminUpdateFaqItem(ctx context.Context, request AdminUpdateFaqItemRequestObject) (AdminUpdateFaqItemResponseObject, error)
 	// AdminListOrders Latest orders (max 100), optionally filtered
 	// (GET /v1/admin/orders)
 	AdminListOrders(ctx context.Context, request AdminListOrdersRequestObject) (AdminListOrdersResponseObject, error)
+	// AdminListPages Static pages
+	// (GET /v1/admin/pages)
+	AdminListPages(ctx context.Context, request AdminListPagesRequestObject) (AdminListPagesResponseObject, error)
+	// AdminGetPage One page for editing
+	// (GET /v1/admin/pages/{slug})
+	AdminGetPage(ctx context.Context, request AdminGetPageRequestObject) (AdminGetPageResponseObject, error)
+	// AdminUpdatePage Save a page. `version` must be the one you loaded (409 CONFLICT if someone saved in between). Roles, editor, admin
+	// (PUT /v1/admin/pages/{slug})
+	AdminUpdatePage(ctx context.Context, request AdminUpdatePageRequestObject) (AdminUpdatePageResponseObject, error)
 	// AdminCreatePrice Manual price entry (fallback when a source is down, SCOPE §13)
 	// (POST /v1/admin/prices)
 	AdminCreatePrice(ctx context.Context, request AdminCreatePriceRequestObject) (AdminCreatePriceResponseObject, error)
@@ -4356,6 +8228,12 @@ type StrictServerInterface interface {
 	// AdminListSeries Every series with its latest price and outlier threshold
 	// (GET /v1/admin/series)
 	AdminListSeries(ctx context.Context, request AdminListSeriesRequestObject) (AdminListSeriesResponseObject, error)
+	// AdminGetSettings Editable site settings (contact details, social links)
+	// (GET /v1/admin/settings)
+	AdminGetSettings(ctx context.Context, request AdminGetSettingsRequestObject) (AdminGetSettingsResponseObject, error)
+	// AdminUpdateSettings Save site settings. Role, admin
+	// (PUT /v1/admin/settings)
+	AdminUpdateSettings(ctx context.Context, request AdminUpdateSettingsRequestObject) (AdminUpdateSettingsResponseObject, error)
 	// AdminListSources Source health (last run, last success, stale flag)
 	// (GET /v1/admin/sources)
 	AdminListSources(ctx context.Context, request AdminListSourcesRequestObject) (AdminListSourcesResponseObject, error)
@@ -4365,9 +8243,33 @@ type StrictServerInterface interface {
 	// AdminGrantSubscription Grant a subscription manually (until checkout exists). Role, admin
 	// (POST /v1/admin/subscriptions)
 	AdminGrantSubscription(ctx context.Context, request AdminGrantSubscriptionRequestObject) (AdminGrantSubscriptionResponseObject, error)
+	// AdminSupportSummary Counts for the admin menu badges
+	// (GET /v1/admin/support/summary)
+	AdminSupportSummary(ctx context.Context, request AdminSupportSummaryRequestObject) (AdminSupportSummaryResponseObject, error)
+	// AdminListTickets The support queue (open first, high priority first, oldest waiting first)
+	// (GET /v1/admin/tickets)
+	AdminListTickets(ctx context.Context, request AdminListTicketsRequestObject) (AdminListTicketsResponseObject, error)
+	// AdminGetTicket A ticket with its messages
+	// (GET /v1/admin/tickets/{id})
+	AdminGetTicket(ctx context.Context, request AdminGetTicketRequestObject) (AdminGetTicketResponseObject, error)
+	// AdminReplyTicket Reply as support (the ticket becomes "answered"). Roles, support, admin
+	// (POST /v1/admin/tickets/{id}/messages)
+	AdminReplyTicket(ctx context.Context, request AdminReplyTicketRequestObject) (AdminReplyTicketResponseObject, error)
+	// AdminSetTicketStatus Change a ticket's status. Roles, support, admin
+	// (PUT /v1/admin/tickets/{id}/status)
+	AdminSetTicketStatus(ctx context.Context, request AdminSetTicketStatusRequestObject) (AdminSetTicketStatusResponseObject, error)
 	// AdminListUsers Search users by mobile, name or id (max 50)
 	// (GET /v1/admin/users)
 	AdminListUsers(ctx context.Context, request AdminListUsersRequestObject) (AdminListUsersResponseObject, error)
+	// ListArticleCategories Topic tabs of the analysis page (besides metals)
+	// (GET /v1/article-categories)
+	ListArticleCategories(ctx context.Context, request ListArticleCategoriesRequestObject) (ListArticleCategoriesResponseObject, error)
+	// ListArticles Published articles, newest first. Bodies are never listed
+	// (GET /v1/articles)
+	ListArticles(ctx context.Context, request ListArticlesRequestObject) (ListArticlesResponseObject, error)
+	// GetArticle One published article. `body` is present only when the caller's plan includes its type
+	// (GET /v1/articles/{slug})
+	GetArticle(ctx context.Context, request GetArticleRequestObject) (GetArticleResponseObject, error)
 	// ListCategories List product categories (raw materials, intermediate products, scrap)
 	// (GET /v1/categories)
 	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
@@ -4377,6 +8279,12 @@ type StrictServerInterface interface {
 	// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
 	// (POST /v1/checkout/quote)
 	QuoteCheckout(ctx context.Context, request QuoteCheckoutRequestObject) (QuoteCheckoutResponseObject, error)
+	// SendContactMessage Contact form (anonymous allowed; rate-limited per IP → 429 RATE_LIMITED)
+	// (POST /v1/contact)
+	SendContactMessage(ctx context.Context, request SendContactMessageRequestObject) (SendContactMessageResponseObject, error)
+	// GetFaq Published FAQ by category (the page, its search and its FAQPage schema use exactly this)
+	// (GET /v1/faq)
+	GetFaq(ctx context.Context, request GetFaqRequestObject) (GetFaqResponseObject, error)
 	// ListMarkets List markets / price sources
 	// (GET /v1/markets)
 	ListMarkets(ctx context.Context, request ListMarketsRequestObject) (ListMarketsResponseObject, error)
@@ -4398,9 +8306,27 @@ type StrictServerInterface interface {
 	// ListMySubscriptions The user's subscriptions, newest first (includes queued ones)
 	// (GET /v1/me/subscriptions)
 	ListMySubscriptions(ctx context.Context, request ListMySubscriptionsRequestObject) (ListMySubscriptionsResponseObject, error)
+	// ListMyTickets The caller's tickets, latest activity first
+	// (GET /v1/me/tickets)
+	ListMyTickets(ctx context.Context, request ListMyTicketsRequestObject) (ListMyTicketsResponseObject, error)
+	// CreateTicket Open a ticket with its first message. The same Idempotency-Key returns the first ticket (200)
+	// (POST /v1/me/tickets)
+	CreateTicket(ctx context.Context, request CreateTicketRequestObject) (CreateTicketResponseObject, error)
+	// GetMyTicket One of the caller's tickets with its messages
+	// (GET /v1/me/tickets/{id})
+	GetMyTicket(ctx context.Context, request GetMyTicketRequestObject) (GetMyTicketResponseObject, error)
+	// CloseMyTicket Close one of the caller's tickets
+	// (POST /v1/me/tickets/{id}/close)
+	CloseMyTicket(ctx context.Context, request CloseMyTicketRequestObject) (CloseMyTicketResponseObject, error)
+	// ReplyMyTicket Reply to one of the caller's tickets (reopens it if closed)
+	// (POST /v1/me/tickets/{id}/messages)
+	ReplyMyTicket(ctx context.Context, request ReplyMyTicketRequestObject) (ReplyMyTicketResponseObject, error)
 	// ListMetals List base metals
 	// (GET /v1/metals)
 	ListMetals(ctx context.Context, request ListMetalsRequestObject) (ListMetalsResponseObject, error)
+	// GetPage A static page (about, terms, privacy, licenses). 404 when unpublished
+	// (GET /v1/pages/{slug})
+	GetPage(ctx context.Context, request GetPageRequestObject) (GetPageResponseObject, error)
 	// VerifyPayment Complete a payment after the gateway redirected the browser back (called by the website's callback page)
 	// (POST /v1/payments/verify)
 	VerifyPayment(ctx context.Context, request VerifyPaymentRequestObject) (VerifyPaymentResponseObject, error)
@@ -4413,6 +8339,9 @@ type StrictServerInterface interface {
 	// ListSeriesPoints Price history of one series, downsampled to at most ~300 points
 	// (GET /v1/series/{slug}/points)
 	ListSeriesPoints(ctx context.Context, request ListSeriesPointsRequestObject) (ListSeriesPointsResponseObject, error)
+	// GetSite Public site settings (contact details, social links, which optional pages are on)
+	// (GET /v1/site)
+	GetSite(ctx context.Context, request GetSiteRequestObject) (GetSiteResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -4454,6 +8383,447 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
+// AdminListArticleCategories operation middleware
+func (sh *strictHandler) AdminListArticleCategories(w http.ResponseWriter, r *http.Request) {
+	var request AdminListArticleCategoriesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListArticleCategories(ctx, request.(AdminListArticleCategoriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListArticleCategories")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListArticleCategoriesResponseObject); ok {
+		if err := validResponse.VisitAdminListArticleCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateArticleCategory operation middleware
+func (sh *strictHandler) AdminCreateArticleCategory(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateArticleCategoryRequestObject
+
+	var body AdminCreateArticleCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateArticleCategory(ctx, request.(AdminCreateArticleCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateArticleCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateArticleCategoryResponseObject); ok {
+		if err := validResponse.VisitAdminCreateArticleCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateArticleCategory operation middleware
+func (sh *strictHandler) AdminUpdateArticleCategory(w http.ResponseWriter, r *http.Request, slug string) {
+	var request AdminUpdateArticleCategoryRequestObject
+
+	request.Slug = slug
+
+	var body AdminUpdateArticleCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateArticleCategory(ctx, request.(AdminUpdateArticleCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateArticleCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateArticleCategoryResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateArticleCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListArticles operation middleware
+func (sh *strictHandler) AdminListArticles(w http.ResponseWriter, r *http.Request, params AdminListArticlesParams) {
+	var request AdminListArticlesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListArticles(ctx, request.(AdminListArticlesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListArticles")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListArticlesResponseObject); ok {
+		if err := validResponse.VisitAdminListArticlesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateArticle operation middleware
+func (sh *strictHandler) AdminCreateArticle(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateArticleRequestObject
+
+	var body AdminCreateArticleJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateArticle(ctx, request.(AdminCreateArticleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateArticle")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateArticleResponseObject); ok {
+		if err := validResponse.VisitAdminCreateArticleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminGetArticle operation middleware
+func (sh *strictHandler) AdminGetArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminGetArticleRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminGetArticle(ctx, request.(AdminGetArticleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminGetArticle")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminGetArticleResponseObject); ok {
+		if err := validResponse.VisitAdminGetArticleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateArticle operation middleware
+func (sh *strictHandler) AdminUpdateArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminUpdateArticleRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateArticleJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateArticle(ctx, request.(AdminUpdateArticleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateArticle")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateArticleResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateArticleResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListContactMessages operation middleware
+func (sh *strictHandler) AdminListContactMessages(w http.ResponseWriter, r *http.Request, params AdminListContactMessagesParams) {
+	var request AdminListContactMessagesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListContactMessages(ctx, request.(AdminListContactMessagesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListContactMessages")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListContactMessagesResponseObject); ok {
+		if err := validResponse.VisitAdminListContactMessagesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateContactMessage operation middleware
+func (sh *strictHandler) AdminUpdateContactMessage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminUpdateContactMessageRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateContactMessageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateContactMessage(ctx, request.(AdminUpdateContactMessageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateContactMessage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateContactMessageResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateContactMessageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminGetFaq operation middleware
+func (sh *strictHandler) AdminGetFaq(w http.ResponseWriter, r *http.Request) {
+	var request AdminGetFaqRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminGetFaq(ctx, request.(AdminGetFaqRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminGetFaq")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminGetFaqResponseObject); ok {
+		if err := validResponse.VisitAdminGetFaqResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateFaqCategory operation middleware
+func (sh *strictHandler) AdminCreateFaqCategory(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateFaqCategoryRequestObject
+
+	var body AdminCreateFaqCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateFaqCategory(ctx, request.(AdminCreateFaqCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateFaqCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateFaqCategoryResponseObject); ok {
+		if err := validResponse.VisitAdminCreateFaqCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateFaqCategory operation middleware
+func (sh *strictHandler) AdminUpdateFaqCategory(w http.ResponseWriter, r *http.Request, slug string) {
+	var request AdminUpdateFaqCategoryRequestObject
+
+	request.Slug = slug
+
+	var body AdminUpdateFaqCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateFaqCategory(ctx, request.(AdminUpdateFaqCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateFaqCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateFaqCategoryResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateFaqCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateFaqItem operation middleware
+func (sh *strictHandler) AdminCreateFaqItem(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateFaqItemRequestObject
+
+	var body AdminCreateFaqItemJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateFaqItem(ctx, request.(AdminCreateFaqItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateFaqItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateFaqItemResponseObject); ok {
+		if err := validResponse.VisitAdminCreateFaqItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminDeleteFaqItem operation middleware
+func (sh *strictHandler) AdminDeleteFaqItem(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminDeleteFaqItemRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminDeleteFaqItem(ctx, request.(AdminDeleteFaqItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminDeleteFaqItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminDeleteFaqItemResponseObject); ok {
+		if err := validResponse.VisitAdminDeleteFaqItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateFaqItem operation middleware
+func (sh *strictHandler) AdminUpdateFaqItem(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminUpdateFaqItemRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateFaqItemJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateFaqItem(ctx, request.(AdminUpdateFaqItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateFaqItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateFaqItemResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateFaqItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AdminListOrders operation middleware
 func (sh *strictHandler) AdminListOrders(w http.ResponseWriter, r *http.Request, params AdminListOrdersParams) {
 	var request AdminListOrdersRequestObject
@@ -4473,6 +8843,89 @@ func (sh *strictHandler) AdminListOrders(w http.ResponseWriter, r *http.Request,
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminListOrdersResponseObject); ok {
 		if err := validResponse.VisitAdminListOrdersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListPages operation middleware
+func (sh *strictHandler) AdminListPages(w http.ResponseWriter, r *http.Request) {
+	var request AdminListPagesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListPages(ctx, request.(AdminListPagesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListPages")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListPagesResponseObject); ok {
+		if err := validResponse.VisitAdminListPagesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminGetPage operation middleware
+func (sh *strictHandler) AdminGetPage(w http.ResponseWriter, r *http.Request, slug string) {
+	var request AdminGetPageRequestObject
+
+	request.Slug = slug
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminGetPage(ctx, request.(AdminGetPageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminGetPage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminGetPageResponseObject); ok {
+		if err := validResponse.VisitAdminGetPageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdatePage operation middleware
+func (sh *strictHandler) AdminUpdatePage(w http.ResponseWriter, r *http.Request, slug string) {
+	var request AdminUpdatePageRequestObject
+
+	request.Slug = slug
+
+	var body AdminUpdatePageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdatePage(ctx, request.(AdminUpdatePageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdatePage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdatePageResponseObject); ok {
+		if err := validResponse.VisitAdminUpdatePageResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4656,6 +9109,61 @@ func (sh *strictHandler) AdminListSeries(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// AdminGetSettings operation middleware
+func (sh *strictHandler) AdminGetSettings(w http.ResponseWriter, r *http.Request) {
+	var request AdminGetSettingsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminGetSettings(ctx, request.(AdminGetSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminGetSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminGetSettingsResponseObject); ok {
+		if err := validResponse.VisitAdminGetSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateSettings operation middleware
+func (sh *strictHandler) AdminUpdateSettings(w http.ResponseWriter, r *http.Request) {
+	var request AdminUpdateSettingsRequestObject
+
+	var body AdminUpdateSettingsJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateSettings(ctx, request.(AdminUpdateSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateSettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateSettingsResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateSettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AdminListSources operation middleware
 func (sh *strictHandler) AdminListSources(w http.ResponseWriter, r *http.Request) {
 	var request AdminListSourcesRequestObject
@@ -4737,6 +9245,148 @@ func (sh *strictHandler) AdminGrantSubscription(w http.ResponseWriter, r *http.R
 	}
 }
 
+// AdminSupportSummary operation middleware
+func (sh *strictHandler) AdminSupportSummary(w http.ResponseWriter, r *http.Request) {
+	var request AdminSupportSummaryRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminSupportSummary(ctx, request.(AdminSupportSummaryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminSupportSummary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminSupportSummaryResponseObject); ok {
+		if err := validResponse.VisitAdminSupportSummaryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListTickets operation middleware
+func (sh *strictHandler) AdminListTickets(w http.ResponseWriter, r *http.Request, params AdminListTicketsParams) {
+	var request AdminListTicketsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListTickets(ctx, request.(AdminListTicketsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListTickets")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListTicketsResponseObject); ok {
+		if err := validResponse.VisitAdminListTicketsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminGetTicket operation middleware
+func (sh *strictHandler) AdminGetTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminGetTicketRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminGetTicket(ctx, request.(AdminGetTicketRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminGetTicket")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminGetTicketResponseObject); ok {
+		if err := validResponse.VisitAdminGetTicketResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminReplyTicket operation middleware
+func (sh *strictHandler) AdminReplyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminReplyTicketRequestObject
+
+	request.Id = id
+
+	var body AdminReplyTicketJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminReplyTicket(ctx, request.(AdminReplyTicketRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminReplyTicket")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminReplyTicketResponseObject); ok {
+		if err := validResponse.VisitAdminReplyTicketResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminSetTicketStatus operation middleware
+func (sh *strictHandler) AdminSetTicketStatus(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminSetTicketStatusRequestObject
+
+	request.Id = id
+
+	var body AdminSetTicketStatusJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminSetTicketStatus(ctx, request.(AdminSetTicketStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminSetTicketStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminSetTicketStatusResponseObject); ok {
+		if err := validResponse.VisitAdminSetTicketStatusResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // AdminListUsers operation middleware
 func (sh *strictHandler) AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams) {
 	var request AdminListUsersRequestObject
@@ -4756,6 +9406,85 @@ func (sh *strictHandler) AdminListUsers(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminListUsersResponseObject); ok {
 		if err := validResponse.VisitAdminListUsersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListArticleCategories operation middleware
+func (sh *strictHandler) ListArticleCategories(w http.ResponseWriter, r *http.Request, params ListArticleCategoriesParams) {
+	var request ListArticleCategoriesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListArticleCategories(ctx, request.(ListArticleCategoriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListArticleCategories")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListArticleCategoriesResponseObject); ok {
+		if err := validResponse.VisitListArticleCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListArticles operation middleware
+func (sh *strictHandler) ListArticles(w http.ResponseWriter, r *http.Request, params ListArticlesParams) {
+	var request ListArticlesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListArticles(ctx, request.(ListArticlesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListArticles")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListArticlesResponseObject); ok {
+		if err := validResponse.VisitListArticlesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetArticle operation middleware
+func (sh *strictHandler) GetArticle(w http.ResponseWriter, r *http.Request, slug string, params GetArticleParams) {
+	var request GetArticleRequestObject
+
+	request.Slug = slug
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetArticle(ctx, request.(GetArticleRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetArticle")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetArticleResponseObject); ok {
+		if err := validResponse.VisitGetArticleResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4846,6 +9575,63 @@ func (sh *strictHandler) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(QuoteCheckoutResponseObject); ok {
 		if err := validResponse.VisitQuoteCheckoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SendContactMessage operation middleware
+func (sh *strictHandler) SendContactMessage(w http.ResponseWriter, r *http.Request) {
+	var request SendContactMessageRequestObject
+
+	var body SendContactMessageJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SendContactMessage(ctx, request.(SendContactMessageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SendContactMessage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SendContactMessageResponseObject); ok {
+		if err := validResponse.VisitSendContactMessageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetFaq operation middleware
+func (sh *strictHandler) GetFaq(w http.ResponseWriter, r *http.Request, params GetFaqParams) {
+	var request GetFaqRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetFaq(ctx, request.(GetFaqRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetFaq")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetFaqResponseObject); ok {
+		if err := validResponse.VisitGetFaqResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5037,6 +9823,148 @@ func (sh *strictHandler) ListMySubscriptions(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// ListMyTickets operation middleware
+func (sh *strictHandler) ListMyTickets(w http.ResponseWriter, r *http.Request) {
+	var request ListMyTicketsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMyTickets(ctx, request.(ListMyTicketsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMyTickets")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMyTicketsResponseObject); ok {
+		if err := validResponse.VisitListMyTicketsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTicket operation middleware
+func (sh *strictHandler) CreateTicket(w http.ResponseWriter, r *http.Request, params CreateTicketParams) {
+	var request CreateTicketRequestObject
+
+	request.Params = params
+
+	var body CreateTicketJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTicket(ctx, request.(CreateTicketRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTicket")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTicketResponseObject); ok {
+		if err := validResponse.VisitCreateTicketResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMyTicket operation middleware
+func (sh *strictHandler) GetMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request GetMyTicketRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMyTicket(ctx, request.(GetMyTicketRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMyTicket")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMyTicketResponseObject); ok {
+		if err := validResponse.VisitGetMyTicketResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CloseMyTicket operation middleware
+func (sh *strictHandler) CloseMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request CloseMyTicketRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CloseMyTicket(ctx, request.(CloseMyTicketRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CloseMyTicket")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CloseMyTicketResponseObject); ok {
+		if err := validResponse.VisitCloseMyTicketResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReplyMyTicket operation middleware
+func (sh *strictHandler) ReplyMyTicket(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request ReplyMyTicketRequestObject
+
+	request.Id = id
+
+	var body ReplyMyTicketJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ReplyMyTicket(ctx, request.(ReplyMyTicketRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReplyMyTicket")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ReplyMyTicketResponseObject); ok {
+		if err := validResponse.VisitReplyMyTicketResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListMetals operation middleware
 func (sh *strictHandler) ListMetals(w http.ResponseWriter, r *http.Request, params ListMetalsParams) {
 	var request ListMetalsRequestObject
@@ -5056,6 +9984,33 @@ func (sh *strictHandler) ListMetals(w http.ResponseWriter, r *http.Request, para
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListMetalsResponseObject); ok {
 		if err := validResponse.VisitListMetalsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetPage operation middleware
+func (sh *strictHandler) GetPage(w http.ResponseWriter, r *http.Request, slug string, params GetPageParams) {
+	var request GetPageRequestObject
+
+	request.Slug = slug
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPage(ctx, request.(GetPageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPageResponseObject); ok {
+		if err := validResponse.VisitGetPageResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5173,112 +10128,202 @@ func (sh *strictHandler) ListSeriesPoints(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// GetSite operation middleware
+func (sh *strictHandler) GetSite(w http.ResponseWriter, r *http.Request, params GetSiteParams) {
+	var request GetSiteRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSite(ctx, request.(GetSiteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSite")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSiteResponseObject); ok {
+		if err := validResponse.VisitGetSiteResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"/m8A",
+	"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",
+	"6f2n/zcA",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

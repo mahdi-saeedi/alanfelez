@@ -43,6 +43,17 @@ func TestBuildRow_JSONColumn(t *testing.T) {
 	}
 }
 
+func TestBuildRow_AgoColumn(t *testing.T) {
+	sql, args, err := buildRow(Datasets["articles"], InsertMissing, map[string]any{"slug": "a", "published_days_ago": 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "INSERT INTO app.articles (published_at, slug) VALUES (now() - ($1::float8 * interval '1 day'), $2) ON CONFLICT (slug) DO NOTHING"
+	if sql != want || args[0] != 2 {
+		t.Errorf("got  %s %v\nwant %s", sql, args, want)
+	}
+}
+
 func TestBuildRow_RejectsUnknownColumnAndMissingKey(t *testing.T) {
 	if _, _, err := buildRow(Datasets["metals"], InsertMissing, map[string]any{"slug": "x", "drop_table": 1}); err == nil {
 		t.Error("unknown column must be rejected")

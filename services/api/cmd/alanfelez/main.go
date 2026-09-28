@@ -45,6 +45,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/db"
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/httpx"
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/logx"
+	"github.com/alanfelez/alanfelez/services/api/internal/platform/ratelimit"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/live"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/source"
@@ -127,17 +128,22 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	}
 	defer func() { _ = rdb.Close() }()
 
+	trusted, err := httpx.ParsePrefixes(cfg.TrustedProxies)
+	if err != nil {
+		return fmt.Errorf("TRUSTED_PROXIES: %w", err)
+	}
 	router := httpx.NewRouter(log, cfg.CORSOrigins, map[string]httpx.Pinger{
 		"postgres": pool,
 		"redis":    redisPinger{rdb},
-	})
+	}, httpx.ClientInfo(trusted))
 	verifier := auth.NewOIDCVerifier(ctx, cfg.OIDC.IssuerURL, cfg.OIDC.JWKSURL, cfg.OIDC.Audience)
 	gw, mockGW, err := newGateway(cfg, rdb)
 	if err != nil {
 		return err
 	}
 	bill := billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: cfg.PaymentCallbackURL(), Log: log})
-	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill)
+	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill,
+		api.WithLimiter(ratelimit.NewRedis(rdb)), api.WithLogger(log))
 	if mockGW != nil {
 		mockGW.Routes(router) // the fake gateway page (never in production: config refuses it)
 		log.Warn("payments use the MOCK gateway (no real money)", "page", cfg.PublicURL+mock.PathPrefix)
