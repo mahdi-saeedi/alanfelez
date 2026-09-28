@@ -12,6 +12,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: "openTicke
       { to: "/prices", key: "nav.prices" },
       { to: "/prices/bulk", key: "nav.bulk" },
       { to: "/prices/quarantine", key: "nav.quarantine" },
+      { to: "/auctions", key: "nav.ime" },
       { to: "/sources", key: "nav.sources" },
     ],
   },
