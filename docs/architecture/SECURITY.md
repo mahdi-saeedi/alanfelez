@@ -22,7 +22,7 @@
 | T3 | **Tampered or false prices** (compromised source, staff mistake, malicious insider) | §6 |
 | T4 | Payment callback forgery or replay, double-crediting | §7 |
 | T5 | Admin account takeover | Keycloak **TOTP 2FA required for all staff roles**, admin on a separate host (`admin.alanfelez.ir`), short sessions (30 min idle), IP allow-list optional, and every staff write goes to `audit_log` |
-| T6 | XSS through rich-text content or the FAQ | TipTap JSON → server-side render → **bluemonday** sanitize. Strict **CSP** with nonces. No `dangerouslySetInnerHTML` except sanitized server HTML |
+| T6 | XSS through rich-text content or the FAQ | TipTap HTML → **bluemonday** allow-list sanitize **on every write**, stored sanitized (ADR-0025). The website renders it only through `RichText` / the FAQ answer block. Plain-text fields are escaped by React. JSON-LD is escaped (`<` → `\u003c`). Strict **CSP** with nonces ⏳ (M6) |
 | T7 | Broken access control (IDOR, paid data in the API) | Every handler calls `access.Can`. Resource ownership is checked in the SQL (`WHERE user_id = $1`). Locked features return teaser payloads only. Negative tests exist per endpoint |
 | T8 | Injection | sqlc parameterized queries only. OpenAPI request validation. No string-built SQL |
 | T9 | CSRF | Web: Auth.js session cookie `SameSite=Lax` + CSRF token on mutations. API: bearer tokens only (no cookie auth on the Go API) |
@@ -51,8 +51,17 @@ Every limit is configurable. Defaults:
 | Global circuit breaker | If SMS spend exceeds the **daily budget** (setting), OTP sending pauses except for existing users, and staff get an alert |
 | Monitoring | Alert on OTP rate above 3× the 7-day baseline |
 
+### Contact form abuse (M4)
+| Control | Default |
+|---|---|
+| Rate limit per client IP | 5 / hour and 20 / day (`internal/platform/ratelimit`, Redis). Fails open if Redis is down (logged) |
+| Honeypot field | A hidden `website` input; bots that fill it get the normal `202` and nothing is stored |
+| Validation | Name 2–100, phone digits (Persian digits accepted), optional e-mail, body 10–5000 chars; plain text only |
+| Client IP | `httpx.ClientInfo`: `X-Forwarded-For` is believed only from `TRUSTED_PROXIES` (default: private ranges), taking the right-most untrusted hop, so a client can't spoof it. The website forwards the header it received |
+
 ## 5. Paid-data protection (T2)
-- **The server never sends locked data**: no hidden fields, no CSS-only blur. Teasers are generated server-side.
+- **The server never sends locked data**: no hidden fields, no CSS-only blur. Teasers are generated server-side. Locked analyses and
+  forecasts are listed with title, summary and cover only; their body is omitted from the response (tested in `content_integration_test.go`).
 - Per-tier API rate limits, e.g. Free 60 req/min, paid 300 req/min, and a history-range limit per request.
 - No bulk export endpoints for users. Chart history is paginated by range.
 - **Concurrent session limit** for paid tiers (e.g. 2 active devices, configurable) to deter account sharing. Users can see and revoke devices on the account page.

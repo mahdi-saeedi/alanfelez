@@ -28,3 +28,4 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0022](0022-keycloak-custom-image-otp-theme.md) | Custom Keycloak image: phone-OTP authenticator, pluggable SMS SPI, Keycloakify theme | Accepted |
 | [0023](0023-web-tokens-and-live-stream.md) | Website token handling: refresh in the proxy, SSE through the website, federated logout | Accepted |
 | [0024](0024-billing-orders-payments.md) | Billing: orders with server-side verification, queued renewals, prorated upgrades | Accepted |
+| [0025](0025-rich-text-sanitized-html.md) | CMS rich text is stored as sanitized HTML (TipTap in the admin, bluemonday on write) | Accepted |

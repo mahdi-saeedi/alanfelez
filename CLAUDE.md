@@ -3,9 +3,10 @@
 A bilingual platform (Persian RTL as the default, plus English) for Iran's metals market: live prices, price charts,
 expert analysis and forecasts, IME daily auction data, a load-value calculator, and 3-tier subscriptions (Free / Silver / Gold).
 The client already runs Iranian servers (ArvanCloud) and owns both domains, alanfelez.ir and alanfelez.com.
-**Status:** M1–M3 done (M3: account, checkout with a mock gateway, renewals/upgrades/refunds, reminder SMS). `task up` runs web (Next.js), admin (Refine), Go API + worker (River), Postgres, Redis and the custom
+**Status:** M1–M4 done (M3: account, checkout with a mock gateway, renewals/upgrades/refunds, reminder SMS; M4: CMS content, FAQ, pages, contact, tickets). `task up` runs web (Next.js), admin (Refine), Go API + worker (River), Postgres, Redis and the custom
 Keycloak (phone OTP, Keycloakify theme, staff TOTP). Prices: demo generator locally, manual/CSV entry in the admin, live over SSE,
-tier-gated in Go. `task k8s:*` runs the same apps on local k3d with Argo CD + Rollouts. Next: M4 CMS content.
+tier-gated in Go. Rich text is TipTap HTML sanitized by the API (ADR-0025). `task k8s:*` runs the same apps on local k3d with Argo CD + Rollouts.
+Next: M5 Gold features (calculator, IME auctions, SMS alerts).
 **Stack:** Go backend (`services/api`: chi, spec-first OpenAPI, pgx/sqlc/goose, River, SSE) · Next.js public site · Refine admin ·
 Postgres · Redis · custom Keycloak · Docker Compose (local) · k3s + Helm + Argo CD/Rollouts (staging/prod) · GitHub Actions CI. **Contract first:** edit `contracts/openapi.yaml`, then `task generate`.
 There's one developer (the user) plus AI assistants, and the project must be easy to hand over to a future developer.
@@ -18,7 +19,7 @@ There's one developer (the user) plus AI assistants, and the project must be eas
 | [`docs/architecture/adr/`](docs/architecture/adr/) | One file per architecture decision |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Workflow, commits, **Definition of Done**, code conventions |
 | `docs/architecture/NFR.md`, `DATA_MODEL.md`, `API_GUIDELINES.md`, `SECURITY.md`, `OPERATIONS.md`, `TESTING.md`, `PROCESS.md`, `RISKS.md` | Engineering baselines. Follow them when writing code |
-| [`docs/product/OPEN_QUESTIONS.md`](docs/product/OPEN_QUESTIONS.md) | Client answers (round 1) and open follow-ups F1–F9 |
+| [`docs/product/OPEN_QUESTIONS.md`](docs/product/OPEN_QUESTIONS.md) | Client answers (round 1) and open follow-ups F1–F15 |
 | [`docs/content/`](docs/content/) | Client-provided copy: `faq.fa.txt`, `about.fa.txt`, `terms.fa.txt`. Source of truth for text |
 | [`docs/design/screenshots/summary-draft/`](docs/design/screenshots/summary-draft/) | Newest design screenshots (15, named by page) |
 

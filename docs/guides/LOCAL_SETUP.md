@@ -76,6 +76,14 @@ Admins decide refunds under *Orders & refunds*. Renewal reminder SMS appear in `
 `09120000001` → ID) → Silver or Gold. Then sign in on the website as that user: all series, longer chart ranges, live updates for all of them.
 The admin also has *Prices & manual entry* (editor/admin), *Bulk entry (CSV)* with a preview before saving, the *Price review queue*
 (automated prices that jumped past the threshold) and *Source health*. `support` can view them but not change anything.
+**Try the content (M4):** admin → *Content → News & analysis* → «مطلب جدید» (editor/admin): write in the editor, pick a type
+(news = public, analysis/forecast = Gold body), set the status to published, save. It appears at http://localhost:3000/analysis;
+signed out or on Silver, an analysis shows only its teaser and the upgrade box. *FAQ*, *Static pages* (about, terms, privacy,
+licenses) and *Site settings* (contact details, social links) work the same way. The FAQ is at http://localhost:3000/faq
+(try the search and a link like `/faq#what-is-lme`). The demo profile seeds 8 sample articles (`config/seed/demo/20-articles.yaml`).
+**Try support:** send the form at http://localhost:3000/contact, then open *Support → Contact messages* in the admin (menu badge).
+Signed in on the website, open a ticket under *Account → Support*; answer it in the admin under *Support → Tickets* (support/admin).
+The contact form allows 5 messages per hour per IP (Redis), so repeat tests may get «تعداد پیام‌ها زیاد است».
 Lost the TOTP device for a local staff user? Remove it in the Keycloak console (Users → user → Credentials → delete OTP).
 
 ## 5. Daily commands

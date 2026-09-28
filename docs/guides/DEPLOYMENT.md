@@ -107,6 +107,8 @@ is one commit or one click, and it's fully audited in git history.
 | Feature flags, site settings | Admin panel (seeded defaults from `config/seed/reference/30-platform.yaml`) |
 | OTP settings (provider, TTL, limits) | Realm file (authenticator config `alanfelez-phone-otp`) or the Keycloak console |
 | Argo CD itself | `deploy/argocd/install/values-cluster.yaml` (server-side diff is on, so operator defaults aren't drift) |
+| Trusted proxies (`api.trustedProxies`) | Who may set `X-Forwarded-For`. Default: private ranges (ingress, website, pods). **Production behind the Arvan CDN: add the CDN edge ranges** (Arvan publishes them), otherwise every visitor shares the edge's IP and the contact-form rate limit (5/hour per IP) hits them all together. Check with a test message: the admin shows no IP, but `app.contact_messages.ip` should be the visitor's |
+| Content (articles, FAQ, pages, contact details) | Admin panel. Initial FAQ/pages come from `config/seed/reference/50-faq.yaml`, `60-pages.yaml` (insert-missing: admin edits are never overwritten) |
 
 ## 7. Adding a real SMS provider (e.g. Kavenegar)
 

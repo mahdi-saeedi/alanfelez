@@ -32,6 +32,11 @@
 - `code` is a stable machine string from the catalog below. Clients switch on `code`, never on `title` or `detail`.
 - Validation errors add `errors: [{ "field": "weight", "code": "MIN", "message": "…" }]`.
 - User-facing messages are translated **in the UI** from `code`. The API `detail` is for developers.
+- In the contract, newer operations (M4 on) declare errors as `default: Problem` only, and list the codes they can return in
+  the summary; handlers answer any status through one helper (`fail[…]`). Older operations list each status separately; both
+  produce the same wire format.
+- The generated server does **not** enforce schema bounds (`maxLength`, `minimum`, `maxItems`): handlers validate and clamp
+  themselves, and every request body is capped at 2 MB (`httpx.MaxBodyBytes`).
 
 | Code | Status | Meaning |
 |---|---|---|
@@ -45,13 +50,15 @@
 | `CONFLICT` | 409 | State conflict (e.g. order already paid, point already reviewed, duplicate point) |
 | `PRICE_JUMP` | 422 | Manual price moves more than the series' outlier threshold; resend with `force: true` to confirm |
 | `IDEMPOTENCY_MISMATCH` | 422 | Same key, different body |
-| `RATE_LIMITED` | 429 | Includes a `Retry-After` header |
+| `RATE_LIMITED` | 429 | Too many requests (contact form: 5 per hour / 20 per day per client IP). Retry later |
 | `UPSTREAM_UNAVAILABLE` | 502/503 | Gateway, SMS or source down |
 | `INTERNAL` | 500 | Unexpected. Always has a `requestId` |
 
 ## 5. Idempotency and concurrency
 - Every `POST` that creates money-related or side-effect resources (orders, payments, tickets) accepts an **`Idempotency-Key`** header. The same key + same body returns the same response (stored for 24 h).
 - Editable admin resources return an `ETag`. Updates send `If-Match` (optimistic locking, `412` on mismatch).
+  Exception: static pages carry their `version` in the body and a stale save is `409 CONFLICT` (the editor shows "someone else saved").
+- Tickets use `Idempotency-Key` too: the same key returns the ticket created the first time (`200` instead of `201`).
 
 ## 6. Versioning and deprecation
 - Additive changes (new optional fields or endpoints) don't need a new version. **oasdiff** in CI blocks breaking changes on `/v1`.

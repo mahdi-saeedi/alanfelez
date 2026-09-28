@@ -201,3 +201,36 @@ If a source is stale beyond its threshold, the admin dashboard shows it and staf
 
 Assume the gateway and eNamad exist (the client is getting them). Build behind the `PaymentGateway` interface.
 The provider will be set when the client confirms which gateway he got. The eNamad badge slot goes in the footer and the licenses page, hidden until configured.
+
+## 16. Content and support — 🛠 decisions built in M4
+
+**Analysis page (#4).** Three article types: **news** (everyone reads it), **market analysis** and **price forecast** (the full
+text is Gold; title, summary and cover are public teasers, and the API never sends a locked body). The type is the lock, so
+editors can't publish paid text by mistake. Each article can have a metal and/or a topic category (tabs: the 7 metals + اقتصاد ·
+بازار جهانی · ضایعات), an optional **analyst view** (صعودی / نزولی / خنثی, labeled «دیدگاه کارشناس», never a promise), a featured flag
+(the big card) and an author. Analyses and forecasts always end with the estimate disclaimer. The sidebar shows the base prices
+(free for everyone) with source and time, not LME, which is Silver data. Reading a Gold body counts as "used" for refunds.
+
+**FAQ (#8).** From FAQ.docx, with the page requirements in CLAUDE.md (accordion, search, categories, popular block, deep link
+`/faq#slug`, FAQPage schema with exactly the visible questions, CTA). Marketplace questions 19–26 and 43, 49 are left out;
+Q1, Q4, Q15 and Q42 lose only their marketplace clause; Q47 is unpublished until the licenses page exists (edits listed in F14).
+Popular block: questions 1, 5, 12, 16, 33, 50.
+
+**Pages (#9, #11–13).** About and Terms from the Word files (edited as §11 says, plus the other marketplace-only lines, F14);
+Privacy is our draft (§11, lawyer review F8). "Last updated" is the page's save time (no manual date to forget). Contact
+details under Terms/Privacy come from the site settings and only show when set. Every save keeps the previous text
+(`page_revisions`). The Licenses page is built but hidden until the flag `page.licenses` is on.
+
+**Contact (#10).** Form: name, mobile, optional e-mail, subject (سوال عمومی · پشتیبانی فنی · اشتراک و پرداخت · همکاری تجاری · پیشنهاد
+و انتقاد · سایر), message. No file attachment yet (needs media storage). The design's «گزارش تخلف» (listings/users) and
+API/enterprise blocks are removed (§4). Messages land in the admin inbox with a menu badge; the e-mail notification to staff
+waits for an e-mail provider (F15). Abuse controls: SECURITY §4.
+
+**Tickets (#15, §12).** Signed-in users open tickets from the account page; one thread per request, plain text. Status shows whose
+turn it is: «در انتظار پاسخ» (support) → «پاسخ داده شد» (user) → «بسته شده»; a user reply reopens a closed ticket. Gold users'
+tickets are **high priority** and top the queue. Users see replies as «پشتیبانی الان‌فلز», never the agent's name. No SMS/e-mail on
+a reply yet (the account page shows the status; F15).
+
+**Admin (#10).** Roles: content (articles, categories, FAQ, pages) = editor or admin; tickets and contact inbox = support or admin;
+site settings = admin; everyone on staff can read. Every write is audit-logged. Rich text is edited in TipTap and sanitized
+on save (ADR-0025).

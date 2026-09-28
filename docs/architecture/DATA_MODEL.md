@@ -108,21 +108,22 @@ Key decisions:
 ### Content, support and platform tables
 | Table | Purpose |
 |---|---|
-| `articles` | `type` (news / analysis / forecast), `slug`, `category_id`, `metal_ids int[]`, `required_feature` (null = public), `status` (draft / published / archived), `published_at`, `title_*`, `summary_*`, `body_*`, `cover_media_id`, `read_minutes` |
-| `article_categories` | Filter tabs on the analysis page |
-| `faq_categories`, `faq_items` | `slug` (stable deep link), `question_*`, `answer_*`, `is_popular`, `sort`, `published` |
-| `pages` | about / terms / privacy / licenses: `slug`, `title_*`, `body_*`, `published`, `version` |
+| `articles` | `type` (news / analysis / forecast: decides who reads the **body**, `internal/content`), `slug`, `status` (draft / published / archived = soft delete), `metal_id`, `category_id`, `outlook` (up / down / neutral, the author's view), `featured`, `title_*`, `summary_*` (plain text), `body_*` (sanitized HTML, ADR-0025), `author_*`, `cover_url`, `read_minutes`, `published_at` |
+| `article_categories` | Topic tabs on the analysis page besides the metals (economy, global, scrap) |
+| `faq_categories`, `faq_items` | `slug` (stable deep link, never changes), `question_*`, `answer_*` (sanitized HTML), `popular`, `sort`, `published` |
+| `pages`, `page_revisions` | about / terms / privacy / licenses: `slug`, `title_*`, `body_*`, `published`, `version` (optimistic lock). Every save first copies the old text into `page_revisions (slug, version)`, so the Terms in force on any date can be shown |
 | `site_settings` | Key → `jsonb` (contact info, social links, license badges, stats config, SMS templates) |
 | `feature_flags` | `key`, `enabled`, `rules jsonb` (ADR-0016) |
-| `media` | Object-storage key, mime type, size, dimensions, `alt_fa`/`alt_en` |
-| `contact_messages` | Contact form submissions |
+| `media` | ⏳ Not built yet (covers are URLs until uploads to Arvan Object Storage exist): object-storage key, mime type, size, dimensions, `alt_fa`/`alt_en` |
+| `contact_messages` | Contact form submissions (plain text): name, phone, optional e-mail, subject, body, `user_id` when signed in, client `ip` + `user_agent` (abuse review), `status` new / handled / spam, staff `note` |
+| `tickets`, `ticket_messages` | A thread per user request. `number` (shown to users), `status` = whose turn (open = support, answered = user, closed), `priority` (high = `support.priority` at creation), `Idempotency-Key` per user. Messages are plain text with `is_staff`; agents' names are shown only in the admin |
 | `audit_log` | `actor_id`, `actor_role`, `action`, `entity`, `entity_id`, `before jsonb`, `after jsonb`, `ip`, `user_agent`, `at`. **Append-only**: the app DB role has no UPDATE/DELETE on it |
 
 ## 4. Redis keys
 | Key | Type | TTL | Purpose |
 |---|---|---|---|
 | `prices:updates` | pub/sub channel | — | SSE fan-out: JSON array of published points (`internal/prices/live`). Current prices themselves are read from Postgres `price_latest` (M2: fast enough, one source of truth) |
-| `rl:{scope}:{id}` | counter | window | Rate limits (API, OTP, scraping) |
+| `rl:{scope}:{id}:{window}` | counter | window | Fixed-window rate limits (`internal/platform/ratelimit`; contact form per client IP). Later: API, OTP, scraping |
 | `otp:cooldown:{phone}` | string | 120 s | OTP resend cooldown (with the Keycloak SPI) |
 | `cache:{route}:{hash}` | string | 30–300 s | Short-lived API response cache for public reads |
 

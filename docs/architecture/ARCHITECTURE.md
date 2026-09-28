@@ -88,8 +88,11 @@ alanfelez/
 │  │  │  ├─ seed/                idempotent initial-data loader
 │  │  │  ├─ api/                 HTTP handlers (+ generated api.gen.go)
 │  │  │  ├─ dbq/                 generated sqlc queries
-│  │  │  ├─ platform/            config, db, httpx (router, problems, health), logx
-│  │  │  └─ market/ billing/ content/ support/ users/ integrations/   ⏳ by milestone
+│  │  │  ├─ prices/ billing/ payment/ subscription/ notify/ jobs/ audit/   market data and accounts (M2–M3)
+│  │  │  ├─ content/             CMS rules: article type → feature, HTML sanitizer (ADR-0025), reading time
+│  │  │  ├─ support/             tickets (status = whose turn), with audit for staff replies
+│  │  │  ├─ platform/            config, db, httpx (router, problems, health, client IP), ratelimit, jalali, logx
+│  │  │  └─ auctions/ alerts/    ⏳ M5
 │  │  ├─ migrations/             goose SQL (embedded in the binary)
 │  │  ├─ queries/                sqlc SQL
 │  │  └─ Dockerfile
