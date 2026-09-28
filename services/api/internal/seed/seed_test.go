@@ -94,3 +94,13 @@ func TestCommittedSeedFilesAreValid(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildRow_AgoFillsKey(t *testing.T) {
+	sql, _, err := buildRow(Datasets["ime_offerings"], InsertMissing, map[string]any{"trade_days_ago": 0, "product_fa": "a", "producer_fa": "b"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(sql, "trade_date") || !strings.Contains(sql, "ON CONFLICT (trade_date, product_fa, producer_fa)") {
+		t.Fatalf("got %s", sql)
+	}
+}

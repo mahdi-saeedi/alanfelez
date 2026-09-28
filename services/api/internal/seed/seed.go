@@ -192,7 +192,7 @@ func buildBlock(b Block) ([]string, [][]any, error) {
 
 func buildRow(ds Dataset, mode Mode, row map[string]any) (string, []any, error) {
 	for _, k := range ds.Key {
-		if _, ok := row[k]; !ok {
+		if _, ok := row[k]; !ok && !agoFills(ds, row, k) {
 			return "", nil, fmt.Errorf("missing key column %q", k)
 		}
 	}
@@ -250,4 +250,14 @@ func buildRow(ds Dataset, mode Mode, row map[string]any) (string, []any, error) 
 		sb.WriteString(" DO NOTHING")
 	}
 	return sb.String(), args, nil
+}
+
+// agoFills reports whether a relative-date column in row writes key column k (e.g. trade_days_ago → trade_date).
+func agoFills(ds Dataset, row map[string]any, k string) bool {
+	for name, col := range ds.Columns {
+		if _, ok := row[name]; ok && col.Ago == k {
+			return true
+		}
+	}
+	return false
 }

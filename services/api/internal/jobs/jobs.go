@@ -22,6 +22,7 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivertype"
 
+	"github.com/alanfelez/alanfelez/services/api/internal/alerts"
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/notify"
@@ -236,6 +237,31 @@ func (w *RemindWorker) Work(ctx context.Context, _ *river.Job[RemindArgs]) error
 	return nil
 }
 
+// AlertsArgs checks SMS price alerts.
+type AlertsArgs struct{}
+
+// Kind implements river.JobArgs.
+func (AlertsArgs) Kind() string { return "alerts.check" }
+
+// AlertsWorker runs AlertsArgs.
+type AlertsWorker struct {
+	river.WorkerDefaults[AlertsArgs]
+	Alerts *alerts.Service
+	Log    *slog.Logger
+}
+
+// Work implements river.Worker.
+func (w *AlertsWorker) Work(ctx context.Context, _ *river.Job[AlertsArgs]) error {
+	n, err := w.Alerts.Check(ctx)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		w.Log.InfoContext(ctx, "price alerts sent", "sms", n)
+	}
+	return nil
+}
+
 // Config wires the River client.
 type Config struct {
 	Pool     *pgxpool.Pool
@@ -244,6 +270,7 @@ type Config struct {
 	Billing  *billing.Service
 	SMS      notify.SMS // nil: no reminders (SMS_PROVIDER=none)
 	PlansURL string     // link in reminder messages
+	WebURL   string     // links in price alerts
 	Log      *slog.Logger
 	// RiverLog receives River's own logs (keep it at warn: River is chatty at debug/info).
 	RiverLog *slog.Logger
@@ -256,6 +283,9 @@ func NewClient(ctx context.Context, c Config) (*river.Client[pgx.Tx], error) {
 	river.AddWorker(workers, &CleanupWorker{Pool: c.Pool, Log: c.Log})
 	river.AddWorker(workers, &ExpireOrdersWorker{Billing: c.Billing, Log: c.Log})
 	river.AddWorker(workers, &RemindWorker{Billing: c.Billing, SMS: c.SMS, PlansURL: c.PlansURL, Log: c.Log})
+	if c.SMS != nil {
+		river.AddWorker(workers, &AlertsWorker{Alerts: alerts.NewService(c.Pool, c.SMS, c.WebURL, c.Log), Log: c.Log})
+	}
 
 	sources, err := dbq.New(c.Pool).ListSources(ctx)
 	if err != nil {
@@ -273,6 +303,10 @@ func NewClient(ctx context.Context, c Config) (*river.Client[pgx.Tx], error) {
 		periodic = append(periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Hour), func() (river.JobArgs, *river.InsertOpts) {
 			return RemindArgs{}, nil
 		}, &river.PeriodicJobOpts{ID: "subscriptions.remind", RunOnStart: true}))
+		// Prices update every few seconds at most; checking every minute is timely enough for an SMS.
+		periodic = append(periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Minute), func() (river.JobArgs, *river.InsertOpts) {
+			return AlertsArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: time.Minute}}
+		}, &river.PeriodicJobOpts{ID: "alerts.check", RunOnStart: true}))
 	}
 	for _, s := range sources {
 		if !s.Active || s.Provider == source.ProviderManual {

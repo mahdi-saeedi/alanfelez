@@ -19,10 +19,17 @@ type Querier interface {
 	AdminListOrders(ctx context.Context, arg AdminListOrdersParams) ([]AdminListOrdersRow, error)
 	// The support queue: open tickets first (high priority, then oldest waiting), then the rest by activity.
 	AdminListTickets(ctx context.Context, arg AdminListTicketsParams) ([]AdminListTicketsRow, error)
+	// Active alerts on series that have a price, with what the SMS needs. The worker checks the user's plan in Go
+	// (internal/access), so a lapsed Gold plan simply stops sending.
+	AlertCandidates(ctx context.Context) ([]AlertCandidatesRow, error)
+	// Price-alert SMS sent to a user since a time (the per-user daily cap).
+	AlertsSentSince(ctx context.Context, arg AlertsSentSinceParams) (int32, error)
 	// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
 	CancelSubscription(ctx context.Context, id pgtype.UUID) error
+	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
 	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
+	CountUserAlerts(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CreateArticle(ctx context.Context, arg CreateArticleParams) (pgtype.UUID, error)
 	CreateArticleCategory(ctx context.Context, arg CreateArticleCategoryParams) (CreateArticleCategoryRow, error)
 	CreateFaqCategory(ctx context.Context, arg CreateFaqCategoryParams) (CreateFaqCategoryRow, error)
@@ -33,7 +40,10 @@ type Querier interface {
 	// Billing uses the database clock, so "starts now" and "is active now" (now() in SQL) can never disagree.
 	DBNow(ctx context.Context) (pgtype.Timestamptz, error)
 	DecideRefund(ctx context.Context, arg DecideRefundParams) error
+	DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64, error)
+	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
+	DeleteImeOffering(ctx context.Context, id pgtype.UUID) (DeleteImeOfferingRow, error)
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	ExpirePendingOrders(ctx context.Context) (int64, error)
 	// Notifications ---------------------------------------------------------------------------------------------
@@ -44,6 +54,8 @@ type Querier interface {
 	FindOrderByKey(ctx context.Context, arg FindOrderByKeyParams) (AppOrder, error)
 	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
 	GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error)
+	// The calculator's base price: the latest published point of one series, with its source.
+	GetLatestPrice(ctx context.Context, seriesID int32) (GetLatestPriceRow, error)
 	GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error)
 	GetPage(ctx context.Context, slug string) (GetPageRow, error)
 	GetPublishedArticle(ctx context.Context, slug string) (GetPublishedArticleRow, error)
@@ -60,7 +72,13 @@ type Querier interface {
 	GetTicket(ctx context.Context, id pgtype.UUID) (GetTicketRow, error)
 	GetTicketForUpdate(ctx context.Context, id pgtype.UUID) (GetTicketForUpdateRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
+	// Gold features: IME daily offerings, saved calculations, SMS price alerts.
+	// The most recent trading days that have offerings (for the date picker).
+	ImeDates(ctx context.Context) ([]pgtype.Date, error)
+	ImeUpdatedAt(ctx context.Context, tradeDate pgtype.Date) (pgtype.Timestamptz, error)
+	InsertAlert(ctx context.Context, arg InsertAlertParams) (InsertAlertRow, error)
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
+	InsertCalculation(ctx context.Context, arg InsertCalculationParams) (InsertCalculationRow, error)
 	// Support (internal/support): contact form messages and user tickets.
 	InsertContactMessage(ctx context.Context, arg InsertContactMessageParams) (InsertContactMessageRow, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) (pgtype.UUID, error)
@@ -84,6 +102,7 @@ type Querier interface {
 	ListActivePlans(ctx context.Context) ([]ListActivePlansRow, error)
 	// CMS content (internal/content): articles, FAQ, pages, site settings. Public reads only see published rows.
 	ListArticleCategories(ctx context.Context) ([]ListArticleCategoriesRow, error)
+	ListCalculations(ctx context.Context, userID pgtype.UUID) ([]ListCalculationsRow, error)
 	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
 	ListFaqCategories(ctx context.Context) ([]ListFaqCategoriesRow, error)
@@ -91,6 +110,7 @@ type Querier interface {
 	ListFaqItems(ctx context.Context, publishedOnly bool) ([]ListFaqItemsRow, error)
 	// Active subscriptions that haven't ended, with the value paid for them (0 for manual grants).
 	ListHeldSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListHeldSubscriptionsRow, error)
+	ListImeOfferings(ctx context.Context, arg ListImeOfferingsParams) ([]ListImeOfferingsRow, error)
 	// Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
 	// One row per active series, with its latest published point (NULL when the series has no data yet).
 	ListLatestPrices(ctx context.Context, includeInactive bool) ([]ListLatestPricesRow, error)
@@ -105,6 +125,7 @@ type Querier interface {
 	ListSources(ctx context.Context) ([]ListSourcesRow, error)
 	ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListSubscriptionsRow, error)
 	ListTicketMessages(ctx context.Context, ticketID pgtype.UUID) ([]ListTicketMessagesRow, error)
+	ListUserAlerts(ctx context.Context, userID pgtype.UUID) ([]ListUserAlertsRow, error)
 	ListUserOrders(ctx context.Context, userID pgtype.UUID) ([]ListUserOrdersRow, error)
 	ListUserSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListUserSubscriptionsRow, error)
 	ListUserTickets(ctx context.Context, userID pgtype.UUID) ([]ListUserTicketsRow, error)
@@ -115,12 +136,16 @@ type Querier interface {
 	LockPoint(ctx context.Context, id int64) (LockPointRow, error)
 	LockRefund(ctx context.Context, id pgtype.UUID) (AppRefund, error)
 	LockUserBilling(ctx context.Context, userID pgtype.UUID) error
+	// armed = false after firing (above / below); triggered = true stamps last_triggered_at.
+	MarkAlert(ctx context.Context, arg MarkAlertParams) error
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
 	PutSetting(ctx context.Context, arg PutSettingParams) error
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
 	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
+	// Total SMS spend since a time (the daily budget circuit breaker, SECURITY §4).
+	SMSCostSince(ctx context.Context, since pgtype.Timestamptz) (int64, error)
 	// Keeps the text that is about to be replaced.
 	SavePageRevision(ctx context.Context, arg SavePageRevisionParams) error
 	// Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
@@ -128,6 +153,8 @@ type Querier interface {
 	// Downsampled history: the last published price per bucket. Buckets are aligned to Tehran midnight so daily
 	// buckets are calendar days in Iran.
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
+	// Re-activating re-arms the alert, so it fires on the next crossing.
+	SetAlertActive(ctx context.Context, arg SetAlertActiveParams) (int64, error)
 	SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) error
 	SetPaymentFailed(ctx context.Context, arg SetPaymentFailedParams) error
 	SetPaymentVerified(ctx context.Context, arg SetPaymentVerifiedParams) error
@@ -146,6 +173,8 @@ type Querier interface {
 	UpdateFaqItem(ctx context.Context, arg UpdateFaqItemParams) (pgtype.UUID, error)
 	// Optimistic lock: no row when someone saved a newer version in between.
 	UpdatePage(ctx context.Context, arg UpdatePageParams) (UpdatePageRow, error)
+	// The natural key is (day, product, producer): re-entering a row corrects it.
+	UpsertImeOffering(ctx context.Context, arg UpsertImeOfferingParams) (UpsertImeOfferingRow, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.

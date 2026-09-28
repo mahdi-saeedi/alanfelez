@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Alan Felez API
-  version: 0.4.0
+  version: 0.5.0
   description: |
     Public, user and admin API for الان‌فلز. Contract-first (ADR-0014): edit this file,
     then run `task generate`. Conventions: docs/architecture/API_GUIDELINES.md.
@@ -21,6 +21,8 @@ tags:
     description: CMS content (articles, FAQ, pages, site settings). Analysis and forecast bodies depend on the caller's tier
   - name: support
     description: Contact form and user tickets (SCOPE §12)
+  - name: gold
+    description: Gold features (SCOPE §7, §8, #19) — IME daily offerings, load calculator, SMS price alerts
   - name: admin
     description: Staff only (realm role `staff`; writes need `editor` or `admin`). Every write is audit-logged
 
@@ -1427,6 +1429,250 @@ paths:
               schema: { $ref: '#/components/schemas/AdminTicket' }
         default: { $ref: '#/components/responses/Problem' }
 
+  # --- Gold features (M5) -----------------------------------------------------------
+
+  /v1/auctions:
+    get:
+      operationId: getAuctions
+      tags: [gold]
+      summary: IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
+      description: Everyone gets the day's summary and the list of dates; `items` is left out when locked (FEATURE teaser).
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - { name: date, in: query, required: false, schema: { type: string, format: date } }
+        - { name: metal, in: query, required: false, schema: { type: string, maxLength: 60 } }
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuctionDay' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/calculator/estimate:
+    post:
+      operationId: estimateLoad
+      tags: [gold]
+      summary: Estimate a load's value (SCOPE §8). Needs calculator.use (Gold) → 403 FEATURE_LOCKED
+      description: With `series` and no `unitPriceRialPerKg`, the series' latest price is used (IRR series only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CalculatorInput' }
+      responses:
+        '200':
+          description: The estimate (an estimate, never a final price)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CalculatorResult' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/calculations:
+    get:
+      operationId: listMyCalculations
+      tags: [me, gold]
+      summary: Saved calculations (newest first, max 50)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Calculations
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/SavedCalculation' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: saveMyCalculation
+      tags: [me, gold]
+      summary: Compute and save a calculation (Gold). 409 CONFLICT at 50 saved
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, input]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 80 }
+                input: { $ref: '#/components/schemas/CalculatorInput' }
+      responses:
+        '201':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavedCalculation' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/calculations/{id}:
+    delete:
+      operationId: deleteMyCalculation
+      tags: [me, gold]
+      summary: Delete a saved calculation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/alerts:
+    get:
+      operationId: listMyAlerts
+      tags: [me, gold]
+      summary: The caller's SMS price alerts (listed even after the plan lapses, so they can be removed)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/AcceptLanguage' }]
+      responses:
+        '200':
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, max]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/PriceAlert' }
+                  max: { type: integer, description: Most alerts one user may have }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createMyAlert
+      tags: [me, gold]
+      summary: Add an SMS price alert. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED; 409 CONFLICT at the maximum
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/AcceptLanguage' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PriceAlertInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PriceAlert' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/me/alerts/{id}:
+    put:
+      operationId: setMyAlertActive
+      tags: [me, gold]
+      summary: Pause or resume an alert (resuming needs Gold and re-arms it)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [active]
+              properties:
+                active: { type: boolean }
+      responses:
+        '204': { description: Updated }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: deleteMyAlert
+      tags: [me, gold]
+      summary: Delete an alert
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/auctions:
+    get:
+      operationId: adminListAuctions
+      tags: [admin]
+      summary: IME offerings of one day, for editing
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Offerings
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, dates]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminOffering' }
+                  dates:
+                    type: array
+                    items: { type: string, format: date }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/auctions/bulk:
+    post:
+      operationId: adminBulkAuctions
+      tags: [admin]
+      summary: Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
+      description: Rows are keyed by (tradeDate, productFa, producerFa); re-entering a row corrects it. With dryRun nothing is saved.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rows]
+              properties:
+                rows:
+                  type: array
+                  minItems: 1
+                  maxItems: 300
+                  items: { $ref: '#/components/schemas/AdminOfferingInput' }
+                dryRun: { type: boolean }
+      responses:
+        '200':
+          description: Per-row result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [results, saved]
+                properties:
+                  saved: { type: integer }
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      required: [index, ok]
+                      properties:
+                        index: { type: integer }
+                        ok: { type: boolean }
+                        inserted: { type: boolean }
+                        error: { type: string }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/auctions/{id}:
+    delete:
+      operationId: adminDeleteAuction
+      tags: [admin]
+      summary: Delete an offering entered by mistake. Roles, editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2181,6 +2427,149 @@ components:
         messages:
           type: array
           items: { $ref: '#/components/schemas/TicketMessage' }
+
+    # --- Gold features (M5) -----------------------------------------------------------
+    AuctionOffering:
+      type: object
+      required: [id, metal, product, producer, offeredKg, basePriceRial]
+      properties:
+        id: { type: string, format: uuid }
+        metal: { $ref: '#/components/schemas/Localized' }
+        product: { type: string }
+        producer: { type: string }
+        offeredKg: { type: integer, format: int64 }
+        basePriceRial: { type: integer, format: int64, description: Rial per kg }
+        demandKg: { type: integer, format: int64 }
+        tradedKg: { type: integer, format: int64 }
+        clearingPriceRial: { type: integer, format: int64, description: Rial per kg, volume-weighted }
+        changeBp: { type: integer, description: Clearing vs base, basis points }
+
+    AuctionSummary:
+      type: object
+      required: [offerings, offeredKg, demandKg, tradedKg, value, avgChangeBp]
+      properties:
+        offerings: { type: integer }
+        offeredKg: { type: integer, format: int64 }
+        demandKg: { type: integer, format: int64 }
+        tradedKg: { type: integer, format: int64 }
+        value: { $ref: '#/components/schemas/Money' }
+        avgChangeBp: { type: integer }
+
+    AuctionDay:
+      type: object
+      required: [dates, summary, locked, source]
+      properties:
+        date: { type: string, format: date, description: Absent when there's no data at all }
+        dates:
+          type: array
+          description: Recent trading days with data, newest first
+          items: { type: string, format: date }
+        summary: { $ref: '#/components/schemas/AuctionSummary' }
+        items:
+          type: array
+          description: Absent when locked
+          items: { $ref: '#/components/schemas/AuctionOffering' }
+        locked: { type: boolean }
+        requiredPlan: { $ref: '#/components/schemas/Tier' }
+        source: { type: string, description: 'Where the data comes from, in the requested language' }
+        updatedAt: { type: string, format: date-time }
+
+    CalculatorInput:
+      type: object
+      required: [weightGrams, impurityBp, deductionBp, shippingRial, shippingPaidBy]
+      properties:
+        series: { type: string, description: 'IRR price series whose latest price is the base (optional)' }
+        unitPriceRialPerKg: { type: integer, format: int64, description: Manual price; overrides the series price }
+        weightGrams: { type: integer, format: int64, minimum: 0 }
+        impurityBp: { type: integer, minimum: 0, maximum: 10000 }
+        deductionBp: { type: integer, minimum: 0, maximum: 10000 }
+        shippingRial: { type: integer, format: int64, minimum: 0 }
+        shippingPaidBy: { type: string, enum: [seller, buyer] }
+
+    CalculatorPrice:
+      type: object
+      required: [series, product, observedAt]
+      properties:
+        series: { type: string }
+        product: { type: string }
+        source: { type: string }
+        observedAt: { type: string, format: date-time }
+
+    CalculatorResult:
+      type: object
+      required: [input, netWeightGrams, grossRial, deductionsRial, shippingRial, valueRial]
+      properties:
+        input: { $ref: '#/components/schemas/CalculatorInput' }
+        price: { $ref: '#/components/schemas/CalculatorPrice' }
+        netWeightGrams: { type: integer, format: int64 }
+        grossRial: { type: integer, format: int64 }
+        deductionsRial: { type: integer, format: int64 }
+        shippingRial: { type: integer, format: int64 }
+        valueRial: { type: integer, format: int64 }
+
+    SavedCalculation:
+      type: object
+      required: [id, name, result, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        result: { $ref: '#/components/schemas/CalculatorResult' }
+        createdAt: { type: string, format: date-time }
+
+    PriceAlertKind:
+      type: string
+      enum: [above, below, move]
+
+    PriceAlertInput:
+      type: object
+      required: [series, kind]
+      properties:
+        series: { type: string }
+        kind: { $ref: '#/components/schemas/PriceAlertKind' }
+        threshold: { type: string, description: 'above / below: price in the series minor unit (IRR: Rial per kg, USD: cents per ton)' }
+        moveBp: { type: integer, description: 'move: daily change in basis points (50–5000)' }
+
+    PriceAlert:
+      type: object
+      required: [id, series, product, currency, unit, kind, active, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        series: { type: string }
+        product: { type: string }
+        currency: { $ref: '#/components/schemas/Currency' }
+        unit: { $ref: '#/components/schemas/Unit' }
+        kind: { $ref: '#/components/schemas/PriceAlertKind' }
+        threshold: { type: string }
+        moveBp: { type: integer }
+        active: { type: boolean }
+        lastTriggeredAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    AdminOfferingInput:
+      type: object
+      required: [tradeDate, metal, productFa, producerFa, offeredKg, basePriceRial]
+      properties:
+        tradeDate: { type: string, format: date }
+        metal: { type: string }
+        productFa: { type: string, maxLength: 200 }
+        productEn: { type: string, maxLength: 200 }
+        producerFa: { type: string, maxLength: 200 }
+        producerEn: { type: string, maxLength: 200 }
+        offeredKg: { type: integer, format: int64 }
+        basePriceRial: { type: integer, format: int64 }
+        demandKg: { type: integer, format: int64 }
+        tradedKg: { type: integer, format: int64 }
+        clearingPriceRial: { type: integer, format: int64 }
+
+    AdminOffering:
+      allOf:
+        - $ref: '#/components/schemas/AdminOfferingInput'
+        - type: object
+          required: [id, source, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            source: { type: string, enum: [manual, demo, api] }
+            updatedAt: { type: string, format: date-time }
 
     Problem:
       type: object

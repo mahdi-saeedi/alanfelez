@@ -207,6 +207,7 @@ func worker(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 		Billing:  billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: cfg.PaymentCallbackURL(), Log: log}),
 		SMS:      sms,
 		PlansURL: strings.TrimSuffix(cfg.WebURL, "/") + "/plans",
+		WebURL:   cfg.WebURL,
 		RiverLog: logx.New(os.Stdout, "warn", cfg.LogFormat).With("app", "alanfelez", "cmd", "worker", "component", "river"),
 	})
 	if err != nil {

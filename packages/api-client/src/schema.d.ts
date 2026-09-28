@@ -999,6 +999,171 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auctions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
+         * @description Everyone gets the day's summary and the list of dates; `items` is left out when locked (FEATURE teaser).
+         */
+        get: operations["getAuctions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/calculator/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Estimate a load's value (SCOPE §8). Needs calculator.use (Gold) → 403 FEATURE_LOCKED
+         * @description With `series` and no `unitPriceRialPerKg`, the series' latest price is used (IRR series only).
+         */
+        post: operations["estimateLoad"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/calculations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved calculations (newest first, max 50) */
+        get: operations["listMyCalculations"];
+        put?: never;
+        /** Compute and save a calculation (Gold). 409 CONFLICT at 50 saved */
+        post: operations["saveMyCalculation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/calculations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a saved calculation */
+        delete: operations["deleteMyCalculation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's SMS price alerts (listed even after the plan lapses, so they can be removed) */
+        get: operations["listMyAlerts"];
+        put?: never;
+        /** Add an SMS price alert. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED; 409 CONFLICT at the maximum */
+        post: operations["createMyAlert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/alerts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Pause or resume an alert (resuming needs Gold and re-arms it) */
+        put: operations["setMyAlertActive"];
+        post?: never;
+        /** Delete an alert */
+        delete: operations["deleteMyAlert"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auctions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** IME offerings of one day, for editing */
+        get: operations["adminListAuctions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auctions/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
+         * @description Rows are keyed by (tradeDate, productFa, producerFa); re-entering a row corrects it. With dryRun nothing is saved.
+         */
+        post: operations["adminBulkAuctions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auctions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an offering entered by mistake. Roles, editor, admin */
+        delete: operations["adminDeleteAuction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1657,6 +1822,159 @@ export interface components {
         AdminTicketThread: {
             ticket: components["schemas"]["AdminTicket"];
             messages: components["schemas"]["TicketMessage"][];
+        };
+        AuctionOffering: {
+            /** Format: uuid */
+            id: string;
+            metal: components["schemas"]["Localized"];
+            product: string;
+            producer: string;
+            /** Format: int64 */
+            offeredKg: number;
+            /**
+             * Format: int64
+             * @description Rial per kg
+             */
+            basePriceRial: number;
+            /** Format: int64 */
+            demandKg?: number;
+            /** Format: int64 */
+            tradedKg?: number;
+            /**
+             * Format: int64
+             * @description Rial per kg
+             */
+            clearingPriceRial?: number;
+            /** @description Clearing vs base */
+            changeBp?: number;
+        };
+        AuctionSummary: {
+            offerings: number;
+            /** Format: int64 */
+            offeredKg: number;
+            /** Format: int64 */
+            demandKg: number;
+            /** Format: int64 */
+            tradedKg: number;
+            value: components["schemas"]["Money"];
+            avgChangeBp: number;
+        };
+        AuctionDay: {
+            /**
+             * Format: date
+             * @description Absent when there's no data at all
+             */
+            date?: string;
+            /** @description Recent trading days with data, newest first */
+            dates: string[];
+            summary: components["schemas"]["AuctionSummary"];
+            /** @description Absent when locked */
+            items?: components["schemas"]["AuctionOffering"][];
+            locked: boolean;
+            requiredPlan?: components["schemas"]["Tier"];
+            /** @description Where the data comes from, in the requested language */
+            source: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CalculatorInput: {
+            /** @description IRR price series whose latest price is the base (optional) */
+            series?: string;
+            /**
+             * Format: int64
+             * @description Manual price; overrides the series price
+             */
+            unitPriceRialPerKg?: number;
+            /** Format: int64 */
+            weightGrams: number;
+            impurityBp: number;
+            deductionBp: number;
+            /** Format: int64 */
+            shippingRial: number;
+            /** @enum {string} */
+            shippingPaidBy: "seller" | "buyer";
+        };
+        CalculatorPrice: {
+            series: string;
+            product: string;
+            source?: string;
+            /** Format: date-time */
+            observedAt: string;
+        };
+        CalculatorResult: {
+            input: components["schemas"]["CalculatorInput"];
+            price?: components["schemas"]["CalculatorPrice"];
+            /** Format: int64 */
+            netWeightGrams: number;
+            /** Format: int64 */
+            grossRial: number;
+            /** Format: int64 */
+            deductionsRial: number;
+            /** Format: int64 */
+            shippingRial: number;
+            /** Format: int64 */
+            valueRial: number;
+        };
+        SavedCalculation: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            result: components["schemas"]["CalculatorResult"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        PriceAlertKind: "above" | "below" | "move";
+        PriceAlertInput: {
+            series: string;
+            kind: components["schemas"]["PriceAlertKind"];
+            /** @description above / below: price in the series minor unit (IRR: Rial per kg, USD: cents per ton) */
+            threshold?: string;
+            /** @description move: daily change in basis points (50–5000) */
+            moveBp?: number;
+        };
+        PriceAlert: {
+            /** Format: uuid */
+            id: string;
+            series: string;
+            product: string;
+            currency: components["schemas"]["Currency"];
+            unit: components["schemas"]["Unit"];
+            kind: components["schemas"]["PriceAlertKind"];
+            threshold?: string;
+            moveBp?: number;
+            active: boolean;
+            /** Format: date-time */
+            lastTriggeredAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminOfferingInput: {
+            /** Format: date */
+            tradeDate: string;
+            metal: string;
+            productFa: string;
+            productEn?: string;
+            producerFa: string;
+            producerEn?: string;
+            /** Format: int64 */
+            offeredKg: number;
+            /** Format: int64 */
+            basePriceRial: number;
+            /** Format: int64 */
+            demandKg?: number;
+            /** Format: int64 */
+            tradedKg?: number;
+            /** Format: int64 */
+            clearingPriceRial?: number;
+        };
+        AdminOffering: components["schemas"]["AdminOfferingInput"] & {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            source: "manual" | "demo" | "api";
+            /** Format: date-time */
+            updatedAt: string;
         };
         Problem: {
             /** Format: uri */
@@ -3396,6 +3714,314 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminTicket"];
                 };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAuctions: {
+        parameters: {
+            query?: {
+                date?: string;
+                metal?: string;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The day */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuctionDay"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    estimateLoad: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalculatorInput"];
+            };
+        };
+        responses: {
+            /** @description The estimate (an estimate, never a final price) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalculatorResult"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listMyCalculations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Calculations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SavedCalculation"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    saveMyCalculation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    input: components["schemas"]["CalculatorInput"];
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedCalculation"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteMyCalculation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listMyAlerts: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Alerts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PriceAlert"][];
+                        /** @description Most alerts one user may have */
+                        max: number;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createMyAlert: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriceAlertInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceAlert"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setMyAlertActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    active: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteMyAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListAuctions: {
+        parameters: {
+            query: {
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Offerings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminOffering"][];
+                        dates: string[];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminBulkAuctions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    rows: components["schemas"]["AdminOfferingInput"][];
+                    dryRun?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Per-row result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        saved: number;
+                        results: {
+                            index: number;
+                            ok: boolean;
+                            inserted?: boolean;
+                            error?: string;
+                        }[];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteAuction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Problem"];
         };

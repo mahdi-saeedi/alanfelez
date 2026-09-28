@@ -127,4 +127,14 @@ var Datasets = map[string]Dataset{
 		Key:     []string{"slug"},
 		Columns: map[string]Column{"slug": {}, "title_fa": {}, "title_en": {}, "body_fa": {}, "body_en": {}, "published": {}},
 	},
+	"ime_offerings": {
+		Table: "market.ime_offerings",
+		Key:   []string{"trade_date", "product_fa", "producer_fa"},
+		Columns: map[string]Column{
+			"product_fa": {}, "product_en": {}, "producer_fa": {}, "producer_en": {}, "offered_kg": {}, "base_price_rial": {},
+			"demand_kg": {}, "traded_kg": {}, "clearing_price_rial": {}, "source": {},
+			"trade_days_ago": {Ago: "trade_date"},
+			"metal":          {Ref: &Ref{Table: "market.metals", By: "slug", IDColumn: "metal_id"}},
+		},
+	},
 }

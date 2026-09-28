@@ -19,12 +19,23 @@ datasets:
         value: { telegram: "", instagram: "", linkedin: "", bale: "", eitaa: "" }
       - key: sms
         value: { daily_budget_rial: 50000000, alert_at_percent: 80 }
-      # SMS texts (🛠 our draft, editable in the admin). Placeholders: {plan}, {date}, {url}.
+      # SMS texts (🛠 our draft, editable in the admin). Reminder placeholders: {plan}, {date}, {url}.
       - key: sms_templates
         value:
           subscription_expiring:
             fa: "الان‌فلز: اشتراک {plan} شما در تاریخ {date} به پایان می‌رسد. برای تمدید: {url}"
             en: "Alan Felez: your {plan} plan ends on {date}. Renew at {url}"
+          # SMS price alerts (Gold). Placeholders: {product}, {price}, {threshold}, {change}, {url}. Migration 00005 adds
+          # these to environments seeded earlier.
+          price_alert_above:
+            fa: "الان‌فلز: قیمت {product} به {price} رسید (بالاتر از {threshold}). {url}"
+            en: "Alan Felez: {product} is now {price} (above {threshold}). {url}"
+          price_alert_below:
+            fa: "الان‌فلز: قیمت {product} به {price} رسید (پایین‌تر از {threshold}). {url}"
+            en: "Alan Felez: {product} is now {price} (below {threshold}). {url}"
+          price_alert_move:
+            fa: "الان‌فلز: قیمت {product} امروز {change} تغییر کرد و به {price} رسید. {url}"
+            en: "Alan Felez: {product} moved {change} today, now {price}. {url}"
 
       - key: otp_limits
         value: { resend_cooldown_seconds: 120, per_phone_hour: 5, per_phone_day: 10, per_ip_hour: 10, captcha_after: 2 }

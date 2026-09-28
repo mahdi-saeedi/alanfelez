@@ -58,6 +58,16 @@ type AppAuditLog struct {
 	RequestID pgtype.Text
 }
 
+type AppCalculation struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	Name      string
+	SeriesID  pgtype.Int4
+	Input     []byte
+	Result    []byte
+	CreatedAt pgtype.Timestamptz
+}
+
 type AppContactMessage struct {
 	ID        pgtype.UUID
 	Name      string
@@ -211,6 +221,20 @@ type AppPlanPrice struct {
 	UpdatedAt  pgtype.Timestamptz
 }
 
+type AppPriceAlert struct {
+	ID              pgtype.UUID
+	UserID          pgtype.UUID
+	SeriesID        int32
+	Kind            string
+	ThresholdMinor  pgtype.Int8
+	MoveBp          pgtype.Int4
+	Active          bool
+	Armed           bool
+	LastTriggeredAt pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+}
+
 type AppRefund struct {
 	ID         pgtype.UUID
 	OrderID    pgtype.UUID
@@ -290,6 +314,25 @@ type AppUser struct {
 	CreatedAt  pgtype.Timestamptz
 	LastSeenAt pgtype.Timestamptz
 	UpdatedAt  pgtype.Timestamptz
+}
+
+type MarketImeOffering struct {
+	ID                pgtype.UUID
+	TradeDate         pgtype.Date
+	MetalID           int16
+	ProductFa         string
+	ProductEn         pgtype.Text
+	ProducerFa        string
+	ProducerEn        pgtype.Text
+	OfferedKg         int64
+	BasePriceRial     int64
+	DemandKg          pgtype.Int8
+	TradedKg          pgtype.Int8
+	ClearingPriceRial pgtype.Int8
+	Source            string
+	EnteredBy         pgtype.UUID
+	CreatedAt         pgtype.Timestamptz
+	UpdatedAt         pgtype.Timestamptz
 }
 
 type MarketMarket struct {
