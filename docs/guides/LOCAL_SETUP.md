@@ -11,7 +11,8 @@
 |---|---|---|
 | **Website** (Next.js) | http://localhost:3000 (fa) · http://localhost:3000/en | SSR, data from the API, login via Keycloak |
 | **Admin panel** (Refine) | http://localhost:5173 | Staff only (admin/editor/support + TOTP) |
-| API (Go) | http://localhost:8080/v1/metals · `/readyz` | Runs only after migrations + seed succeed |
+| API (Go) | http://localhost:8080/v1/prices · `/v1/prices/stream` (live) · `/readyz` | Runs only after migrations + seed succeed |
+| `worker` (Go, same image) | — | Background jobs (River). Locally: the **demo price generator** (a year of history on first start, then new prices every 15 s) |
 | Keycloak | http://localhost:8081/realms/alanfelez/account (user login) · http://localhost:8081/admin (console, `admin`/`admin`) | Custom image: phone OTP + login theme |
 | PostgreSQL | localhost:5432, db `alanfelez`, user/pass `alanfelez` | Keycloak has its own db `keycloak` |
 | Redis | localhost:6379 | |
@@ -79,11 +80,15 @@ Test users (local only, file `deploy/local/keycloak/alanfelez-users-0.json`). Us
 | `task seed` / `task seed -- --force` | Re-run seeding (only new rows; `--force` re-applies unchanged files) |
 | `task api:run` | Run the API on the host (`go run`) against the compose databases |
 | `task generate` | Regenerate code from `contracts/openapi.yaml` and SQL (commit the result) |
-| `task test` · `task lint` | Unit tests · linters |
+| `task api:reload` | Rebuild the Go binary and restart bootstrap, api and worker (fastest backend loop) |
+| `task test` · `task test:integration` · `task lint` | Unit tests · integration tests against the compose Postgres (throwaway db per test) · linters |
 | `task --list` | Everything else |
 
 Editing things:
-- **Go API:** change code → `task up` rebuilds the image (or use `task api:run` for a faster loop).
+- **Go API / worker:** change code → `task api:reload` (or `task api:run` to run the API on the host).
+- **Prices locally** come from the demo generator (`config/seed/demo/10-demo.yaml`). Staff can also enter prices by hand in the admin
+  (single or CSV); a move over 15 % asks for confirmation. Free/anonymous visitors see the 7 base series only; grant yourself a plan in
+  the admin (Subscriptions) to see everything.
 - **Login theme** (`apps/keycloak-theme`, Keycloakify): `task theme:dev` for instant feedback with mock data
   (`?page=login-phone-otp.ftl&lang=en`), then `task up` to rebuild the Keycloak image.
 - **Website / admin** (`apps/web`, `apps/admin`): `pnpm --filter @alanfelez/web dev` / `pnpm --filter @alanfelez/admin dev`

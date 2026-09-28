@@ -120,15 +120,21 @@ alanfelez/
 
 ### 4.1 Live prices
 ```
-price sources ─► worker (River periodic job per source)
-                 │ normalize → validate → upsert market.prices + append market.price_history (one transaction)
-                 │ SET price:latest:<productId> (Redis)
-                 └► PUBLISH prices:updates (Redis)
+price sources ─► worker (River: one periodic prices.fetch job per source, internal/jobs)
+admin manual ──┐ │ adapter (internal/prices/source/<provider>) → quotes
+entry (API)    ▼ ▼
+        internal/prices.Ingest — one transaction per batch:
+          validate → outlier gate (max_jump_bp) → INSERT market.price_points (idempotent)
+          → UPSERT market.price_latest (+ prev_close for daily change) → audit row for manual entries
+                 └► after commit: PUBLISH prices:updates (Redis)
                                   │
-browser ◄─ SSE  GET /v1/prices/stream  (Go SSE hub subscribes to Redis, fans out to clients)
+browser ◄─ SSE  GET /v1/prices/stream  (internal/prices/live: one Redis subscription per API pod, fanned out;
+                                        each stream starts with a snapshot from price_latest, filtered by tier)
 browser ◄─ server-rendered snapshot from Next.js (calls GET /v1/prices), so SEO and first paint work without JS
 ```
-- Every price row stores `source`, `unit`, `currency`, `observed_at` and `is_manual`. The UI always shows the source and "last updated".
+- Every point stores its source, `observed_at` and `is_manual`; the series defines `unit` and `currency`. The UI always shows the source and "last updated" (manual points show the market as their source).
+- Automated points that jump more than the series threshold are **quarantined** until staff approve them; manual entries above it need an explicit confirmation (SECURITY §6).
+- Postgres (`price_latest`) is the source of truth for current prices. Redis only carries the pub/sub fan-out, so a Redis outage delays live updates but never loses data.
 - **Fallback:** each source has a staleness threshold. The admin dashboard flags stale sources, and staff enter prices manually (form or CSV).
 - Caddy streams the SSE route without buffering (`flush_interval -1`).
 
@@ -137,7 +143,7 @@ browser ◄─ server-rendered snapshot from Next.js (calls GET /v1/prices), so 
   ⚠️ This needs an SMS authenticator SPI (community phone provider or a small custom one) and a fa/en RTL theme. Budget time for it.
 - **Web:** Auth.js (Keycloak provider) on the Next.js server. Server components call Go with the user's access token (BFF). Anonymous calls are allowed for public data.
 - **Admin:** PKCE flow. Go requires the realm roles `admin` / `editor` / `support` on `/v1/admin/*`.
-- **Go** validates the JWT (issuer, audience, expiry, JWKS) and maps `sub` → a local `users` row, created on first request.
+- **Go** validates the JWT (issuer, audience, expiry, JWKS; `internal/auth`). An invalid token is a 401, never an anonymous request. The tier comes from `app.subscriptions` by `sub` (`internal/subscription`); a local `users` table comes with accounts/billing.
 - **Subscription tier isn't a Keycloak role.** It lives in Postgres (`subscriptions`) and is evaluated by `internal/access`.
 
 ### 4.3 Access control (the 🔒 system)

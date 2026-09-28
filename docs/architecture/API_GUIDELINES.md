@@ -21,7 +21,7 @@
 ## 3. Lists
 - Cursor pagination: `?limit=20&cursor=…` → `{ "items": [...], "nextCursor": "…" | null }`. `limit` max 100.
 - Filtering with explicit params (`?metal=copper&category=scrap`), sorting with `?sort=-observedAt`.
-- Time series: `GET /v1/series/{id}/points?from=…&to=…&interval=1h`. The server downsamples, and the tier limits the range (a longer range is clipped and the response says so).
+- Time series: `GET /v1/series/{slug}/points?range=1M` (`1D 1W 1M 3M 6M 1Y 3Y MAX`). The server downsamples to ≤ ~300 points (last price per bucket, buckets aligned to Tehran midnight). A range beyond the tier's limit is refused with `FEATURE_LOCKED` (not clipped), so the UI can show the lock on that range button.
 
 ## 4. Errors — RFC 9457 problem details
 ```json
@@ -40,7 +40,8 @@
 | `FORBIDDEN` | 403 | Wrong role or not the owner |
 | `FEATURE_LOCKED` | 403 | Tier too low (includes `requiredPlan`) |
 | `NOT_FOUND` | 404 | |
-| `CONFLICT` | 409 | State conflict (e.g. order already paid) |
+| `CONFLICT` | 409 | State conflict (e.g. order already paid, point already reviewed, duplicate point) |
+| `PRICE_JUMP` | 422 | Manual price moves more than the series' outlier threshold; resend with `force: true` to confirm |
 | `IDEMPOTENCY_MISMATCH` | 422 | Same key, different body |
 | `RATE_LIMITED` | 429 | Includes a `Retry-After` header |
 | `UPSTREAM_UNAVAILABLE` | 502/503 | Gateway, SMS or source down |
@@ -60,6 +61,7 @@
 - Rate limit headers: `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`. Limits come from SECURITY §5.
 
 ## 8. SSE (`GET /v1/prices/stream`)
-- Events: `event: price` with `data: {seriesId, amount, currency, unit, observedAt, changePct}`, sent with an `id` so `Last-Event-ID` resume works.
+- Events: `event: price` with `data: {series, price: {amount, currency, unit}, change: {amount, bp}, observedAt}` (`PriceEvent` in the spec). Every stream starts with the current price of each visible series, so a reconnect always re-syncs; `id` is the point id.
 - Heartbeat comment every 25 s. The server can send `event: reload` to force the client to refetch after a deploy.
-- Optional filter: `?series=1,2,3`. Anonymous clients get the public series only (tier rules apply).
+- Optional filter: `?series=slug-a,slug-b`. Anonymous and free clients get base series only (tier rules apply). The stream is served by hand (`internal/prices/live`), not by the generated server.
+- Browsers can't send an `Authorization` header with `EventSource`, so the website proxies the stream through its own server route and adds the user's token there.

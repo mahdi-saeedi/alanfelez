@@ -52,6 +52,13 @@ Key decisions:
   `status = 'quarantined'` and isn't published until staff approve it (SECURITY §6). The column is omitted from the diagram for brevity.
 - Supporting tables: `units(code, to_kg_factor)`, `fx_rates(pair, observed_at, rate_micro)`, `holidays(day, market_id NULL = all, reason_fa)`.
 
+**Built in M2** (migration `00002_prices.sql`): `products`, `sources`, `price_series`, `price_points`, `price_latest`, `source_runs`.
+Differences from the sketch above, and why:
+- `price_series.is_base` marks the headline series per metal that the free tier sees (SCOPE §6); `max_jump_bp` is the outlier threshold in basis points.
+- `price_points.status` is `published | quarantined | rejected` (with `reviewed_by/at`); only published points reach charts, `price_latest` and the stream.
+- `sources.provider` picks the Go adapter and `sources.config` (jsonb, never secrets) configures it. Manual entry is the `manual` source.
+- `prev_close_minor` is the last published price of an earlier **Tehran calendar day**, taken when a later day's first point arrives. Days without points (weekends, holidays) are skipped naturally, so `holidays` isn't needed for it. `units`, `fx_rates` and `holidays` come with the chart unit switch and the IME calendar.
+
 ## 3. App schema
 
 ```mermaid
@@ -87,6 +94,7 @@ erDiagram
 
 Key decisions:
 - **The effective tier** = the highest-ranked `subscriptions` row with `status='active' AND now() BETWEEN starts_at AND ends_at`, or `free` if none.
+  M2 created `app.subscriptions` early (keyed by the Keycloak `user_id`, `origin = manual | order`) so staff can grant plans before checkout exists; `order_id` and the exclusion constraint are added with billing (expand migration). `app.audit_log` exists too (every staff write).
   An exclusion constraint prevents overlapping active subscriptions for the same user and plan.
 - **Plan prices are versioned** (`valid_from`/`valid_to`). Orders keep a reference to the exact price row, so history never changes when prices change.
 - **Payment flow:** `orders.idempotency_key` + unique `payments.authority` make callbacks safe to repeat. The subscription is created in the **same transaction** as a successful verify.
@@ -109,8 +117,7 @@ Key decisions:
 ## 4. Redis keys
 | Key | Type | TTL | Purpose |
 |---|---|---|---|
-| `price:latest:{seriesId}` | hash | none (overwritten) | Latest price, used by SSR and SSE bootstrap |
-| `prices:updates` | pub/sub channel | — | SSE fan-out |
+| `prices:updates` | pub/sub channel | — | SSE fan-out: JSON array of published points (`internal/prices/live`). Current prices themselves are read from Postgres `price_latest` (M2: fast enough, one source of truth) |
 | `rl:{scope}:{id}` | counter | window | Rate limits (API, OTP, scraping) |
 | `otp:cooldown:{phone}` | string | 120 s | OTP resend cooldown (with the Keycloak SPI) |
 | `cache:{route}:{hash}` | string | 30–300 s | Short-lived API response cache for public reads |

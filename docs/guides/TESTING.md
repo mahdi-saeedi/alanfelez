@@ -6,7 +6,7 @@
 | Level | Scope | Tools | Where | Runs |
 |---|---|---|---|---|
 | **Unit** | Pure logic: access matrix, calculator, proration, unit/currency conversion, Jalali and market-day helpers, outlier gate | `go test` (table tests), Vitest (UI utils) | next to the code (`*_test.go`, `*.test.ts`) | every PR |
-| **Integration** | Handlers + real Postgres/Redis: SQL (sqlc), migrations, transactions, River jobs, SSE hub | `go test` + **testcontainers-go** | `services/api/internal/**` with `//go:build integration` | every PR |
+| **Integration** | Handlers + real Postgres/Redis: SQL (sqlc), migrations, transactions, River jobs, SSE hub | `go test -tags integration` against a throwaway database per test (`TEST_DATABASE_URL`: the compose Postgres locally, a service container in CI; `task test:integration`) | `services/api/internal/**` with `//go:build integration`, helper `internal/testdb` | every PR |
 | **Contract** | API matches `openapi.yaml`, and there are no unintended breaking changes | oapi-codegen strict server + kin-openapi response validation in tests, **oasdiff** vs `main` | CI job | every PR |
 | **Component** | Shared UI components in both directions (RTL/LTR), locked/unlocked states | Vitest + Testing Library, Storybook (optional, phase 2) | `packages/ui` | every PR |
 | **E2E** | Critical user journeys in a real browser against a compose stack | **Playwright** (fa + en projects, mobile + desktop viewports) + **axe** | `e2e/` | PR (smoke) and nightly (full) |

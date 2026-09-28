@@ -20,6 +20,7 @@
 | F9 | 🟢 | ⏳ **Review all 🛠 dev decisions** in SCOPE.md on staging (auctions = IME info page, calculator logic, auth flow, stats, icons, mobile nav). | Client said "I'll correct later" |
 | F10 | 🟠 | ⏳ **Traffic and freshness.** How many users do you expect at launch and after 1 year? How often must each price source update during market hours? (Our assumptions are in NFR.md §1 and §4.) | Server sizing, alert thresholds |
 | F11 | 🟠 | ⏳ **Scope sign-off.** Please approve the v1 scope summary (SCOPE.md incl. 🛠 decisions) in writing before development starts (PROCESS.md §1). | Baseline for change control |
+| F12 | 🟠 | ⏳ **Products and markets.** We seeded the 11 sample rows from the design (شمش آلومینیوم, ضایعات آلومینیوم نرم, مس قرمز, مس کابلی, برنج زرد, ضایعات برنج, شمش روی, شمش سرب, میلگرد ۱۶, ورق ۴ آهن, ضایعات چدن) plus LME references, and assumed which market quotes each one (ingots → بورس کالا, rebar/sheet → تالار آهن, scrap → بازار آزاد). Please send the full product list, the market for each, and which product is the **headline price per metal** (the one free users see). All of it is editable in the admin. | Price table, free-tier rows (`config/seed/reference/40-prices.yaml`) |
 
 ## Round 1 — client answers (numbering = client doc)
 
