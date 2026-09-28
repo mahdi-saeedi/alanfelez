@@ -1,0 +1,32 @@
+{
+  "name": "@alanfelez/admin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Staff admin panel (Refine + React). Login via Keycloak (OIDC PKCE); data from the Go API.",
+  "scripts": {
+    "dev": "vite --port ${ADMIN_PORT:-5173}",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@alanfelez/ui": "workspace:*",
+    "@refinedev/core": "5.0.12",
+    "@refinedev/react-router": "2.0.4",
+    "@tanstack/react-query": "5.104.0",
+    "oidc-client-ts": "3.5.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router": "7.18.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "~5.9.3",
+    "vite": "8.3.1"
+  }
+}
