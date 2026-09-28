@@ -55,10 +55,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Latest price per series
+         * @description Free (and anonymous) callers get the base series only; `lockedCount` says how many more exist (teaser).
+         *     Locked rows are never returned. Always show `source` and `observedAt` next to a price.
+         */
+        get: operations["listPrices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/series/{slug}/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Price history of one series, downsampled to at most ~300 points
+         * @description Each point is the last published price in its time bucket (a "close"). Ranges beyond the caller's
+         *     `chart.history_days` limit, and series the tier can't see, answer 403 FEATURE_LOCKED.
+         */
+        get: operations["listSeriesPoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/prices/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live price updates (Server-Sent Events)
+         * @description Implemented by hand (internal/prices/live), not by the generated server. On connect the server sends the
+         *     current price of every visible series, then one `price` event per published point. A comment line is sent
+         *     every 25 s as a heartbeat. Visibility is fixed when the stream opens (reconnect after a plan change).
+         */
+        get: operations["streamPrices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/entitlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evaluated feature map for the caller (anonymous = free) */
+        get: operations["getEntitlements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every series with its latest price and outlier threshold */
+        get: operations["adminListSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Manual price entry (fallback when a source is down, SCOPE §13)
+         * @description A move larger than the series' outlier threshold answers 422 PRICE_JUMP unless `force` is true.
+         *     Roles: editor, admin.
+         */
+        post: operations["adminCreatePrice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/prices/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk manual entry (the admin parses the CSV). Run with dryRun first to show the diff
+         * @description Rows are validated independently. With `dryRun` nothing is stored. Otherwise valid rows are stored in one
+         *     transaction and rows with a jump are skipped unless `force`. Roles: editor, admin.
+         */
+        post: operations["adminBulkPrices"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/prices/quarantine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Points held back by the outlier gate, oldest first */
+        get: operations["adminListQuarantine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/prices/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve (publish) or reject a quarantined point. Roles, editor, admin */
+        post: operations["adminReviewPrice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Source health (last run, last success, stale flag) */
+        get: operations["adminListSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest subscriptions (optionally for one user) */
+        get: operations["adminListSubscriptions"];
+        put?: never;
+        /** Grant a subscription manually (until checkout exists). Role, admin */
+        post: operations["adminGrantSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        Currency: "IRR" | "USD";
+        /** @enum {string} */
+        Unit: "kg" | "ton";
+        /**
+         * @description Subscription tier (plan code)
+         * @enum {string}
+         */
+        Tier: "free" | "silver" | "gold";
+        /** @enum {string} */
+        PaidPlan: "silver" | "gold";
         Metal: {
             /** @example copper */
             slug: string;
@@ -76,8 +296,7 @@ export interface components {
         Money: {
             /** @example 10000000 */
             amount: string;
-            /** @enum {string} */
-            currency: "IRR" | "USD";
+            currency: components["schemas"]["Currency"];
         };
         PlanPrice: {
             /** @enum {string} */
@@ -85,11 +304,211 @@ export interface components {
             price: components["schemas"]["Money"];
         };
         Plan: {
-            /** @enum {string} */
-            code: "free" | "silver" | "gold";
+            code: components["schemas"]["Tier"];
             name: string;
             rank: number;
             prices: components["schemas"]["PlanPrice"][];
+        };
+        Localized: {
+            slug: string;
+            name: string;
+        };
+        SeriesRef: {
+            /** @example copper-red-free */
+            slug: string;
+            product: components["schemas"]["Localized"];
+            metal: components["schemas"]["Localized"];
+            category: components["schemas"]["Localized"];
+            market: components["schemas"]["Market"];
+            currency: components["schemas"]["Currency"];
+            unit: components["schemas"]["Unit"];
+            /** @description Visible to the free tier */
+            isBase: boolean;
+        };
+        /** @description Integer minor units per unit (Rial per kg for IRR, US cents per ton for USD) as a string. */
+        Price: {
+            /** @example 64000000 */
+            amount: string;
+            currency: components["schemas"]["Currency"];
+            unit: components["schemas"]["Unit"];
+        };
+        /** @description Change against the previous day's close (Asia/Tehran calendar day) */
+        PriceChange: {
+            /** @description Minor units */
+            amount: string;
+            /** @description Basis points (125 = +1.25 %) */
+            bp: number;
+        };
+        PriceRow: {
+            series: components["schemas"]["SeriesRef"];
+            price?: components["schemas"]["Price"];
+            change?: components["schemas"]["PriceChange"];
+            /** Format: date-time */
+            observedAt?: string;
+            /** @description Where the price comes from, in the requested language */
+            source?: string;
+        };
+        PriceList: {
+            items: components["schemas"]["PriceRow"][];
+            /** @description Series hidden by the caller's tier (matching the filters) */
+            lockedCount: number;
+            lockedFeature?: components["schemas"]["FeatureLock"];
+        };
+        FeatureLock: {
+            /** @example prices.full */
+            feature: string;
+            requiredPlan: components["schemas"]["Tier"];
+        };
+        /**
+         * @default 1M
+         * @enum {string}
+         */
+        ChartRange: "1D" | "1W" | "1M" | "3M" | "6M" | "1Y" | "3Y" | "MAX";
+        SeriesPoint: {
+            /**
+             * Format: date-time
+             * @description Time of the last point in the bucket
+             */
+            t: string;
+            amount: string;
+        };
+        SeriesHistory: {
+            series: components["schemas"]["SeriesRef"];
+            range: components["schemas"]["ChartRange"];
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            /** @description Bucket size used for downsampling */
+            intervalSeconds: number;
+            points: components["schemas"]["SeriesPoint"][];
+            source?: string;
+        };
+        PriceEvent: {
+            /** @description Series slug */
+            series: string;
+            price: components["schemas"]["Price"];
+            change?: components["schemas"]["PriceChange"];
+            /** Format: date-time */
+            observedAt: string;
+        };
+        Entitlements: {
+            authenticated: boolean;
+            tier: components["schemas"]["Tier"];
+            /** Format: date-time */
+            tierEndsAt?: string;
+            /**
+             * @example {
+             *       "prices.base": true,
+             *       "prices.full": false
+             *     }
+             */
+            features: {
+                [key: string]: boolean;
+            };
+            /**
+             * @description 0 = unlimited
+             * @example {
+             *       "chart.history_days": 30
+             *     }
+             */
+            limits: {
+                [key: string]: number;
+            };
+        };
+        ManualPriceInput: {
+            /** @description Series slug */
+            series: string;
+            /** @description Minor units per series unit (Rial/kg, cents/ton) */
+            amount: string;
+            /**
+             * Format: date-time
+             * @description Defaults to now. Can't be in the future
+             */
+            observedAt?: string;
+            /**
+             * @description Store even if the move exceeds the outlier threshold
+             * @default false
+             */
+            force: boolean;
+        };
+        AdminPoint: {
+            id: string;
+            series: string;
+            amount: string;
+            /** @description Latest published price when the point arrived */
+            previousAmount?: string;
+            jumpBp?: number;
+            /** Format: date-time */
+            observedAt: string;
+            /** @enum {string} */
+            status: "published" | "quarantined" | "rejected";
+            isManual: boolean;
+            /** @description Source slug */
+            source: string;
+            enteredBy?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        BulkPriceResult: {
+            index: number;
+            series: string;
+            /** @enum {string} */
+            status: "ok" | "stored" | "jump" | "invalid" | "duplicate";
+            message?: string;
+            previousAmount?: string;
+            jumpBp?: number;
+        };
+        AdminSeries: {
+            slug: string;
+            productFa: string;
+            productEn?: string;
+            metal?: string;
+            market: string;
+            currency: components["schemas"]["Currency"];
+            unit: components["schemas"]["Unit"];
+            isBase: boolean;
+            active: boolean;
+            maxJumpBp: number;
+            latestAmount?: string;
+            /** Format: date-time */
+            latestAt?: string;
+            latestSource?: string;
+        };
+        SourceHealth: {
+            slug: string;
+            name: string;
+            provider: string;
+            active: boolean;
+            fetchIntervalSeconds?: number;
+            staleAfterSeconds: number;
+            /** Format: date-time */
+            lastRunAt?: string;
+            /** @enum {string} */
+            lastRunStatus?: "ok" | "error";
+            lastError?: string;
+            /** Format: date-time */
+            lastSuccessAt?: string;
+            /** Format: date-time */
+            lastPointAt?: string;
+            /** @description No point newer than staleAfterSeconds */
+            stale: boolean;
+        };
+        Subscription: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            plan: components["schemas"]["PaidPlan"];
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** @enum {string} */
+            status: "active" | "cancelled";
+            /** @enum {string} */
+            origin: "manual" | "order";
+            note?: string;
         };
         Problem: {
             /** Format: uri */
@@ -100,6 +519,9 @@ export interface components {
             code: string;
             detail?: string;
             requestId?: string;
+            /** @description FEATURE_LOCKED: the locked feature key */
+            feature?: string;
+            requiredPlan?: components["schemas"]["Tier"];
         };
     };
     responses: {
@@ -194,6 +616,347 @@ export interface operations {
                     };
                 };
             };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listPrices: {
+        parameters: {
+            query?: {
+                metal?: string;
+                category?: string;
+                market?: string;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Latest prices in display order */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listSeriesPoints: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["ChartRange"];
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Points in time order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesHistory"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    streamPrices: {
+        parameters: {
+            query?: {
+                /** @description Comma-separated series slugs to limit the stream */
+                series?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event stream. `event: price`, `data`: PriceEvent JSON */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["PriceEvent"];
+                };
+            };
+        };
+    };
+    getEntitlements: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tier, features and limits */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Entitlements"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListSeries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All series */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminSeries"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreatePrice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualPriceInput"];
+            };
+        };
+        responses: {
+            /** @description Point stored and published */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPoint"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminBulkPrices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    items: components["schemas"]["ManualPriceInput"][];
+                    /** @default false */
+                    dryRun?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Per-row results, in input order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        stored: number;
+                        items: components["schemas"]["BulkPriceResult"][];
+                    };
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListQuarantine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quarantined points */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminPoint"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminReviewPrice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    decision: "approve" | "reject";
+                };
+            };
+        };
+        responses: {
+            /** @description Point after review */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPoint"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListSources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sources */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SourceHealth"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListSubscriptions: {
+        parameters: {
+            query?: {
+                userId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscriptions, newest first (max 100) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Subscription"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGrantSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description Keycloak user id
+                     */
+                    userId: string;
+                    plan: components["schemas"]["PaidPlan"];
+                    days: number;
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Subscription created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
             default: components["responses"]["Problem"];
         };
     };

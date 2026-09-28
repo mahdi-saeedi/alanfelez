@@ -6,13 +6,52 @@ package dbq
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	// Subscriptions and the audit log.
+	// The highest-ranked plan the user holds right now.
+	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
+	CountPoints(ctx context.Context, seriesID int32) (int64, error)
+	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
+	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
+	GetSeriesByID(ctx context.Context, id int32) (GetSeriesByIDRow, error)
+	GetSeriesBySlug(ctx context.Context, slug string) (GetSeriesBySlugRow, error)
+	// Resolves slugs for ingestion. Inactive series are included so the caller can report them.
+	GetSeriesIDs(ctx context.Context, slugs []string) ([]GetSeriesIDsRow, error)
+	GetSourceBySlug(ctx context.Context, slug string) (GetSourceBySlugRow, error)
+	InsertAudit(ctx context.Context, arg InsertAuditParams) error
+	// ON CONFLICT DO NOTHING makes re-ingesting the same quote a no-op (no row returned).
+	InsertPoint(ctx context.Context, arg InsertPointParams) (InsertPointRow, error)
+	InsertSourceRun(ctx context.Context, arg InsertSourceRunParams) error
+	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (InsertSubscriptionRow, error)
+	// The last published price before a moment (used for prev_close when the latest point is replaced out of order).
+	LastCloseBefore(ctx context.Context, arg LastCloseBeforeParams) (int64, error)
+	LatestPriceBySlug(ctx context.Context) ([]LatestPriceBySlugRow, error)
 	ListActivePlans(ctx context.Context) ([]ListActivePlansRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
+	// Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
+	// One row per active series, with its latest published point (NULL when the series has no data yet).
+	ListLatestPrices(ctx context.Context, includeInactive bool) ([]ListLatestPricesRow, error)
 	ListMarkets(ctx context.Context) ([]ListMarketsRow, error)
 	ListMetals(ctx context.Context) ([]ListMetalsRow, error)
+	// Review of quarantined points -----------------------------------------------------------------------------
+	ListQuarantined(ctx context.Context) ([]ListQuarantinedRow, error)
+	// Sources ----------------------------------------------------------------------------------------------------
+	ListSources(ctx context.Context) ([]ListSourcesRow, error)
+	ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListSubscriptionsRow, error)
+	// Ingestion (always inside one transaction per batch) ---------------------------------------------------------
+	LockLatest(ctx context.Context, seriesID int32) (LockLatestRow, error)
+	LockPoint(ctx context.Context, id int64) (LockPointRow, error)
+	// Downsampled history: the last published price per bucket. Buckets are aligned to Tehran midnight so daily
+	// buckets are calendar days in Iran.
+	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
+	SetPointStatus(ctx context.Context, arg SetPointStatusParams) error
+	SourceHasPoints(ctx context.Context, sourceID int16) (bool, error)
+	SourceHealth(ctx context.Context) ([]SourceHealthRow, error)
+	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -42,6 +42,32 @@ var Datasets = map[string]Dataset{
 		Key:     []string{"slug"},
 		Columns: map[string]Column{"slug": {}, "name_fa": {}, "name_en": {}, "scope": {}, "sort": {}},
 	},
+	"products": {
+		Table: "market.products",
+		Key:   []string{"slug"},
+		Columns: map[string]Column{
+			"slug": {}, "name_fa": {}, "name_en": {}, "sort": {}, "active": {},
+			"metal":    {Ref: &Ref{Table: "market.metals", By: "slug", IDColumn: "metal_id"}},
+			"category": {Ref: &Ref{Table: "market.product_categories", By: "slug", IDColumn: "category_id"}},
+		},
+	},
+	"sources": {
+		Table: "market.sources",
+		Key:   []string{"slug"},
+		Columns: map[string]Column{
+			"slug": {}, "name_fa": {}, "name_en": {}, "provider": {}, "config": {JSON: true},
+			"fetch_interval_s": {}, "stale_after_s": {}, "active": {},
+		},
+	},
+	"price_series": {
+		Table: "market.price_series",
+		Key:   []string{"slug"},
+		Columns: map[string]Column{
+			"slug": {}, "currency": {}, "unit": {}, "is_base": {}, "max_jump_bp": {}, "sort": {}, "active": {},
+			"product": {Ref: &Ref{Table: "market.products", By: "slug", IDColumn: "product_id"}},
+			"market":  {Ref: &Ref{Table: "market.markets", By: "slug", IDColumn: "market_id"}},
+		},
+	},
 	"plans": {
 		Table:   "app.plans",
 		Key:     []string{"code"},

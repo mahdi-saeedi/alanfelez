@@ -8,6 +8,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AppAuditLog struct {
+	ID        int64
+	At        pgtype.Timestamptz
+	ActorID   pgtype.UUID
+	ActorName pgtype.Text
+	Action    string
+	Entity    string
+	EntityID  pgtype.Text
+	Data      []byte
+	RequestID pgtype.Text
+}
+
 type AppFeatureFlag struct {
 	Key         string
 	Enabled     bool
@@ -54,6 +66,20 @@ type AppSiteSetting struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
+type AppSubscription struct {
+	ID        pgtype.UUID
+	UserID    pgtype.UUID
+	PlanCode  string
+	StartsAt  pgtype.Timestamptz
+	EndsAt    pgtype.Timestamptz
+	Status    string
+	Origin    string
+	Note      pgtype.Text
+	GrantedBy pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
 type MarketMarket struct {
 	ID        int16
 	Slug      string
@@ -75,6 +101,58 @@ type MarketMetal struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
+type MarketPriceLatest struct {
+	SeriesID       int32
+	PointID        int64
+	PriceMinor     int64
+	ObservedAt     pgtype.Timestamptz
+	SourceID       int16
+	PrevCloseMinor pgtype.Int8
+	UpdatedAt      pgtype.Timestamptz
+}
+
+type MarketPricePoint struct {
+	ID         int64
+	SeriesID   int32
+	ObservedAt pgtype.Timestamptz
+	PriceMinor int64
+	SourceID   int16
+	IsManual   bool
+	EnteredBy  pgtype.UUID
+	Status     string
+	ReviewedBy pgtype.UUID
+	ReviewedAt pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+}
+
+type MarketPriceSeries struct {
+	ID        int32
+	Slug      string
+	ProductID int16
+	MarketID  int16
+	Currency  string
+	Unit      string
+	IsBase    bool
+	MaxJumpBp int32
+	Sort      int32
+	Active    bool
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type MarketProduct struct {
+	ID         int16
+	Slug       string
+	MetalID    int16
+	CategoryID int16
+	NameFa     string
+	NameEn     pgtype.Text
+	Sort       int32
+	Active     bool
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
+}
+
 type MarketProductCategory struct {
 	ID        int16
 	Slug      string
@@ -83,4 +161,29 @@ type MarketProductCategory struct {
 	Sort      int32
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
+}
+
+type MarketSource struct {
+	ID             int16
+	Slug           string
+	NameFa         string
+	NameEn         pgtype.Text
+	Provider       string
+	Config         []byte
+	FetchIntervalS int32
+	StaleAfterS    int32
+	Active         bool
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+}
+
+type MarketSourceRun struct {
+	ID          int64
+	SourceID    int16
+	StartedAt   pgtype.Timestamptz
+	FinishedAt  pgtype.Timestamptz
+	Status      string
+	Points      int32
+	Quarantined int32
+	Error       pgtype.Text
 }

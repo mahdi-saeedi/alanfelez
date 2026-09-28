@@ -6,10 +6,15 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
+	"github.com/alanfelez/alanfelez/services/api/internal/prices"
+	"github.com/alanfelez/alanfelez/services/api/internal/subscription"
 )
 
 //go:generate go tool oapi-codegen -config ../../oapi-codegen.yaml ../../../../contracts/openapi.yaml
@@ -17,11 +22,26 @@ import (
 // Server implements the generated StrictServerInterface. Handlers stay thin:
 // parse → call a query/service → map to the API model.
 type Server struct {
-	q dbq.Querier
+	pool   *pgxpool.Pool
+	q      dbq.Querier
+	prices *prices.Service
+	tiers  *subscription.Resolver
+	now    func() time.Time
 }
 
 // NewServer wires the API implementation.
-func NewServer(q dbq.Querier) *Server { return &Server{q: q} }
+func NewServer(pool *pgxpool.Pool, ps *prices.Service) *Server {
+	q := dbq.New(pool)
+	return &Server{pool: pool, q: q, prices: ps, tiers: subscription.NewResolver(q), now: time.Now}
+}
+
+// inTx runs fn in one transaction (for writes that must land together with their audit row).
+func (s *Server) inTx(ctx context.Context, fn func(q *dbq.Queries) error) error {
+	if err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error { return fn(dbq.New(tx)) }); err != nil {
+		return fmt.Errorf("tx: %w", err)
+	}
+	return nil
+}
 
 var _ StrictServerInterface = (*Server)(nil)
 
@@ -74,7 +94,7 @@ func (s *Server) ListPlans(ctx context.Context, req ListPlansRequestObject) (Lis
 	items := make([]Plan, 0, len(plans))
 	for _, p := range plans {
 		items = append(items, Plan{
-			Code:   PlanCode(p.Code),
+			Code:   Tier(p.Code),
 			Name:   localized(lang, p.NameFa, p.NameEn),
 			Rank:   int(p.Rank),
 			Prices: append([]PlanPrice{}, byPlan[p.Code]...),

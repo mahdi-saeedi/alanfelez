@@ -32,12 +32,23 @@ type Config struct {
 	StartupTimeout  time.Duration `env:"STARTUP_TIMEOUT" envDefault:"90s"` // wait for dependencies on boot
 	OIDC            OIDC          `envPrefix:"OIDC_"`
 	Seed            Seed          `envPrefix:"SEED_"`
+	Prices          Prices        `envPrefix:"PRICES_"`
+}
+
+// Prices configures price ingestion (`alanfelez worker`).
+type Prices struct {
+	// DemoAllowed registers the demo price generator (internal/prices/source/demo). Refused in production.
+	DemoAllowed bool `env:"DEMO_ALLOWED" envDefault:"true"`
 }
 
 // OIDC configures access-token validation against Keycloak.
 type OIDC struct {
+	// IssuerURL is the PUBLIC issuer, i.e. the `iss` claim browsers' tokens carry.
 	IssuerURL string `env:"ISSUER_URL" envDefault:"http://localhost:8081/realms/alanfelez"`
-	Audience  string `env:"AUDIENCE" envDefault:"alanfelez-api"`
+	// JWKSURL is where signing keys are fetched. Empty = derived from IssuerURL. Set it when the API reaches
+	// Keycloak on an internal address (compose: http://keycloak:8081/..., Kubernetes: the Keycloak service).
+	JWKSURL  string `env:"JWKS_URL"`
+	Audience string `env:"AUDIENCE" envDefault:"alanfelez-api"`
 }
 
 // Seed configures the initial-data loader.
@@ -70,6 +81,9 @@ func (c Config) validate() error {
 	}
 	if c.Env == EnvProduction && slices.Contains(c.Seed.Profiles, "demo") {
 		errs = append(errs, errors.New(`SEED_PROFILES must not contain "demo" in production`))
+	}
+	if c.Env == EnvProduction && c.Prices.DemoAllowed {
+		errs = append(errs, errors.New("PRICES_DEMO_ALLOWED must be false in production"))
 	}
 	return errors.Join(errs...)
 }

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Alan Felez API
-  version: 0.1.0
+  version: 0.2.0
   description: |
     Public, user and admin API for الان‌فلز. Contract-first (ADR-0014): edit this file,
     then run `task generate`. Conventions: docs/architecture/API_GUIDELINES.md.
@@ -11,6 +11,16 @@ servers:
 tags:
   - name: reference
     description: Reference data (metals, markets, plans)
+  - name: prices
+    description: Latest prices and price history. Visibility depends on the caller's tier (internal/access)
+  - name: me
+    description: The calling user
+  - name: admin
+    description: Staff only (realm role `staff`; writes need `editor` or `admin`). Every write is audit-logged
+
+security:
+  - {}
+  - bearerAuth: []
 
 paths:
   /v1/metals:
@@ -76,7 +86,314 @@ paths:
                     items: { $ref: '#/components/schemas/Plan' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/prices:
+    get:
+      operationId: listPrices
+      tags: [prices]
+      summary: Latest price per series
+      description: |
+        Free (and anonymous) callers get the base series only; `lockedCount` says how many more exist (teaser).
+        Locked rows are never returned. Always show `source` and `observedAt` next to a price.
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - { name: metal, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+        - { name: market, in: query, required: false, schema: { type: string } }
+      responses:
+        '200':
+          description: Latest prices in display order
+          headers:
+            Cache-Control: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PriceList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/series/{slug}/points:
+    get:
+      operationId: listSeriesPoints
+      tags: [prices]
+      summary: Price history of one series, downsampled to at most ~300 points
+      description: |
+        Each point is the last published price in its time bucket (a "close"). Ranges beyond the caller's
+        `chart.history_days` limit, and series the tier can't see, answer 403 FEATURE_LOCKED.
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - { name: slug, in: path, required: true, schema: { type: string } }
+        - name: range
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/ChartRange' }
+      responses:
+        '200':
+          description: Points in time order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SeriesHistory' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/prices/stream:
+    get:
+      operationId: streamPrices
+      tags: [prices]
+      summary: Live price updates (Server-Sent Events)
+      description: |
+        Implemented by hand (internal/prices/live), not by the generated server. On connect the server sends the
+        current price of every visible series, then one `price` event per published point. A comment line is sent
+        every 25 s as a heartbeat. Visibility is fixed when the stream opens (reconnect after a plan change).
+      parameters:
+        - name: series
+          in: query
+          required: false
+          description: Comma-separated series slugs to limit the stream
+          schema: { type: string }
+      responses:
+        '200':
+          description: 'Event stream. `event: price`, `data`: PriceEvent JSON'
+          content:
+            text/event-stream:
+              schema: { $ref: '#/components/schemas/PriceEvent' }
+
+  /v1/me/entitlements:
+    get:
+      operationId: getEntitlements
+      tags: [me]
+      summary: Evaluated feature map for the caller (anonymous = free)
+      responses:
+        '200':
+          description: Tier, features and limits
+          headers:
+            Cache-Control: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Entitlements' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/series:
+    get:
+      operationId: adminListSeries
+      tags: [admin]
+      summary: Every series with its latest price and outlier threshold
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: All series
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminSeries' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/prices:
+    post:
+      operationId: adminCreatePrice
+      tags: [admin]
+      summary: Manual price entry (fallback when a source is down, SCOPE §13)
+      description: |
+        A move larger than the series' outlier threshold answers 422 PRICE_JUMP unless `force` is true.
+        Roles: editor, admin.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ManualPriceInput' }
+      responses:
+        '201':
+          description: Point stored and published
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPoint' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/prices/bulk:
+    post:
+      operationId: adminBulkPrices
+      tags: [admin]
+      summary: Bulk manual entry (the admin parses the CSV). Run with dryRun first to show the diff
+      description: |
+        Rows are validated independently. With `dryRun` nothing is stored. Otherwise valid rows are stored in one
+        transaction and rows with a jump are skipped unless `force`. Roles: editor, admin.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items: { $ref: '#/components/schemas/ManualPriceInput' }
+                dryRun: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Per-row results, in input order
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, stored]
+                properties:
+                  stored: { type: integer }
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/BulkPriceResult' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/prices/quarantine:
+    get:
+      operationId: adminListQuarantine
+      tags: [admin]
+      summary: Points held back by the outlier gate, oldest first
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Quarantined points
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminPoint' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/prices/{id}/review:
+    post:
+      operationId: adminReviewPrice
+      tags: [admin]
+      summary: Approve (publish) or reject a quarantined point. Roles, editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, pattern: '^[0-9]+$' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, reject] }
+      responses:
+        '200':
+          description: Point after review
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminPoint' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/sources:
+    get:
+      operationId: adminListSources
+      tags: [admin]
+      summary: Source health (last run, last success, stale flag)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Sources
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/SourceHealth' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/subscriptions:
+    get:
+      operationId: adminListSubscriptions
+      tags: [admin]
+      summary: Latest subscriptions (optionally for one user)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: userId, in: query, required: false, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Subscriptions, newest first (max 100)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Subscription' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: adminGrantSubscription
+      tags: [admin]
+      summary: Grant a subscription manually (until checkout exists). Role, admin
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, plan, days]
+              properties:
+                userId: { type: string, format: uuid, description: Keycloak user id }
+                plan: { $ref: '#/components/schemas/PaidPlan' }
+                days: { type: integer, minimum: 1, maximum: 1095 }
+                note: { type: string, maxLength: 500 }
+      responses:
+        '201':
+          description: Subscription created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Keycloak access token (audience alanfelez-api)
+
   parameters:
     AcceptLanguage:
       name: Accept-Language
@@ -92,6 +409,20 @@ components:
           schema: { $ref: '#/components/schemas/Problem' }
 
   schemas:
+    Currency:
+      type: string
+      enum: [IRR, USD]
+    Unit:
+      type: string
+      enum: [kg, ton]
+    Tier:
+      type: string
+      description: Subscription tier (plan code)
+      enum: [free, silver, gold]
+    PaidPlan:
+      type: string
+      enum: [silver, gold]
+
     Metal:
       type: object
       required: [slug, name]
@@ -113,7 +444,7 @@ components:
       required: [amount, currency]
       properties:
         amount: { type: string, pattern: '^-?[0-9]+$', example: '10000000' }
-        currency: { type: string, enum: [IRR, USD] }
+        currency: { $ref: '#/components/schemas/Currency' }
 
     PlanPrice:
       type: object
@@ -126,12 +457,214 @@ components:
       type: object
       required: [code, name, rank, prices]
       properties:
-        code: { type: string, enum: [free, silver, gold] }
+        code: { $ref: '#/components/schemas/Tier' }
         name: { type: string }
         rank: { type: integer }
         prices:
           type: array
           items: { $ref: '#/components/schemas/PlanPrice' }
+
+    Localized:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string }
+        name: { type: string }
+
+    SeriesRef:
+      type: object
+      required: [slug, product, metal, category, market, currency, unit, isBase]
+      properties:
+        slug: { type: string, example: copper-red-free }
+        product: { $ref: '#/components/schemas/Localized' }
+        metal: { $ref: '#/components/schemas/Localized' }
+        category: { $ref: '#/components/schemas/Localized' }
+        market: { $ref: '#/components/schemas/Market' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        unit: { $ref: '#/components/schemas/Unit' }
+        isBase: { type: boolean, description: Visible to the free tier }
+
+    Price:
+      type: object
+      description: Integer minor units per unit (Rial per kg for IRR, US cents per ton for USD) as a string.
+      required: [amount, currency, unit]
+      properties:
+        amount: { type: string, pattern: '^[0-9]+$', example: '64000000' }
+        currency: { $ref: '#/components/schemas/Currency' }
+        unit: { $ref: '#/components/schemas/Unit' }
+
+    PriceChange:
+      type: object
+      description: Change against the previous day's close (Asia/Tehran calendar day)
+      required: [amount, bp]
+      properties:
+        amount: { type: string, pattern: '^-?[0-9]+$', description: Minor units }
+        bp: { type: integer, description: 'Basis points (125 = +1.25 %)' }
+
+    PriceRow:
+      type: object
+      required: [series]
+      properties:
+        series: { $ref: '#/components/schemas/SeriesRef' }
+        price: { $ref: '#/components/schemas/Price' }
+        change: { $ref: '#/components/schemas/PriceChange' }
+        observedAt: { type: string, format: date-time }
+        source: { type: string, description: 'Where the price comes from, in the requested language' }
+
+    PriceList:
+      type: object
+      required: [items, lockedCount]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PriceRow' }
+        lockedCount:
+          type: integer
+          description: Series hidden by the caller's tier (matching the filters)
+        lockedFeature: { $ref: '#/components/schemas/FeatureLock' }
+
+    FeatureLock:
+      type: object
+      required: [feature, requiredPlan]
+      properties:
+        feature: { type: string, example: prices.full }
+        requiredPlan: { $ref: '#/components/schemas/Tier' }
+
+    ChartRange:
+      type: string
+      enum: [1D, 1W, 1M, 3M, 6M, 1Y, 3Y, MAX]
+      default: 1M
+
+    SeriesPoint:
+      type: object
+      required: [t, amount]
+      properties:
+        t: { type: string, format: date-time, description: Time of the last point in the bucket }
+        amount: { type: string, pattern: '^[0-9]+$' }
+
+    SeriesHistory:
+      type: object
+      required: [series, range, from, to, intervalSeconds, points]
+      properties:
+        series: { $ref: '#/components/schemas/SeriesRef' }
+        range: { $ref: '#/components/schemas/ChartRange' }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        intervalSeconds: { type: integer, description: Bucket size used for downsampling }
+        points:
+          type: array
+          items: { $ref: '#/components/schemas/SeriesPoint' }
+        source: { type: string }
+
+    PriceEvent:
+      type: object
+      required: [series, price, observedAt]
+      properties:
+        series: { type: string, description: Series slug }
+        price: { $ref: '#/components/schemas/Price' }
+        change: { $ref: '#/components/schemas/PriceChange' }
+        observedAt: { type: string, format: date-time }
+
+    Entitlements:
+      type: object
+      required: [authenticated, tier, features, limits]
+      properties:
+        authenticated: { type: boolean }
+        tier: { $ref: '#/components/schemas/Tier' }
+        tierEndsAt: { type: string, format: date-time }
+        features:
+          type: object
+          additionalProperties: { type: boolean }
+          example: { prices.base: true, prices.full: false }
+        limits:
+          type: object
+          additionalProperties: { type: integer }
+          description: 0 = unlimited
+          example: { chart.history_days: 30 }
+
+    ManualPriceInput:
+      type: object
+      required: [series, amount]
+      properties:
+        series: { type: string, description: Series slug }
+        amount: { type: string, pattern: '^[0-9]+$', description: 'Minor units per series unit (Rial/kg, cents/ton)' }
+        observedAt: { type: string, format: date-time, description: Defaults to now. Can't be in the future }
+        force: { type: boolean, default: false, description: Store even if the move exceeds the outlier threshold }
+
+    AdminPoint:
+      type: object
+      required: [id, series, amount, observedAt, status, isManual, source, createdAt]
+      properties:
+        id: { type: string }
+        series: { type: string }
+        amount: { type: string }
+        previousAmount: { type: string, description: Latest published price when the point arrived }
+        jumpBp: { type: integer }
+        observedAt: { type: string, format: date-time }
+        status: { type: string, enum: [published, quarantined, rejected] }
+        isManual: { type: boolean }
+        source: { type: string, description: Source slug }
+        enteredBy: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    BulkPriceResult:
+      type: object
+      required: [index, series, status]
+      properties:
+        index: { type: integer }
+        series: { type: string }
+        status: { type: string, enum: [ok, stored, jump, invalid, duplicate] }
+        message: { type: string }
+        previousAmount: { type: string }
+        jumpBp: { type: integer }
+
+    AdminSeries:
+      type: object
+      required: [slug, productFa, market, currency, unit, isBase, active, maxJumpBp]
+      properties:
+        slug: { type: string }
+        productFa: { type: string }
+        productEn: { type: string }
+        metal: { type: string }
+        market: { type: string }
+        currency: { $ref: '#/components/schemas/Currency' }
+        unit: { $ref: '#/components/schemas/Unit' }
+        isBase: { type: boolean }
+        active: { type: boolean }
+        maxJumpBp: { type: integer }
+        latestAmount: { type: string }
+        latestAt: { type: string, format: date-time }
+        latestSource: { type: string }
+
+    SourceHealth:
+      type: object
+      required: [slug, name, provider, active, stale, staleAfterSeconds]
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        provider: { type: string }
+        active: { type: boolean }
+        fetchIntervalSeconds: { type: integer }
+        staleAfterSeconds: { type: integer }
+        lastRunAt: { type: string, format: date-time }
+        lastRunStatus: { type: string, enum: [ok, error] }
+        lastError: { type: string }
+        lastSuccessAt: { type: string, format: date-time }
+        lastPointAt: { type: string, format: date-time }
+        stale: { type: boolean, description: No point newer than staleAfterSeconds }
+
+    Subscription:
+      type: object
+      required: [id, userId, plan, startsAt, endsAt, status, origin]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        status: { type: string, enum: [active, cancelled] }
+        origin: { type: string, enum: [manual, order] }
+        note: { type: string }
 
     Problem:
       type: object
@@ -143,3 +676,5 @@ components:
         code: { type: string, example: INTERNAL }
         detail: { type: string }
         requestId: { type: string }
+        feature: { type: string, description: 'FEATURE_LOCKED: the locked feature key' }
+        requiredPlan: { $ref: '#/components/schemas/Tier' }

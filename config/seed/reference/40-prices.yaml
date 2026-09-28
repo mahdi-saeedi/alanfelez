@@ -1,0 +1,44 @@
+# Products, price sources and price series (DATA_MODEL §2). Editable in the admin after the first load.
+# Product names are the sample rows from the client's design docs (price table, 11 rows). مس کاتد is ours: it's the
+# product behind the LME copper reference (SCOPE §14).
+# Which market quotes which product is our assumption until the client confirms it (OPEN_QUESTIONS F12).
+version: 1
+datasets:
+  - name: products
+    rows:
+      - { slug: aluminum-ingot,      metal: aluminum,  category: raw,          name_fa: شمش آلومینیوم,        name_en: Aluminum ingot,      sort: 10 }
+      - { slug: aluminum-soft-scrap, metal: aluminum,  category: scrap,        name_fa: ضایعات آلومینیوم نرم, name_en: Soft aluminum scrap, sort: 11 }
+      - { slug: copper-red,          metal: copper,    category: scrap,        name_fa: مس قرمز,              name_en: Red copper,          sort: 20 }
+      - { slug: copper-cable,        metal: copper,    category: scrap,        name_fa: مس کابلی,             name_en: Cable copper,        sort: 21 }
+      - { slug: copper-cathode,      metal: copper,    category: raw,          name_fa: مس کاتد,              name_en: Copper cathode,      sort: 22 }
+      - { slug: brass-yellow,        metal: brass,     category: raw,          name_fa: برنج زرد,             name_en: Yellow brass,        sort: 30 }
+      - { slug: brass-scrap,         metal: brass,     category: scrap,        name_fa: ضایعات برنج,          name_en: Brass scrap,         sort: 31 }
+      - { slug: zinc-ingot,          metal: zinc,      category: raw,          name_fa: شمش روی,              name_en: Zinc ingot,          sort: 40 }
+      - { slug: lead-ingot,          metal: lead,      category: raw,          name_fa: شمش سرب,              name_en: Lead ingot,          sort: 50 }
+      - { slug: rebar-16,            metal: iron,      category: intermediate, name_fa: میلگرد ۱۶,            name_en: Rebar 16 mm,         sort: 60 }
+      - { slug: steel-sheet-4,       metal: iron,      category: intermediate, name_fa: ورق ۴ آهن,            name_en: Steel sheet 4 mm,    sort: 61 }
+      - { slug: cast-iron-scrap,     metal: cast-iron, category: scrap,        name_fa: ضایعات چدن,           name_en: Cast iron scrap,     sort: 70 }
+
+  # Manual entry is a source like any other, so every point says where it came from (SCOPE §13).
+  - name: sources
+    rows:
+      - { slug: manual, provider: manual, name_fa: ورود دستی, name_en: Manual entry, config: {}, fetch_interval_s: 60, stale_after_s: 86400 }
+
+  # is_base = visible to the free tier (one headline series per metal, SCOPE §6). max_jump_bp: outlier gate (SECURITY §6).
+  - name: price_series
+    rows:
+      - { slug: aluminum-ingot-ime,      product: aluminum-ingot,      market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 10 }
+      - { slug: aluminum-soft-scrap-free, product: aluminum-soft-scrap, market: free, currency: IRR, unit: kg,  is_base: false, sort: 11 }
+      - { slug: copper-red-free,         product: copper-red,          market: free, currency: IRR, unit: kg,  is_base: true,  sort: 20 }
+      - { slug: copper-cable-free,       product: copper-cable,        market: free, currency: IRR, unit: kg,  is_base: false, sort: 21 }
+      - { slug: brass-yellow-free,       product: brass-yellow,        market: free, currency: IRR, unit: kg,  is_base: true,  sort: 30 }
+      - { slug: brass-scrap-free,        product: brass-scrap,         market: free, currency: IRR, unit: kg,  is_base: false, sort: 31 }
+      - { slug: zinc-ingot-ime,          product: zinc-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 40 }
+      - { slug: lead-ingot-ime,          product: lead-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 50 }
+      - { slug: rebar-16-iron,           product: rebar-16,            market: iron, currency: IRR, unit: kg,  is_base: true,  sort: 60 }
+      - { slug: steel-sheet-4-iron,      product: steel-sheet-4,       market: iron, currency: IRR, unit: kg,  is_base: false, sort: 61 }
+      - { slug: cast-iron-scrap-free,    product: cast-iron-scrap,     market: free, currency: IRR, unit: kg,  is_base: true,  sort: 70 }
+      - { slug: aluminum-lme,            product: aluminum-ingot,      market: lme,  currency: USD, unit: ton, is_base: false, sort: 110 }
+      - { slug: copper-lme,              product: copper-cathode,      market: lme,  currency: USD, unit: ton, is_base: false, sort: 120 }
+      - { slug: zinc-lme,                product: zinc-ingot,          market: lme,  currency: USD, unit: ton, is_base: false, sort: 140 }
+      - { slug: lead-lme,                product: lead-ingot,          market: lme,  currency: USD, unit: ton, is_base: false, sort: 150 }

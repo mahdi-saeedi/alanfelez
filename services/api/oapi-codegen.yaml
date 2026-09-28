@@ -8,3 +8,5 @@ generate:
   embedded-spec: true
 output-options:
   skip-prune: false
+  # The SSE stream is hand-written (internal/prices/live); the generated server can't stream.
+  exclude-operation-ids: [streamPrices]
