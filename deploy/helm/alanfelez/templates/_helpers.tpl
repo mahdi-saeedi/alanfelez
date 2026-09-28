@@ -39,6 +39,9 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 - { name: REDIS_URL, value: {{ default (printf "redis://%s-redis:6379/0" .Values.dataRelease) .Values.api.redisUrl | quote }} }
 - { name: SEED_PROFILES, value: {{ .Values.api.seedProfiles | quote }} }
 - { name: OIDC_ISSUER_URL, value: "{{ include "af.url" (dict "root" . "host" "auth") }}/realms/alanfelez" }
+# Signing keys come straight from the Keycloak service (no hairpin through the ingress/CDN); `iss` stays public.
+- { name: OIDC_JWKS_URL, value: "http://{{ .Release.Name }}-keycloak:8080/realms/alanfelez/protocol/openid-connect/certs" }
+- { name: PRICES_DEMO_ALLOWED, value: {{ .Values.api.demoPrices | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }
 {{- range $k, $v := .Values.api.extraEnv }}
 - { name: {{ $k }}, value: {{ $v | quote }} }

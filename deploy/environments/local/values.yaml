@@ -18,6 +18,7 @@ api:
   replicas: 2
   logLevel: debug
   seedProfiles: reference,demo
+  demoPrices: true                 # demo price generator (worker)
 web:
   replicas: 2
 keycloak:

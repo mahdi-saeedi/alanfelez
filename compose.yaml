@@ -27,6 +27,8 @@ x-api-env: &api-env
   DATABASE_URL: postgres://alanfelez:${POSTGRES_PASSWORD:-alanfelez}@postgres:5432/alanfelez?sslmode=disable
   REDIS_URL: redis://redis:6379/0
   OIDC_ISSUER_URL: http://localhost:${KEYCLOAK_PORT:-8081}/realms/alanfelez
+  OIDC_JWKS_URL: http://keycloak:8081/realms/alanfelez/protocol/openid-connect/certs
+  PRICES_DEMO_ALLOWED: "true"
   CORS_ORIGINS: http://localhost:${WEB_PORT:-3000},http://localhost:${ADMIN_PORT:-5173}
   SEED_PROFILES: reference,demo
 
@@ -117,6 +119,16 @@ services:
       bootstrap: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
       keycloak: { condition: service_healthy }
+
+  # Background jobs (River): demo price generator every 15 s, source clean-up. Same image as the API.
+  worker:
+    <<: *api-image
+    command: ["worker"]
+    environment: *api-env
+    restart: unless-stopped
+    depends_on:
+      bootstrap: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
 
   web:
     image: alanfelez/web:local

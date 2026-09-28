@@ -30,11 +30,20 @@ api:
   replicas: 2
   logLevel: info
   seedProfiles: reference          # "reference,demo" on staging; demo is refused in production
+  demoPrices: false                # demo price generator (with the demo seed). Refused in production
   redisUrl: ""                     # default: the alanfelez-data Redis service
   corsOrigins: []                  # defaults to the web origin
   extraEnv: {}
   resources:
     requests: { cpu: 100m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+# Background jobs (River): price fetching, clean-up. Periodic jobs run on one elected leader,
+# so extra replicas are safe (they only add capacity).
+worker:
+  replicas: 1
+  resources:
+    requests: { cpu: 50m, memory: 96Mi }
     limits: { memory: 256Mi }
 
 web:

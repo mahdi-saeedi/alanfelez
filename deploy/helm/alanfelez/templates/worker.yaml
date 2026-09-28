@@ -1,0 +1,31 @@
+# Background jobs (`alanfelez worker`, River). Same image as the API; no Service (it takes no traffic).
+# /healthz and /readyz on :8080 are for the probes only.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: {{- include "af.selector" (dict "root" . "name" "worker") | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "worker") | nindent 8 }}
+    spec:
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      securityContext: { runAsNonRoot: true, runAsUser: 65532, runAsGroup: 65532 }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: worker
+          image: {{ include "af.image" (dict "root" . "name" "api") }}
+          imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+          args: ["worker"]
+          env: {{- include "af.apiEnv" . | nindent 12 }}
+          ports: [{ name: http, containerPort: 8080 }]
+          startupProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 2, failureThreshold: 60 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 10 }
+          readinessProbe: { httpGet: { path: /readyz, port: http }, periodSeconds: 10, failureThreshold: 3 }
+          resources: {{- toYaml .Values.worker.resources | nindent 12 }}
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }

@@ -17,12 +17,21 @@ jobs:
   go:
     name: Go · lint, test, generate check, vulns
     runs-on: ubuntu-latest
+    services:
+      postgres:            # integration tests create a throwaway database per test
+        image: postgres:16
+        env: { POSTGRES_USER: alanfelez, POSTGRES_PASSWORD: alanfelez, POSTGRES_DB: postgres }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U alanfelez" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://alanfelez:alanfelez@localhost:5432/postgres?sslmode=disable
     steps:
       - uses: actions/checkout@v5
       - uses: jdx/mise-action@v2            # installs the pinned toolchain from mise.toml
       - run: task generate:check
       - run: task lint:go
       - run: task test
+      - run: task test:integration
       - name: govulncheck
         working-directory: services/api
         run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...

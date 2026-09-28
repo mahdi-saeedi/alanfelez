@@ -15,5 +15,6 @@ images:
   admin: { repository: admin, tag: "0.0.0" }
 api:
   seedProfiles: reference,demo
+  demoPrices: true                 # demo price generator (worker)
 keycloak:
   otp: { smsProvider: console, consoleAllowed: true }   # switch to the real provider when available (F7)
