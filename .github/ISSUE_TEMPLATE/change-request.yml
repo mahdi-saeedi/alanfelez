@@ -1,5 +1,5 @@
 name: Change request
-description: Client-requested change to the approved scope (docs/PROCESS.md §3)
+description: Client-requested change to the approved scope (docs/product/PROCESS.md §3)
 labels: ["type:change-request"]
 body:
   - type: textarea
