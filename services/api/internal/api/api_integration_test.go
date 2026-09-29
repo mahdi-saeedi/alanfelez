@@ -76,7 +76,7 @@ func setup(t *testing.T, opts ...api.Option) *env {
 	r := chi.NewRouter()
 	trusted, _ := httpx.ParsePrefixes([]string{"127.0.0.0/8", "::1/128"}) // the test client may set X-Forwarded-For
 	r.Use(httpx.ClientInfo(trusted))
-	api.Mount(r, api.NewServer(pool, ps, bs, opts...), fakeVerifier{}, live.NewHub(nil, log), log)
+	api.Mount(r, api.NewServer(pool, ps, bs, opts...), fakeVerifier{}, live.NewHub(nil, log), log, trusted)
 	srv := httptest.NewServer(r)
 	t.Cleanup(srv.Close)
 	return &env{t: t, pool: pool, prices: ps, billing: bs, gw: gw, srv: srv}

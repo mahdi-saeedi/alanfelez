@@ -1619,6 +1619,8 @@ export interface components {
             hours?: string;
         };
         SiteInfo: {
+            /** @description The English site at /en is public (flag locale.en). Off: /en redirects to Persian */
+            englishSite: boolean;
             contact: components["schemas"]["ContactInfo"];
             /** @description Network → URL, only the ones set */
             social: {

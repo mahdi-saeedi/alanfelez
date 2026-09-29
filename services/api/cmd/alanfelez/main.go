@@ -155,7 +155,7 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	defer stopStreams()
 	hub := live.NewHub(rdb, log)
 	go hub.Run(streams)
-	api.Mount(router, server, verifier, hub, log)
+	api.Mount(router, server, verifier, hub, log, trusted)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,

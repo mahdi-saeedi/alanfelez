@@ -31,6 +31,9 @@ func fail[T defaultProblem](p Problem) T { return T{Body: p, StatusCode: p.Statu
 // The licenses page stays hidden until the client has the licenses (client answer #29).
 const flagLicensesPage = "page.licenses"
 
+// The English site stays hidden until its copy is reviewed (F4); the website redirects /en while it's off.
+const flagEnglishSite = "locale.en"
+
 // ListArticles lists published articles. Locked ones are teasers: the list never carries bodies anyway.
 func (s *Server) ListArticles(ctx context.Context, req ListArticlesRequestObject) (ListArticlesResponseObject, error) {
 	p := req.Params
@@ -242,6 +245,9 @@ func (s *Server) GetSite(ctx context.Context, req GetSiteRequestObject) (GetSite
 		}
 	}
 	if info.LicensesPage, err = s.q.FeatureEnabled(ctx, flagLicensesPage); err != nil {
+		return nil, fmt.Errorf("feature flag: %w", err)
+	}
+	if info.EnglishSite, err = s.q.FeatureEnabled(ctx, flagEnglishSite); err != nil {
 		return nil, fmt.Errorf("feature flag: %w", err)
 	}
 	return GetSite200JSONResponse(info), nil

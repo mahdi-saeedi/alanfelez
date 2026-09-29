@@ -179,7 +179,7 @@ func TestFaqPagesAndSettings(t *testing.T) {
 	}
 
 	// Site settings: empty contact details are left out; only admins edit them.
-	if _, site, _ := e.call(http.MethodGet, "/v1/site", "", nil); len(site["contact"].(map[string]any)) != 0 || site["licensesPage"] != true {
+	if _, site, _ := e.call(http.MethodGet, "/v1/site", "", nil); len(site["contact"].(map[string]any)) != 0 || site["licensesPage"] != true || site["englishSite"] != false {
 		t.Fatalf("site: %v", site)
 	}
 	settings := map[string]any{

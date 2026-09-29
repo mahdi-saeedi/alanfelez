@@ -2185,8 +2185,9 @@ components:
 
     SiteInfo:
       type: object
-      required: [contact, social, licensesPage]
+      required: [contact, social, licensesPage, englishSite]
       properties:
+        englishSite: { type: boolean, description: 'The English site at /en is public (flag locale.en). Off: /en redirects to Persian' }
         contact: { $ref: '#/components/schemas/ContactInfo' }
         social:
           type: object
