@@ -10,6 +10,7 @@
   "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
+  "passwordPolicy": "length(10) and notUsername(undefined) and notEmail(undefined)",
   "failureFactor": 5,
   "waitIncrementSeconds": 60,
   "maxFailureWaitSeconds": 900,
