@@ -9,6 +9,7 @@ lefthook = "2.1.14"
 sqlc = "1.31.1"
 golangci-lint = "2.14.0"
 k6 = "1.4.2"            # load tests (deploy/loadtest, task loadtest)
+helm = "3.17.3"         # chart lint/render (task helm:lint, task check)
 
 [env]
 # Go-based codegen tools (oapi-codegen, goose) are pinned as `tool` directives in services/api/go.mod

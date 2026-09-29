@@ -143,6 +143,18 @@ tasks:
       - task: generate:go
       - git diff --exit-code -- {{.API_DIR}}/internal/api {{.API_DIR}}/internal/dbq
 
+  check:
+    desc: Every fast check CI runs, in one go (generated code, Go lint + unit tests, TS typecheck, Helm lint). Run before a PR
+    cmds:
+      - task: generate:check
+      - task: lint:go
+      - task: test
+      - pnpm --filter @alanfelez/ui test
+      - pnpm --filter @alanfelez/keycloak-theme typecheck
+      - pnpm --filter @alanfelez/web typecheck
+      - pnpm --filter @alanfelez/admin typecheck
+      - task: helm:lint
+
   fmt:
     desc: Format Go code
     dir: "{{.API_DIR}}"
