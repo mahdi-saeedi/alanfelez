@@ -169,7 +169,7 @@ browser ◄─ server-rendered snapshot from Next.js (calls GET /v1/prices), so 
 | Layer | What | TTL / invalidation |
 |---|---|---|
 | Arvan CDN | Static assets (hashed) | 1 year, immutable |
-| Arvan CDN | Public HTML (Home, Prices, Chart, FAQ, content) | `s-maxage=30–300` + `stale-while-revalidate`. Only anonymous responses are cached, and requests with a session cookie bypass the cache |
+| Arvan CDN | HTML | **Not cached** (M6): every page carries a per-request CSP nonce, and the header/prices depend on the session. Capacity comes from web pods with CPU autoscaling instead (LAUNCH §4). Revisit only with a nonce-free CSP design |
 | Next.js | Server `fetch` to the Go API | Tag-based revalidation: the Go API calls a Next.js revalidate webhook on content publish. Prices use short `revalidate` (30 s), because live values come over SSE |
 | Go API | Public read endpoints | Redis response cache 30–300 s. Keys include locale + tier. Price keys are purged on ingest |
 | Redis | Latest prices | Overwritten on ingest (no TTL). Postgres `price_latest` is the fallback |

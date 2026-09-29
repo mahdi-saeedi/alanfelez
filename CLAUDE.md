@@ -6,7 +6,7 @@ The client already runs Iranian servers (ArvanCloud) and owns both domains, alan
 **Status:** M1–M5 done (M3: account, checkout with a mock gateway, renewals/upgrades/refunds, reminder SMS; M4: CMS content, FAQ, pages, contact, tickets; M5: IME auctions, calculator, SMS price alerts). `task up` runs web (Next.js), admin (Refine), Go API + worker (River), Postgres, Redis and the custom
 Keycloak (phone OTP, Keycloakify theme, staff TOTP). Prices: demo generator locally, manual/CSV entry in the admin, live over SSE,
 tier-gated in Go. Rich text is TipTap HTML sanitized by the API (ADR-0025). `task k8s:*` runs the same apps on local k3d with Argo CD + Rollouts.
-Next: M6 launch (mobile polish, SEO, performance/security review, staging).
+M6 prepared (mobile nav, SEO, CSP, rate limits, load test, docs/guides/LAUNCH.md); go-live waits for staging and client items.
 **Stack:** Go backend (`services/api`: chi, spec-first OpenAPI, pgx/sqlc/goose, River, SSE) · Next.js public site · Refine admin ·
 Postgres · Redis · custom Keycloak · Docker Compose (local) · k3s + Helm + Argo CD/Rollouts (staging/prod) · GitHub Actions CI. **Contract first:** edit `contracts/openapi.yaml`, then `task generate`.
 There's one developer (the user) plus AI assistants, and the project must be easy to hand over to a future developer.

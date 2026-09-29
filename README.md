@@ -4,13 +4,15 @@ A bilingual (Persian / English) information platform for Iran's metals market. I
 and forecasts, Iran Mercantile Exchange (IME) daily auction data, a load-value calculator, and Free / Silver / Gold subscriptions.
 
 > **Project status (2026-09-28):** M1 (foundation), M2 (market data), M3 (accounts & payments), M4 (content & support) and M5 (Gold features) complete, pending the client's review.
+> M6 launch preparation done locally (mobile navigation, SEO, CSP and security headers, API rate limits, load test);
+> go-live needs the staging/production servers and the client items in [LAUNCH.md](docs/guides/LAUNCH.md).
 > Everything runs locally with one command: website, admin panel, Go API + worker, and Keycloak with phone OTP + Keycloakify theme.
 > Prices come from a demo generator until the real price APIs arrive (F5); staff can enter them by hand (single or CSV).
 > The Kubernetes delivery pipeline (Argo CD, canary, automatic and manual rollback) is tested on a local cluster.
 > Checkout runs end to end with a mock gateway until the client's gateway arrives (F13).
 > News & analysis, FAQ, About/Terms/Privacy, contact form and support tickets are edited in the admin (TipTap editor).
 > Gold: IME daily auctions (entered in the admin until a data feed exists, F16), the load calculator, SMS price alerts.
-> Next: M6 launch (mobile polish, SEO, performance and security review, staging with the client). See [Roadmap](#roadmap).
+> Next: staging on ArvanCloud, then the launch checklist. See [Roadmap](#roadmap).
 
 ## Start here (new developer)
 
@@ -66,7 +68,7 @@ task up      # builds and starts everything, runs migrations and seed data
 
 Then open http://localhost:3000 (website), http://localhost:5173 (admin panel) and http://localhost:8080/v1/metals (API).
 Sign in with any mobile number; `task otp` shows the code. `task smoke` checks everything. Full instructions for **macOS, Linux and Windows**, including slow or restricted networks:
-**[docs/guides/LOCAL_SETUP.md](docs/guides/LOCAL_SETUP.md)**. Staging/production: **[docs/guides/DEPLOYMENT.md](docs/guides/DEPLOYMENT.md)**.
+**[docs/guides/LOCAL_SETUP.md](docs/guides/LOCAL_SETUP.md)**. Staging/production: **[docs/guides/DEPLOYMENT.md](docs/guides/DEPLOYMENT.md)**. Going live: **[docs/guides/LAUNCH.md](docs/guides/LAUNCH.md)**.
 
 ## Conventions
 
@@ -87,4 +89,4 @@ Sign in with any mobile number; `task otp` shows the code. `task smoke` checks e
 | 3 | Account page, checkout (quote → gateway → server-side verify), queued renewals, prorated upgrades, refunds, renewal SMS, admin users/orders/refunds | ✅ done (real gateway pending F13, SMS provider F7) |
 | 4 | CMS content: news/analysis/forecasts (Gold bodies never sent to lower tiers), FAQ (search, deep links, schema), About, Terms, Privacy, Licenses (behind a flag), contact form (rate-limited), support tickets; admin editors with audit | ✅ done (media uploads next; e-mail notifications pending F15; content edits to confirm F14) |
 | 5 | Gold features: IME daily auctions (summary public, table Gold; admin entry/paste), load calculator (API-computed, saved and shareable), SMS price alerts (edge-triggered, capped, budget breaker) | ✅ done (IME feed F16, SMS provider F7, USD prices in the calculator later) |
-| 6 | Mobile polish, SEO, performance, security review, staging review with client → production launch | |
+| 6 | Mobile polish, SEO, performance, security review, staging review with client → production launch | 🟡 prepared: phone menu + tab bar, sitemap/robots/hreflang/structured data, CSP + headers, API rate limits, k6 load test and web autoscaling, launch runbook. Pending: staging, client items, go-live |

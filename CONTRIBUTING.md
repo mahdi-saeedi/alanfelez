@@ -53,6 +53,9 @@ A change is done when **all** of these hold:
 
 **TypeScript / React**
 - Strict TS, no `any`. Server components by default, and `"use client"` only where needed.
+- A `"use client"` file exports **components only**. Constants, types-with-values and helpers that server code also
+  uses go in a plain module (e.g. `lib/nav.ts`, `components/gold/calc-form.ts`): a server component importing a value
+  from a client file gets a client reference, not the value (this broke the calculator page once).
 - API access only through `packages/api-client` (generated). Never hand-write request types.
 - Styling: Tailwind with design tokens. **Logical properties only** (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`). No `left`/`right` classes.
 - Text: `next-intl` messages or CMS fields. Numbers, dates and money go through the shared formatters (`packages/ui/format`).

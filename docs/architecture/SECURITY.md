@@ -22,7 +22,7 @@
 | T3 | **Tampered or false prices** (compromised source, staff mistake, malicious insider) | §6 |
 | T4 | Payment callback forgery or replay, double-crediting | §7 |
 | T5 | Admin account takeover | Keycloak **TOTP 2FA required for all staff roles**, admin on a separate host (`admin.alanfelez.ir`), short sessions (30 min idle), IP allow-list optional, and every staff write goes to `audit_log` |
-| T6 | XSS through rich-text content or the FAQ | TipTap HTML → **bluemonday** allow-list sanitize **on every write**, stored sanitized (ADR-0025). The website renders it only through `RichText` / the FAQ answer block. Plain-text fields are escaped by React. JSON-LD is escaped (`<` → `\u003c`). Strict **CSP** with nonces ⏳ (M6) |
+| T6 | XSS through rich-text content or the FAQ | TipTap HTML → **bluemonday** allow-list sanitize **on every write**, stored sanitized (ADR-0025). The website renders it only through `RichText` / the FAQ answer block. Plain-text fields are escaped by React. JSON-LD is escaped (`<` → `\u003c`). Strict **CSP** with per-request nonces (`apps/web/src/lib/security-headers.ts`, `'strict-dynamic'`, `object-src 'none'`, `frame-ancestors 'none'`) |
 | T7 | Broken access control (IDOR, paid data in the API) | Every handler calls `access.Can`. Resource ownership is checked in the SQL (`WHERE user_id = $1`). Locked features return teaser payloads only. Negative tests exist per endpoint |
 | T8 | Injection | sqlc parameterized queries only. OpenAPI request validation. No string-built SQL |
 | T9 | CSRF | Web: Auth.js session cookie `SameSite=Lax` + CSRF token on mutations. API: bearer tokens only (no cookie auth on the Go API) |
@@ -62,7 +62,9 @@ Every limit is configurable. Defaults:
 ## 5. Paid-data protection (T2)
 - **The server never sends locked data**: no hidden fields, no CSS-only blur. Teasers are generated server-side. Locked analyses and
   forecasts are listed with title, summary and cover only; their body is omitted from the response (tested in `content_integration_test.go`).
-- Per-tier API rate limits, e.g. Free 60 req/min, paid 300 req/min, and a history-range limit per request.
+- API rate limits (M6, `internal/api/ratelimit.go`): 300 req/min per signed-in user, 120 req/min per client IP for anonymous
+  callers; staff and the website server (trusted proxy without a forwarded client) are exempt; the SSE stream isn't counted.
+  A history-range limit per request comes from the tier (chart.history_days).
 - No bulk export endpoints for users. Chart history is paginated by range.
 - **Concurrent session limit** for paid tiers (e.g. 2 active devices, configurable) to deter account sharing. Users can see and revoke devices on the account page.
 - `robots` rules and `noindex` for anything behind a lock. Watermark PDF exports (Gold) with the user ID.

@@ -50,7 +50,7 @@
 | `CONFLICT` | 409 | State conflict (e.g. order already paid, point already reviewed, duplicate point) |
 | `PRICE_JUMP` | 422 | Manual price moves more than the series' outlier threshold; resend with `force: true` to confirm |
 | `IDEMPOTENCY_MISMATCH` | 422 | Same key, different body |
-| `RATE_LIMITED` | 429 | Too many requests (contact form: 5 per hour / 20 per day per client IP). Retry later |
+| `RATE_LIMITED` | 429 | Too many requests: 300/min per user, 120/min per anonymous IP (with `Retry-After`), or the contact form's 5/hour, 20/day per IP |
 | `UPSTREAM_UNAVAILABLE` | 502/503 | Gateway, SMS or source down |
 | `INTERNAL` | 500 | Unexpected. Always has a `requestId` |
 
