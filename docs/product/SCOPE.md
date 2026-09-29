@@ -63,7 +63,7 @@ Remove these from the design and the content, even where the Figma design or the
 | 16 | پرداخت / Checkout + result | logged in | Gateway redirect → success/failure page |
 | — | Admin panel `/admin` | staff | Everything editable (#10), §10 |
 
-🛠 Header nav: صفحه اصلی · قیمت فلزات · نمودار قیمت · پیش‌بینی و تحلیل · حراج‌های روزانه · ماشین حساب, then search, language switch, ورود, ثبت‌نام, «شروع کنید».
+🛠 Header nav: صفحه اصلی · قیمت فلزات · نمودار قیمت · پیش‌بینی و تحلیل · حراج‌های روزانه · ماشین حساب, then search, language switch, ورود, ثبت‌نام (the gold button; «شروع کنید» dropped, it did the same thing).
 Footer: links to the rest (plans, FAQ, about, contact, terms, privacy, licenses).
 The pill-shaped sticky bottom nav from the prototype is 🛠 **not** built on desktop. On mobile it becomes a bottom tab bar
 (Home, Prices, Chart, Analysis, Account), which fits the design and improves mobile UX.
@@ -144,7 +144,9 @@ The result is labeled «برآورد» (estimate) per the copy rule.
 ## 9. Auth — 🛠 for client answer #11 (OTP required at sign-up)
 
 - **Keycloak** (self-hosted) with a Persian/English themed login.
-- **Sign-up: mobile number + SMS OTP (required).** Then first name, last name, and an optional email.
+- **Sign-up: mobile number + SMS OTP (required).** Then first name, last name, and an optional email. ✅ Built: «ثبت‌نام» in the
+  header opens the phone page; a new number creates the account, then Keycloak's verify-profile step shows «تکمیل ثبت‌نام».
+  Older accounts without a name get the same step once, at their next sign-in.
 - **Login: mobile + OTP (default), or mobile + password** if the user set one in the account page.
 - «فراموشی رمز عبور» = OTP to the mobile, then set a new password.
 - Needs an SMS provider for OTP. The client will provide the account details ("I'll send you the info").
