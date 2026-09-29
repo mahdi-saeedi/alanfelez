@@ -17,11 +17,20 @@ const runtimeConfig = `window.__ADMIN_CONFIG__ = ${JSON.stringify({
 
 const connectSrc = [new URL(process.env.ADMIN_API_URL ?? "http://localhost:8080").origin,
   new URL(process.env.ADMIN_OIDC_AUTHORITY ?? "http://localhost:8081").origin].join(" ");
+const https = (process.env.ADMIN_API_URL ?? "").startsWith("https://");
 const SECURITY = {
-  "Content-Security-Policy": `default-src 'self'; connect-src 'self' ${connectSrc}; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-ancestors 'none'; base-uri 'self'`,
+  "Content-Security-Policy": [
+    "default-src 'self'", "script-src 'self'", `connect-src 'self' ${connectSrc}`, "img-src 'self' data:",
+    "style-src 'self' 'unsafe-inline'", "font-src 'self'", "object-src 'none'", "base-uri 'self'",
+    "form-action 'self'", "frame-ancestors 'none'", ...(https ? ["upgrade-insecure-requests"] : []),
+  ].join("; "),
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "X-Frame-Options": "DENY",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  "X-Robots-Tag": "noindex, nofollow", // staff only: never in search results
+  ...(https ? { "Strict-Transport-Security": "max-age=31536000; includeSubDomains" } : {}),
 };
 
 createServer(async (req, res) => {
