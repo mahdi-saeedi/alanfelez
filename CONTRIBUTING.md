@@ -8,7 +8,7 @@ This is how we work on الان‌فلز. Read [README.md](README.md) first.
   - `pre-commit`: Go formatting (golangci-lint fmt) on staged files, **gitleaks**
   - `commit-msg`: Conventional Commits check
   - `pre-push`: `task generate:check` (generated code up to date), fast unit tests
-- Common commands (all in `Taskfile.yml`): `task setup` · `task up` / `task down` · `task smoke` · `task generate` · `task lint` · `task test` · `task seed` · `task k8s:*`. Run `task --list` for all of them
+- Common commands (all in `Taskfile.yml`): `task setup` · `task up` / `task down` · `task check` (every fast CI check) · `task smoke` · `task generate` · `task lint` · `task test` · `task seed` · `task k8s:*`. Run `task --list` for all of them
 
 ## 2. Branching (trunk-based)
 - `main` is always deployable and auto-deploys to **staging**. **Production = git tags** `vX.Y.Z`.
@@ -46,7 +46,7 @@ A change is done when **all** of these hold:
 
 ## 6. Code conventions (short version, details in ARCHITECTURE §5 and API_GUIDELINES.md)
 **Go**
-- Package by domain in `internal/<domain>`: `handler.go` (thin, generated interface), `service.go` (logic), `queries/*.sql` (sqlc), `*_test.go`.
+- Handlers (thin, implementing the generated interface) live in `internal/api/<area>.go`; domain logic in `internal/<domain>` (pure where possible, with `*_test.go`); SQL in `queries/<area>.sql` (sqlc). Details: `services/api/CLAUDE.md`.
 - Pass `context.Context` first. Wrap errors with `%w`. Map domain errors to problem codes in one place (`platform/httpx`).
 - No package-level mutable state. Wire dependencies explicitly in `cmd/*/main.go` (no DI framework).
 - `golangci-lint` config is in the repo. Don't use `//nolint` without a reason comment.
@@ -60,6 +60,13 @@ A change is done when **all** of these hold:
 - Styling: Tailwind with design tokens. **Logical properties only** (`ms-`, `me-`, `ps-`, `pe-`, `start-`, `end-`). No `left`/`right` classes.
 - Text: `next-intl` messages or CMS fields. Numbers, dates and money go through the shared formatters (`packages/ui/format`).
 
-## 7. Architecture changes
+## 7. Working with Claude Code
+The repo is set up so any Claude session follows these conventions: `CLAUDE.md` (root and per area: `services/api`, `apps/web`,
+`apps/admin`, `deploy`), recipes for common tasks in `.claude/skills/`, and guard hooks plus permissions in `.claude/settings.json`
+(no pushes or merges to `main`, production read-only, generated files and merged migrations protected, Go formatted on save).
+New developers start with [ONBOARDING.md](ONBOARDING.md). When a convention changes, update the matching `CLAUDE.md` or skill in the same PR.
+The owner sets `ALANFELEZ_OWNER=1` in `.claude/settings.local.json` (git-ignored) to push to `main`.
+
+## 8. Architecture changes
 Anything that changes how the system is built needs a **new ADR** in `docs/architecture/adr/`, in the same PR:
 a new dependency category, datastore, service, auth flow, or a cross-cutting convention.
