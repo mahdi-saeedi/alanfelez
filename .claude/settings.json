@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(task --list)",
+      "Bash(task check)",
+      "Bash(task generate)",
+      "Bash(task generate:check)",
+      "Bash(task lint)",
+      "Bash(task lint:go)",
+      "Bash(task test)",
+      "Bash(task test:integration)",
+      "Bash(task test:cover)",
+      "Bash(task fmt)",
+      "Bash(task ps)",
+      "Bash(task otp)",
+      "Bash(task smoke)",
+      "Bash(task helm:lint)",
+      "Bash(task api:reload)",
+      "Bash(task web:reload)",
+      "Bash(task admin:reload)",
+      "Bash(task logs:*)",
+      "Bash(pnpm --filter * test)",
+      "Bash(pnpm --filter * typecheck)",
+      "Bash(go test:*)",
+      "Bash(go vet:*)",
+      "Bash(go build:*)",
+      "Bash(golangci-lint run:*)",
+      "Bash(golangci-lint fmt:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git switch:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(gh pr create:*)",
+      "Bash(kubectl:*)",
+      "Bash(psql:*)",
+      "Bash(docker compose exec postgres:*)"
+    ],
+    "deny": [
+      "Bash(helm install:*)",
+      "Bash(helm upgrade:*)",
+      "Bash(helm uninstall:*)",
+      "Bash(kubectl --context alanfelez-production apply:*)",
+      "Bash(kubectl --context alanfelez-production delete:*)",
+      "Bash(kubectl --context alanfelez-production edit:*)",
+      "Bash(kubectl --context alanfelez-production patch:*)",
+      "Bash(kubectl --context alanfelez-production exec:*)",
+      "Bash(kubectl --context alanfelez-production scale:*)",
+      "Bash(kubectl --context alanfelez-production rollout restart:*)",
+      "Read(./deploy/environments/*/secrets/*.key)",
+      "Read(~/.kube/**)",
+      "Read(~/.ssh/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format.mjs\"",
+            "timeout": 90
+          }
+        ]
+      }
+    ]
+  }
+}

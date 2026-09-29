@@ -43,3 +43,6 @@ services/api/bin/
 
 # Local k8s deploy history (deploy/local/k8s.sh)
 deploy/local/.k8s-state/
+
+# Claude Code: personal settings (e.g. ALANFELEZ_OWNER=1 for the owner)
+.claude/settings.local.json
