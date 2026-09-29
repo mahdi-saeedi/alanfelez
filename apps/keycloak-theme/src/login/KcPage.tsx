@@ -9,6 +9,7 @@ import "./main.css";
 const UserProfileFormFields = lazy(() => import("keycloakify/login/UserProfileFormFields"));
 const LoginPhone = lazy(() => import("./pages/LoginPhone"));
 const LoginPhoneOtp = lazy(() => import("./pages/LoginPhoneOtp"));
+const LoginUpdateProfile = lazy(() => import("./pages/LoginUpdateProfile"));
 
 // Our Tailwind classes replace Keycloak's default CSS on every page.
 const doUseDefaultCss = false;
@@ -25,6 +26,8 @@ export default function KcPage(props: { kcContext: KcContext }) {
             return <LoginPhone kcContext={kcContext} i18n={i18n} classes={classes} Template={Template} doUseDefaultCss={doUseDefaultCss} />;
           case "login-phone-otp.ftl":
             return <LoginPhoneOtp kcContext={kcContext} i18n={i18n} classes={classes} Template={Template} doUseDefaultCss={doUseDefaultCss} />;
+          case "login-update-profile.ftl":
+            return <LoginUpdateProfile kcContext={kcContext} i18n={i18n} classes={classes} Template={Template} doUseDefaultCss={doUseDefaultCss} />;
           default:
             return (
               <DefaultPage
