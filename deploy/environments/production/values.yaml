@@ -17,6 +17,12 @@ api:
   seedProfiles: reference
 web:
   replicas: 2
+  autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, cpuPercent: 70 }
+  resources:
+    requests: { cpu: 500m, memory: 256Mi }
+    limits: { memory: 768Mi }
+  indexable: true
+  cspFormOrigins: []   # add the real gateway's payment page origin with F13, e.g. https://www.zarinpal.com
 keycloak:
   replicas: 2
   otp: { smsProvider: console, consoleAllowed: false }   # a real provider must be configured before launch (F7)

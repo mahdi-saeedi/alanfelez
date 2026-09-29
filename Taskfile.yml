@@ -174,6 +174,11 @@ tasks:
       - go test -race -count=1 -coverprofile=coverage.out ./...
       - go tool cover -func=coverage.out
 
+  loadtest:
+    desc: Load test the local stack (k6, deploy/loadtest). PEAK=… concurrent visitors (default 50). NFR thresholds decide pass/fail
+    cmds:
+      - k6 run -e WEB=http://localhost:{{.WEB_PORT | default "3000"}} -e API=http://localhost:{{.API_PORT | default "8080"}} -e PEAK={{.PEAK | default "50"}} -e HOLD={{.HOLD | default "2m"}} deploy/loadtest/public.js
+
   # --- local Kubernetes (k3d + Argo CD + Argo Rollouts), same flow as staging/production ------
   k8s:up:
     desc: Create a local Kubernetes cluster with Gitea + Argo CD and register the GitOps root app

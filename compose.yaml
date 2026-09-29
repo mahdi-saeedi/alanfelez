@@ -152,6 +152,9 @@ services:
       AUTH_KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8081}/realms/alanfelez
       # The web server reaches Keycloak on the compose network; browsers use the public issuer above.
       AUTH_KEYCLOAK_INTERNAL_URL: http://keycloak:8081
+      # The mock gateway page is on the API; forms may be sent there (CSP form-action).
+      CSP_FORM_ORIGINS: http://localhost:${API_PORT:-8080}
+      SITE_INDEXABLE: "false"
     ports: ["127.0.0.1:${WEB_PORT:-3000}:3000"]
     restart: unless-stopped
     depends_on:

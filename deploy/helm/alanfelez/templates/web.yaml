@@ -3,7 +3,9 @@ metadata:
   name: {{ .Release.Name }}-web
   labels: {{- include "af.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.web.autoscaling.enabled }}
   replicas: {{ .Values.web.replicas }}
+  {{- end }}
   revisionHistoryLimit: 5
   selector:
     matchLabels: {{- include "af.selector" (dict "root" . "name" "web") | nindent 6 }}
@@ -21,6 +23,12 @@ spec:
           env:
             - { name: API_INTERNAL_URL, value: "http://{{ .Release.Name }}-api:8080" }
             - { name: AUTH_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
+            - { name: SITE_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
+            # Only production is indexed (robots.txt, X-Robots-Tag, meta robots).
+            - { name: SITE_INDEXABLE, value: {{ .Values.web.indexable | quote }} }
+            # Where forms may go besides the site and Keycloak: the payment gateway (mock = the API itself).
+            - name: CSP_FORM_ORIGINS
+              value: {{ (default (ternary (list (include "af.url" (dict "root" . "host" "api"))) (list) (eq .Values.api.paymentGateway "mock")) .Values.web.cspFormOrigins) | join "," | quote }}
             - { name: AUTH_KEYCLOAK_ID, value: alanfelez-web }
             - { name: AUTH_KEYCLOAK_ISSUER, value: "{{ include "af.url" (dict "root" . "host" "auth") }}/realms/alanfelez" }
             # Server-side OIDC calls go straight to the Keycloak service (no hairpin through the ingress/CDN).
@@ -69,3 +77,28 @@ spec:
   maxUnavailable: 1
   selector:
     matchLabels: {{- include "af.selector" (dict "root" . "name" "web") | nindent 6 }}
+{{- if .Values.web.autoscaling.enabled }}
+---
+# Page rendering is CPU-bound: one pod serves ~55 pages/s (~220 concurrent visitors) within the NFR budget
+# (load test 2026-09-29, docs/guides/LAUNCH.md). Scale on CPU between min and max.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-web
+  labels: {{- include "af.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    {{- if .Values.rollout.enabled }}
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    {{- else }}
+    apiVersion: apps/v1
+    kind: Deployment
+    {{- end }}
+    name: {{ .Release.Name }}-web
+  minReplicas: {{ .Values.web.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.web.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: {{ .Values.web.autoscaling.cpuPercent }} } }
+{{- end }}

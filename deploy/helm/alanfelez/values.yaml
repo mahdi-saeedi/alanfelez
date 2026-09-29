@@ -53,10 +53,15 @@ worker:
 
 web:
   replicas: 2
+  indexable: false                 # true only in production: staging must never be indexed by search engines
+  cspFormOrigins: []               # payment gateway origins for the CSP form-action (default: the API when mock)
   extraEnv: {}
+  # CPU autoscaling (needs metrics-server; k3s has it). Off by default; production turns it on.
+  autoscaling: { enabled: false, minReplicas: 2, maxReplicas: 6, cpuPercent: 70 }
+  # Measured: ~480 MiB RSS at full load per pod, and a whole core at ~55 pages/s.
   resources:
-    requests: { cpu: 100m, memory: 192Mi }
-    limits: { memory: 512Mi }
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { memory: 768Mi }
 
 admin:
   replicas: 1
