@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { Locale } from "@alanfelez/ui/format";
@@ -17,7 +18,7 @@ const SUBJECTS = ["general", "support", "billing", "partnership", "feedback", "o
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "contact" });
-  return { title: t("title"), description: t("subtitle"), alternates: { languages: { fa: "/contact", en: "/en/contact" } } };
+  return seo(locale, "/contact", { title: t("title"), description: t("subtitle") });
 }
 
 /**

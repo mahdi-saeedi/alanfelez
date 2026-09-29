@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
 import { getPage, getSite, type SiteInfo } from "@/lib/content";
+import { seo } from "@/lib/seo";
 import { RichText } from "./parts";
 
 export type PageSlug = "about" | "terms" | "privacy" | "licenses";
@@ -11,7 +12,7 @@ export type PageSlug = "about" | "terms" | "privacy" | "licenses";
 export async function pageMetadata(locale: Locale, slug: PageSlug): Promise<Metadata> {
   const p = await getPage(locale, slug);
   if (!p) return {};
-  return { title: p.title, alternates: { languages: { fa: `/${slug}`, en: `/en/${slug}` } } };
+  return seo(locale, `/${slug}`, { title: p.title });
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Schemas } from "@alanfelez/api-client";
 import { formatNumber, type Locale } from "@alanfelez/ui/format";
@@ -22,7 +23,7 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ per
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale });
-  return { title: t("nav.plans"), description: t("plans.subtitle") };
+  return seo(locale, "/plans", { title: t("nav.plans"), description: t("plans.subtitle") });
 }
 
 /** Plans (SCOPE §5 #7, §6; design 12-subscriptions). Enterprise is out of v1 (SCOPE §4). */

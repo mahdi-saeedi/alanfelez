@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Schemas } from "@alanfelez/api-client";
 import { displayAmount, formatBp, formatPriceValue, priceUnitLabel, type Locale, type PriceDisplay } from "@alanfelez/ui/format";
@@ -23,7 +24,7 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ ser
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "chart" });
-  return { title: t("title"), description: t("subtitle") };
+  return seo(locale, "/chart", { title: t("title"), description: t("subtitle") });
 }
 
 /** Price chart (SCOPE §5 #3, §14; design 08-price-chart). History depth is limited by the tier in the API. */

@@ -6,21 +6,15 @@ import { readSession } from "@/lib/session-refresh";
 import { Link } from "@/i18n/navigation";
 import { auth, signIn, signOut } from "@/auth";
 import { LocaleSwitch } from "./LocaleSwitch";
+import { MAIN_NAV } from "@/lib/nav";
+import { getSite } from "@/lib/content";
+import { MobileMenu } from "./MobileNav";
 
-const NAV = ["home", "prices", "chart", "analysis", "auctions", "calculator"] as const;
-const HREF: Record<(typeof NAV)[number], string> = {
-  home: "/",
-  prices: "/prices",
-  chart: "/chart",
-  analysis: "/analysis",
-  auctions: "/auctions",
-  calculator: "/calculator",
-};
 
 export async function Header() {
   const t = await getTranslations();
   const locale = await getLocale();
-  const session = await auth();
+  const [session, site] = await Promise.all([auth(), getSite(locale as "fa" | "en")]);
 
   async function login() {
     "use server";
@@ -41,20 +35,21 @@ export async function Header() {
 
   return (
     <header className="bg-graphite text-white">
-      <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6">
+        <MobileMenu />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
           <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-lg" />
           {t("brand.name")}
         </Link>
         <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
-          {NAV.map((key) => (
-            <Link key={key} href={HREF[key]} className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white">
+          {MAIN_NAV.map(([key, href]) => (
+            <Link key={key} href={href} className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white">
               {t(`nav.${key}`)}
             </Link>
           ))}
         </nav>
         <div className="ms-auto flex items-center gap-2 lg:ms-0">
-          <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />
+          {(site?.englishSite || locale === "en") && <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />}
           {session?.user ? (
             <form action={logout} className="flex items-center gap-2">
               <Link href="/account" className="hidden rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white sm:inline">

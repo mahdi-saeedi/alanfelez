@@ -16,7 +16,18 @@
     "contact": "Contact",
     "terms": "Terms",
     "privacy": "Privacy",
-    "licenses": "Licences & trust"
+    "licenses": "Licences & trust",
+    "menu": "Menu",
+    "close": "Close menu",
+    "tabs": "Main navigation",
+    "accountShort": "Account",
+    "short": {
+      "home": "Home",
+      "prices": "Prices",
+      "chart": "Chart",
+      "analysis": "Analysis"
+    },
+    "skip": "Skip to main content"
   },
   "auth": {
     "login": "Log in",
@@ -89,7 +100,14 @@
     }
   },
   "error": {
-    "apiDown": "We can't load data right now. Please try again shortly."
+    "apiDown": "We can't load data right now. Please try again shortly.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "Check the address or continue from the home page.",
+    "home": "Home page",
+    "errorTitle": "Something went wrong",
+    "errorBody": "This page failed to load. Please try again; if it keeps happening, contact support.",
+    "retry": "Try again",
+    "code": "Reference: {code}"
   },
   "prices": {
     "title": "Live metal prices",

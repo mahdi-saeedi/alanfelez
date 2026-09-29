@@ -5,6 +5,8 @@ import { getBasePrices, getHistory } from "@/lib/prices";
 import { PriceCard } from "@/components/prices/PriceCard";
 import { Sparkline } from "@/components/prices/Sparkline";
 import { LiveDot } from "@/components/prices/LiveDot";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site";
 
 // Rendered per request (no API needed at build time); anonymous API responses are cached briefly in Next's data cache.
 export const dynamic = "force-dynamic";
@@ -20,8 +22,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   const heroPoints = heroHistory && "data" in heroHistory && heroHistory.data ? heroHistory.data.points.map((p) => Number(p.amount)) : [];
   const heroChange = heroPoints.length > 1 ? Math.trunc(((heroPoints.at(-1)! - heroPoints[0]!) * 10_000) / heroPoints[0]!) : undefined;
 
+  const home = `${SITE_URL}${locale === "en" ? "/en" : "/"}`;
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            { "@type": "Organization", "@id": `${SITE_URL}/#org`, name: t("brand.name"), url: SITE_URL, logo: `${SITE_URL}/logo.png` },
+            { "@type": "WebSite", "@id": `${SITE_URL}/#site`, name: t("brand.name"), url: home, inLanguage: locale, publisher: { "@id": `${SITE_URL}/#org` } },
+          ],
+        }}
+      />
       <section className="bg-gradient-to-b from-graphite to-hero text-white">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2">
           <div>

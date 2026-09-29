@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
@@ -16,7 +17,7 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ met
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "prices" });
-  return { title: t("title"), description: t("subtitle") };
+  return seo(locale, "/prices", { title: t("title"), description: t("subtitle") });
 }
 
 /** Metal prices (SCOPE §5 #2, design 07-metal-prices). Filters are links (?metal=, ?category=), so it works without JS. */

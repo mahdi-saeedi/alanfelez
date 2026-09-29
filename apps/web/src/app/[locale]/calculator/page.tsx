@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { getBasePrices, getEntitlements, getPrices, type PriceRow } from "@/lib/prices";
@@ -14,7 +15,7 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<Parti
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "calculator" });
-  return { title: t("title"), description: t("subtitle"), alternates: { languages: { fa: "/calculator", en: "/en/calculator" } } };
+  return seo(locale, "/calculator", { title: t("title"), description: t("subtitle") });
 }
 
 /**

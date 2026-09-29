@@ -36,12 +36,44 @@ function PriceRowView({ row }: { row: Row }) {
   );
 }
 
+/** Phone layout of one row: product and price on top, change and source/time below (no sideways scrolling). */
+function PriceCardView({ row }: { row: Row }) {
+  const locale = useLocale() as Locale;
+  const t = useTranslations("prices");
+  const live = useLive(row.series.slug, row);
+  const s = row.series;
+  const flash = live?.flash === "up" ? "animate-flash-up" : live?.flash === "down" ? "animate-flash-down" : "";
+  return (
+    <li className="px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <Link href={{ pathname: "/chart", query: { series: s.slug } }} className="min-w-0">
+          <span className="block truncate font-bold">{s.product.name}</span>
+          <span className="text-xs text-text-3">{s.metal.name} · {t(`units.${s.unit}`)}</span>
+        </Link>
+        <span key={live?.tick} className={`shrink-0 rounded-md text-end text-base font-extrabold tabular-nums ${flash}`}>
+          {live ? `${s.currency === "USD" ? "$" : ""}${formatPriceValue(live.price, locale)}` : t("noData")}
+        </span>
+      </div>
+      <div className="mt-1.5 flex items-center justify-between gap-3 text-xs text-text-3">
+        <span className="truncate">{row.source ?? s.market.name} · {live ? formatTime(live.observedAt, locale) : "—"}</span>
+        <ChangePill bp={live?.change?.bp} locale={locale} size="sm" />
+      </div>
+    </li>
+  );
+}
+
 /** Metal prices table (design 07-metal-prices). Values update live; rows come from the server (tier-filtered). */
 export function PriceTable({ rows }: { rows: Row[] }) {
   const t = useTranslations("prices");
   const locale = useLocale() as Locale;
   return (
-    <div className="overflow-x-auto">
+    <>
+    <ul className="divide-y divide-border md:hidden">
+      {rows.map((r) => (
+        <PriceCardView key={r.series.slug} row={r} />
+      ))}
+    </ul>
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[760px] text-start text-sm">
         <thead className="bg-surface-2 text-xs text-text-2">
           <tr>
@@ -62,5 +94,6 @@ export function PriceTable({ rows }: { rows: Row[] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }

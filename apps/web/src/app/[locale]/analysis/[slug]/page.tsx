@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/site";
 import { getArticle } from "@/lib/content";
 import { Cover, Meta, RichText, TopicChip } from "@/components/content/parts";
 import { Locked } from "@/components/Locked";
@@ -15,12 +18,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale, slug } = await params;
   const a = await getArticle(locale, slug);
   if (!a) return {};
-  return {
-    title: a.title,
-    description: a.summary,
-    alternates: { languages: { fa: `/analysis/${slug}`, en: `/en/analysis/${slug}` } },
-    openGraph: { type: "article", title: a.title, description: a.summary, publishedTime: a.publishedAt, ...(a.coverUrl ? { images: [a.coverUrl] } : {}) },
-  };
+  const base = await seo(locale, `/analysis/${slug}`, { title: a.title, description: a.summary, type: "article" });
+  return { ...base, openGraph: { ...base.openGraph, type: "article", publishedTime: a.publishedAt, ...(a.coverUrl ? { images: [a.coverUrl] } : {}) } };
 }
 
 /** One article. A locked analysis / forecast shows its teaser and the upgrade box: the API sent no body. */
@@ -50,7 +49,18 @@ export default async function ArticlePage({ params }: Params) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <JsonLd data={jsonLd} />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: t("nav.home"), item: `${SITE_URL}${locale === "en" ? "/en" : "/"}` },
+            { "@type": "ListItem", position: 2, name: t("nav.analysis"), item: `${SITE_URL}${locale === "en" ? "/en" : ""}/analysis` },
+            { "@type": "ListItem", position: 3, name: a.title },
+          ],
+        }}
+      />
       <Link href="/analysis" className="text-sm text-text-2 hover:text-gold-dark">{t("analysis.back")}</Link>
 
       <header className="mt-4 space-y-3">

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
+import { JsonLd } from "@/components/JsonLd";
 import { getFaq } from "@/lib/content";
 import { FaqBrowser } from "@/components/content/FaqBrowser";
 
@@ -12,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "faq" });
-  return { title: t("title"), description: t("subtitle"), alternates: { languages: { fa: "/faq", en: "/en/faq" } } };
+  return seo(locale, "/faq", { title: t("title"), description: t("subtitle") });
 }
 
 /** FAQ (SCOPE §5 #8, design 13, requirements in FAQ.docx / CLAUDE.md). Content from the CMS. */
@@ -37,7 +39,7 @@ export default async function FaqPage({ params }: Params) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <JsonLd data={jsonLd} />
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-extrabold sm:text-3xl">{t("title")}</h1>
         <p className="mt-2 text-sm text-text-2">{t("subtitle")}</p>

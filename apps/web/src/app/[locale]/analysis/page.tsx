@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatDate, formatNumber, formatPriceValue, priceUnitLabel, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
@@ -18,7 +19,7 @@ const PAGE_SIZE = 7; // one featured card + a grid of six
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "analysis" });
-  return { title: t("title"), description: t("subtitle"), alternates: { languages: { fa: "/analysis", en: "/en/analysis" } } };
+  return seo(locale, "/analysis", { title: t("title"), description: t("subtitle") });
 }
 
 /**
