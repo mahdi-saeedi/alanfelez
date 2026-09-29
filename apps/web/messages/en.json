@@ -32,7 +32,6 @@
   "auth": {
     "login": "Log in",
     "signup": "Sign up",
-    "start": "Get started",
     "logout": "Log out",
     "account": "Account"
   },

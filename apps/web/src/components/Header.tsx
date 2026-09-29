@@ -60,8 +60,9 @@ export async function Header() {
           ) : (
             <form action={login} className="flex items-center gap-2">
               <button className="whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.login")}</button>
+              {/* Sign-up is the same phone + code page: a new number creates the account, then Keycloak asks for the name. */}
               <button className="whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold text-graphite hover:bg-gold-light">
-                {t("auth.start")}
+                {t("auth.signup")}
               </button>
             </form>
           )}
