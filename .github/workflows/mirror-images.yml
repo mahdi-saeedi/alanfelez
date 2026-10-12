@@ -1,0 +1,39 @@
+# Copies the outside images in deploy/mirror-images.txt into the ArvanCloud registry (inside Iran), so the clusters
+# never pull from abroad: international links from Iranian servers run at a few KB/s and disappear during shutdowns.
+# Runs when the list changes, or by hand (Actions → Mirror images → Run workflow).
+name: Mirror images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [deploy/mirror-images.txt, .github/workflows/mirror-images.yml]
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY_HOST: ${{ vars.REGISTRY_HOST || 'registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir' }}
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: imjasonh/setup-crane@v0.4
+      - name: Log in to the registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | crane auth login "$REGISTRY_HOST" -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+      - name: Copy images (linux/amd64 only, the servers' platform)
+        run: |
+          set -euo pipefail
+          failed=0
+          while read -r src; do
+            dst="$REGISTRY_HOST/alanfelez/mirror/$src"
+            if crane digest --platform linux/amd64 "$dst" >/dev/null 2>&1 && \
+               [ "$(crane digest --platform linux/amd64 "$dst")" = "$(crane digest --platform linux/amd64 "$src")" ]; then
+              echo "✓ up to date  $src"; continue
+            fi
+            echo "→ copying     $src"
+            crane copy --platform linux/amd64 "$src" "$dst" || { echo "::error::failed to copy $src"; failed=1; }
+          done < <(grep -Ev '^\s*(#|$)' deploy/mirror-images.txt)
+          exit $failed

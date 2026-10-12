@@ -1,0 +1,29 @@
+# /etc/rancher/k3s/registries.yaml on every k3s node (staging and production). Restart k3s after changing it.
+#
+# Servers in Iran pull from abroad at a few KB/s (and not at all during an internet shutdown), so every image comes from
+# the ArvanCloud registry, which is inside Iran:
+#   - our images are referenced there directly (global.imageRegistry in deploy/environments/<env>/values.yaml);
+#   - outside images are copied to <registry>/alanfelez/mirror/<original name> by .github/workflows/mirror-images.yml
+#     (list: deploy/mirror-images.txt), and the mirrors below send the pulls there. If an image is missing from the
+#     mirror, k3s falls back to the original registry (slow, but it works while the internet is up).
+#
+# The login below is the registry's pull account. Fill it in on the server only (never in git):
+#   sudo install -m 600 /dev/null /etc/rancher/k3s/registries.yaml && sudo nano /etc/rancher/k3s/registries.yaml
+mirrors:
+  quay.io:
+    endpoint: ["https://REGISTRY_HOST"]
+    rewrite: { "^(.*)$": "alanfelez/mirror/quay.io/$1" }
+  ghcr.io:
+    endpoint: ["https://REGISTRY_HOST"]
+    rewrite: { "^(.*)$": "alanfelez/mirror/ghcr.io/$1" }
+  ecr-public.aws.com:
+    endpoint: ["https://REGISTRY_HOST"]
+    rewrite: { "^(.*)$": "alanfelez/mirror/ecr-public.aws.com/$1" }
+  docker.io:
+    endpoint: ["https://REGISTRY_HOST"]
+    rewrite: { "^(.*)$": "alanfelez/mirror/docker.io/$1" }
+configs:
+  REGISTRY_HOST:
+    auth:
+      username: REGISTRY_USERNAME
+      password: REGISTRY_PASSWORD
