@@ -10,9 +10,10 @@ metadata:
 spec:
   project: alanfelez
   source:
-    repoURL: https://argoproj.github.io/argo-helm
-    chart: argo-rollouts
-    targetRevision: 2.43.2
+    # Chart argo-rollouts 2.43.2, vendored from https://argoproj.github.io/argo-helm (deploy/vendor/charts/README.md)
+    repoURL: git@github.com:mahdi-saeedi/alanfelez.git
+    targetRevision: main
+    path: deploy/vendor/charts/argo-rollouts
     helm:
       valuesObject:
         installCRDs: true

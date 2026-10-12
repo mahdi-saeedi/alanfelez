@@ -10,9 +10,10 @@ metadata:
 spec:
   project: alanfelez
   source:
-    repoURL: https://cloudnative-pg.github.io/charts
-    chart: cloudnative-pg
-    targetRevision: 0.29.1
+    # Chart cloudnative-pg 0.29.1, vendored from https://cloudnative-pg.github.io/charts (deploy/vendor/charts/README.md)
+    repoURL: git@github.com:mahdi-saeedi/alanfelez.git
+    targetRevision: main
+    path: deploy/vendor/charts/cloudnative-pg
     helm:
       valuesObject:
         crds: { create: true }

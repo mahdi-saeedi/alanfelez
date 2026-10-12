@@ -9,7 +9,7 @@ metadata:
 spec:
   project: alanfelez
   source:
-    repoURL: https://github.com/mahdi-saeedi/alanfelez.git
+    repoURL: git@github.com:mahdi-saeedi/alanfelez.git
     targetRevision: main
     path: deploy/argocd/envs/staging
   destination:
@@ -17,3 +17,5 @@ spec:
     namespace: argocd
   syncPolicy:
     automated: { prune: true, selfHeal: true }
+    # The first sync installs CRDs (cert-manager, CNPG) that later resources need: retry until they exist.
+    retry: { limit: 10, backoff: { duration: 30s, factor: 2, maxDuration: 5m } }

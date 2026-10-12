@@ -1,0 +1,18 @@
+# The certificate issuer every ingress asks for (deploy/helm/alanfelez ingress.tls.clusterIssuer: letsencrypt).
+# Let's Encrypt over HTTP-01 through Traefik: ports 80/443 must reach the node, and the DNS names must point to it
+# (with the ArvanCloud CDN "Cloud" switch off, or the CDN passing /.well-known/acme-challenge/ through).
+# Applied after cert-manager (wave -3) has installed its CRDs.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef: { name: letsencrypt-account-key }
+    solvers:
+      - http01:
+          ingress: { ingressClassName: traefik }

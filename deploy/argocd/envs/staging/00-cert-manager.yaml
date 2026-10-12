@@ -10,9 +10,10 @@ metadata:
 spec:
   project: alanfelez
   source:
-    repoURL: https://charts.jetstack.io
-    chart: cert-manager
-    targetRevision: v1.19.1
+    # Chart cert-manager v1.19.1, vendored from https://charts.jetstack.io (deploy/vendor/charts/README.md)
+    repoURL: git@github.com:mahdi-saeedi/alanfelez.git
+    targetRevision: main
+    path: deploy/vendor/charts/cert-manager
     helm:
       valuesObject:
         crds: { enabled: true }
