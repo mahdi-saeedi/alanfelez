@@ -2,6 +2,8 @@ postgres:
   instances: 1
   storage: { size: 10Gi }
   backup:
-    enabled: true
+    # Off until the ArvanCloud Object Storage bucket and its keys exist (alanfelez-backup-s3, LAUNCH.md §2).
+    # With archiving on and nowhere to send WAL, Postgres keeps every WAL file and fills the disk.
+    enabled: false
     destinationPath: s3://alanfelez-backups/staging/postgres
     endpointURL: https://s3.ir-thr-at1.arvanstorage.ir
