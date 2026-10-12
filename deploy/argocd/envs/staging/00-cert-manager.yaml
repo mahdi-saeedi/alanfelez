@@ -11,7 +11,7 @@ spec:
   project: alanfelez
   source:
     # Chart cert-manager v1.19.1, vendored from https://charts.jetstack.io (deploy/vendor/charts/README.md)
-    repoURL: git@github.com:mahdi-saeedi/alanfelez.git
+    repoURL: ssh://git@85.198.55.189/home/git/alanfelez.git
     targetRevision: main
     path: deploy/vendor/charts/cert-manager
     helm:
