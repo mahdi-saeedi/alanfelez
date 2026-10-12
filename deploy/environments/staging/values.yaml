@@ -9,10 +9,10 @@ global:
   imageRegistry: registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
   imagePullSecrets: [{name: arvan-registry}]
 images:
-  api: {repository: api, tag: "sha-05dd8e318cb1"}
-  web: {repository: web, tag: "sha-05dd8e318cb1"}
-  keycloak: {repository: keycloak, tag: "sha-05dd8e318cb1"}
-  admin: {repository: admin, tag: "sha-05dd8e318cb1"}
+  api: {repository: api, tag: "sha-cc19f58cb4ce"}
+  web: {repository: web, tag: "sha-cc19f58cb4ce"}
+  keycloak: {repository: keycloak, tag: "sha-cc19f58cb4ce"}
+  admin: {repository: admin, tag: "sha-cc19f58cb4ce"}
 api:
   seedProfiles: reference,demo
   demoPrices: true # demo price generator (worker)
