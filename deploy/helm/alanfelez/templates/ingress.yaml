@@ -1,5 +1,20 @@
 {{- if .Values.ingress.enabled }}
 {{- $root := . }}
+{{- $auth := .Values.ingress.basicAuth }}
+{{- if $auth.enabled }}
+---
+# Shared password for test environments (values: ingress.basicAuth). The secret holds htpasswd lines under `users`.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $root.Release.Name }}-basic-auth
+  labels: {{- include "af.labels" $root | nindent 4 }}
+spec:
+  basicAuth:
+    secret: {{ $auth.secretName }}
+    realm: Alan Felez staging
+    removeHeader: true
+{{- end }}
 {{- range $name, $svc := dict "web" (dict "port" 3000) "api" (dict "port" 8080) "keycloak" (dict "port" 8080 "host" "auth") "admin" (dict "port" 8080) }}
 {{- $hostKey := default $name $svc.host }}
 ---
@@ -8,9 +23,15 @@ kind: Ingress
 metadata:
   name: {{ $root.Release.Name }}-{{ $name }}
   labels: {{- include "af.labels" $root | nindent 4 }}
-  {{- if $root.Values.ingress.tls.enabled }}
+  {{- $protect := and $auth.enabled (has $name $auth.hosts) }}
+  {{- if or $root.Values.ingress.tls.enabled $protect }}
   annotations:
+    {{- if $root.Values.ingress.tls.enabled }}
     cert-manager.io/cluster-issuer: {{ $root.Values.ingress.tls.clusterIssuer }}
+    {{- end }}
+    {{- if $protect }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $root.Release.Namespace }}-{{ $root.Release.Name }}-basic-auth@kubernetescrd
+    {{- end }}
   {{- end }}
 spec:
   ingressClassName: {{ $root.Values.ingress.className }}

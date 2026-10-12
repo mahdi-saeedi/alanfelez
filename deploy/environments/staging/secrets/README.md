@@ -10,4 +10,18 @@ kubectl create secret generic alanfelez-app -n alanfelez --dry-run=client -o yam
 ```
 
 Required: `alanfelez-app`, `alanfelez-keycloak-admin` (username/password), `alanfelez-keycloak-db` (username=keycloak/password),
-`alanfelez-backup-s3` (ACCESS_KEY_ID/ACCESS_SECRET_KEY), `arvan-registry` (dockerconfigjson). See docs/guides/DEPLOYMENT.md §3.
+`alanfelez-backup-s3` (ACCESS_KEY_ID/ACCESS_SECRET_KEY), `arvan-registry` (dockerconfigjson), and on staging
+`alanfelez-basic-auth` (below). See docs/guides/DEPLOYMENT.md §3.
+
+## Shared password for the test site (`alanfelez-basic-auth`)
+Staging sets `ingress.basicAuth.enabled: true`, so the website and admin ask for a shared username and password first.
+The owner creates it (choose the username; `htpasswd` asks for the password, so it never appears in the shell history):
+
+```bash
+htpasswd -nB alanfelez-team > /tmp/users && \
+kubectl --context alanfelez-staging create secret generic alanfelez-basic-auth -n alanfelez --dry-run=client -o yaml \
+  --from-file=users=/tmp/users \
+  | kubeseal --context alanfelez-staging --controller-namespace kube-system -o yaml > alanfelez-basic-auth.sealed.yaml \
+  && rm /tmp/users
+```
+Several people: one `htpasswd` line each in the same file. To change the password, re-create the file and commit it.

@@ -20,3 +20,5 @@ api:
   smsProvider: console             # SMS written to the worker log
 keycloak:
   otp: { smsProvider: console, consoleAllowed: true }   # switch to the real provider when available (F7)
+ingress:
+  basicAuth: { enabled: true }     # shared password on the website and admin (secret alanfelez-basic-auth)

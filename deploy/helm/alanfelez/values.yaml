@@ -109,6 +109,13 @@ ingress:
   tls:
     enabled: true
     clusterIssuer: letsencrypt     # cert-manager ClusterIssuer
+  # A shared username/password in front of some hosts (staging: keeps the public and search engines off a test site).
+  # Traefik basicAuth; the htpasswd lines live in a SealedSecret (key `users`), see environments/staging/secrets/README.md.
+  # Only for browser-facing hosts: the API and Keycloak are called with their own Authorization headers and stay open.
+  basicAuth:
+    enabled: false
+    secretName: alanfelez-basic-auth
+    hosts: [web, admin]
 
 # Local clusters only: render the secrets above from these values. Never in staging/production.
 devSecrets:
