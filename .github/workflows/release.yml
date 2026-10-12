@@ -17,12 +17,13 @@ permissions:
   pull-requests: write
 
 env:
-  REGISTRY: ${{ vars.REGISTRY }}          # e.g. <arvan-registry-host>/alanfelez
+  # ArvanCloud registry (inside Iran, so the servers pull at full speed; DEPLOYMENT.md §3). Not a secret: the login is in
+  # secrets.REGISTRY_USERNAME / REGISTRY_PASSWORD. A repo variable REGISTRY_HOST overrides it (e.g. for a fork).
+  REGISTRY_HOST: ${{ vars.REGISTRY_HOST || 'registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir' }}
+  REGISTRY: ${{ vars.REGISTRY_HOST || 'registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir' }}/alanfelez
 
 jobs:
   images:
-    # Skipped until the registry is configured (DEPLOYMENT.md §3 step 2), so pushes to main stay green meanwhile.
-    if: vars.REGISTRY != ''
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
@@ -42,7 +43,7 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
-          registry: ${{ vars.REGISTRY_HOST }}
+          registry: ${{ env.REGISTRY_HOST }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - uses: docker/build-push-action@v6

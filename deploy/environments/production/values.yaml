@@ -5,7 +5,7 @@ global:
     web: alanfelez.ir
     api: api.alanfelez.ir
     auth: auth.alanfelez.ir
-  imageRegistry: REGISTRY_HOST/alanfelez
+  imageRegistry: registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez
   imagePullSecrets: [{ name: arvan-registry }]
 images:
   api: { repository: api, tag: "0.0.0" }
