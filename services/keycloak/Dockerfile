@@ -8,7 +8,7 @@
 # *_STAGE=…-prebuilt use jars built on the host (task build:local) instead of building in Docker. Useful on slow
 # networks. CI always uses the default, reproducible *-build stages.
 
-ARG KEYCLOAK_VERSION=26.7.4
+ARG KEYCLOAK_VERSION=26.8.0
 ARG EXTENSIONS_STAGE=extensions-build
 ARG THEME_STAGE=theme-build
 
