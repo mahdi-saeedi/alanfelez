@@ -27,7 +27,12 @@ const unquoted = cmd
 const parts = unquoted.split(/&&|\|\||;|\||\n|\$\(|`/).map((s) => s.trim()).filter(Boolean);
 
 for (const part of parts) {
-  const w = part.split(/\s+/).filter((x) => !/^[A-Z_]+=/.test(x) || x.includes("/")); // drop leading VAR=value
+  // Drop leading VAR=value assignments (as the shell does), so `S=/tmp/helm cmd` runs cmd, not helm.
+  const all = part.split(/\s+/);
+  let first = 0;
+  while (first < all.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(all[first])) first++;
+  if (first === all.length) continue; // only assignments, no command
+  const w = all.slice(first);
   const bin = (w[0] ?? "").split("/").pop();
   const flag = (name) => {
     const i = w.findIndex((x) => x === name || x.startsWith(name + "="));
