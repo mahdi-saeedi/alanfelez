@@ -18,9 +18,12 @@ function decide(decision, reason) {
   process.exit(0);
 }
 
-// Split a shell line into simple commands (good enough for a guard). Quoted text (grep patterns, messages, JSON) is
-// blanked first, so words inside quotes are never taken for commands; quoted words become "Q".
-const unquoted = cmd.replace(/'[^']*'/g, "Q").replace(/"(?:\\.|[^"\\])*"/g, "Q").replace(/\\\n/g, " ");
+// Split a shell line into simple commands (good enough for a guard). Text written to a file (`cat`/`tee` heredocs) and
+// quoted text (grep patterns, messages, JSON) are blanked first, so words inside them are never taken for commands.
+// Heredocs fed to anything else (bash, ssh, python…) are executed, so they're still checked line by line.
+const unquoted = cmd
+  .replace(/(\b(?:cat|tee)\b[^\n]*?)<<-?\s*['"]?(\w+)['"]?([^\n]*)\n[\s\S]*?\n\s*\2\s*(?=\n|$)/g, "$1 Q $3")
+  .replace(/'[^']*'/g, "Q").replace(/"(?:\\.|[^"\\])*"/g, "Q").replace(/\\\n/g, " ");
 const parts = unquoted.split(/&&|\|\||;|\||\n|\$\(|`/).map((s) => s.trim()).filter(Boolean);
 
 for (const part of parts) {
