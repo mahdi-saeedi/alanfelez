@@ -6,6 +6,13 @@ configs:
     # Compare via the API server (dry-run apply): defaults added by Kubernetes/operators are not drift.
     controller.diff.server.side: "true"
     server.insecure: true            # TLS terminated by the ingress (cert-manager)
+    # Servers in Iran reach GitHub at a few dozen KB/s: the first clone of the repo takes minutes (later fetches are
+    # small). Defaults (60 s) cancel it every time.
+    controller.repo.server.timeout.seconds: "900"
+    reposerver.git.request.timeout: "180s"
+repoServer:
+  env:
+    - { name: ARGOCD_EXEC_TIMEOUT, value: "15m" }   # git/helm commands (not a chart parameter)
 dex: { enabled: false }
 server:
   ingress:
