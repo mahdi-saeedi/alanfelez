@@ -121,3 +121,29 @@ is one commit or one click, and it's fully audited in git history.
    Don't name provider options `enabled`: that's Keycloak's own build-time provider switch.
 
 The authenticator itself doesn't change.
+
+## 8. Servers in Iran: work without the international internet
+From an Iranian server, downloads from abroad (GitHub, ghcr.io, Quay, chart sites) run at a few dozen KB/s, and in an
+internet shutdown they stop entirely, while ArvanCloud services inside Iran run at full speed (measured: 67 MB/s).
+So everything a cluster needs at run time **and** to deploy comes from inside Iran:
+
+| Need | Comes from | How it gets there |
+|---|---|---|
+| Our images | ArvanCloud registry (`global.imageRegistry`) | Release workflow (builds in GitHub, pushes to the registry) |
+| Outside images (Argo CD, cert-manager, CNPG, Postgres, Redis…) | Registry, under `alanfelez/mirror/<original name>` | *Mirror images* workflow, list in `deploy/mirror-images.txt`; each node's `/etc/rancher/k3s/registries.yaml` (template `deploy/server/registries.yaml.example`, login typed on the server with `/root/set-registry-login.sh`) |
+| Outside Helm charts | This repo, `deploy/vendor/charts/` | Vendored by hand (README there) |
+| The git repo | A copy on the server: `ssh://git@<server>/home/git/alanfelez.git` | `alanfelez-git-sync.timer` fetches new commits from GitHub every minute with Argo CD's read-only deploy key; Argo CD reads the copy |
+| DNS, OS updates, time | Shecan/Electro DNS, `mirror.arvancloud.ir`, `ntp.day.ir` | `/etc/systemd/resolved.conf.d/`, apt sources, timesyncd |
+| HTTPS | Let's Encrypt (abroad: renewals need ~monthly access) | `letsencrypt` ClusterIssuer; production can use ArvanCloud CDN certificates instead |
+
+Big binaries (k3s, Helm, kubeseal) are downloaded on a developer machine, checked against their published SHA-256 and
+copied with `scp`. During a shutdown the site keeps running from the last deployed state; deploying new code then needs
+images built inside Iran and a push to the server's git copy (not set up yet).
+
+**Staging server (ArvanCloud, set up 2026-10-12):** `85.198.55.189`, Ubuntu 24.04, k3s, ufw (only 22/80/443 open),
+Traefik redirects HTTP → HTTPS (`deploy/server/traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests/`).
+Argo CD was installed once with `helm upgrade --install argocd deploy/vendor/charts/argo-cd -n argocd
+-f deploy/argocd/install/values-cluster.yaml -f deploy/argocd/install/values-staging.yaml`; its UI has no public address:
+`ssh -L 8080:localhost:8080 root@<server>` then `kubectl -n argocd port-forward svc/argocd-server 8080:80` on the server.
+Helper commands on the server: `alanfelez-otp` (sign-in codes, there's no SMS provider yet), `alanfelez-keycloak-admin`
+(bootstrap admin to create the first staff user), `/root/set-site-password.sh` (the shared site password).

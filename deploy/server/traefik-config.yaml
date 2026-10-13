@@ -1,0 +1,19 @@
+# k3s Traefik settings for staging/production nodes: copy to /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+# (k3s applies it automatically). Every plain-HTTP request is redirected to HTTPS, except Let's Encrypt's
+# /.well-known/acme-challenge/ checks, which cert-manager answers through its own ingress.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        allowACMEByPass: true        # Let's Encrypt HTTP-01 checks are answered, not redirected
+        http:                        # (chart 40.x; older charts had ports.web.redirections)
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
