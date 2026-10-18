@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  REGISTRY_HOST: ${{ vars.REGISTRY_HOST || 'registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir' }}
+  REGISTRY_HOST: ${{ vars.REGISTRY_HOST || 'registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir' }}
 
 jobs:
   mirror:
