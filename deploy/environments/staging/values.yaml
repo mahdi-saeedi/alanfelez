@@ -8,12 +8,12 @@ global:
     auth: auth.alanfelez.ir
     admin: admin.alanfelez.ir
   imageRegistry: registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
-  imagePullSecrets: []   # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
+  imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "sha-3cf41ce08482"}
-  web: {repository: web, tag: "sha-3cf41ce08482"}
-  keycloak: {repository: keycloak, tag: "sha-3cf41ce08482"}
-  admin: {repository: admin, tag: "sha-3cf41ce08482"}
+  api: {repository: api, tag: "sha-b5cda50bb99a"}
+  web: {repository: web, tag: "sha-b5cda50bb99a"}
+  keycloak: {repository: keycloak, tag: "sha-b5cda50bb99a"}
+  admin: {repository: admin, tag: "sha-b5cda50bb99a"}
 api:
   seedProfiles: reference,demo
   demoPrices: true # demo price generator (worker)
