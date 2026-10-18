@@ -51,4 +51,48 @@ spec:
                 name: {{ $root.Release.Name }}-{{ $name }}
                 port: { number: {{ $svc.port }} }
 {{- end }}
+{{- with $root.Values.ingress.redirectHosts }}
+---
+# Redirect-only names (values: ingress.redirectHosts) → https://<web host><same path>.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $root.Release.Name }}-redirect-to-site
+  labels: {{- include "af.labels" $root | nindent 4 }}
+spec:
+  redirectRegex:
+    regex: "^https?://[^/]+(.*)"
+    replacement: "https://{{ $root.Values.global.hosts.web }}${1}"
+    permanent: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $root.Release.Name }}-redirects
+  labels: {{- include "af.labels" $root | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $root.Release.Namespace }}-{{ $root.Release.Name }}-redirect-to-site@kubernetescrd
+    {{- if $root.Values.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ $root.Values.ingress.tls.clusterIssuer }}
+    {{- end }}
+spec:
+  ingressClassName: {{ $root.Values.ingress.className }}
+  {{- if $root.Values.ingress.tls.enabled }}
+  tls:
+    - hosts: {{- toYaml . | nindent 8 }}
+      secretName: {{ $root.Release.Name }}-redirects-tls
+  {{- end }}
+  rules:
+    {{- range . }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $root.Release.Name }}-web   # never reached: the middleware answers first
+                port: { number: 3000 }
+    {{- end }}
+{{- end }}
 {{- end }}

@@ -2,12 +2,13 @@
 global:
   env: staging
   hosts:
-    web: staging.alanfelez.ir
-    api: api.staging.alanfelez.ir
-    auth: auth.staging.alanfelez.ir
-    admin: admin.staging.alanfelez.ir
+    # Until launch, the main names run this test-mode environment (shared password, noindex, demo data, mock gateway).
+    web: alanfelez.ir
+    api: api.alanfelez.ir
+    auth: auth.alanfelez.ir
+    admin: admin.alanfelez.ir
   imageRegistry: registry-808c2160fb-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
-  imagePullSecrets: [{name: arvan-registry}]
+  imagePullSecrets: []   # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
   api: {repository: api, tag: "sha-3cf41ce08482"}
   web: {repository: web, tag: "sha-3cf41ce08482"}
@@ -21,4 +22,5 @@ api:
 keycloak:
   otp: {smsProvider: console, consoleAllowed: true} # switch to the real provider when available (F7)
 ingress:
+  redirectHosts: [www.alanfelez.ir, alanfelez.com, www.alanfelez.com] # 301 → https://alanfelez.ir
   basicAuth: {enabled: true} # shared password on the website and admin (secret alanfelez-basic-auth)

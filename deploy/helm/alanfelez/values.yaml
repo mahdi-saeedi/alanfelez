@@ -116,6 +116,9 @@ ingress:
     enabled: false
     secretName: alanfelez-basic-auth
     hosts: [web, admin]
+  # Other names that permanently redirect (301) to the website, keeping the path: www., the .com domain (SCOPE §2).
+  # Each gets a certificate, so https://alanfelez.com/x also redirects cleanly.
+  redirectHosts: []
 
 # Local clusters only: render the secrets above from these values. Never in staging/production.
 devSecrets:

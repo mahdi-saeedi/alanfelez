@@ -1,5 +1,5 @@
 // Load test for the public site and API (NFR §1–2). Run: task loadtest (local), or against staging:
-//   k6 run -e WEB=https://staging.alanfelez.ir -e API=https://api.staging.alanfelez.ir -e PEAK=300 deploy/loadtest/public.js
+//   k6 run -e WEB=https://alanfelez.ir -e API=https://api.alanfelez.ir -e PEAK=300 deploy/loadtest/public.js
 // PEAK is the concurrent-visitor target (NFR §1: 300 at launch, 2,000 after a year). Never point this at production
 // during market hours.
 import http from "k6/http";

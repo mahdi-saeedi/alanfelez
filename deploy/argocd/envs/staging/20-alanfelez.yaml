@@ -10,7 +10,7 @@ metadata:
 spec:
   project: alanfelez
   source:
-    repoURL: ssh://git@85.198.55.189/home/git/alanfelez.git
+    repoURL: ssh://git@188.121.120.201/home/git/alanfelez.git
     targetRevision: main
     path: deploy/helm/alanfelez
     helm:
