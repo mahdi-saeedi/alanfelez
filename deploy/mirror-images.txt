@@ -5,10 +5,12 @@
 #
 # When a chart version changes (deploy/argocd/envs/*, deploy/argocd/install), update the tags here in the same PR.
 # Find them with: helm template x <chart> --repo <url> --version <v> | grep image:
+# `<source> as <name>` copies <source> but stores it under <name> (when the original registry is unreliable).
 
 # Argo CD 10.9.2 (deploy/argocd/install/values-cluster.yaml)
 quay.io/argoproj/argocd:v3.5.3
-ecr-public.aws.com/docker/library/redis:8.6.4-alpine
+# AWS ECR Public rate-limits anonymous pulls from CI: copy the identical official image from Docker Hub instead.
+docker.io/library/redis:8.6.4-alpine as ecr-public.aws.com/docker/library/redis:8.6.4-alpine
 # Argo Rollouts 2.43.2 (with dashboard)
 quay.io/argoproj/argo-rollouts:v1.10.0
 quay.io/argoproj/kubectl-argo-rollouts:v1.10.0

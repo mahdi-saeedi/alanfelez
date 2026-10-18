@@ -27,8 +27,8 @@ jobs:
         run: |
           set -euo pipefail
           failed=0
-          while read -r src; do
-            dst="$REGISTRY_HOST/alanfelez/mirror/$src"
+          while read -r src _ name; do
+            dst="$REGISTRY_HOST/alanfelez/mirror/${name:-$src}"
             if crane digest --platform linux/amd64 "$dst" >/dev/null 2>&1 && \
                [ "$(crane digest --platform linux/amd64 "$dst")" = "$(crane digest --platform linux/amd64 "$src")" ]; then
               echo "✓ up to date  $src"; continue

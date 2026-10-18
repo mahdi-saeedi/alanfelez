@@ -85,7 +85,8 @@ jobs:
           git config user.name "alanfelez-bot"
           git config user.email "bot@alanfelez.ir"
           git commit -am "chore(deploy): staging → ${TAG} [skip ci]"
-          git push
+          # main may have moved while the images were building: rebase on it and retry.
+          for i in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 10; done; exit 1
 
   propose-production:
     if: startsWith(github.ref, 'refs/tags/v')
