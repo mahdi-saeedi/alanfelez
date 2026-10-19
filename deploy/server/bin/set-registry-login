@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Writes /etc/rancher/k3s/registries.yaml from the repo template with the registry login typed here, then restarts k3s.
+set -uo pipefail
+HOST=registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir
+fail() { echo; echo "✗ $*"; echo "Nothing was changed. Run the command again."; exit 1; }
+read -rp "Registry username: " U || fail "No username was entered."
+[ -n "$U" ] || fail "The username is empty."
+read -rsp "Registry password (hidden, press Enter when done): " P || fail "No password was entered."
+echo
+[ -n "$P" ] || fail "The password is empty."
+echo "Checking the login with the registry…"
+code=$(curl -s -o /dev/null -m 30 -w "%{http_code}" -K - <<<"user = \"${U//\"/\\\"}:${P//\"/\\\"}\"
+url = \"https://$HOST/v2/\"") || fail "Could not reach the registry (network problem)."
+[ "$code" = 200 ] || fail "The registry refused this username/password (HTTP $code)."
+umask 077
+U="$U" P="$P" HOST="$HOST" python3 - <<'PY' || fail "Could not write the settings file."
+import os
+q = lambda s: "'" + s.replace("'", "''") + "'"   # YAML single-quoted string
+t = open("/root/registries.yaml.example").read().replace("REGISTRY_HOST", os.environ["HOST"])
+t = t.replace("username: REGISTRY_USERNAME", "username: " + q(os.environ["U"])).replace("password: REGISTRY_PASSWORD", "password: " + q(os.environ["P"]))
+open("/etc/rancher/k3s/registries.yaml", "w").write(t)
+PY
+chmod 600 /etc/rancher/k3s/registries.yaml
+systemctl restart k3s || fail "k3s did not restart."
+echo "✓ Saved. k3s restarted and now pulls images from the ArvanCloud registry."

@@ -1,0 +1,6 @@
+#!/bin/sh
+# The Keycloak bootstrap admin for staging (create the first staff user with it, then disable it). Prints to this terminal only.
+k() { KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n alanfelez get secret alanfelez-keycloak-admin -o jsonpath="{.data.$1}" | base64 -d; }
+echo "Console:  https://auth.staging.alanfelez.ir/admin/master/console/"
+echo "Username: $(k username)"
+echo "Password: $(k password)"

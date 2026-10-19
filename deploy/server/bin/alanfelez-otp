@@ -1,0 +1,5 @@
+#!/bin/sh
+# Staging has no SMS provider yet (F7): sign-in codes are written to the Keycloak log. Shows the last 15 minutes.
+KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubectl -n alanfelez logs deploy/alanfelez-keycloak --since 15m 2>/dev/null \
+  | grep "DEV SMS" | sed -E "s/.*to=([^ ]+) message=(.*)/\1  \2/" | tail -10
+[ $? -eq 0 ] || echo "No code sent in the last 15 minutes."

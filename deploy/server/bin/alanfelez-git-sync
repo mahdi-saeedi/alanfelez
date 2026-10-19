@@ -1,0 +1,6 @@
+#!/bin/sh
+# Brings new commits from GitHub into the in-Iran copy that Argo CD reads (/home/git/alanfelez.git).
+# Incremental fetches are small, so they work over the slow international link; during a shutdown it just fails
+# quietly and the copy keeps serving the last state (developers can push to it directly).
+export GIT_SSH_COMMAND="ssh -i /home/git/.ssh/github_deploy -o UserKnownHostsFile=/home/git/.ssh/known_hosts -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+exec timeout 600 git --git-dir=/home/git/alanfelez.git fetch --quiet --prune git@github.com:mahdi-saeedi/alanfelez.git "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*"
