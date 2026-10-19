@@ -66,6 +66,9 @@ jobs:
           severity: CRITICAL
           ignore-unfixed: true
           exit-code: "1"
+          # The image is pulled back from the registry in Iran; the large Keycloak image can take longer than
+          # Trivy's 5-minute default, and a timeout fails the job and skips deploy-staging.
+          timeout: 15m
         env:
           TRIVY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           TRIVY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
