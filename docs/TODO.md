@@ -17,8 +17,6 @@ Last updated: 2026-10-19 (staging live)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Allow GitHub Actions to create pull requests** (repo Settings → Actions → General → Workflow permissions). Without it
-      a release builds but can't open the "production → vX.Y.Z" PR, so nothing reaches production.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
@@ -45,6 +43,7 @@ Last updated: 2026-10-19 (staging live)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-19 GitHub Actions may open pull requests (releases can propose production); staging has no shared password.
 - 2026-10-19 Developer guide rewritten for the browser-only flow (claude.ai/code → PR → staging → release), as a web page
   and a Google Doc; `ONBOARDING.md`, the `release-to-production` recipe, and "people merge, Claude doesn't" in CLAUDE.md.
 - 2026-10-19 Staging live on `37.32.39.49` (staging.alanfelez.ir, password on site and admin), resized to 4 CPU / 8 GB:
