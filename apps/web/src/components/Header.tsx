@@ -38,7 +38,7 @@ export async function Header() {
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6">
         <MobileMenu />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
-          <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 rounded-lg" />
+          <img src="/logo.png" alt="" width={56} height={56} className="h-11 w-11 rounded-lg lg:h-14 lg:w-14" />
           {t("brand.name")}
         </Link>
         <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
