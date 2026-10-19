@@ -30,6 +30,8 @@ The owner is one developer; other developers work through Claude. Write code a n
 7. **Servers:** local and staging you may inspect and debug. Production is **read-only** (status, logs); every change reaches
    production through git → PR → CI → Argo CD. Never `kubectl apply/edit/delete/exec` or `helm upgrade` by hand. Details: `deploy/CLAUDE.md`.
 8. Keep docs true: if you change setup, a convention or the architecture, update the doc (and an ADR for architecture) in the same PR.
+9. **Keep `docs/TODO.md` current** (skill `update-todo`): in the same change, move finished jobs to Done and add anything
+   new you found. Asked "what's next?" → answer from it.
 
 ## Commands (all in `Taskfile.yml`; `task --list`)
 | | |

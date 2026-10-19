@@ -13,6 +13,7 @@ description: Finish a change and get it merged: branch, checks, Conventional Com
    - UI changes: looked at in the browser pane in fa + en, phone + desktop
 3. **Review your own diff** (`git diff main...`) against the Definition of Done in `CONTRIBUTING.md` §5: no hard-coded text,
    both message files, negative access tests, audit on staff writes, docs updated, no secrets, no debug leftovers.
+3b. **Update `docs/TODO.md`** (skill `update-todo`): done items to Done, new findings added.
 4. **Commit** in Conventional Commits, grouped by area if the change is big:
    `feat(auctions): filter offerings by producer`, `fix(web): …`, `docs: …`. Scopes: CONTRIBUTING §3. The hooks check the format
    and run gitleaks. End the message with the attribution lines the session asks for.

@@ -58,8 +58,12 @@ base() {
     # Until the registry login is set (set-registry-login): Docker Hub through the ArvanCloud mirror.
     printf 'mirrors:\n  docker.io:\n    endpoint:\n      - "https://docker.arvancloud.ir"\n' > /etc/rancher/k3s/registries.yaml
   fi
+  # If GitHub is slow from this server, copy /usr/local/bin/k3s (same version) from another node first: the installer
+  # then skips the download.
   if ! k3s --version 2>/dev/null | grep -q "${K3S_VERSION%%+*}"; then
     curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="$K3S_VERSION" sh -s - --write-kubeconfig-mode 600
+  elif [ ! -f /etc/systemd/system/k3s.service ]; then
+    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_DOWNLOAD=true sh -s - --write-kubeconfig-mode 600
   else note "already installed"; fi
 
   step "Helm $HELM_VERSION and kubeseal $KUBESEAL_VERSION (checksums verified)"
