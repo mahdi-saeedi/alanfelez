@@ -9,12 +9,12 @@ global:
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "sha-15e5f8438666"}
-  web: {repository: web, tag: "sha-15e5f8438666"}
-  keycloak: {repository: keycloak, tag: "sha-15e5f8438666"}
-  admin: {repository: admin, tag: "sha-15e5f8438666"}
+  api: {repository: api, tag: "sha-22ace57a0b01"}
+  web: {repository: web, tag: "sha-22ace57a0b01"}
+  keycloak: {repository: keycloak, tag: "sha-22ace57a0b01"}
+  admin: {repository: admin, tag: "sha-22ace57a0b01"}
 api:
-  replicas: 1                      # small staging server (2 CPU / 4 GB)
+  replicas: 1 # small staging server (2 CPU / 4 GB)
   seedProfiles: reference,demo
   demoPrices: true # demo price generator (worker)
   paymentGateway: mock # fake gateway page, no real money
@@ -22,6 +22,6 @@ api:
 keycloak:
   otp: {smsProvider: console, consoleAllowed: true} # switch to the real provider when available (F7)
 web:
-  replicas: 1                      # small staging server (2 CPU / 4 GB)
+  replicas: 1 # small staging server (2 CPU / 4 GB)
 ingress:
   basicAuth: {enabled: true} # shared password on the website and admin (for the team and stakeholders)
