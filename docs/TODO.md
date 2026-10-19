@@ -19,7 +19,7 @@ Last updated: 2026-10-19 (staging live)
 ## Waiting on the owner
 - [ ] **Allow GitHub Actions to create pull requests** (repo Settings → Actions → General → Workflow permissions). Without it
       a release builds but can't open the "production → vX.Y.Z" PR, so nothing reaches production.
-- [ ] Give the developer **GitHub write access** and the **staging password**; check **claude.ai/code** works on their
+- [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
 - [ ] **ArvanCloud Object Storage bucket** + `alanfelez-backup-s3` secret → database backups on for production and

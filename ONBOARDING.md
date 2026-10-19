@@ -27,8 +27,7 @@ you → Claude (claude.ai/code) → pull request → you merge → staging.alanf
 1. **Ask.** New conversation in claude.ai/code with the `mahdi-saeedi/alanfelez` repo. Say what and why. For anything bigger
    than a small fix: "Explain your plan in plain words first."
 2. **Review.** Claude opens a pull request. The checks must be green. Read Claude's description; ask "why?" where unclear.
-3. **Merge.** Press *Merge pull request*. About 10 minutes later the change is on **https://staging.alanfelez.ir**
-   (shared password from the owner).
+3. **Merge.** Press *Merge pull request*. About 10 minutes later the change is on **https://staging.alanfelez.ir**.
 4. **Check on staging**: Persian, English (`/en`), phone width. Send the link to the stakeholder and wait for their OK.
 5. **Publish.** Ask Claude to publish a release (or GitHub → Releases → *Draft a new release* → next `vX.Y.Z` → *Publish*).
    A pull request "production → vX.Y.Z" appears; merge it. About 10 minutes later it's on **https://alanfelez.ir**.

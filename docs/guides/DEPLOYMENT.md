@@ -35,7 +35,7 @@ Nobody runs `kubectl apply` or `helm upgrade` by hand. **Git is the source of tr
 | | local (k3d) | staging | production |
 |---|---|---|---|
 | Deployed from | `task k8s:deploy` (Gitea in the cluster) | every merge to `main` (automatic) | release tags, through a reviewed PR |
-| Hostnames | `alanfelez.localhost:8088`, `admin.`, `api.`, `auth.` | until launch: `alanfelez.ir`, `admin.`, `api.`, `auth.alanfelez.ir` (test mode, shared password); `www.` and `alanfelez.com` → 301 | `alanfelez.ir`, `admin.alanfelez.ir`, `api.alanfelez.ir`, `auth.alanfelez.ir`; `.com` → 301 |
+| Hostnames | `alanfelez.localhost:8088`, `admin.`, `api.`, `auth.` | `staging.alanfelez.ir`, `admin.staging…`, `api.staging…`, `auth.staging…` (no password, noindex) | `alanfelez.ir`, `admin.alanfelez.ir`, `api.alanfelez.ir`, `auth.alanfelez.ir`; `www.` and `alanfelez.com` → 301 (test mode until launch) |
 | `APP_ENV` | `local` | `staging` | `production` |
 | `SEED_PROFILES` | `reference,demo` | `reference,demo` | `reference` (demo is **refused** in production) |
 | OTP SMS provider | `console` (codes in the Keycloak log) | `console` or the real provider in test mode | real provider, `keycloak.otp.consoleAllowed: false` |
@@ -140,14 +140,20 @@ Big binaries (k3s, Helm, kubeseal) are downloaded on a developer machine, checke
 copied with `scp`. During a shutdown the site keeps running from the last deployed state; deploying new code then needs
 images built inside Iran and a push to the server's git copy (not set up yet).
 
-**Staging server (ArvanCloud, since 2026-10-18):** `188.121.120.201`, Ubuntu 26.04, 4 CPU / 12 GB, k3s v1.36.5, ufw (only
-22/80/443 open), Traefik redirects HTTP → HTTPS (`deploy/server/traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests/`).
-Until launch it serves the main names (`alanfelez.ir` and its `api.`/`auth.`/`admin.`), in test mode behind the shared
-password; `www.alanfelez.ir`, `alanfelez.com` and `www.alanfelez.com` redirect to `https://alanfelez.ir`
-(`ingress.redirectHosts`). The first staging server (`85.198.55.189`, `staging.alanfelez.ir`) was retired after its
-databases were copied over; its Sealed Secrets key was moved too, so the sealed files in git still decrypt.
-Argo CD was installed once with `helm upgrade --install argocd deploy/vendor/charts/argo-cd -n argocd
--f deploy/argocd/install/values-cluster.yaml -f deploy/argocd/install/values-staging.yaml`; its UI has no public address:
-`ssh -L 8080:localhost:8080 root@<server>` then `kubectl -n argocd port-forward svc/argocd-server 8080:80` on the server.
-Helper commands on the server: `alanfelez-otp` (sign-in codes, there's no SMS provider yet), `alanfelez-keycloak-admin`
-(bootstrap admin to create the first staff user), `/root/set-site-password.sh` (the shared site password).
+**The two servers (ArvanCloud, since 2026-10-19):** both Ubuntu 26.04 with k3s v1.36.5, ufw (only 22/80/443 open),
+Traefik redirecting HTTP → HTTPS (`deploy/server/traefik-config.yaml` in `/var/lib/rancher/k3s/server/manifests/`), set up
+with `deploy/server/bootstrap.sh` (REBUILD.md).
+
+| | Production | Staging |
+|---|---|---|
+| Server | `188.121.120.201`, 4 CPU / 12 GB | `37.32.39.49`, 4 CPU / 8 GB (2 CPU / 4 GB was too small: k3s crash-looped) |
+| Names | `alanfelez.ir` + `api.`/`auth.`/`admin.`; `www.alanfelez.ir`, `alanfelez.com`, `www.alanfelez.com` → 301 | `staging.alanfelez.ir` + `api.`/`auth.`/`admin.staging` |
+| Shared password | admin panel only | none (pages are noindex) |
+| Mode | test mode until launch (LAUNCH.md §3) | test mode (demo data, mock gateway) |
+| Updates | release PR merged (release workflow) | every merge to `main` |
+
+Both clusters share the Sealed Secrets key (the first server's, moved over) and Argo CD's read-only deploy key. Argo CD was
+installed with `bootstrap.sh argocd <env>`; its UI has no public address: `ssh -L 8080:localhost:8080 root@<server>` then
+`kubectl -n argocd port-forward svc/argocd-server 8080:80` on the server. Helper commands on each server: `alanfelez-otp`
+(sign-in codes, there's no SMS provider yet), `alanfelez-keycloak-admin` (bootstrap admin to create the first staff user),
+`/root/set-site-password.sh` (a shared password, if one is ever wanted again), `/root/set-registry-login.sh`.

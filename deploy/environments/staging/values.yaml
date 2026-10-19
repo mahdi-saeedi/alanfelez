@@ -24,4 +24,4 @@ keycloak:
 web:
   replicas: 1 # small staging server (2 CPU / 4 GB)
 ingress:
-  basicAuth: {enabled: true} # shared password on the website and admin (for the team and stakeholders)
+  basicAuth: {enabled: false} # no shared password: anyone with the address can open staging (pages stay noindex)
