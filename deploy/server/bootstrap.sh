@@ -3,7 +3,7 @@
 # first. Run as root on the server from a copy of deploy/server/ (docs/guides/REBUILD.md says how):
 #
 #   bash bootstrap.sh base          # OS, firewall, k3s, tools, helper commands, the in-Iran git copy
-#   bash bootstrap.sh argocd        # Argo CD + the root app (after the git copy holds main, see REBUILD.md)
+#   bash bootstrap.sh argocd ENV    # Argo CD + the root app for ENV = staging | production (after the git copy holds main)
 #   bash bootstrap.sh reseal        # NEW random app secrets, sealed for this cluster, written to /root/sealed/
 #   bash bootstrap.sh backup-key    # prints the Sealed Secrets key (keep it OFFLINE, e.g. a password manager)
 #
@@ -105,14 +105,15 @@ base() {
   [ -n "${NEW_KEY:-}" ] && note "NEW deploy key: add it to GitHub as a READ-ONLY deploy key: $(cat /home/git/.ssh/github_deploy.pub)"
   note "1. registry login:   ssh -t root@$(node_ip) /root/set-registry-login.sh"
   note "2. fill the git copy (push from a developer machine, or wait for the timer once the deploy key is on GitHub)"
-  note "3. bash bootstrap.sh argocd"
+  note "3. bash bootstrap.sh argocd staging|production"
 }
 
 argocd_install() {
-  git --git-dir="$BARE" rev-parse --verify -q main >/dev/null || die "The git copy has no 'main' yet (REBUILD.md step 2)."
+  env="${1:-}"; [ "$env" = staging ] || [ "$env" = production ] || die "Usage: bootstrap.sh argocd staging|production"
+  git --git-dir="$BARE" rev-parse --verify -q main >/dev/null || die "The git copy has no 'main' yet (REBUILD.md step 5)."
   ip=$(node_ip)
-  grep -q "ssh://git@$ip/" <(git --git-dir="$BARE" show main:deploy/argocd/roots/root-staging.yaml) ||
-    die "deploy/argocd/roots/root-staging.yaml on main doesn't point at this server ($ip). Update the IP in git first (REBUILD.md step 3)."
+  grep -q "ssh://git@$ip/" <(git --git-dir="$BARE" show "main:deploy/argocd/roots/root-$env.yaml") ||
+    die "deploy/argocd/roots/root-$env.yaml on main doesn't point at this server ($ip). Update the IP in git first (REBUILD.md step 5)."
   t=$(mktemp -d); trap 'rm -rf "$t"' EXIT
   git --git-dir="$BARE" archive main deploy/vendor/charts/argo-cd deploy/argocd | tar -x -C "$t"
 
@@ -123,11 +124,11 @@ argocd_install() {
     --dry-run=client -o yaml | kubectl label --local -f - argocd.argoproj.io/secret-type=repository -o yaml | kubectl apply -f - >/dev/null
   known="$(ssh-keyscan -t ed25519 "$ip" 2>/dev/null | grep -v '^#')"
   helm upgrade --install argocd "$t/deploy/vendor/charts/argo-cd" -n argocd \
-    -f "$t/deploy/argocd/install/values-cluster.yaml" -f "$t/deploy/argocd/install/values-staging.yaml" \
+    -f "$t/deploy/argocd/install/values-cluster.yaml" -f "$t/deploy/argocd/install/values-$env.yaml" \
     --set-string "configs.ssh.extraHosts=$known" --wait --timeout 10m >/dev/null
 
   step "Root app: Argo CD now installs everything else from git"
-  kubectl apply -f "$t/deploy/argocd/projects/alanfelez.yaml" -f "$t/deploy/argocd/roots/root-staging.yaml" >/dev/null
+  kubectl apply -f "$t/deploy/argocd/projects/alanfelez.yaml" -f "$t/deploy/argocd/roots/root-$env.yaml" >/dev/null
   note "Watch: kubectl -n argocd get applications   (all Synced/Healthy after ~10 minutes)"
 }
 
@@ -144,12 +145,12 @@ reseal() {
   kubectl create secret generic alanfelez-keycloak-db -n alanfelez --type=kubernetes.io/basic-auth --dry-run=client -o yaml \
     --from-literal=username=keycloak --from-literal=password="$(openssl rand -hex 24)" | seal alanfelez-keycloak-db
   ls /root/sealed
-  note "Then: /root/set-site-password.sh (the admin's shared password) and commit /root/sealed/*.yaml"
+  note "Then: /root/set-site-password.sh (the shared password) and commit /root/sealed/*.yaml to deploy/environments/<env>/secrets/"
 }
 
 case "${1:-}" in
   base) base ;;
-  argocd) argocd_install ;;
+  argocd) argocd_install "${2:-}" ;;
   reseal) reseal ;;
   backup-key) kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml ;;
   *) sed -n '2,10p' "$0"; exit 1 ;;

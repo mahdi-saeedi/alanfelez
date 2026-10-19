@@ -1,28 +1,39 @@
-# Production - deployed from release tags through a reviewed PR (release workflow).
+# Production - alanfelez.ir. Images change only through the release workflow (tag vX.Y.Z → PR bumping images.*.tag).
+#
+# TEST MODE UNTIL LAUNCH (docs/guides/LAUNCH.md §3 switches it): APP_ENV staging, demo prices, the mock gateway and
+# sign-in codes in the log, because the real SMS provider (F7) and payment gateway (F13) don't exist yet. Pages stay
+# noindex. At launch: env production, seedProfiles reference, the real providers, indexable true.
 global:
-  env: production
+  env: staging                     # until launch; then: production
   hosts:
     web: alanfelez.ir
     api: api.alanfelez.ir
     auth: auth.alanfelez.ir
+    admin: admin.alanfelez.ir
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez
-  imagePullSecrets: [{ name: arvan-registry }]
+  imagePullSecrets: []             # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: { repository: api, tag: "0.0.0" }
-  web: { repository: web, tag: "0.0.0" }
-  keycloak: { repository: keycloak, tag: "0.0.0" }
-  admin: { repository: admin, tag: "0.0.0" }
+  api: { repository: api, tag: "sha-15e5f8438666" }
+  web: { repository: web, tag: "sha-15e5f8438666" }
+  keycloak: { repository: keycloak, tag: "sha-15e5f8438666" }
+  admin: { repository: admin, tag: "sha-15e5f8438666" }
 api:
   replicas: 2
-  seedProfiles: reference
+  seedProfiles: reference,demo     # until launch; then: reference
+  demoPrices: true                 # until launch; then: false
+  paymentGateway: mock             # until launch (F13); then the real gateway
+  smsProvider: console             # until launch (F7); then the real provider
 web:
   replicas: 2
   autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, cpuPercent: 70 }
   resources:
     requests: { cpu: 500m, memory: 256Mi }
     limits: { memory: 768Mi }
-  indexable: true
-  cspFormOrigins: []   # add the real gateway's payment page origin with F13, e.g. https://www.zarinpal.com
+  indexable: false                 # until launch; then: true
+  cspFormOrigins: []               # add the real gateway's payment page origin with F13, e.g. https://www.zarinpal.com
 keycloak:
-  replicas: 2
-  otp: { smsProvider: console, consoleAllowed: false }   # a real provider must be configured before launch (F7)
+  replicas: 1                      # 2 after launch (clustered through the database)
+  otp: { smsProvider: console, consoleAllowed: true }   # until launch (F7); then the real provider, consoleAllowed false
+ingress:
+  redirectHosts: [www.alanfelez.ir, alanfelez.com, www.alanfelez.com]   # 301 → https://alanfelez.ir
+  basicAuth: { enabled: true, hosts: [admin] }   # the website is public; the admin keeps a shared password

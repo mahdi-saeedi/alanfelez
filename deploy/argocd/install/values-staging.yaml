@@ -1,9 +1,9 @@
 # Staging-only additions to values-cluster.yaml (helm upgrade … -f values-cluster.yaml -f values-staging.yaml).
-# Argo CD reads the repo from the in-Iran git copy on the staging server (ssh://git@188.121.120.201/home/git/alanfelez.git,
+# Argo CD reads the repo from the in-Iran git copy on the staging server (ssh://git@37.32.39.49/home/git/alanfelez.git,
 # fetched from GitHub every minute by alanfelez-git-sync.timer; docs/guides/DEPLOYMENT.md §3), so it needs that host's key.
 server:
   ingress: { enabled: false }      # the Argo CD UI is reached through an SSH tunnel, not the internet
 configs:
   ssh:
     extraHosts: |
-      188.121.120.201 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBB5s3XBvrrUUDS46gRTf5IZBdh/Aor1+ifBO1DnS+5I
+      37.32.39.49 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvL1+wjvXuvGVJcA5eQrlrsucCQVuWfBK/mBcxdCYu0

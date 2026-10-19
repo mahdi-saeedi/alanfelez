@@ -11,7 +11,7 @@ spec:
   project: alanfelez
   source:
     # Chart argo-rollouts 2.43.2, vendored from https://argoproj.github.io/argo-helm (deploy/vendor/charts/README.md)
-    repoURL: ssh://git@188.121.120.201/home/git/alanfelez.git
+    repoURL: ssh://git@37.32.39.49/home/git/alanfelez.git
     targetRevision: main
     path: deploy/vendor/charts/argo-rollouts
     helm:

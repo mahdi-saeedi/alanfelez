@@ -2,11 +2,10 @@
 global:
   env: staging
   hosts:
-    # Until launch, the main names run this test-mode environment (shared password, noindex, demo data, mock gateway).
-    web: alanfelez.ir
-    api: api.alanfelez.ir
-    auth: auth.alanfelez.ir
-    admin: admin.alanfelez.ir
+    web: staging.alanfelez.ir
+    api: api.staging.alanfelez.ir
+    auth: auth.staging.alanfelez.ir
+    admin: admin.staging.alanfelez.ir
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
@@ -15,12 +14,14 @@ images:
   keycloak: {repository: keycloak, tag: "sha-15e5f8438666"}
   admin: {repository: admin, tag: "sha-15e5f8438666"}
 api:
+  replicas: 1                      # small staging server (2 CPU / 4 GB)
   seedProfiles: reference,demo
   demoPrices: true # demo price generator (worker)
   paymentGateway: mock # fake gateway page, no real money
   smsProvider: console # SMS written to the worker log
 keycloak:
   otp: {smsProvider: console, consoleAllowed: true} # switch to the real provider when available (F7)
+web:
+  replicas: 1                      # small staging server (2 CPU / 4 GB)
 ingress:
-  redirectHosts: [www.alanfelez.ir, alanfelez.com, www.alanfelez.com] # 301 → https://alanfelez.ir
-  basicAuth: {enabled: true, hosts: [admin]} # shared password on the admin panel only; the website is public (still noindex)
+  basicAuth: {enabled: true} # shared password on the website and admin (for the team and stakeholders)
