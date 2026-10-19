@@ -4,11 +4,9 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-19
+Last updated: 2026-10-19 (staging live)
 
 ## Now (in progress)
-- [ ] **Staging server** (`37.32.39.49`, staging.alanfelez.ir): registry login (owner types it:
-      `ssh -t root@37.32.39.49 /root/set-registry-login.sh`), then `bootstrap.sh argocd staging`, then check every page.
 - [ ] **Developer guide**: rewrite for the browser-only flow (claude.ai/code → pull request → staging → release),
       publish it as a Google Doc for the new developer; update `ONBOARDING.md` to match.
 
@@ -25,7 +23,6 @@ Last updated: 2026-10-19
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
 - [ ] **ArvanCloud Object Storage bucket** + `alanfelez-backup-s3` secret → database backups on for production and
       staging. Until then a lost server loses user data.
-- [ ] Resize the **staging server** to 4 CPU / 8 GB (now 2 CPU / 4 GB, one pod each for API and website).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO), and whether to build **per-metal price pages** («قیمت مس امروز»).
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
@@ -47,6 +44,8 @@ Last updated: 2026-10-19
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-19 Staging live on `37.32.39.49` (staging.alanfelez.ir, password on site and admin), resized to 4 CPU / 8 GB:
+  at 2 CPU / 4 GB k3s kept crashing under load (CPU steal + memory). Every merge to main now deploys there.
 - 2026-10-19 Two environments: production on `188.121.120.201` (alanfelez.ir, test mode until launch), staging
   on `37.32.39.49`; live switch without downtime.
 - 2026-10-19 `deploy/server/bootstrap.sh` + `REBUILD.md`: everything rebuildable from GitHub in about an hour.
