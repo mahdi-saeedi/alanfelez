@@ -23,7 +23,8 @@ The owner is one developer; other developers work through Claude. Write code a n
    `task test:integration` when handlers or SQL changed, plus the page in the browser pane (fa **and** en, phone width) for UI.
    Report what you ran and what you didn't.
 5. **Small steps on a branch.** `feat/<slug>` or `fix/<slug>` from `main`, Conventional Commits, one concern per PR, open a PR.
-   Only the owner merges to `main` (it deploys to staging). Commit only when asked.
+   **People merge, Claude doesn't:** the developer or owner merges a green PR (it deploys to staging), checks it on
+   staging.alanfelez.ir, and publishes production by a release (skill `release-to-production`). Commit only when asked.
 6. **Stop and ask the owner** (don't decide alone) when a change touches: money/billing/payments (`internal/billing`,
    `internal/payment`), the tier matrix (`internal/access`), auth/Keycloak, a migration that changes or drops existing data,
    `deploy/environments/production`, secrets, or anything the client must decide (add it to `docs/product/OPEN_QUESTIONS.md`).

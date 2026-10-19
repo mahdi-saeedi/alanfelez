@@ -20,4 +20,5 @@ description: Finish a change and get it merged: branch, checks, Conventional Com
 5. **Push and open a PR**: `git push -u origin HEAD`, then `gh pr create` with the template (`.github/pull_request_template.md`):
    what and why in plain words, how it was tested, screenshots for UI, risk and rollback. Link the issue if there is one.
 6. **CI**: wait for the checks on the PR (`gh pr checks`). If one fails, read the log (`gh run view --log-failed`), fix, push again.
-7. **Merging is the owner's job.** Tell the user the PR link and what the owner should look at. Merging to `main` deploys to staging.
+7. **A person merges, not Claude.** Give the PR link and say what to check. Once they merge (CI green), it deploys to
+   staging.alanfelez.ir within ~10 minutes; production comes later through the `release-to-production` skill.

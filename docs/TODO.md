@@ -7,11 +7,8 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-10-19 (staging live)
 
 ## Now (in progress)
-- [ ] **Developer guide**: rewrite for the browser-only flow (claude.ai/code → pull request → staging → release),
-      publish it as a Google Doc for the new developer; update `ONBOARDING.md` to match.
 
 ## Next (no one else needed)
-- [ ] Claude recipe **release-to-production** (tag `vX.Y.Z` → release PR → merge) and a short project overview for Claude.
 - [ ] Admin screen for **feature flags** (payments, English site, licences page are DB-only today; needed before launch).
 - [ ] **Limit on simultaneous devices** for paid accounts (SECURITY §5, the last open security item).
 - [ ] Persian/English **sign-in error page** instead of Auth.js's English "Server error".
@@ -20,6 +17,10 @@ Last updated: 2026-10-19 (staging live)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Allow GitHub Actions to create pull requests** (repo Settings → Actions → General → Workflow permissions). Without it
+      a release builds but can't open the "production → vX.Y.Z" PR, so nothing reaches production.
+- [ ] Give the developer **GitHub write access** and the **staging password**; check **claude.ai/code** works on their
+      Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
 - [ ] **ArvanCloud Object Storage bucket** + `alanfelez-backup-s3` secret → database backups on for production and
       staging. Until then a lost server loses user data.
@@ -44,6 +45,8 @@ Last updated: 2026-10-19 (staging live)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-19 Developer guide rewritten for the browser-only flow (claude.ai/code → PR → staging → release), as a web page
+  and a Google Doc; `ONBOARDING.md`, the `release-to-production` recipe, and "people merge, Claude doesn't" in CLAUDE.md.
 - 2026-10-19 Staging live on `37.32.39.49` (staging.alanfelez.ir, password on site and admin), resized to 4 CPU / 8 GB:
   at 2 CPU / 4 GB k3s kept crashing under load (CPU steal + memory). Every merge to main now deploys there.
 - 2026-10-19 Two environments: production on `188.121.120.201` (alanfelez.ir, test mode until launch), staging
