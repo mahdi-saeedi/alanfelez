@@ -23,4 +23,4 @@ keycloak:
   otp: {smsProvider: console, consoleAllowed: true} # switch to the real provider when available (F7)
 ingress:
   redirectHosts: [www.alanfelez.ir, alanfelez.com, www.alanfelez.com] # 301 → https://alanfelez.ir
-  basicAuth: {enabled: true} # shared password on the website and admin (secret alanfelez-basic-auth)
+  basicAuth: {enabled: true, hosts: [admin]} # shared password on the admin panel only; the website is public (still noindex)
