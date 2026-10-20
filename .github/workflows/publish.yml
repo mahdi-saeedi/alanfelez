@@ -1,0 +1,105 @@
+# "Publish to production" without opening GitHub (docs/guides/DEPLOYMENT.md §1, skill release-to-production).
+# Started by Claude pushing a branch named publish/production (claude.ai/code can push branches, not tags), or by hand:
+# Actions → Publish to production → Run workflow. It promotes exactly what staging runs, with no rebuild:
+#   1. reads the image tag from deploy/environments/staging/values.yaml (sha-<12>, the version the stakeholder checked)
+#   2. picks the next version: feat → minor, otherwise patch (0.x until launch); writes release notes from the commits
+#   3. tags the same images vX.Y.Z in the registry, commits vX.Y.Z to deploy/environments/production/values.yaml,
+#      and creates the GitHub release. Argo CD on the production server applies it (canary, automatic rollback).
+# Undo: rollback/production branch or the Rollback workflow.
+name: Publish to production
+
+on:
+  push:
+    branches: [publish/production]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version step
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+
+concurrency:
+  group: publish-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  REGISTRY_HOST: ${{ vars.REGISTRY_HOST || 'registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir' }}
+  REGISTRY: ${{ vars.REGISTRY_HOST || 'registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir' }}/alanfelez
+  STAGING: deploy/environments/staging/values.yaml
+  PRODUCTION: deploy/environments/production/values.yaml
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+        with: { ref: main, fetch-depth: 0 }
+      - name: What staging runs, and the next version
+        id: v
+        env: { BUMP: "${{ inputs.bump || 'auto' }}" }
+        run: |
+          set -euo pipefail
+          tag="$(yq '.images.api.tag' "$STAGING")"
+          for img in web keycloak admin; do
+            [ "$(yq ".images.$img.tag" "$STAGING")" = "$tag" ] || { echo "::error::Staging runs mixed versions; ship again so all four images match."; exit 1; }
+          done
+          [[ "$tag" =~ ^sha-[0-9a-f]{12}$ ]] || { echo "::error::Staging runs '$tag', not a build of main (sha-<12>)."; exit 1; }
+          commit="$(git rev-parse --verify "${tag#sha-}^{commit}")"
+
+          last="$(git tag -l 'v*.*.*' --sort=-v:refname | head -1)"
+          if [ -n "$last" ] && [ "$(git rev-parse "$last^{commit}")" = "$commit" ]; then
+            echo "::notice::Production already has this version ($last). Nothing to publish."; echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ -z "$last" ]; then notes="- First release"; else
+            notes="$(git log --no-merges --format='- %s' "$last..$commit" | grep -v -e '^- chore(deploy)' -e '^- revert(deploy)' || true)"
+          fi
+
+          if [ -z "$last" ]; then version="v0.1.0"; else
+            IFS=. read -r major minor patch <<< "${last#v}"
+            step="$BUMP"
+            if [ "$step" = auto ]; then step="patch"; grep -qE '^- (feat|[a-z]+(\([^)]*\))?!)' <<< "$notes" && step=minor; fi
+            case "$step" in
+              major) version="v$((major + 1)).0.0" ;;
+              minor) version="v$major.$((minor + 1)).0" ;;
+              *)     version="v$major.$minor.$((patch + 1))" ;;
+            esac
+          fi
+          { echo "tag=$tag"; echo "commit=$commit"; echo "version=$version"; echo "skip=false"
+            echo "notes<<EOF"; echo "${notes:-- Maintenance}"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+          echo "Publishing $tag (commit ${commit::12}) as $version"
+      - uses: imjasonh/setup-crane@v0.4
+        if: steps.v.outputs.skip == 'false'
+      - name: Tag the staging images as the version (no rebuild)
+        if: steps.v.outputs.skip == 'false'
+        env: { FROM: "${{ steps.v.outputs.tag }}", TO: "${{ steps.v.outputs.version }}" }
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | crane auth login "$REGISTRY_HOST" -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+          for img in api web keycloak admin; do crane tag "$REGISTRY/$img:$FROM" "$TO"; done
+      - name: Deploy (commit the version to production)
+        if: steps.v.outputs.skip == 'false'
+        env: { TAG: "${{ steps.v.outputs.version }}" }
+        run: |
+          set -euo pipefail
+          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' "$PRODUCTION"
+          git config user.name "alanfelez-bot"
+          git config user.email "bot@alanfelez.ir"
+          git commit -am "chore(deploy): production → ${TAG} (by @${GITHUB_ACTOR}) [skip ci]"
+          for _ in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 10; done; exit 1
+      - name: Create the release
+        if: steps.v.outputs.skip == 'false'
+        env: { TAG: "${{ steps.v.outputs.version }}", COMMIT: "${{ steps.v.outputs.commit }}", NOTES: "${{ steps.v.outputs.notes }}" }
+        run: |
+          printf '%s\n\nPublished by @%s from staging (%s). Live on alanfelez.ir about 10 minutes after this run.\n' \
+            "$NOTES" "$GITHUB_ACTOR" "${{ steps.v.outputs.tag }}" > notes.md
+          gh release create "$TAG" --target "$COMMIT" --title "$TAG" --notes-file notes.md
+          { echo "### Published $TAG to production"; cat notes.md; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove the trigger branch
+        if: always() && github.event_name == 'push'
+        run: git push origin --delete "${GITHUB_REF_NAME}" || true

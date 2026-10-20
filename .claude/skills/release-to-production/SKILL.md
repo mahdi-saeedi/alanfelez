@@ -1,35 +1,46 @@
 ---
 name: release-to-production
-description: Publish what is on staging to production (alanfelez.ir) with a release, or roll production back. Use when the user says the stakeholder approved staging, "publish", "release", "deploy to production", "go live with this", or "roll back production".
+description: Publish what is on staging to production (alanfelez.ir), or roll production (or staging) back. Use when the user says the stakeholder approved staging, "publish", "release", "deploy to production", "go live with this", or "roll back".
 ---
 
-# Release to production (or roll back)
+# Publish to production (or roll back)
 
-How it works (`.github/workflows/release.yml`, `docs/guides/DEPLOYMENT.md` §1): a tag `vX.Y.Z` builds the images with that
-tag and opens a pull request "chore(deploy): production → vX.Y.Z" that changes `deploy/environments/production/values.yaml`.
-**Merging that PR is the deploy**: Argo CD on the production server applies it within minutes (canary, automatic
-rollback if the new pods don't come up). Claude never merges it; a person does.
+The developer works only in the chat. Claude starts both by **pushing a branch** (claude.ai/code can push branches, not
+tags, and can't press workflow buttons); the workflow deletes the branch when done. Repo: `mahdi-saeedi/alanfelez`.
 
-## Release
-1. **Check it's approved:** ask the user to confirm the stakeholder approved what is on staging. Never release without it.
-2. **What goes out:** `git fetch --tags` then `git log --oneline <last tag>..origin/main` (no tag yet: everything). Summarize it
-   in plain words for the user. Staging runs `images.*.tag` of `deploy/environments/staging/values.yaml`; make sure main's
-   head is what was checked on staging (no newer unchecked merges); if not, say which changes weren't checked.
-3. **Version:** next semantic version after `git tag --sort=-v:refname | head -1` (none yet: `v0.1.0`). Patch for fixes,
-   minor for features. Before launch stay on `0.x`.
-4. **Publish:** `gh release create vX.Y.Z --target main --title "vX.Y.Z" --notes "<the plain-words summary>"`.
-5. **Watch:** `gh run list --workflow Release --limit 1`, wait for success (images built, scanned). If it fails, read
-   `gh run view --log-failed`, fix through a normal PR, and release the next patch version.
-6. **Hand over the merge:** find the PR (`gh pr list --search "production → vX.Y.Z"`), give the user its link and say:
-   "Merging this publishes vX.Y.Z to alanfelez.ir in about 10 minutes."
-7. **After they merge:** check `https://alanfelez.ir` and `https://api.alanfelez.ir/v1/metals` answer, and the version the
-   API logs report. Update `docs/TODO.md` (Done: "released vX.Y.Z: …").
+- **Publish** = push `publish/production` → `.github/workflows/publish.yml` takes **exactly the images staging runs**
+  (`images.*.tag` in `deploy/environments/staging/values.yaml`, no rebuild), picks the next version (any `feat` → minor,
+  otherwise patch; `v0.1.0` first), tags the images `vX.Y.Z`, commits it to `deploy/environments/production/values.yaml`
+  and creates the GitHub release with notes from the commits. Argo CD on the production server applies it within minutes
+  (canary, automatic rollback if the new pods fail).
+- **Roll back** = push `rollback/production` (or `rollback/staging`) → `.github/workflows/rollback.yml` puts the previous
+  version back.
+
+## Publish
+1. **Approved?** Ask the user to confirm the stakeholder approved what is on staging now. Never publish without it.
+   Prefer outside market hours (OPERATIONS §6); say so if it's during them.
+2. **What goes out:** staging's tag is `sha-<12>` = a commit on main. `git fetch origin --tags` then
+   `git log --oneline --no-merges <last v-tag>..<that commit>` (no tag yet: everything). Tell the user in plain words what
+   will go live. If main has newer commits than staging runs, those are **not** included (they weren't checked); say so.
+   If a ship or Release run is still in progress, wait for it so staging and the user agree on what they checked.
+3. **Publish:** `git fetch origin main && git push origin origin/main:refs/heads/publish/production` (the branch content doesn't matter; only its
+   name). If the push is refused because the branch exists, a publish is still running: wait for it.
+4. **Watch:** `gh api "repos/mahdi-saeedi/alanfelez/actions/workflows/publish.yml/runs?per_page=1" --jq '.workflow_runs[0] | {status, conclusion, html_url}'`.
+   Red: read the failed job's log (`…/actions/runs/<id>/jobs`, then `…/actions/jobs/<job-id>/logs`), explain it, fix
+   through ship-change if it's code. "Nothing to publish" = production already runs this version.
+5. **Report:** the version (`gh api repos/mahdi-saeedi/alanfelez/releases/latest --jq .tag_name`) and "it's on
+   https://alanfelez.ir in about 10 minutes; check the home page, prices and signing in". If you can reach the site, check
+   `https://alanfelez.ir` and `https://api.alanfelez.ir/v1/metals` answer. Update `docs/TODO.md` (Done: "released vX.Y.Z: …").
+
+Version by hand (e.g. a major): Actions → Publish to production → Run workflow → pick the step. That's a GitHub button;
+offer it only if the user asks.
 
 ## Roll back
-Production broken after a release: `gh workflow run rollback.yml -f environment=production` (empty version = the previous
-tag; or `-f version=vX.Y.Z`). It commits the older tag; Argo CD applies it. Tell the user and the owner, then find the cause
-with the `debug-issue` skill and ship the fix as a new release.
+Production broken after a publish: confirm with the user, then `git fetch origin main && git push origin origin/main:refs/heads/rollback/production`.
+Watch `…/actions/workflows/rollback.yml/runs?per_page=1` the same way. It commits the previous version; Argo CD applies it.
+A specific older version: Actions → Rollback → Run workflow (a GitHub button) with `version`. Tell the user and the owner,
+then find the cause with the `debug-issue` skill and ship the fix, then publish again.
 
 ## Never
-- Release or roll back without the user asking. Never edit `deploy/environments/production/values.yaml` image tags by hand
-  or run kubectl/helm against production (it's read-only, `deploy/CLAUDE.md`).
+- Publish or roll back without the user asking in this chat. Never edit `deploy/environments/production/values.yaml`
+  image tags by hand, push to main, or run kubectl/helm against production (it's read-only, `deploy/CLAUDE.md`).

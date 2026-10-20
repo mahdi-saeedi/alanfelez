@@ -1,0 +1,69 @@
+# "Send it to staging" without opening GitHub (docs/guides/DEPLOYMENT.md §1, skill ship-change).
+# Claude (claude.ai/code can push branches, but can't merge) pushes the work to a branch named ship/<slug>. This workflow:
+#   1. runs every CI check on that branch (the same ci.yml a pull request gets)
+#   2. green → opens a pull request as the record, squash-merges it into main and deletes the branch
+#   3. starts the Release workflow, which builds the images and deploys staging (≈10 min)
+# Red → nothing is merged; the branch stays so Claude can read the failure, fix and push again.
+# The developer's "yes, send it" in the chat is the approval; production still needs "publish" (publish.yml).
+name: Ship to staging
+
+on:
+  push:
+    branches: ["ship/**"]
+
+concurrency:
+  group: ship-${{ github.ref }}
+  cancel-in-progress: true   # a newer push to the same ship branch replaces the run
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
+  merge:
+    needs: checks
+    runs-on: ubuntu-latest
+    concurrency: { group: ship-merge, cancel-in-progress: false }   # one merge at a time
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write          # to start the Release workflow (merges by this token don't trigger it on their own)
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - name: Open the pull request (the record of what shipped)
+        id: pr
+        run: |
+          set -euo pipefail
+          git fetch -q origin main
+          commits="$(git log --reverse --format='- %s' origin/main..HEAD)"
+          [ -n "$commits" ] || { echo "::error::$BRANCH has nothing that isn't on main already."; exit 1; }
+          title="$(git log --reverse --format=%s origin/main..HEAD | head -1)"
+          number="$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')"
+          if [ -z "$number" ]; then
+            body="$(printf 'Shipped to staging by @%s through Claude (ship/* branch, all checks green).\n\nCommits:\n%s\n' "$GITHUB_ACTOR" "$commits")"
+            gh pr create --base main --head "$BRANCH" --title "$title" --body "$body"
+            number="$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')"
+          fi
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+      - name: Merge into main
+        env: { NUMBER: "${{ steps.pr.outputs.number }}", TITLE: "${{ steps.pr.outputs.title }}" }
+        run: |
+          set -euo pipefail
+          # --match-head-commit: merge exactly what was checked, never a newer unchecked push.
+          if ! gh pr merge "$NUMBER" --squash --subject "$TITLE (#$NUMBER)" --match-head-commit "$GITHUB_SHA"; then
+            echo "::error::Could not merge (most likely a conflict with main). Update the branch from main and push it again."
+            exit 1
+          fi
+          git push origin --delete "$BRANCH" || true
+      - name: Deploy to staging
+        env: { NUMBER: "${{ steps.pr.outputs.number }}", TITLE: "${{ steps.pr.outputs.title }}" }
+        run: |
+          gh workflow run release.yml --ref main
+          echo "### Shipped $TITLE (#$NUMBER). Staging updates in about 10 minutes." >> "$GITHUB_STEP_SUMMARY"

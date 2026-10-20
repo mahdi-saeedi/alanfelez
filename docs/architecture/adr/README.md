@@ -29,3 +29,4 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0023](0023-web-tokens-and-live-stream.md) | Website token handling: refresh in the proxy, SSE through the website, federated logout | Accepted |
 | [0024](0024-billing-orders-payments.md) | Billing: orders with server-side verification, queued renewals, prorated upgrades | Accepted |
 | [0025](0025-rich-text-sanitized-html.md) | CMS rich text is stored as sanitized HTML (TipTap in the admin, bluemonday on write) | Accepted |
+| [0026](0026-ship-and-publish-from-the-chat.md) | Ship and publish from the chat: `ship/*`, `publish/production`, `rollback/*` branches; production promotes staging's images | Accepted |

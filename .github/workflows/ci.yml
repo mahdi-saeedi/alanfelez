@@ -5,6 +5,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_call:          # ship.yml runs these same checks before it merges a ship/* branch
 
 concurrency:
   group: ci-${{ github.ref }}

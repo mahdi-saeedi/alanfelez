@@ -85,21 +85,21 @@ for (const part of parts) {
     const force = w.some((x) => x === "-f" || x === "--force" || x.startsWith("--force-with-lease") || /^\+/.test(x));
     const toMain = w.some((x) => /^(\+?(HEAD:|[\w/-]+:)?(refs\/heads\/)?(main|master))$/.test(x)) || w.includes("--all") || w.includes("--mirror");
     if (force && !owner) decide("deny", "Force-push is not allowed. Push a new commit instead, or ask the owner.");
-    if (toMain && !owner) decide("deny", "Only the owner updates main (it deploys to staging). Push your branch and open a PR (skill: ship-change).");
+    if (toMain && !owner) decide("deny", "Nobody pushes to main directly (it deploys to staging). Push to a ship/<slug> branch instead (skill: ship-change).");
     const refs = w.slice(w.indexOf("push") + 1).filter((x) => !x.startsWith("-")).slice(1); // after the remote
     if (!owner && (refs.length === 0 || refs.some((r) => r === "HEAD" || r.startsWith("HEAD:")))) {
       // `git push`, `git push origin` and `git push origin HEAD` push the current branch: refuse when that's main.
       try {
         const { execFileSync } = await import("node:child_process");
         const branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim();
-        if (branch === "main" || branch === "master") decide("deny", "You're on main. Create a branch (git switch -c feat/<slug>), push it and open a PR.");
+        if (branch === "main" || branch === "master") decide("deny", "You're on main. Create a branch (git switch -c feat/<slug>) and push it as ship/<slug> (skill: ship-change).");
       } catch { /* not a repo: nothing to check */ }
     }
   }
   if (bin === "git" && ((w.includes("reset") && w.includes("--hard")) || (w.includes("clean") && w.some((x) => /^-[a-z]*f/.test(x))) || (w.includes("checkout") && w.includes(".")) || (w.includes("restore") && w.includes(".")))) {
     decide("ask", "This throws away uncommitted work and can't be undone. Confirm there's nothing to keep (git status).");
   }
-  if (bin === "gh" && w[1] === "pr" && w[2] === "merge" && !owner) decide("deny", "Only the owner merges PRs. Share the PR link and ask for a review.");
+  if (bin === "gh" && w[1] === "pr" && w[2] === "merge" && !owner) decide("deny", "Claude doesn't merge pull requests. To send work to staging, push it to a ship/<slug> branch (skill ship-change); GitHub checks and merges it.");
   if (bin === "gh" && w[1] === "api" && w.some((x) => /-X|--method/.test(x)) && w.some((x) => /^(DELETE|PUT|PATCH)$/i.test(x))) {
     decide("ask", "A write through the GitHub API. Confirm this is intended.");
   }

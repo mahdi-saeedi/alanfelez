@@ -18,25 +18,31 @@ calculator, SMS price alerts, and Free / Silver / Gold subscriptions. The spec i
 | Login | `services/keycloak`, `apps/keycloak-theme` | Sign-in with phone OTP (Keycloak) |
 | Deploy | `deploy/` | How it runs on the servers (Kubernetes, Argo CD), see `docs/guides/DEPLOYMENT.md` |
 
-## 2. The flow: every change, test site first
+## 2. The flow: everything in the chat, test site first
 
 ```
-you → Claude (claude.ai/code) → pull request → you merge → staging.alanfelez.ir → stakeholder OK → you publish a release → alanfelez.ir
+you → Claude (claude.ai/code) → "send it to staging" → staging.alanfelez.ir → stakeholder OK → "publish" → alanfelez.ir
 ```
+
+You never need to open GitHub. Everything below is a sentence you type to Claude.
 
 1. **Ask.** New conversation in claude.ai/code with the `mahdi-saeedi/alanfelez` repo. Say what and why. For anything bigger
-   than a small fix: "Explain your plan in plain words first."
-2. **Review.** Claude opens a pull request. The checks must be green. Read Claude's description; ask "why?" where unclear.
-3. **Merge.** Press *Merge pull request*. About 10 minutes later the change is on **https://staging.alanfelez.ir**.
-4. **Check on staging**: Persian, English (`/en`), phone width. Send the link to the stakeholder and wait for their OK.
-5. **Publish.** Ask Claude to publish a release (or GitHub → Releases → *Draft a new release* → next `vX.Y.Z` → *Publish*).
-   A pull request "production → vX.Y.Z" appears; merge it. About 10 minutes later it's on **https://alanfelez.ir**.
-6. **Problem on production?** Ask Claude to roll production back (or GitHub → Actions → *Rollback* → production), then tell
-   the owner.
+   than a small fix: "Explain your plan in plain words first." Say yes or ask for changes.
+2. **"Send it to staging."** Claude runs all the checks on GitHub. Green → it's merged and on
+   **https://staging.alanfelez.ir** about 15 minutes later; Claude tells you. Red → nothing changes; Claude reads the error,
+   fixes it and tries again.
+3. **Check on staging**: Persian, English (`/en`), phone width. Send the link to the stakeholder and wait for their OK.
+   Something wrong → back to step 1 ("on staging X is broken, fix it").
+4. **"Publish to production."** Claude tells you what will go live, then publishes exactly what is on staging as a new
+   version (`v0.2.0`, …). About 10 minutes later it's on **https://alanfelez.ir**. Take a quick look.
+5. **Problem on production?** "Roll production back." Claude puts the previous version back; then tell the owner.
+
+(If you ever prefer GitHub's buttons: merging a pull request also deploys staging, and Actions → *Publish to production* /
+*Rollback* do the same as steps 4 and 5.)
 
 ## 3. Rules
 - Never paste passwords, keys or tokens into a chat, an issue or a commit.
-- Never merge with red checks; never publish to production without the stakeholder's OK on staging.
+- Never publish to production without the stakeholder's OK on staging. Claude ships only when you say so.
 - **Ask the owner first** for anything about money, payments, refunds, which plan unlocks what, sign-in, deleting or
   changing existing data, the servers, or anything the client must decide (it goes to `docs/product/OPEN_QUESTIONS.md`).
 - Client Persian text is used verbatim. The brand is «الان‌فلز», never «آلان‌فلز». No marketplace / «اعلام بار» features.

@@ -17,11 +17,12 @@ the go-live checklist is `docs/guides/LAUNCH.md`. Keep those docs in step with t
 
 ## How a change reaches a server (the only way)
 ```
-branch → PR → CI green → owner merges to main → release workflow pushes images and commits the tag to environments/staging
-       → Argo CD syncs staging (bootstrap job, canary)          ← staging = "main", automatically
-tag vX.Y.Z → PR bumping environments/production → owner merges → Argo CD syncs production (canary, auto-rollback)
+branch → ship/<slug> (or a PR merged on GitHub) → CI green → merged to main → release workflow pushes images and commits
+       the tag to environments/staging → Argo CD syncs staging (bootstrap job, canary)    ← staging = "main", automatically
+publish/production (or Actions → Publish) → the images staging runs are tagged vX.Y.Z → committed to
+       environments/production → Argo CD syncs production (canary, auto-rollback)         ← ADR-0026
 ```
-Rollback = revert that commit (the Rollback workflow, DEPLOYMENT §5). A config change (a flag in `values.yaml`, a resource
+Rollback = revert that commit (the Rollback workflow or a `rollback/<env>` branch, DEPLOYMENT §5). A config change (a flag in `values.yaml`, a resource
 limit) is the same: edit the file in a PR. Feature flags and site settings are changed in the **admin panel**, not in git.
 
 ## Access to the clusters (Claude and developers)
