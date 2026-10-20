@@ -9,8 +9,9 @@
 ## 1. How a change reaches users
 
 ```
-developer PR ──► CI (.github/workflows/ci.yml): Go · Keycloak ext · web/theme · Helm+kubeconform · image builds · smoke · security
-      │ merge to main
+ship/<slug> branch (Claude, from the chat) or a pull request ──► CI (.github/workflows/ci.yml): Go · Keycloak ext ·
+      web/theme · Helm+kubeconform · image builds · smoke · security
+      │ green → ship.yml squash-merges to main (or a person presses Merge)
       ▼
 Release workflow: build + push images :sha-<12> to the Arvan registry (with SBOM, provenance, Trivy scan)
                   commit the new tag to deploy/environments/staging/values.yaml        ← the deploy IS a git commit
@@ -23,8 +24,10 @@ Argo CD (staging) syncs automatically, in order (sync waves):
   3. New pods never Ready → abort at the progress deadline (180 s). Analysis fails → abort immediately.
      Either way the stable version keeps serving and nothing reaches git
       ▼
-tag vX.Y.Z ──► Release workflow opens a PR bumping deploy/environments/production/values.yaml
-      ▼ (review + merge = approval)
+publish/production branch (Claude, after the stakeholder's OK) or Actions → Publish to production ──► publish.yml:
+  the images staging runs are tagged vX.Y.Z (no rebuild), committed to deploy/environments/production/values.yaml,
+  GitHub release created (ADR-0026)
+      ▼
 Argo CD (production): same hook + canary + automatic rollback
 ```
 
@@ -34,7 +37,7 @@ Nobody runs `kubectl apply` or `helm upgrade` by hand. **Git is the source of tr
 
 | | local (k3d) | staging | production |
 |---|---|---|---|
-| Deployed from | `task k8s:deploy` (Gitea in the cluster) | every merge to `main` (automatic) | release tags, through a reviewed PR |
+| Deployed from | `task k8s:deploy` (Gitea in the cluster) | every merge to `main` (automatic) | *Publish to production* (`publish/production` branch or the Actions button) |
 | Hostnames | `alanfelez.localhost:8088`, `admin.`, `api.`, `auth.` | `staging.alanfelez.ir`, `admin.staging…`, `api.staging…`, `auth.staging…` (no password, noindex) | `alanfelez.ir`, `admin.alanfelez.ir`, `api.alanfelez.ir`, `auth.alanfelez.ir`; `www.` and `alanfelez.com` → 301 (test mode until launch) |
 | `APP_ENV` | `local` | `staging` | `production` |
 | `SEED_PROFILES` | `reference,demo` | `reference,demo` | `reference` (demo is **refused** in production) |
@@ -88,7 +91,7 @@ After that, every later deploy is just a git commit (§1).
 |---|---|
 | New pods never become Ready (crash, bad config, dependency down) | **Automatic.** `setWeight 50` can't complete, so at `progressDeadlineSeconds: 180` the rollout aborts (`progressDeadlineAbort`) and scales the canary down. The stable pods serve throughout. *Tested locally:* `task k8s:deploy:broken`, aborted at 180 s, live API stayed ready |
 | New pods are Ready but misbehave | **Automatic.** The analysis step (after `setWeight 50`) measures only the new pods through the `-canary` Service, whose selector Argo Rollouts pins to the canary ReplicaSet (Argo CD ignores that field). Any failed check aborts. Today it checks `/readyz`. Error-rate and latency checks (Prometheus) come with the observability stack |
-| Bad release is already fully rolled out | **GitHub Actions → "Rollback" workflow**: pick the environment and a version (default: the previous one). It commits the old image tag and Argo CD syncs. Or `git revert` the bump commit, same result. *Tested locally:* `task k8s:rollback` |
+| Bad release is already fully rolled out | **GitHub Actions → "Rollback" workflow**: pick the environment and a version (default: the previous one), or from the chat: Claude pushes a `rollback/production` branch (previous version). It commits the old image tag and Argo CD syncs. Or `git revert` the bump commit, same result. *Tested locally:* `task k8s:rollback` |
 | Emergency, CI unavailable | Argo CD UI → app → *History and rollback* → previous revision. This suspends auto-sync, so afterwards revert in git and re-enable auto-sync |
 | Database | Migrations are **expand → migrate → contract** (backward compatible for one release), so an app rollback never needs a DB rollback. Restoring data = OPERATIONS §5 (PITR) |
 
@@ -150,7 +153,7 @@ with `deploy/server/bootstrap.sh` (REBUILD.md).
 | Names | `alanfelez.ir` + `api.`/`auth.`/`admin.`; `www.alanfelez.ir`, `alanfelez.com`, `www.alanfelez.com` → 301 | `staging.alanfelez.ir` + `api.`/`auth.`/`admin.staging` |
 | Shared password | admin panel only | none (pages are noindex) |
 | Mode | test mode until launch (LAUNCH.md §3) | test mode (demo data, mock gateway) |
-| Updates | release PR merged (release workflow) | every merge to `main` |
+| Updates | Publish to production (publish workflow) | every merge to `main` |
 
 Both clusters share the Sealed Secrets key (the first server's, moved over) and Argo CD's read-only deploy key. Argo CD was
 installed with `bootstrap.sh argocd <env>`; its UI has no public address: `ssh -L 8080:localhost:8080 root@<server>` then

@@ -1,8 +1,11 @@
 # One-click rollback (docs/guides/DEPLOYMENT.md §5): writes an older image tag to the environment and commits.
-# Argo CD syncs it like any deploy. Production requires the "production" GitHub Environment approval.
+# Argo CD syncs it like any deploy. Start it by hand (Actions → Rollback), or from a chat with Claude, which pushes a branch
+# named rollback/production or rollback/staging (claude.ai/code can push branches; that rolls back to the previous version).
 name: Rollback
 
 on:
+  push:
+    branches: [rollback/production, rollback/staging]
   workflow_dispatch:
     inputs:
       environment:
@@ -18,16 +21,20 @@ on:
 permissions:
   contents: write
 
+env:
+  # From the button (inputs) or from the branch name rollback/<environment>.
+  TARGET_ENV: ${{ inputs.environment || (github.ref_name == 'rollback/staging' && 'staging' || 'production') }}
+
 jobs:
   rollback:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || (github.ref_name == 'rollback/staging' && 'staging' || 'production') }}
     steps:
       - uses: actions/checkout@v5
-        with: { fetch-depth: 50 }
+        with: { ref: main, fetch-depth: 50 }
       - name: Resolve version
         id: v
-        env: { FILE: "deploy/environments/${{ inputs.environment }}/values.yaml", WANT: "${{ inputs.version }}" }
+        env: { FILE: "deploy/environments/${{ env.TARGET_ENV }}/values.yaml", WANT: "${{ inputs.version }}" }
         run: |
           current="$(yq '.images.api.tag' "$FILE")"
           if [ -n "$WANT" ]; then target="$WANT"; else
@@ -37,11 +44,15 @@ jobs:
           [ -n "$target" ] && [ "$target" != "$current" ] || { echo "Nothing to roll back (current=$current, target=$target)"; exit 1; }
           echo "current=$current" >> "$GITHUB_OUTPUT"; echo "target=$target" >> "$GITHUB_OUTPUT"
       - name: Commit rollback
-        env: { FILE: "deploy/environments/${{ inputs.environment }}/values.yaml", TAG: "${{ steps.v.outputs.target }}" }
+        env: { FILE: "deploy/environments/${{ env.TARGET_ENV }}/values.yaml", TAG: "${{ steps.v.outputs.target }}" }
         run: |
           yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' "$FILE"
           git config user.name "alanfelez-bot"
           git config user.email "bot@alanfelez.ir"
-          git commit -am "revert(deploy): ${{ inputs.environment }} ${{ steps.v.outputs.current }} → ${TAG} (by @${{ github.actor }}) [skip ci]"
-          git push
-          echo "### Rolled back ${{ inputs.environment }} to \`${TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+          git commit -am "revert(deploy): ${TARGET_ENV} ${{ steps.v.outputs.current }} → ${TAG} (by @${GITHUB_ACTOR}) [skip ci]"
+          for _ in 1 2 3; do git pull --rebase origin main && git push && break; sleep 10; done
+          git fetch -q origin main && git merge-base --is-ancestor HEAD origin/main
+          echo "### Rolled back ${TARGET_ENV} to \`${TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove the trigger branch
+        if: always() && github.event_name == 'push'
+        run: git push origin --delete "${GITHUB_REF_NAME}" || true

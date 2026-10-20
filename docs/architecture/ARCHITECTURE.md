@@ -199,17 +199,19 @@ PR opened/updated ──► CI (GitHub Actions)
   └─ security:  gitleaks · Trivy (deps + images)
 merge to main ──► build images (tag = git SHA) → Arvan Container Registry
               ──► commit tag bump to deploy/environments/staging → Argo CD syncs staging (PreSync bootstrap → canary)
-tag vX.Y.Z   ──► PR bumping deploy/environments/production → review/merge = approval → Argo CD syncs production
-rollback     ──► automatic (canary analysis) | "Rollback" workflow / git revert of the bump commit
+ship/<slug>  ──► CI → squash-merge to main (the chat's "send it to staging", ADR-0026)
+publish/production ──► staging's images tagged vX.Y.Z (no rebuild) → commit to deploy/environments/production
+              + GitHub release → Argo CD syncs production
+rollback     ──► automatic (canary analysis) | "Rollback" workflow or rollback/<env> branch / git revert of the bump commit
 ```
-Step-by-step procedures: **[DEPLOYMENT.md](../guides/DEPLOYMENT.md)**. Dependency updates: Renovate. Releases and changelog: release-please.
+Step-by-step procedures: **[DEPLOYMENT.md](../guides/DEPLOYMENT.md)**. Dependency updates: Renovate. Releases and notes: `publish.yml` (from the commit subjects).
 
 ## 7. Environments
 | Env | Where | Notes |
 |---|---|---|
 | local | `task up` (Docker Compose: Postgres, Redis, Keycloak, bootstrap, api) | Seed profiles `reference,demo`, OTP via console. [LOCAL_SETUP.md](../guides/LOCAL_SETUP.md) |
 | staging | k3s on ArvanCloud, auto-deployed from `main` by Argo CD | Client review. Gateway sandbox. Seed `reference,demo` |
-| production | k3s on ArvanCloud, deployed from release tags | Seed `reference` only. CloudNativePG WAL archiving + nightly backups |
+| production | k3s on ArvanCloud, deployed by Publish (promotes staging's images as vX.Y.Z) | Seed `reference` only. CloudNativePG WAL archiving + nightly backups |
 
 ## 8. Decisions still open (see `docs/product/OPEN_QUESTIONS.md`)
 These don't change the stack:

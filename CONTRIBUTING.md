@@ -11,10 +11,12 @@ This is how we work on الان‌فلز. Read [README.md](README.md) first.
 - Common commands (all in `Taskfile.yml`): `task setup` · `task up` / `task down` · `task check` (every fast CI check) · `task smoke` · `task generate` · `task lint` · `task test` · `task seed` · `task k8s:*`. Run `task --list` for all of them
 
 ## 2. Branching (trunk-based)
-- `main` is always deployable and auto-deploys to **staging**. **Production = git tags** `vX.Y.Z`.
+- `main` is always deployable and auto-deploys to **staging**. **Production = releases** `vX.Y.Z`, made by *Publish to
+  production* from what staging runs (ADR-0026).
+- From the chat, Claude ships a branch by pushing it as `ship/<slug>`: CI runs and, if green, it's squash-merged (skill `ship-change`).
 - Short-lived branches from `main`: `feat/<issue>-<slug>`, `fix/<issue>-<slug>`, `chore/…`, `docs/…`. Merge within a few days.
 - Unfinished features are merged **behind a feature flag** (ADR-0016), not kept on long-lived branches.
-- **Squash merge.** The PR title becomes the commit message, so it must follow Conventional Commits.
+- **Squash merge.** The PR title (for `ship/*`: the branch's first commit subject) becomes the commit message, so it must follow Conventional Commits.
 
 ## 3. Commits (Conventional Commits)
 ```
@@ -24,12 +26,13 @@ docs(adr): add ADR-0019 search engine
 ```
 Types: `feat` · `fix` · `perf` · `refactor` · `test` · `docs` · `build` · `ci` · `chore`. Add `!` or a `BREAKING CHANGE:` footer for breaking changes.
 Scopes: `prices`, `chart`, `auctions`, `calculator`, `analysis`, `billing`, `auth`, `access`, `content`, `faq`, `support`, `admin`, `web`, `ui`, `infra`, `api`.
-**release-please** builds the changelog and version from these.
+The publish workflow builds the release notes and version from these (`feat` → minor, otherwise patch).
 
 ## 4. Pull requests
 - One concern per PR, ideally **< 400 changed lines** (excluding generated code). Link the issue (`Closes #123`).
 - Fill in the PR template: what/why, screenshots (fa **and** en, mobile and desktop for UI), test notes, risk/rollback.
-- CI must be green. Solo phase: self-review with the checklist below, wait a few hours or a night, then merge. When a second developer joins, 1 approving review is required (CODEOWNERS).
+- CI must be green. A `ship/*` branch is merged by the workflow only when it is; a pull request merged by hand must be too.
+  Review the change against the checklist below before shipping (Claude does this in the `ship-change` skill).
 
 ## 5. Definition of Done
 A change is done when **all** of these hold:

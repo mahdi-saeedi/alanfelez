@@ -4,9 +4,10 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-19 (staging live)
+Last updated: 2026-10-20 (ship and publish from the chat)
 
 ## Now (in progress)
+- [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
 - [ ] Admin screen for **feature flags** (payments, English site, licences page are DB-only today; needed before launch).
@@ -43,6 +44,8 @@ Last updated: 2026-10-19 (staging live)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-20 Ship and publish from the chat without GitHub (ADR-0026): `ship/*` branches merge when CI is green and deploy
+  staging; `publish/production` promotes staging's images as `vX.Y.Z`; `rollback/*` branches roll back.
 - 2026-10-19 GitHub Actions may open pull requests (releases can propose production); staging has no shared password.
 - 2026-10-19 Developer guide rewritten for the browser-only flow (claude.ai/code → PR → staging → release), as a web page
   and a Google Doc; `ONBOARDING.md`, the `release-to-production` recipe, and "people merge, Claude doesn't" in CLAUDE.md.
