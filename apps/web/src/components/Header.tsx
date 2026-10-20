@@ -35,11 +35,13 @@ export async function Header() {
 
   return (
     <header className="bg-graphite text-white">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6">
+      {/* Phone widths (360 px) are tight: logo, language switch, log in and sign up must fit on one row. */}
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-3 lg:gap-6">
         <MobileMenu />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
-          <img src="/logo.png" alt="" width={84} height={84} className="h-16 w-16 rounded-lg lg:h-21 lg:w-21" />
-          {t("brand.name")}
+          <img src="/logo.png" alt="" width={84} height={84} className="h-14 w-14 rounded-lg sm:h-16 sm:w-16 lg:h-21 lg:w-21" />
+          {/* The logo already shows the name; on phones the text would push the header wider than the screen. */}
+          <span className="sr-only sm:not-sr-only">{t("brand.name")}</span>
         </Link>
         <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
           {MAIN_NAV.map(([key, href]) => (
