@@ -44,6 +44,8 @@ Last updated: 2026-10-20 (ship and publish from the chat)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-21 Go 1.27.3 (GO-2026-6809, crypto/x509; govulncheck failed every change until then).
+- 2026-10-20 Released v0.1.0 to production: larger header logo, header fits on phones.
 - 2026-10-20 Ship and publish from the chat without GitHub (ADR-0026): `ship/*` branches merge when CI is green and deploy
   staging; `publish/production` promotes staging's images as `vX.Y.Z`; `rollback/*` branches roll back.
 - 2026-10-19 GitHub Actions may open pull requests (releases can propose production); staging has no shared password.

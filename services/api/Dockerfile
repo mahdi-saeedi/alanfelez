@@ -3,7 +3,7 @@
 # Build context = repository root (the image also carries config/seed).
 #   docker build -f services/api/Dockerfile -t alanfelez/api .
 
-ARG GO_VERSION=1.27.2
+ARG GO_VERSION=1.27.3
 # Runtime base is overridable, e.g. to pull through a registry mirror reachable from Iran.
 ARG RUNTIME_IMAGE=gcr.io/distroless/static-debian12:nonroot
 # BUILD_STAGE=prebuilt packages a binary built on the host (task build:local) instead of compiling in Docker.
