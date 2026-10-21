@@ -3,6 +3,7 @@ import { formatBp, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format
 import { Link } from "@/i18n/navigation";
 import { getBasePrices, getHistory } from "@/lib/prices";
 import { PriceCard } from "@/components/prices/PriceCard";
+import { PriceCarousel } from "@/components/prices/PriceCarousel";
 import { Sparkline } from "@/components/prices/Sparkline";
 import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
@@ -89,11 +90,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             <Link href="/prices" className="text-sm font-bold text-gold-dark hover:text-gold">{t("home.seeAll")}</Link>
           </div>
           {base.length ? (
-            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-              {base.map((r) => (
-                <li key={r.series.slug}><PriceCard row={r} /></li>
-              ))}
-            </ul>
+            <div className="mt-6">
+              <PriceCarousel prevLabel={t("home.carouselPrev")} nextLabel={t("home.carouselNext")}>
+                {base.map((r) => (
+                  <li key={r.series.slug} className="w-44 shrink-0 snap-start sm:w-56"><PriceCard row={r} /></li>
+                ))}
+              </PriceCarousel>
+            </div>
           ) : (
             <p className="mt-6 text-down">{t("error.apiDown")}</p>
           )}

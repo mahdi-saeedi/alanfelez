@@ -18,6 +18,9 @@ Last updated: 2026-10-20 (ship and publish from the chat)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Global (LME) prices on the home page, public** (asked 2026-10-21): today LME series are Silver/Gold
+      (`is_base: false`, SCOPE §6). Needs the owner's OK to change the tier matrix, and global series for brass,
+      iron and cast iron (none yet; the client knows a source). Later: which prices are Silver/Gold only.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
