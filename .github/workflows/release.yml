@@ -48,6 +48,9 @@ jobs:
           context: .
           file: ${{ matrix.image.dockerfile }}
           push: true
+          # Also keep the image in the runner's Docker engine, so the scan below reads it locally instead of
+          # downloading it back from the registry in Iran (that link drops long streams on the large Keycloak image).
+          load: true
           tags: ${{ env.REGISTRY }}/${{ matrix.image.name }}:${{ steps.tag.outputs.tag }}
           build-args: |
             VERSION=${{ steps.tag.outputs.tag }}
@@ -63,8 +66,7 @@ jobs:
           severity: CRITICAL
           ignore-unfixed: true
           exit-code: "1"
-          # The image is pulled back from the registry in Iran; the large Keycloak image can take longer than
-          # Trivy's 5-minute default, and a timeout fails the job and skips deploy-staging.
+          # Trivy finds the image in the local Docker engine (load: true above); the registry is the fallback.
           timeout: 15m
         env:
           TRIVY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
