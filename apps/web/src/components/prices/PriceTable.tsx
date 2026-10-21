@@ -6,6 +6,7 @@ import { formatChangeValue, formatPriceValue, formatTime, type Locale } from "@a
 import { Link } from "@/i18n/navigation";
 import { useLive } from "./LivePrices";
 import { ChangePill } from "./ChangePill";
+import { MetalIcon } from "./MetalIcon";
 
 type Row = Schemas["PriceRow"];
 
@@ -18,7 +19,12 @@ function PriceRowView({ row }: { row: Row }) {
   const usd = s.currency === "USD";
   return (
     <tr className="border-t border-border hover:bg-surface-2">
-      <td className="px-4 py-3 font-bold">{s.metal.name}</td>
+      <td className="px-4 py-3 font-bold">
+        <span className="flex items-center gap-2">
+          <MetalIcon slug={s.metal.slug} className="h-8 w-8" />
+          {s.metal.name}
+        </span>
+      </td>
       <td className="px-4 py-3">
         <Link href={{ pathname: "/chart", query: { series: s.slug } }} className="hover:text-gold-dark">{s.product.name}</Link>
       </td>
@@ -46,9 +52,12 @@ function PriceCardView({ row }: { row: Row }) {
   return (
     <li className="px-4 py-3">
       <div className="flex items-start justify-between gap-3">
-        <Link href={{ pathname: "/chart", query: { series: s.slug } }} className="min-w-0">
-          <span className="block truncate font-bold">{s.product.name}</span>
-          <span className="text-xs text-text-3">{s.metal.name} · {t(`units.${s.unit}`)}</span>
+        <Link href={{ pathname: "/chart", query: { series: s.slug } }} className="flex min-w-0 items-center gap-3">
+          <MetalIcon slug={s.metal.slug} className="h-10 w-10" />
+          <span className="min-w-0">
+            <span className="block truncate font-bold">{s.product.name}</span>
+            <span className="text-xs text-text-3">{s.metal.name} · {t(`units.${s.unit}`)}</span>
+          </span>
         </Link>
         <span key={live?.tick} className={`shrink-0 rounded-md text-end text-base font-extrabold tabular-nums ${flash}`}>
           {live ? `${s.currency === "USD" ? "$" : ""}${formatPriceValue(live.price, locale)}` : t("noData")}
