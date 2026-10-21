@@ -41,9 +41,7 @@
   },
   "home": {
     "badge": "Live market — real-time updates",
-    "titleStart": "Follow the metals market",
-    "titleHighlight": "smarter",
-    "titleEnd": "",
+    "titleTagline": "Live prices for every metal",
     "subtitle": "Prices, charts, analysis and trading opportunities for metals in one specialised platform",
     "ctaPrices": "View metal prices",
     "ctaChart": "View price chart",
