@@ -48,9 +48,6 @@ jobs:
           context: .
           file: ${{ matrix.image.dockerfile }}
           push: true
-          # Also keep the image in the runner's Docker engine, so the scan below reads it locally instead of
-          # downloading it back from the registry in Iran (that link drops long streams on the large Keycloak image).
-          load: true
           tags: ${{ env.REGISTRY }}/${{ matrix.image.name }}:${{ steps.tag.outputs.tag }}
           build-args: |
             VERSION=${{ steps.tag.outputs.tag }}
@@ -59,6 +56,22 @@ jobs:
           sbom: true
           cache-from: type=gha,scope=${{ matrix.image.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
+      # Same build again, all layers from the cache just written, loaded into the runner's Docker engine so the scan
+      # reads it locally instead of downloading it back from the registry in Iran (that link drops long streams on the
+      # large Keycloak image). It can't share the step above: load doesn't work together with provenance/SBOM.
+      - name: Load the image for the scan
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          load: true
+          tags: ${{ env.REGISTRY }}/${{ matrix.image.name }}:${{ steps.tag.outputs.tag }}
+          build-args: |
+            VERSION=${{ steps.tag.outputs.tag }}
+            COMMIT=${{ github.sha }}
+          provenance: false
+          sbom: false
+          cache-from: type=gha,scope=${{ matrix.image.name }}
       - name: Scan pushed image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
