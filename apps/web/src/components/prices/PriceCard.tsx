@@ -6,6 +6,7 @@ import { formatPriceValue, formatTime, priceUnitLabel, type Locale } from "@alan
 import { Link } from "@/i18n/navigation";
 import { useLive } from "./LivePrices";
 import { ChangePill } from "./ChangePill";
+import { MetalIcon } from "./MetalIcon";
 
 /** Home-page card: metal, live price, unit, daily change and time (design 02-home-live-prices). */
 export function PriceCard({ row }: { row: Schemas["PriceRow"] }) {
@@ -17,7 +18,10 @@ export function PriceCard({ row }: { row: Schemas["PriceRow"] }) {
       href={{ pathname: "/chart", query: { series: row.series.slug } }}
       className="block rounded-card border border-border bg-surface p-4 shadow-soft transition hover:border-gold"
     >
-      <div className="text-sm text-text-2">{row.series.metal.name}</div>
+      <div className="flex items-center gap-2 text-sm text-text-2">
+        <MetalIcon slug={row.series.metal.slug} className="h-10 w-10" />
+        {row.series.metal.name}
+      </div>
       <div key={live?.tick} className={`mt-2 rounded-md text-xl font-extrabold tabular-nums ${flash}`}>
         {live ? formatPriceValue(live.price, locale) : "—"}
       </div>
