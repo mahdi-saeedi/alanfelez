@@ -15,10 +15,19 @@ type Querier interface {
 	// The highest-ranked plan the user holds right now.
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
+	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
 	AdminListContactMessages(ctx context.Context, status pgtype.Text) ([]AdminListContactMessagesRow, error)
+	AdminListMarkets(ctx context.Context) ([]AdminListMarketsRow, error)
+	// Catalog (admin): metals, products, series ------------------------------------------------------------------
+	AdminListMetals(ctx context.Context) ([]AdminListMetalsRow, error)
 	AdminListOrders(ctx context.Context, arg AdminListOrdersParams) ([]AdminListOrdersRow, error)
+	AdminListProducts(ctx context.Context) ([]AdminListProductsRow, error)
 	// The support queue: open tickets first (high priority, then oldest waiting), then the rest by activity.
 	AdminListTickets(ctx context.Context, arg AdminListTicketsParams) ([]AdminListTicketsRow, error)
+	// Price history and voiding (admin) ------------------------------------------------------------------------
+	// Recent points of one series in every status, newest first, with the staff names from the audit log and the
+	// published price before each point (so the admin can show "from → to").
+	AdminSeriesPoints(ctx context.Context, arg AdminSeriesPointsParams) ([]AdminSeriesPointsRow, error)
 	// Active alerts on series that have a price, with what the SMS needs. The worker checks the user's plan in Go
 	// (internal/access), so a lapsed Gold plan simply stops sending.
 	AlertCandidates(ctx context.Context) ([]AlertCandidatesRow, error)
@@ -26,6 +35,8 @@ type Querier interface {
 	AlertsSentSince(ctx context.Context, arg AlertsSentSinceParams) (int32, error)
 	// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
 	CancelSubscription(ctx context.Context, id pgtype.UUID) error
+	// Which references of a new product or series exist (to answer 404 rather than 409).
+	CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error)
 	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
 	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
@@ -44,6 +55,7 @@ type Querier interface {
 	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
 	DeleteImeOffering(ctx context.Context, id pgtype.UUID) (DeleteImeOfferingRow, error)
+	DeleteLatest(ctx context.Context, seriesID int32) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	ExpirePendingOrders(ctx context.Context) (int64, error)
 	// Notifications ---------------------------------------------------------------------------------------------
@@ -81,6 +93,8 @@ type Querier interface {
 	InsertCalculation(ctx context.Context, arg InsertCalculationParams) (InsertCalculationRow, error)
 	// Support (internal/support): contact form messages and user tickets.
 	InsertContactMessage(ctx context.Context, arg InsertContactMessageParams) (InsertContactMessageRow, error)
+	// No row back = the slug is taken.
+	InsertMetal(ctx context.Context, arg InsertMetalParams) (InsertMetalRow, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) (pgtype.UUID, error)
 	InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOrder, error)
 	// Subscriptions ---------------------------------------------------------------------------------------------
@@ -89,8 +103,13 @@ type Querier interface {
 	InsertPayment(ctx context.Context, arg InsertPaymentParams) (AppPayment, error)
 	// ON CONFLICT DO NOTHING makes re-ingesting the same quote a no-op (no row returned).
 	InsertPoint(ctx context.Context, arg InsertPointParams) (InsertPointRow, error)
+	// No row back = the slug is taken, or the metal or category doesn't exist (the handler tells which).
+	InsertProduct(ctx context.Context, arg InsertProductParams) (int16, error)
 	// Refunds ---------------------------------------------------------------------------------------------------
 	InsertRefund(ctx context.Context, arg InsertRefundParams) (AppRefund, error)
+	// New series are never base series (the free tier sees base series only: the tier matrix, owner's decision).
+	// No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
+	InsertSeries(ctx context.Context, arg InsertSeriesParams) (int32, error)
 	InsertSourceRun(ctx context.Context, arg InsertSourceRunParams) error
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (InsertSubscriptionRow, error)
 	InsertTicketMessage(ctx context.Context, arg InsertTicketMessageParams) (InsertTicketMessageRow, error)
@@ -99,6 +118,8 @@ type Querier interface {
 	// For manual grants: extend after the latest active subscription of the same plan.
 	LatestEndForPlan(ctx context.Context, arg LatestEndForPlanParams) (pgtype.Timestamptz, error)
 	LatestPriceBySlug(ctx context.Context) ([]LatestPriceBySlugRow, error)
+	// After a void: the newest published point that is left becomes the latest price.
+	LatestPublishedPoint(ctx context.Context, seriesID int32) (LatestPublishedPointRow, error)
 	ListActivePlans(ctx context.Context) ([]ListActivePlansRow, error)
 	// CMS content (internal/content): articles, FAQ, pages, site settings. Public reads only see published rows.
 	ListArticleCategories(ctx context.Context) ([]ListArticleCategoriesRow, error)
@@ -159,6 +180,8 @@ type Querier interface {
 	SetPaymentFailed(ctx context.Context, arg SetPaymentFailedParams) error
 	SetPaymentVerified(ctx context.Context, arg SetPaymentVerifiedParams) error
 	SetPointStatus(ctx context.Context, arg SetPointStatusParams) error
+	SetProductActive(ctx context.Context, arg SetProductActiveParams) (int64, error)
+	SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error)
 	// Also bumps last_message_at when a message was just added (touched = true).
 	SetTicketStatus(ctx context.Context, arg SetTicketStatusParams) (SetTicketStatusRow, error)
 	SourceHasPoints(ctx context.Context, sourceID int16) (bool, error)

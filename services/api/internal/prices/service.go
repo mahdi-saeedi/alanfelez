@@ -348,6 +348,80 @@ func (s *Service) Review(ctx context.Context, id int64, approve bool, actor audi
 	return out, nil
 }
 
+// Void takes a published point off the site (a wrong entry). The row stays, as rejected, and the void is audited.
+// When the point was the latest price, the newest published point left becomes the latest again (or the series has
+// no latest price when none is left). SMS alerts the point already triggered are not taken back.
+func (s *Service) Void(ctx context.Context, id int64, reason string, actor audit.Actor) (ReviewedPoint, error) {
+	var out ReviewedPoint
+	var ev *Event
+	err := inTx(ctx, s.pool, func(q *dbq.Queries) error {
+		p, err := q.LockPoint(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("lock point: %w", err)
+		}
+		if p.Status != StatusPublished {
+			return fmt.Errorf("%w: point is %s", ErrConflict, p.Status)
+		}
+		if err := q.SetPointStatus(ctx, dbq.SetPointStatusParams{ID: id, Status: StatusRejected, ReviewedBy: actor.ID}); err != nil {
+			return fmt.Errorf("set status: %w", err)
+		}
+		if err := audit.Write(ctx, q, actor, audit.Entry{
+			Action: "price.void", Entity: "price_point", EntityID: strconv.FormatInt(id, 10),
+			Data: map[string]any{"series": p.SeriesSlug, "price": p.PriceMinor, "observedAt": p.ObservedAt.Time, "reason": reason},
+		}); err != nil {
+			return err
+		}
+		out = ReviewedPoint{LockPointRow: p, Status: StatusRejected}
+		cur, err := q.LockLatest(ctx, p.SeriesID)
+		if errors.Is(err, pgx.ErrNoRows) || (err == nil && cur.PointID != id) {
+			return nil // it wasn't the latest price: history only
+		}
+		if err != nil {
+			return fmt.Errorf("lock latest: %w", err)
+		}
+		next, err := q.LatestPublishedPoint(ctx, p.SeriesID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return q.DeleteLatest(ctx, p.SeriesID)
+		}
+		if err != nil {
+			return fmt.Errorf("latest published: %w", err)
+		}
+		var prevClose *int64
+		pc, err := q.LastCloseBefore(ctx, dbq.LastCloseBeforeParams{SeriesID: p.SeriesID, ObservedAt: ts(TehranDayStart(next.ObservedAt.Time))})
+		switch {
+		case err == nil:
+			prevClose = &pc
+		case !errors.Is(err, pgx.ErrNoRows):
+			return fmt.Errorf("previous close: %w", err)
+		}
+		if err := q.UpsertLatest(ctx, dbq.UpsertLatestParams{
+			SeriesID: p.SeriesID, PointID: next.ID, PriceMinor: next.PriceMinor, ObservedAt: next.ObservedAt,
+			SourceID: next.SourceID, PrevCloseMinor: int8p(prevClose),
+		}); err != nil {
+			return fmt.Errorf("upsert latest: %w", err)
+		}
+		sr, err := q.GetSeriesByID(ctx, p.SeriesID)
+		if err != nil {
+			return fmt.Errorf("get series: %w", err)
+		}
+		ev = &Event{
+			PointID: next.ID, SeriesID: sr.ID, Series: sr.Slug, IsBase: sr.IsBase, Currency: sr.Currency, Unit: sr.Unit,
+			Price: next.PriceMinor, ObservedAt: next.ObservedAt.Time.UTC(), PrevClose: prevClose,
+		}
+		return nil
+	})
+	if err != nil {
+		return ReviewedPoint{}, err
+	}
+	if ev != nil {
+		s.publish(ctx, []Event{*ev})
+	}
+	return out, nil
+}
+
 // publish is best effort: the data is committed, and clients re-sync from the REST snapshot on reconnect.
 func (s *Service) publish(ctx context.Context, events []Event) {
 	if s.pub == nil || len(events) == 0 {

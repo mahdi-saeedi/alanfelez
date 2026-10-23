@@ -12,6 +12,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: "openTicke
       { to: "/prices", key: "nav.prices" },
       { to: "/prices/bulk", key: "nav.bulk" },
       { to: "/prices/quarantine", key: "nav.quarantine" },
+      { to: "/catalog", key: "nav.catalog" },
       { to: "/auctions", key: "nav.ime" },
       { to: "/sources", key: "nav.sources" },
     ],
@@ -44,7 +45,6 @@ const NAV: { group: string; items: { to: string; key: string; badge?: "openTicke
     group: "nav.group.settings",
     items: [
       { to: "/settings", key: "nav.settings" },
-      { to: "/metals", key: "nav.metals" },
       { to: "/markets", key: "nav.markets" },
       { to: "/plans", key: "nav.plans" },
     ],

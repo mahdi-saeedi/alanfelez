@@ -107,6 +107,97 @@ FOR UPDATE OF pp;
 -- name: SetPointStatus :exec
 UPDATE market.price_points SET status = $2, reviewed_by = $3, reviewed_at = now() WHERE id = $1;
 
+-- Price history and voiding (admin) ------------------------------------------------------------------------
+
+-- name: AdminSeriesPoints :many
+-- Recent points of one series in every status, newest first, with the staff names from the audit log and the
+-- published price before each point (so the admin can show "from → to").
+SELECT pp.id, pp.price_minor, pp.observed_at, pp.status, pp.is_manual, pp.entered_by, pp.created_at, pp.reviewed_at,
+       src.slug AS source_slug,
+       COALESCE((SELECT a.actor_name FROM app.audit_log a
+                 WHERE a.entity = 'price_point' AND a.entity_id = pp.id::text AND a.action = 'price.manual_entry'
+                 ORDER BY a.at LIMIT 1), '')::text AS entered_by_name,
+       COALESCE((SELECT a.actor_name FROM app.audit_log a
+                 WHERE a.entity = 'price_point' AND a.entity_id = pp.id::text
+                   AND a.action IN ('price.approve', 'price.reject', 'price.void')
+                 ORDER BY a.at DESC LIMIT 1), '')::text AS reviewed_by_name,
+       COALESCE((SELECT prev.price_minor FROM market.price_points prev
+                 WHERE prev.series_id = pp.series_id AND prev.status = 'published' AND prev.observed_at < pp.observed_at
+                 ORDER BY prev.observed_at DESC LIMIT 1), 0)::bigint AS previous_minor
+FROM market.price_points pp
+JOIN market.sources src ON src.id = pp.source_id
+WHERE pp.series_id = sqlc.arg(series_id)
+ORDER BY pp.observed_at DESC
+LIMIT sqlc.arg(max_rows);
+
+-- name: LatestPublishedPoint :one
+-- After a void: the newest published point that is left becomes the latest price.
+SELECT id, price_minor, observed_at, source_id FROM market.price_points
+WHERE series_id = $1 AND status = 'published'
+ORDER BY observed_at DESC LIMIT 1;
+
+-- name: DeleteLatest :exec
+DELETE FROM market.price_latest WHERE series_id = $1;
+
+-- Catalog (admin): metals, products, series ------------------------------------------------------------------
+
+-- name: AdminListMetals :many
+SELECT slug, name_fa, name_en FROM market.metals ORDER BY sort, slug;
+
+-- name: AdminListProducts :many
+SELECT p.slug, m.slug AS metal_slug, c.slug AS category_slug, p.name_fa, p.name_en, p.active
+FROM market.products p
+JOIN market.metals m             ON m.id = p.metal_id
+JOIN market.product_categories c ON c.id = p.category_id
+ORDER BY m.sort, p.sort, p.slug;
+
+-- name: AdminListCategories :many
+SELECT slug, name_fa, name_en FROM market.product_categories ORDER BY sort, slug;
+
+-- name: AdminListMarkets :many
+SELECT slug, name_fa, name_en FROM market.markets ORDER BY sort, slug;
+
+-- name: InsertMetal :one
+-- No row back = the slug is taken.
+INSERT INTO market.metals (slug, name_fa, name_en, sort)
+VALUES (sqlc.arg(slug), sqlc.arg(name_fa), sqlc.narg(name_en), (SELECT COALESCE(max(sort), 0) + 1 FROM market.metals))
+ON CONFLICT (slug) DO NOTHING
+RETURNING slug, name_fa, name_en;
+
+-- name: InsertProduct :one
+-- No row back = the slug is taken, or the metal or category doesn't exist (the handler tells which).
+INSERT INTO market.products (slug, metal_id, category_id, name_fa, name_en, sort)
+SELECT sqlc.arg(slug), m.id, c.id, sqlc.arg(name_fa), sqlc.narg(name_en),
+       (SELECT COALESCE(max(sort), 0) + 1 FROM market.products)
+FROM market.metals m, market.product_categories c
+WHERE m.slug = sqlc.arg(metal) AND c.slug = sqlc.arg(category)
+ON CONFLICT (slug) DO NOTHING
+RETURNING id;
+
+-- name: InsertSeries :one
+-- New series are never base series (the free tier sees base series only: the tier matrix, owner's decision).
+-- No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
+INSERT INTO market.price_series (slug, product_id, market_id, currency, unit, is_base, max_jump_bp, sort)
+SELECT sqlc.arg(slug), p.id, mk.id, sqlc.arg(currency), sqlc.arg(unit), false, sqlc.arg(max_jump_bp),
+       (SELECT COALESCE(max(sort), 0) + 1 FROM market.price_series)
+FROM market.products p, market.markets mk
+WHERE p.slug = sqlc.arg(product) AND mk.slug = sqlc.arg(market)
+ON CONFLICT DO NOTHING
+RETURNING id;
+
+-- name: CatalogRefsExist :one
+-- Which references of a new product or series exist (to answer 404 rather than 409).
+SELECT EXISTS (SELECT 1 FROM market.metals m WHERE m.slug = sqlc.arg(metal))                AS metal,
+       EXISTS (SELECT 1 FROM market.product_categories c WHERE c.slug = sqlc.arg(category)) AS category,
+       EXISTS (SELECT 1 FROM market.products p WHERE p.slug = sqlc.arg(product))            AS product,
+       EXISTS (SELECT 1 FROM market.markets mk WHERE mk.slug = sqlc.arg(market))           AS market;
+
+-- name: SetProductActive :execrows
+UPDATE market.products SET active = $2, updated_at = now() WHERE slug = $1;
+
+-- name: SetSeriesActive :execrows
+UPDATE market.price_series SET active = $2, updated_at = now() WHERE slug = $1;
+
 -- Sources ----------------------------------------------------------------------------------------------------
 
 -- name: ListSources :many

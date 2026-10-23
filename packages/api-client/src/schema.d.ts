@@ -361,7 +361,12 @@ export interface paths {
         /** Every series with its latest price and outlier threshold */
         get: operations["adminListSeries"];
         put?: never;
-        post?: never;
+        /**
+         * Add a price series (product × market × currency × unit). Roles, editor, admin
+         * @description New series are never base series: the free tier sees base series only, which is the tier matrix
+         *     (internal/access) and changes through the owner, not the admin.
+         */
+        post: operations["adminCreateSeries"];
         delete?: never;
         options?: never;
         head?: never;
@@ -438,6 +443,115 @@ export interface paths {
         put?: never;
         /** Approve (publish) or reject a quarantined point. Roles, editor, admin */
         post: operations["adminReviewPrice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/series/{slug}/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent points of one series, newest first, with who entered or voided each (price history) */
+        get: operations["adminSeriesPoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/prices/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void a published point (a wrong entry). It is kept as rejected, never deleted. Roles, editor, admin
+         * @description The point leaves the site and the charts; when it was the latest price, the previous published point becomes
+         *     the latest again. SMS alerts it already triggered are not taken back. Audited.
+         */
+        post: operations["adminVoidPrice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metals, products (active and inactive), categories and markets, for the catalog page */
+        get: operations["adminCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/metals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a metal. Roles, editor, admin */
+        post: operations["adminCreateMetal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a product of a metal. Roles, editor, admin */
+        post: operations["adminCreateProduct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/catalog/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deactivate or reactivate a product or a price series (nothing is deleted). Roles, editor, admin
+         * @description An inactive product or series disappears from the site; its history stays. Audited.
+         */
+        post: operations["adminSetCatalogActive"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1355,8 +1469,48 @@ export interface components {
             /** @description Source slug */
             source: string;
             enteredBy?: string;
+            /** @description Staff member who entered it (manual points) */
+            enteredByName?: string;
+            /** @description Staff member who approved */
+            reviewedByName?: string;
+            /** Format: date-time */
+            reviewedAt?: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        AdminCatalogItem: {
+            slug: string;
+            nameFa: string;
+            nameEn?: string;
+        };
+        AdminProduct: {
+            slug: string;
+            metal: string;
+            category: string;
+            nameFa: string;
+            nameEn?: string;
+            active: boolean;
+        };
+        AdminMetalInput: {
+            slug: string;
+            nameFa: string;
+            nameEn?: string;
+        };
+        AdminProductInput: {
+            slug: string;
+            metal: string;
+            category: string;
+            nameFa: string;
+            nameEn?: string;
+        };
+        AdminSeriesInput: {
+            slug: string;
+            product: string;
+            market: string;
+            currency: components["schemas"]["Currency"];
+            unit: components["schemas"]["Unit"];
+            /** @description Outlier gate in basis points (default 1500 = 15 %) */
+            maxJumpBp?: number;
         };
         BulkPriceResult: {
             index: number;
@@ -2562,6 +2716,31 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    adminCreateSeries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSeriesInput"];
+            };
+        };
+        responses: {
+            /** @description Series added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSeries"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminCreatePrice: {
         parameters: {
             query?: never;
@@ -2684,6 +2863,166 @@ export interface operations {
             403: components["responses"]["Problem"];
             404: components["responses"]["Problem"];
             409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSeriesPoints: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Points, every status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminPoint"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminVoidPrice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    reason?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Point after voiding */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPoint"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The catalog */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        metals: components["schemas"]["AdminCatalogItem"][];
+                        products: components["schemas"]["AdminProduct"][];
+                        categories: components["schemas"]["AdminCatalogItem"][];
+                        markets: components["schemas"]["AdminCatalogItem"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateMetal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminMetalInput"];
+            };
+        };
+        responses: {
+            /** @description Metal added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCatalogItem"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminProductInput"];
+            };
+        };
+        responses: {
+            /** @description Product added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProduct"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetCatalogActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    kind: "product" | "series";
+                    slug: string;
+                    active: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Done */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             default: components["responses"]["Problem"];
         };
     };
