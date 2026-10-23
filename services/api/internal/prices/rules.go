@@ -74,6 +74,12 @@ func NextLatest(cur *Latest, at time.Time) (replace bool, prevClose *int64) {
 	}
 }
 
+// TehranDayStart is midnight in Tehran of the day t falls on (the previous close is the last price before it).
+func TehranDayStart(t time.Time) time.Time {
+	y, m, d := t.In(Tehran).Date()
+	return time.Date(y, m, d, 0, 0, 0, 0, Tehran)
+}
+
 // SameTehranDay reports whether a and b fall on the same calendar day in Tehran.
 func SameTehranDay(a, b time.Time) bool {
 	ay, am, ad := a.In(Tehran).Date()

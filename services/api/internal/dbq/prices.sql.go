@@ -11,6 +11,258 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const adminListCategories = `-- name: AdminListCategories :many
+SELECT slug, name_fa, name_en FROM market.product_categories ORDER BY sort, slug
+`
+
+type AdminListCategoriesRow struct {
+	Slug   string
+	NameFa string
+	NameEn pgtype.Text
+}
+
+func (q *Queries) AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error) {
+	rows, err := q.db.Query(ctx, adminListCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListCategoriesRow{}
+	for rows.Next() {
+		var i AdminListCategoriesRow
+		if err := rows.Scan(&i.Slug, &i.NameFa, &i.NameEn); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListMarkets = `-- name: AdminListMarkets :many
+SELECT slug, name_fa, name_en FROM market.markets ORDER BY sort, slug
+`
+
+type AdminListMarketsRow struct {
+	Slug   string
+	NameFa string
+	NameEn pgtype.Text
+}
+
+func (q *Queries) AdminListMarkets(ctx context.Context) ([]AdminListMarketsRow, error) {
+	rows, err := q.db.Query(ctx, adminListMarkets)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListMarketsRow{}
+	for rows.Next() {
+		var i AdminListMarketsRow
+		if err := rows.Scan(&i.Slug, &i.NameFa, &i.NameEn); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListMetals = `-- name: AdminListMetals :many
+
+SELECT slug, name_fa, name_en FROM market.metals ORDER BY sort, slug
+`
+
+type AdminListMetalsRow struct {
+	Slug   string
+	NameFa string
+	NameEn pgtype.Text
+}
+
+// Catalog (admin): metals, products, series ------------------------------------------------------------------
+func (q *Queries) AdminListMetals(ctx context.Context) ([]AdminListMetalsRow, error) {
+	rows, err := q.db.Query(ctx, adminListMetals)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListMetalsRow{}
+	for rows.Next() {
+		var i AdminListMetalsRow
+		if err := rows.Scan(&i.Slug, &i.NameFa, &i.NameEn); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminListProducts = `-- name: AdminListProducts :many
+SELECT p.slug, m.slug AS metal_slug, c.slug AS category_slug, p.name_fa, p.name_en, p.active
+FROM market.products p
+JOIN market.metals m             ON m.id = p.metal_id
+JOIN market.product_categories c ON c.id = p.category_id
+ORDER BY m.sort, p.sort, p.slug
+`
+
+type AdminListProductsRow struct {
+	Slug         string
+	MetalSlug    string
+	CategorySlug string
+	NameFa       string
+	NameEn       pgtype.Text
+	Active       bool
+}
+
+func (q *Queries) AdminListProducts(ctx context.Context) ([]AdminListProductsRow, error) {
+	rows, err := q.db.Query(ctx, adminListProducts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListProductsRow{}
+	for rows.Next() {
+		var i AdminListProductsRow
+		if err := rows.Scan(
+			&i.Slug,
+			&i.MetalSlug,
+			&i.CategorySlug,
+			&i.NameFa,
+			&i.NameEn,
+			&i.Active,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminSeriesPoints = `-- name: AdminSeriesPoints :many
+
+SELECT pp.id, pp.price_minor, pp.observed_at, pp.status, pp.is_manual, pp.entered_by, pp.created_at, pp.reviewed_at,
+       src.slug AS source_slug,
+       COALESCE((SELECT a.actor_name FROM app.audit_log a
+                 WHERE a.entity = 'price_point' AND a.entity_id = pp.id::text AND a.action = 'price.manual_entry'
+                 ORDER BY a.at LIMIT 1), '')::text AS entered_by_name,
+       COALESCE((SELECT a.actor_name FROM app.audit_log a
+                 WHERE a.entity = 'price_point' AND a.entity_id = pp.id::text
+                   AND a.action IN ('price.approve', 'price.reject', 'price.void')
+                 ORDER BY a.at DESC LIMIT 1), '')::text AS reviewed_by_name,
+       COALESCE((SELECT prev.price_minor FROM market.price_points prev
+                 WHERE prev.series_id = pp.series_id AND prev.status = 'published' AND prev.observed_at < pp.observed_at
+                 ORDER BY prev.observed_at DESC LIMIT 1), 0)::bigint AS previous_minor
+FROM market.price_points pp
+JOIN market.sources src ON src.id = pp.source_id
+WHERE pp.series_id = $1
+ORDER BY pp.observed_at DESC
+LIMIT $2
+`
+
+type AdminSeriesPointsParams struct {
+	SeriesID int32
+	MaxRows  int32
+}
+
+type AdminSeriesPointsRow struct {
+	ID             int64
+	PriceMinor     int64
+	ObservedAt     pgtype.Timestamptz
+	Status         string
+	IsManual       bool
+	EnteredBy      pgtype.UUID
+	CreatedAt      pgtype.Timestamptz
+	ReviewedAt     pgtype.Timestamptz
+	SourceSlug     string
+	EnteredByName  string
+	ReviewedByName string
+	PreviousMinor  int64
+}
+
+// Price history and voiding (admin) ------------------------------------------------------------------------
+// Recent points of one series in every status, newest first, with the staff names from the audit log and the
+// published price before each point (so the admin can show "from → to").
+func (q *Queries) AdminSeriesPoints(ctx context.Context, arg AdminSeriesPointsParams) ([]AdminSeriesPointsRow, error) {
+	rows, err := q.db.Query(ctx, adminSeriesPoints, arg.SeriesID, arg.MaxRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminSeriesPointsRow{}
+	for rows.Next() {
+		var i AdminSeriesPointsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PriceMinor,
+			&i.ObservedAt,
+			&i.Status,
+			&i.IsManual,
+			&i.EnteredBy,
+			&i.CreatedAt,
+			&i.ReviewedAt,
+			&i.SourceSlug,
+			&i.EnteredByName,
+			&i.ReviewedByName,
+			&i.PreviousMinor,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const catalogRefsExist = `-- name: CatalogRefsExist :one
+SELECT EXISTS (SELECT 1 FROM market.metals m WHERE m.slug = $1)                AS metal,
+       EXISTS (SELECT 1 FROM market.product_categories c WHERE c.slug = $2) AS category,
+       EXISTS (SELECT 1 FROM market.products p WHERE p.slug = $3)            AS product,
+       EXISTS (SELECT 1 FROM market.markets mk WHERE mk.slug = $4)           AS market
+`
+
+type CatalogRefsExistParams struct {
+	Metal    string
+	Category string
+	Product  string
+	Market   string
+}
+
+type CatalogRefsExistRow struct {
+	Metal    bool
+	Category bool
+	Product  bool
+	Market   bool
+}
+
+// Which references of a new product or series exist (to answer 404 rather than 409).
+func (q *Queries) CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error) {
+	row := q.db.QueryRow(ctx, catalogRefsExist,
+		arg.Metal,
+		arg.Category,
+		arg.Product,
+		arg.Market,
+	)
+	var i CatalogRefsExistRow
+	err := row.Scan(
+		&i.Metal,
+		&i.Category,
+		&i.Product,
+		&i.Market,
+	)
+	return i, err
+}
+
 const countPoints = `-- name: CountPoints :one
 SELECT count(*) FROM market.price_points WHERE series_id = $1
 `
@@ -20,6 +272,15 @@ func (q *Queries) CountPoints(ctx context.Context, seriesID int32) (int64, error
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const deleteLatest = `-- name: DeleteLatest :exec
+DELETE FROM market.price_latest WHERE series_id = $1
+`
+
+func (q *Queries) DeleteLatest(ctx context.Context, seriesID int32) error {
+	_, err := q.db.Exec(ctx, deleteLatest, seriesID)
+	return err
 }
 
 const deleteOldSourceRuns = `-- name: DeleteOldSourceRuns :execrows
@@ -216,6 +477,33 @@ func (q *Queries) GetSourceBySlug(ctx context.Context, slug string) (GetSourceBy
 	return i, err
 }
 
+const insertMetal = `-- name: InsertMetal :one
+INSERT INTO market.metals (slug, name_fa, name_en, sort)
+VALUES ($1, $2, $3, (SELECT COALESCE(max(sort), 0) + 1 FROM market.metals))
+ON CONFLICT (slug) DO NOTHING
+RETURNING slug, name_fa, name_en
+`
+
+type InsertMetalParams struct {
+	Slug   string
+	NameFa string
+	NameEn pgtype.Text
+}
+
+type InsertMetalRow struct {
+	Slug   string
+	NameFa string
+	NameEn pgtype.Text
+}
+
+// No row back = the slug is taken.
+func (q *Queries) InsertMetal(ctx context.Context, arg InsertMetalParams) (InsertMetalRow, error) {
+	row := q.db.QueryRow(ctx, insertMetal, arg.Slug, arg.NameFa, arg.NameEn)
+	var i InsertMetalRow
+	err := row.Scan(&i.Slug, &i.NameFa, &i.NameEn)
+	return i, err
+}
+
 const insertPoint = `-- name: InsertPoint :one
 INSERT INTO market.price_points (series_id, observed_at, price_minor, source_id, is_manual, entered_by, status)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -252,6 +540,73 @@ func (q *Queries) InsertPoint(ctx context.Context, arg InsertPointParams) (Inser
 	var i InsertPointRow
 	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err
+}
+
+const insertProduct = `-- name: InsertProduct :one
+INSERT INTO market.products (slug, metal_id, category_id, name_fa, name_en, sort)
+SELECT $1, m.id, c.id, $2, $3,
+       (SELECT COALESCE(max(sort), 0) + 1 FROM market.products)
+FROM market.metals m, market.product_categories c
+WHERE m.slug = $4 AND c.slug = $5
+ON CONFLICT (slug) DO NOTHING
+RETURNING id
+`
+
+type InsertProductParams struct {
+	Slug     string
+	NameFa   string
+	NameEn   pgtype.Text
+	Metal    string
+	Category string
+}
+
+// No row back = the slug is taken, or the metal or category doesn't exist (the handler tells which).
+func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (int16, error) {
+	row := q.db.QueryRow(ctx, insertProduct,
+		arg.Slug,
+		arg.NameFa,
+		arg.NameEn,
+		arg.Metal,
+		arg.Category,
+	)
+	var id int16
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertSeries = `-- name: InsertSeries :one
+INSERT INTO market.price_series (slug, product_id, market_id, currency, unit, is_base, max_jump_bp, sort)
+SELECT $1, p.id, mk.id, $2, $3, false, $4,
+       (SELECT COALESCE(max(sort), 0) + 1 FROM market.price_series)
+FROM market.products p, market.markets mk
+WHERE p.slug = $5 AND mk.slug = $6
+ON CONFLICT DO NOTHING
+RETURNING id
+`
+
+type InsertSeriesParams struct {
+	Slug      string
+	Currency  string
+	Unit      string
+	MaxJumpBp int32
+	Product   string
+	Market    string
+}
+
+// New series are never base series (the free tier sees base series only: the tier matrix, owner's decision).
+// No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
+func (q *Queries) InsertSeries(ctx context.Context, arg InsertSeriesParams) (int32, error) {
+	row := q.db.QueryRow(ctx, insertSeries,
+		arg.Slug,
+		arg.Currency,
+		arg.Unit,
+		arg.MaxJumpBp,
+		arg.Product,
+		arg.Market,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const insertSourceRun = `-- name: InsertSourceRun :exec
@@ -326,6 +681,32 @@ func (q *Queries) LatestPriceBySlug(ctx context.Context) ([]LatestPriceBySlugRow
 		return nil, err
 	}
 	return items, nil
+}
+
+const latestPublishedPoint = `-- name: LatestPublishedPoint :one
+SELECT id, price_minor, observed_at, source_id FROM market.price_points
+WHERE series_id = $1 AND status = 'published'
+ORDER BY observed_at DESC LIMIT 1
+`
+
+type LatestPublishedPointRow struct {
+	ID         int64
+	PriceMinor int64
+	ObservedAt pgtype.Timestamptz
+	SourceID   int16
+}
+
+// After a void: the newest published point that is left becomes the latest price.
+func (q *Queries) LatestPublishedPoint(ctx context.Context, seriesID int32) (LatestPublishedPointRow, error) {
+	row := q.db.QueryRow(ctx, latestPublishedPoint, seriesID)
+	var i LatestPublishedPointRow
+	err := row.Scan(
+		&i.ID,
+		&i.PriceMinor,
+		&i.ObservedAt,
+		&i.SourceID,
+	)
+	return i, err
 }
 
 const listLatestPrices = `-- name: ListLatestPrices :many
@@ -672,6 +1053,40 @@ type SetPointStatusParams struct {
 func (q *Queries) SetPointStatus(ctx context.Context, arg SetPointStatusParams) error {
 	_, err := q.db.Exec(ctx, setPointStatus, arg.ID, arg.Status, arg.ReviewedBy)
 	return err
+}
+
+const setProductActive = `-- name: SetProductActive :execrows
+UPDATE market.products SET active = $2, updated_at = now() WHERE slug = $1
+`
+
+type SetProductActiveParams struct {
+	Slug   string
+	Active bool
+}
+
+func (q *Queries) SetProductActive(ctx context.Context, arg SetProductActiveParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setProductActive, arg.Slug, arg.Active)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const setSeriesActive = `-- name: SetSeriesActive :execrows
+UPDATE market.price_series SET active = $2, updated_at = now() WHERE slug = $1
+`
+
+type SetSeriesActiveParams struct {
+	Slug   string
+	Active bool
+}
+
+func (q *Queries) SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setSeriesActive, arg.Slug, arg.Active)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const sourceHasPoints = `-- name: SourceHasPoints :one

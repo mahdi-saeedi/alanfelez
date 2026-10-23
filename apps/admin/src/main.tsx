@@ -8,7 +8,8 @@ import { dataProvider } from "./providers/dataProvider";
 import { i18nProvider, applyDocumentLang } from "./i18n";
 import { Layout } from "./pages/Layout";
 import { Dashboard } from "./pages/Dashboard";
-import { MetalsList, MarketsList, PlansList } from "./pages/Resources";
+import { MarketsList, PlansList } from "./pages/Resources";
+import { CatalogPage } from "./pages/Catalog";
 import { PricesPage } from "./pages/Prices";
 import { BulkPage } from "./pages/Bulk";
 import { QuarantinePage } from "./pages/Quarantine";
@@ -73,7 +74,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/support/messages" element={<ContactMessagesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/auctions" element={<AuctionsPage />} />
-            <Route path="/metals" element={<MetalsList />} />
+            <Route path="/metals" element={<CatalogPage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/markets" element={<MarketsList />} />
             <Route path="/plans" element={<PlansList />} />
             <Route path="*" element={<NavigateToResource resource="metals" />} />

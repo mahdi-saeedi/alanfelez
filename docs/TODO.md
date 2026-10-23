@@ -18,6 +18,12 @@ Last updated: 2026-10-20 (ship and publish from the chat)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Keycloak image: CVE-2026-114406 (CRITICAL, `ca-certificates`)** blocks every Release since 2026-10-23 (the image
+      scan fails, `deploy-staging` is skipped). Decide: Keycloak patch release that ships the fixed package, or a
+      documented temporary Trivy ignore. Nothing new reaches staging until then.
+- [ ] **Price management in the admin (2026-10-23): needs from the owner** a staff account for the client's price
+      editor (role `editor`, TOTP) on staging and production, and when manual prices should stick: turn off the demo
+      price generator (`demoPrices: false`) on staging and production (production values = owner).
 - [ ] **Global (LME) prices on the home page, public** (asked 2026-10-21): today LME series are Silver/Gold
       (`is_base: false`, SCOPE §6). Needs the owner's OK to change the tier matrix, and global series for brass,
       iron and cast iron (none yet; the client knows a source). Later: which prices are Silver/Gold only.
@@ -47,6 +53,11 @@ Last updated: 2026-10-20 (ship and publish from the chat)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-23 Price management in the admin: search/metal filter, phone cards, table entry (check, then save),
+  per-row history (who, when, from → to) with **void** for a wrong price (kept as rejected; the previous price
+  becomes the latest again), and a «فلزات و محصولات» page to add metals/products/price rows and deactivate them.
+  Persian guide: `docs/guides/PRICE_ADMIN.fa.md`.
+- 2026-10-23 Released v0.3.0 to production: metal icons with chemical symbols on the home cards and the price table.
 - 2026-10-21 Go 1.27.3 (GO-2026-6809, crypto/x509; govulncheck failed every change until then).
 - 2026-10-20 Released v0.1.0 to production: larger header logo, header fits on phones.
 - 2026-10-20 Ship and publish from the chat without GitHub (ADR-0026): `ship/*` branches merge when CI is green and deploy
