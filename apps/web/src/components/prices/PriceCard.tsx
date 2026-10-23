@@ -6,49 +6,28 @@ import { formatPriceValue, formatTime, priceUnitLabel, type Locale } from "@alan
 import { Link } from "@/i18n/navigation";
 import { useLive } from "./LivePrices";
 import { ChangePill } from "./ChangePill";
-import { MetalIcon, hasMetalPhoto } from "./MetalIcon";
+import { MetalIcon } from "./MetalIcon";
 
-/**
- * Home-page card: a picture of the metal with its name on it, then the live price, unit, daily change and time below
- * (rendered pictures in public/metals, made by tools/metal-images/render.py). A metal without a picture shows its icon.
- */
+/** Home-page card: metal, live price, unit, daily change and time (design 02-home-live-prices). */
 export function PriceCard({ row }: { row: Schemas["PriceRow"] }) {
   const locale = useLocale() as Locale;
   const live = useLive(row.series.slug, row);
   const flash = live?.flash === "up" ? "animate-flash-up" : live?.flash === "down" ? "animate-flash-down" : "";
-  const metal = row.series.metal;
   return (
     <Link
       href={{ pathname: "/chart", query: { series: row.series.slug } }}
-      className="group block overflow-hidden rounded-card border border-border bg-surface shadow-soft transition hover:border-gold"
+      className="block rounded-card border border-border bg-surface p-4 shadow-soft transition hover:border-gold"
     >
-      <div className="relative aspect-square overflow-hidden bg-surface-2">
-        {hasMetalPhoto(metal.slug) ? (
-          <img
-            src={`/metals/${metal.slug}.webp`}
-            alt={metal.name}
-            width={480}
-            height={600}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <span className="flex h-full items-center justify-center"><MetalIcon slug={metal.slug} className="h-24 w-24" /></span>
-        )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-graphite/70 to-transparent px-4 pb-3 pt-10 text-lg font-extrabold text-white">
-          {metal.name}
-        </div>
+      <div className="flex items-center gap-2 text-sm text-text-2">
+        <MetalIcon slug={row.series.metal.slug} className="h-10 w-10" />
+        {row.series.metal.name}
       </div>
-      <div className="p-3">
-        <div key={live?.tick} className={`rounded-md text-xl font-extrabold tabular-nums ${flash}`}>
-          {live ? formatPriceValue(live.price, locale) : "—"}
-        </div>
-        <div className="text-xs text-text-3" dir="ltr">{priceUnitLabel(row.series, locale)}</div>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <ChangePill bp={live?.change?.bp} locale={locale} size="sm" />
-          <span className="text-xs text-text-3 tabular-nums">{live ? formatTime(live.observedAt, locale) : ""}</span>
-        </div>
+      <div key={live?.tick} className={`mt-2 rounded-md text-xl font-extrabold tabular-nums ${flash}`}>
+        {live ? formatPriceValue(live.price, locale) : "—"}
       </div>
+      <div className="mt-1 text-xs text-text-3" dir="ltr">{priceUnitLabel(row.series, locale)}</div>
+      <div className="mt-3"><ChangePill bp={live?.change?.bp} locale={locale} /></div>
+      <div className="mt-2 text-xs text-text-3 tabular-nums">{live ? formatTime(live.observedAt, locale) : ""}</div>
     </Link>
   );
 }

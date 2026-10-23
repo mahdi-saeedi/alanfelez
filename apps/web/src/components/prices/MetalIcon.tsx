@@ -15,11 +15,7 @@ const LOOKS: Record<string, Look> = {
   "cast-iron": { top: "#767b83", front: "#4b4f55", edge: "#2f3236", ink: "#e9ebee", symbol: "FeC" },
 };
 
-/** Metals with a rendered picture in public/metals/<slug>.webp (tools/metal-images/render.py). */
-const PHOTOS = new Set(["aluminum", "copper", "brass", "zinc", "lead", "iron", "cast-iron"]);
-export const hasMetalPhoto = (slug: string) => PHOTOS.has(slug);
-
-const NEUTRAL: Look ={ top: "#dfe2e6", front: "#b4bac2", edge: "#8d949d", ink: "#3d4450" };
+const NEUTRAL: Look = { top: "#dfe2e6", front: "#b4bac2", edge: "#8d949d", ink: "#3d4450" };
 
 export function MetalIcon({ slug, className = "h-10 w-10" }: { slug: string; className?: string }) {
   const look = LOOKS[slug] ?? NEUTRAL;
