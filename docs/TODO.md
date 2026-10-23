@@ -53,6 +53,7 @@ Last updated: 2026-10-20 (ship and publish from the chat)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-23 Next.js 16.3.6 → 16.4.1 (two critical RCE advisories, GHSA-2464-fhr4-w9xw and GHSA-673q-mjm6-r5xr, blocked the release scan).
 - 2026-10-23 Price management in the admin: search/metal filter, phone cards, table entry (check, then save),
   per-row history (who, when, from → to) with **void** for a wrong price (kept as rejected; the previous price
   becomes the latest again), and a «فلزات و محصولات» page to add metals/products/price rows and deactivate them.
