@@ -82,6 +82,27 @@ SELECT price_minor FROM market.price_points
 WHERE series_id = $1 AND status = 'published' AND observed_at < $2
 ORDER BY observed_at DESC LIMIT 1;
 
+-- name: PriceAround :one
+-- The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
+-- (when there is none) the first one after it. No row = the series has no published price at all.
+SELECT price_minor FROM (
+  (SELECT pp.price_minor, 0 AS side FROM market.price_points pp
+   WHERE pp.series_id = sqlc.arg(series_id) AND pp.status = 'published' AND pp.observed_at < sqlc.arg(at)
+   ORDER BY pp.observed_at DESC LIMIT 1)
+  UNION ALL
+  (SELECT pp.price_minor, 1 AS side FROM market.price_points pp
+   WHERE pp.series_id = sqlc.arg(series_id) AND pp.status = 'published' AND pp.observed_at > sqlc.arg(at)
+   ORDER BY pp.observed_at ASC LIMIT 1)
+) around ORDER BY side LIMIT 1;
+
+-- name: AdminPricesAt :many
+-- The price of every series at a moment: its last published point at or before it (the admin's "prices on a date").
+SELECT DISTINCT ON (pp.series_id) s.slug AS series_slug, pp.id, pp.price_minor, pp.observed_at, pp.is_manual
+FROM market.price_points pp
+JOIN market.price_series s ON s.id = pp.series_id
+WHERE pp.status = 'published' AND pp.observed_at <= sqlc.arg(at)
+ORDER BY pp.series_id, pp.observed_at DESC;
+
 -- Review of quarantined points -----------------------------------------------------------------------------
 
 -- name: ListQuarantined :many

@@ -24,6 +24,8 @@ type Querier interface {
 	AdminListProducts(ctx context.Context) ([]AdminListProductsRow, error)
 	// The support queue: open tickets first (high priority, then oldest waiting), then the rest by activity.
 	AdminListTickets(ctx context.Context, arg AdminListTicketsParams) ([]AdminListTicketsRow, error)
+	// The price of every series at a moment: its last published point at or before it (the admin's "prices on a date").
+	AdminPricesAt(ctx context.Context, at pgtype.Timestamptz) ([]AdminPricesAtRow, error)
 	// Price history and voiding (admin) ------------------------------------------------------------------------
 	// Recent points of one series in every status, newest first, with the staff names from the audit log and the
 	// published price before each point (so the admin can show "from → to").
@@ -160,6 +162,9 @@ type Querier interface {
 	// armed = false after firing (above / below); triggered = true stamps last_triggered_at.
 	MarkAlert(ctx context.Context, arg MarkAlertParams) error
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
+	// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
+	// (when there is none) the first one after it. No row = the series has no published price at all.
+	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
 	PutSetting(ctx context.Context, arg PutSettingParams) error
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error

@@ -669,6 +669,28 @@ paths:
                     items: { $ref: '#/components/schemas/AdminPoint' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/prices/at:
+    get:
+      operationId: adminPricesAt
+      tags: [admin]
+      summary: The price of every series at a moment (its last published point at or before it), for entering history
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: at, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: One item per series that has a price at that moment
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminPriceAt' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/prices/{id}/void:
     post:
       operationId: adminVoidPrice
@@ -2051,7 +2073,7 @@ components:
         id: { type: string }
         series: { type: string }
         amount: { type: string }
-        previousAmount: { type: string, description: Latest published price when the point arrived }
+        previousAmount: { type: string, description: The price it was compared with (the latest, or for a back-dated point the one around its time) }
         jumpBp: { type: integer }
         observedAt: { type: string, format: date-time }
         status: { type: string, enum: [published, quarantined, rejected] }
@@ -2062,6 +2084,16 @@ components:
         reviewedByName: { type: string, description: Staff member who approved, rejected or voided it }
         reviewedAt: { type: string, format: date-time }
         createdAt: { type: string, format: date-time }
+
+    AdminPriceAt:
+      type: object
+      required: [series, id, amount, observedAt, isManual]
+      properties:
+        series: { type: string }
+        id: { type: string }
+        amount: { type: string }
+        observedAt: { type: string, format: date-time }
+        isManual: { type: boolean }
 
     AdminCatalogItem:
       type: object
