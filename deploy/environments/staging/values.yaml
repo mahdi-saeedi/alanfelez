@@ -16,7 +16,7 @@ images:
 api:
   replicas: 1 # small staging server (2 CPU / 4 GB)
   seedProfiles: reference,demo
-  demoPrices: true # demo price generator (worker)
+  demoPrices: false # off since 2026-10-23: staff enter prices by hand to try the price admin (the demo history stays)
   paymentGateway: mock # fake gateway page, no real money
   smsProvider: console # SMS written to the worker log
 keycloak:
