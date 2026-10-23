@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/alanfelez/alanfelez/services/api/internal/audit"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
@@ -282,4 +283,21 @@ func (s *Server) AdminSetCatalogActive(ctx context.Context, req AdminSetCatalogA
 		return fail[AdminSetCatalogActivedefaultApplicationProblemPlusJSONResponse](notFound(ctx, string(in.Kind))), nil
 	}
 	return AdminSetCatalogActive204Response{}, nil
+}
+
+// AdminPricesAt returns the price of every series at a moment (its last published point at or before it), so staff
+// entering history can see what is already there for that date.
+func (s *Server) AdminPricesAt(ctx context.Context, req AdminPricesAtRequestObject) (AdminPricesAtResponseObject, error) {
+	if _, pr := requireRoles(ctx, rolesRead...); pr != nil {
+		return fail[AdminPricesAtdefaultApplicationProblemPlusJSONResponse](*pr), nil
+	}
+	rows, err := s.q.AdminPricesAt(ctx, pgtype.Timestamptz{Time: req.Params.At.UTC(), Valid: true})
+	if err != nil {
+		return nil, fmt.Errorf("prices at: %w", err)
+	}
+	out := make([]AdminPriceAt, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, AdminPriceAt{Series: r.SeriesSlug, Id: i64s(r.ID), Amount: i64s(r.PriceMinor), ObservedAt: r.ObservedAt.Time.UTC(), IsManual: r.IsManual})
+	}
+	return AdminPricesAt200JSONResponse{Items: out}, nil
 }

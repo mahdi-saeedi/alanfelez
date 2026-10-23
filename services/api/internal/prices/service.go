@@ -57,7 +57,7 @@ type Result struct {
 	Series   string
 	Outcome  Outcome
 	PointID  int64
-	Previous *int64 // latest published price before this quote
+	Previous *int64 // the price the quote is compared with: the latest, or for a back-dated quote the one around its time
 	JumpBp   int64
 	Message  string
 }
@@ -197,8 +197,18 @@ func (s *Service) ingestOne(ctx context.Context, q *dbq.Queries, o Origin, sr db
 	status := StatusPublished
 	if cur != nil {
 		prev := cur.Price
+		if qt.ObservedAt.Before(cur.ObservedAt) {
+			// A back-dated quote (history entry) is checked against the price of its own time, not today's.
+			around, err := q.PriceAround(ctx, dbq.PriceAroundParams{SeriesID: sr.ID, At: ts(qt.ObservedAt)})
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				return nil, fmt.Errorf("price around: %w", err)
+			}
+			if err == nil {
+				prev = around
+			}
+		}
 		r.Previous = &prev
-		r.JumpBp = JumpBp(cur.Price, qt.Price)
+		r.JumpBp = JumpBp(prev, qt.Price)
 		if r.JumpBp > int64(sr.MaxJumpBp) {
 			switch {
 			case o.Manual && !qt.Force:

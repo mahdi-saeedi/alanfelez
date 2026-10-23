@@ -466,6 +466,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/prices/at": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The price of every series at a moment (its last published point at or before it), for entering history */
+        get: operations["adminPricesAt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/prices/{id}/void": {
         parameters: {
             query?: never;
@@ -1458,7 +1475,7 @@ export interface components {
             id: string;
             series: string;
             amount: string;
-            /** @description Latest published price when the point arrived */
+            /** @description The price it was compared with (the latest */
             previousAmount?: string;
             jumpBp?: number;
             /** Format: date-time */
@@ -1477,6 +1494,14 @@ export interface components {
             reviewedAt?: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        AdminPriceAt: {
+            series: string;
+            id: string;
+            amount: string;
+            /** Format: date-time */
+            observedAt: string;
+            isManual: boolean;
         };
         AdminCatalogItem: {
             slug: string;
@@ -2887,6 +2912,31 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["AdminPoint"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminPricesAt: {
+        parameters: {
+            query: {
+                at: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One item per series that has a price at that moment */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminPriceAt"][];
                     };
                 };
             };

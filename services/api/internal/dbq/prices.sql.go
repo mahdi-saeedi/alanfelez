@@ -147,6 +147,49 @@ func (q *Queries) AdminListProducts(ctx context.Context) ([]AdminListProductsRow
 	return items, nil
 }
 
+const adminPricesAt = `-- name: AdminPricesAt :many
+SELECT DISTINCT ON (pp.series_id) s.slug AS series_slug, pp.id, pp.price_minor, pp.observed_at, pp.is_manual
+FROM market.price_points pp
+JOIN market.price_series s ON s.id = pp.series_id
+WHERE pp.status = 'published' AND pp.observed_at <= $1
+ORDER BY pp.series_id, pp.observed_at DESC
+`
+
+type AdminPricesAtRow struct {
+	SeriesSlug string
+	ID         int64
+	PriceMinor int64
+	ObservedAt pgtype.Timestamptz
+	IsManual   bool
+}
+
+// The price of every series at a moment: its last published point at or before it (the admin's "prices on a date").
+func (q *Queries) AdminPricesAt(ctx context.Context, at pgtype.Timestamptz) ([]AdminPricesAtRow, error) {
+	rows, err := q.db.Query(ctx, adminPricesAt, at)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminPricesAtRow{}
+	for rows.Next() {
+		var i AdminPricesAtRow
+		if err := rows.Scan(
+			&i.SeriesSlug,
+			&i.ID,
+			&i.PriceMinor,
+			&i.ObservedAt,
+			&i.IsManual,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const adminSeriesPoints = `-- name: AdminSeriesPoints :many
 
 SELECT pp.id, pp.price_minor, pp.observed_at, pp.status, pp.is_manual, pp.entered_by, pp.created_at, pp.reviewed_at,
@@ -989,6 +1032,32 @@ func (q *Queries) LockPoint(ctx context.Context, id int64) (LockPointRow, error)
 		&i.SourceSlug,
 	)
 	return i, err
+}
+
+const priceAround = `-- name: PriceAround :one
+SELECT price_minor FROM (
+  (SELECT pp.price_minor, 0 AS side FROM market.price_points pp
+   WHERE pp.series_id = $1 AND pp.status = 'published' AND pp.observed_at < $2
+   ORDER BY pp.observed_at DESC LIMIT 1)
+  UNION ALL
+  (SELECT pp.price_minor, 1 AS side FROM market.price_points pp
+   WHERE pp.series_id = $1 AND pp.status = 'published' AND pp.observed_at > $2
+   ORDER BY pp.observed_at ASC LIMIT 1)
+) around ORDER BY side LIMIT 1
+`
+
+type PriceAroundParams struct {
+	SeriesID int32
+	At       pgtype.Timestamptz
+}
+
+// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
+// (when there is none) the first one after it. No row = the series has no published price at all.
+func (q *Queries) PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error) {
+	row := q.db.QueryRow(ctx, priceAround, arg.SeriesID, arg.At)
+	var price_minor int64
+	err := row.Scan(&price_minor)
+	return price_minor, err
 }
 
 const seriesPoints = `-- name: SeriesPoints :many
