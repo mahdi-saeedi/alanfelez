@@ -27,6 +27,8 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     strategy:
+      # One image failing (usually the registry in Iran) must not cancel the others mid-push.
+      fail-fast: false
       matrix:
         image:
           - { name: api, dockerfile: services/api/Dockerfile }
@@ -38,12 +40,21 @@ jobs:
       - id: tag
         run: echo "tag=sha-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY_HOST }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      - uses: docker/build-push-action@v6
+      # The ArvanCloud registry sometimes times out or answers 404 for a moment (seen 2026-10-23), so the login is
+      # retried and a failed push gets a second try (all layers come from the cache, so it's quick).
+      - name: Log in to the registry (with retries)
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          for i in 1 2 3 4 5; do
+            echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY_HOST" -u "$REGISTRY_USERNAME" --password-stdin && exit 0
+            echo "login failed (try $i), retrying in $((i * 15))s"; sleep $((i * 15))
+          done
+          exit 1
+      - id: push
+        continue-on-error: true
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.image.dockerfile }}
@@ -56,6 +67,23 @@ jobs:
           sbom: true
           cache-from: type=gha,scope=${{ matrix.image.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
+      - name: Wait before the second push
+        if: steps.push.outcome == 'failure'
+        run: sleep 60
+      - name: Push again (the first push failed)
+        if: steps.push.outcome == 'failure'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ matrix.image.name }}:${{ steps.tag.outputs.tag }}
+          build-args: |
+            VERSION=${{ steps.tag.outputs.tag }}
+            COMMIT=${{ github.sha }}
+          provenance: true
+          sbom: true
+          cache-from: type=gha,scope=${{ matrix.image.name }}
       # Same build again, all layers from the cache just written, loaded into the runner's Docker engine so the scan
       # reads it locally instead of downloading it back from the registry in Iran (that link drops long streams on the
       # large Keycloak image). It can't share the step above: load doesn't work together with provenance/SBOM.
