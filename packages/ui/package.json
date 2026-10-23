@@ -8,7 +8,8 @@
     "./tokens.css": "./tokens.css",
     "./fonts.css": "./fonts.css",
     "./fonts/*": "./fonts/*",
-    "./format": "./src/format.ts"
+    "./format": "./src/format.ts",
+    "./jalali": "./src/jalali.ts"
   },
   "files": [
     "tokens.css",

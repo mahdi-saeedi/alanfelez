@@ -6,6 +6,7 @@ import { formatBp, formatDate, formatPriceValue, type Locale } from "@alanfelez/
 import { api, canWritePrices, currentRoles, errorText, problemOf, unwrap } from "../api";
 import { normalizeDigits, toMinor } from "../amount";
 import { Badge, Button, Card, Input, Notice, Page, Select, Td, Th } from "./ui";
+import { ObservedAtPicker } from "./ObservedAtPicker";
 
 type Series = Schemas["AdminSeries"];
 
@@ -110,7 +111,11 @@ export function PricesPage() {
 }
 
 function latestText(s: Series, locale: Locale): string {
-  return s.latestAmount ? `${s.currency === "USD" ? "$" : ""}${formatPriceValue({ amount: s.latestAmount, currency: s.currency, unit: s.unit }, locale)}` : "—";
+  return amountText(s, s.latestAmount, locale);
+}
+
+function amountText(s: Series, amount: string | undefined, locale: Locale): string {
+  return amount ? `${s.currency === "USD" ? "$" : ""}${formatPriceValue({ amount, currency: s.currency, unit: s.unit }, locale)}` : "—";
 }
 
 function SeriesName({ series: s }: { series: Series }) {
@@ -147,11 +152,20 @@ function TableEntry({ rows }: { rows: Series[] }) {
   const [error, setError] = useState<string | null>(null);
 
   const filled = rows.filter((s) => (values[s.slug] ?? "").trim() !== "");
+  // With a past date chosen, show each row's price at that moment (not today's) next to the input.
+  const pricesAt = useQuery({
+    queryKey: ["admin", "prices-at", at],
+    enabled: at !== "",
+    queryFn: async () => {
+      const res = unwrap(await api.GET("/v1/admin/prices/at", { params: { query: { at } } }));
+      return Object.fromEntries(res.items.map((p) => [p.series, p.amount]));
+    },
+  });
   const run = useMutation({
     mutationFn: async (dryRun: boolean) => {
       const items = filled.map((s) => {
         const minor = toMinor(values[s.slug]!, s.currency);
-        return { series: s.slug, amount: minor ?? "0", force, ...(at ? { observedAt: new Date(at).toISOString() } : {}) };
+        return { series: s.slug, amount: minor ?? "0", force, ...(at ? { observedAt: at } : {}) };
       });
       return { dryRun, res: unwrap(await api.POST("/v1/admin/prices/bulk", { body: { items, dryRun } })) };
     },
@@ -178,10 +192,10 @@ function TableEntry({ rows }: { rows: Series[] }) {
     <div className="space-y-3">
       <Notice tone="warn">{t("prices.tableHint")}</Notice>
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center gap-2 text-sm">
-          {t("prices.observedAt")}
-          <Input type="datetime-local" value={at} onChange={(e) => { setAt(e.target.value); setResults(null); }} className="w-48" />
-        </label>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {t("prices.observedAt")}:
+          <ObservedAtPicker value={at} locale={locale} onChange={(v) => { setAt(v); setResults(null); }} />
+        </div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
           {t("bulk.force")}
@@ -192,7 +206,7 @@ function TableEntry({ rows }: { rows: Series[] }) {
           <thead className="bg-surface-2">
             <tr>
               <Th>{t("prices.series")}</Th>
-              <Th>{t("prices.latest")}</Th>
+              <Th>{at ? t("prices.priceAt") : t("prices.latest")}</Th>
               <Th>{t("prices.new")}</Th>
               <Th>{t("bulk.status")}</Th>
             </tr>
@@ -204,7 +218,7 @@ function TableEntry({ rows }: { rows: Series[] }) {
               return (
                 <tr key={s.slug} className="border-t border-border">
                   <Td><SeriesName series={s} /></Td>
-                  <Td className="tabular-nums">{latestText(s, locale)}</Td>
+                  <Td className="tabular-nums">{at ? amountText(s, pricesAt.data?.[s.slug], locale) : latestText(s, locale)}</Td>
                   <Td>
                     <Input
                       inputMode="decimal"
@@ -333,12 +347,12 @@ function EntryForm({ series }: { series: Series }) {
       if (!minor) throw Object.assign(new Error(t("prices.invalid")), { problem: { code: "LOCAL" } });
       return unwrap(
         await api.POST("/v1/admin/prices", {
-          body: { series: series.slug, amount: minor, force, ...(at ? { observedAt: new Date(at).toISOString() } : {}) },
+          body: { series: series.slug, amount: minor, force, ...(at ? { observedAt: at } : {}) },
         }),
       );
     },
     onSuccess: (p) => {
-      setMsg({ tone: "ok", text: `${t("prices.saved")}${p.jumpBp !== undefined ? ` (${formatBp(p.jumpBp, locale)})` : ""}` });
+      setMsg({ tone: "ok", text: `${at ? t("prices.savedPast") : t("prices.saved")}${p.jumpBp !== undefined ? ` (${formatBp(p.jumpBp, locale)})` : ""}` });
       setAmount("");
       setAt("");
       void qc.invalidateQueries({ queryKey: ["admin"] });
@@ -348,7 +362,7 @@ function EntryForm({ series }: { series: Series }) {
       if (p?.code === "PRICE_JUMP") {
         const minor = toMinor(amount, series.currency);
         const prev = series.latestAmount ? BigInt(series.latestAmount) : 0n;
-        const jump = minor && prev > 0n ? Number(((BigInt(minor) - prev) * 10_000n) / prev) : undefined;
+        const jump = !at && minor && prev > 0n ? Number(((BigInt(minor) - prev) * 10_000n) / prev) : undefined;
         const detail = jump !== undefined ? t("prices.jumpDetail", { jump: formatBp(jump, locale), limit: formatBp(series.maxJumpBp, locale) }) : "";
         setMsg({ tone: "warn", text: `${t("prices.jumpTitle")}. ${detail}`, jump: true });
       } else setMsg({ tone: "error", text: errorText(err, t) });
@@ -373,7 +387,7 @@ function EntryForm({ series }: { series: Series }) {
         dir="ltr"
         aria-label={t("prices.new")}
       />
-      <Input type="datetime-local" value={at} onChange={(e) => setAt(e.target.value)} className="w-48" title={t("prices.observedAt")} aria-label={t("prices.observedAt")} />
+      <ObservedAtPicker value={at} locale={locale} onChange={setAt} />
       <Button type="submit" disabled={save.isPending || !amount}>{save.isPending ? t("common.saving") : t("common.save")}</Button>
       {msg && (
         <div className="basis-full">

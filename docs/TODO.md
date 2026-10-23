@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-20 (ship and publish from the chat)
+Last updated: 2026-10-23 (back-dated price entry)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -54,6 +54,9 @@ Last updated: 2026-10-20 (ship and publish from the chat)
 
 ## Done (last 30 days)
 - 2026-10-23 Next.js 16.3.6 → 16.4.1 (two critical RCE advisories, GHSA-2464-fhr4-w9xw and GHSA-673q-mjm6-r5xr, blocked the release scan).
+- 2026-10-23 Back-dated price entry: a Jalali date + Tehran time picker in the admin (single and table entry, with
+  "price on that date" from `GET /v1/admin/prices/at`). A back-dated quote goes into history and the charts, is gated
+  against the price around that time, and never moves the latest price or sends SMS. Staging demo prices turned off.
 - 2026-10-23 Price management in the admin: search/metal filter, phone cards, table entry (check, then save),
   per-row history (who, when, from → to) with **void** for a wrong price (kept as rejected; the previous price
   becomes the latest again), and a «فلزات و محصولات» page to add metals/products/price rows and deactivate them.

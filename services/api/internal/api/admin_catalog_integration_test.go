@@ -175,3 +175,66 @@ func TestCatalogAdmin(t *testing.T) {
 		}
 	}
 }
+
+func TestBackDatedEntry(t *testing.T) {
+	e := setup(t)
+	e.grantGold()
+	now := time.Now().UTC().Truncate(time.Second)
+	old := now.AddDate(0, 0, -20)
+	post := func(amount string, at time.Time) (int, map[string]any) {
+		st, body, _ := e.call(http.MethodPost, "/v1/admin/prices", "editor", map[string]any{"series": "copper-red-free", "amount": amount, "observedAt": at})
+		return st, body
+	}
+	// 20 days ago the price was 5,000,000; today it is 6,400,000 (+28 %, entered with force).
+	if st, b := post("5000000", old); st != 201 {
+		t.Fatalf("old: %d %v", st, b)
+	}
+	if st, b, _ := e.call(http.MethodPost, "/v1/admin/prices", "editor", map[string]any{"series": "copper-red-free", "amount": "6400000", "observedAt": now.Add(-time.Minute), "force": true}); st != 201 {
+		t.Fatalf("today: %d %v", st, b)
+	}
+	// A price 10 days ago close to that time's price passes the gate, though it is far from today's price.
+	st, b := post("5100000", now.AddDate(0, 0, -10))
+	if st != 201 || b["previousAmount"] != "5000000" || b["jumpBp"].(float64) != 200 {
+		t.Fatalf("back-dated near its time: %d %v", st, b)
+	}
+	// It goes into the history (and the chart) but doesn't move today's price.
+	if m := e.copperRedPublic(); m["price"].(map[string]any)["amount"] != "6400000" {
+		t.Fatalf("latest moved by a back-dated entry: %v", m)
+	}
+	_, chart, _ := e.call(http.MethodGet, "/v1/series/copper-red-free/points?range=1M", "gold", nil)
+	if n := len(chart["points"].([]any)); n != 3 {
+		t.Fatalf("chart points = %d, want 3 (the back-dated one included)", n)
+	}
+	// A typo in history (10× the price of its time) is still caught.
+	if st, b := post("51000000", now.AddDate(0, 0, -5)); st != 422 || b["code"] != "PRICE_JUMP" {
+		t.Fatalf("back-dated typo: %d %v", st, b)
+	}
+	// Before the first point there is nothing earlier: compared with the first point after it.
+	if st, b := post("4900000", now.AddDate(0, 0, -25)); st != 201 || b["previousAmount"] != "5000000" {
+		t.Fatalf("before the first point: %d %v", st, b)
+	}
+
+	// The prices on a date: the last published point at or before it, per series.
+	at := now.AddDate(0, 0, -9).Format(time.RFC3339)
+	st, body, _ := e.call(http.MethodGet, "/v1/admin/prices/at?at="+at, "support", nil)
+	if st != 200 {
+		t.Fatalf("prices at: %d %v", st, body)
+	}
+	found := false
+	for _, it := range body["items"].([]any) {
+		if m := it.(map[string]any); m["series"] == "copper-red-free" {
+			found = m["amount"] == "5100000"
+		}
+	}
+	if !found {
+		t.Fatalf("prices at %s: %v", at, body)
+	}
+	for _, c := range []struct {
+		token string
+		want  int
+	}{{"", 401}, {"user", 403}} {
+		if st, _, _ := e.call(http.MethodGet, "/v1/admin/prices/at?at="+at, c.token, nil); st != c.want {
+			t.Errorf("prices at as %q: %d, want %d", c.token, st, c.want)
+		}
+	}
+}
