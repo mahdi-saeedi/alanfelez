@@ -20,7 +20,9 @@ api:
   paymentGateway: mock # fake gateway page, no real money
   smsProvider: console # SMS written to the worker log
 keycloak:
-  otp: {smsProvider: console, consoleAllowed: true} # switch to the real provider when available (F7)
+  # Sign-in codes go out by real SMS through sms.ir (line 500037506946788; key in secrets/alanfelez-sms, restricted to the
+  # servers' IPs). Template 972517 is the client's approved verify template with parameter CODE.
+  otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}
 web:
   replicas: 1 # small staging server (2 CPU / 4 GB)
 ingress:

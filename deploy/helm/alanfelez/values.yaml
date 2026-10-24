@@ -25,6 +25,7 @@ secrets:
   app: alanfelez-app               # keys: AUTH_SECRET, KC_WEB_CLIENT_SECRET
   keycloakAdmin: alanfelez-keycloak-admin   # keys: username, password (bootstrap admin, first start only)
   keycloakDb: alanfelez-keycloak-db         # keys: username, password (also used by the data chart)
+  sms: alanfelez-sms               # key: SMSIR_API_KEY (sms.ir). Optional: without it the smsir sender refuses to send
 
 api:
   replicas: 2
@@ -73,8 +74,11 @@ keycloak:
   replicas: 1
   strategy: RollingUpdate          # Recreate for single-replica, memory-constrained clusters
   otp:
-    smsProvider: console           # id of the SmsSender SPI provider
+    smsProvider: console           # id of the SmsSender SPI provider: console | smsir
     consoleAllowed: false          # the console sender only logs codes, never true in production
+    smsir:                         # sms.ir "verify" (ارسال سریع); the API key comes from secrets.sms
+      templateId: ""               # id of the approved template on the sms.ir panel
+      parameter: CODE              # the template's parameter that receives the code
   extraEnv: {}
   resources:
     requests: { cpu: 250m, memory: 768Mi }

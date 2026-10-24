@@ -11,7 +11,7 @@ kubectl create secret generic alanfelez-app -n alanfelez --dry-run=client -o yam
 
 Required: `alanfelez-app`, `alanfelez-keycloak-admin` (username/password), `alanfelez-keycloak-db` (username=keycloak/password),
 `alanfelez-backup-s3` (ACCESS_KEY_ID/ACCESS_SECRET_KEY), `arvan-registry` (dockerconfigjson), and on staging
-`alanfelez-basic-auth` (below). See docs/guides/DEPLOYMENT.md §3.
+`alanfelez-basic-auth` (below). Optional: `alanfelez-sms` (sms.ir, below). See docs/guides/DEPLOYMENT.md §3.
 
 ## Shared password for the test site (`alanfelez-basic-auth`)
 Staging sets `ingress.basicAuth.enabled: true`, so the website and admin ask for a shared username and password first.
@@ -25,3 +25,16 @@ kubectl --context alanfelez-staging create secret generic alanfelez-basic-auth -
   && rm /tmp/users
 ```
 Several people: one `htpasswd` line each in the same file. To change the password, re-create the file and commit it.
+
+## sms.ir API key for sign-in codes (`alanfelez-sms`)
+The client creates the key on the sms.ir panel (برنامه‌نویسان ← کلیدهای API) and gives it to the owner directly, never in
+a chat or in git. `read -s` keeps it out of the shell history:
+
+```bash
+read -rs SMSIR_API_KEY && \
+kubectl --context alanfelez-staging create secret generic alanfelez-sms -n alanfelez --dry-run=client -o yaml \
+  --from-literal=SMSIR_API_KEY="$SMSIR_API_KEY" \
+  | kubeseal --context alanfelez-staging --controller-namespace kube-system -o yaml > alanfelez-sms.sealed.yaml \
+  && unset SMSIR_API_KEY
+```
+Then in `../values.yaml` set `keycloak.otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}` (the template id is already there).
