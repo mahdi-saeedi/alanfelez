@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-24 (eNamad seal)
+Last updated: 2026-10-24 (Keycloak 26.8.1)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -18,9 +18,6 @@ Last updated: 2026-10-24 (eNamad seal)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Keycloak image: CVE-2026-114406 (CRITICAL, `ca-certificates`)** blocks every Release since 2026-10-23 (the image
-      scan fails, `deploy-staging` is skipped). Decide: Keycloak patch release that ships the fixed package, or a
-      documented temporary Trivy ignore. Nothing new reaches staging until then.
 - [ ] **Price management in the admin (2026-10-23): needs from the owner** a staff account for the client's price
       editor (role `editor`, TOTP) on staging and production, and when manual prices should stick: turn off the demo
       price generator (`demoPrices: false`) on staging and production (production values = owner).
@@ -53,6 +50,8 @@ Last updated: 2026-10-24 (eNamad seal)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 Keycloak 26.8.1: its image ships the fixed `ca-certificates` (CVE-2026-114406, CRITICAL), which had
+  blocked every Release (and so staging) since 2026-10-23.
 - 2026-10-24 eNamad seal in the footer and on the licenses page (id 8262525, set by migration 00006, editable in
   admin → Site settings). It loads on its own and stays hidden unless eNamad's image actually loads. eNamad only
   verifies it on alanfelez.ir, so the check happens after publishing to production.

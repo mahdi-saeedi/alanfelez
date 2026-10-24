@@ -93,7 +93,7 @@ tasks:
     internal: true
     dir: services/keycloak/extensions
     vars:
-      KC_VERSION: '{{.KEYCLOAK_VERSION | default "26.8.0"}}'
+      KC_VERSION: '{{.KEYCLOAK_VERSION | default "26.8.1"}}'
     cmds:
       - mvn -B -q -o -Dkeycloak.version={{.KC_VERSION}} package
   otp:
