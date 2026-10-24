@@ -25,6 +25,8 @@ export default function LoginPhoneOtp(props: PageProps<Extract<KcContext, { page
     <Template kcContext={kcContext} i18n={i18n} doUseDefaultCss={doUseDefaultCss} classes={classes} headerNode={msg("otpTitle")}>
       <p className="mb-5 leading-8 text-text-2">
         {msg("otpSentTo", "⁦" + digits(phoneNational) + "⁩")}
+        <br />
+        <span className="text-sm text-text-3">{msg("otpDelayHint")}</span>
       </p>
 
       <form id="kc-otp-form" className={kcClsx("kcFormClass")} action={url.loginAction} method="post" noValidate>
