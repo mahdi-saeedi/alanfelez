@@ -2435,6 +2435,17 @@ components:
           description: Network → URL, only the ones set
           additionalProperties: { type: string }
         licensesPage: { type: boolean, description: Show the licenses page and its footer link (flag page.licenses) }
+        enamad: { $ref: '#/components/schemas/Enamad' }
+
+    Enamad:
+      type: object
+      description: >-
+        The eNamad trust seal (from its HTML snippet: id and Code). Public on every site that has one. Left out of
+        SiteInfo until both are set; the site then shows the badge only if eNamad's image actually loads.
+      required: [id, code]
+      properties:
+        id: { type: string, maxLength: 20, description: Digits }
+        code: { type: string, maxLength: 64, description: Latin letters and digits }
 
     # --- support (M4) ----------------------------------------------------------------
     ContactSubject:
@@ -2634,6 +2645,8 @@ components:
             linkedin: { type: string, maxLength: 300 }
             bale: { type: string, maxLength: 300 }
             eitaa: { type: string, maxLength: 300 }
+        # Empty id and code = no badge. Left out of a save = unchanged.
+        enamad: { $ref: '#/components/schemas/Enamad' }
 
     AdminContactMessage:
       type: object

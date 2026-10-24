@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getSite } from "@/lib/content";
+import { EnamadBadge } from "./EnamadBadge";
 import type { Locale } from "@/lib/prices";
 
 const LINKS = [
@@ -44,6 +45,8 @@ export async function Footer() {
           </ul>
         )}
       </div>
+      {/* Its own row under the links: when the seal shows up (or never does), nothing above it moves. */}
+      {site?.enamad && <EnamadBadge id={site.enamad.id} code={site.enamad.code} className="mx-auto flex max-w-7xl justify-center px-4 pb-6" />}
     </footer>
   );
 }

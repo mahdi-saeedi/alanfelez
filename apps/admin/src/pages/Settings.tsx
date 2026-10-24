@@ -9,7 +9,7 @@ type Settings = Schemas["AdminSettings"];
 
 const NETWORKS: (keyof Settings["social"])[] = ["telegram", "instagram", "linkedin", "bale", "eitaa"];
 
-/** Contact details and social links shown on the site (empty = hidden; client answer #30). Admin only. */
+/** Contact details, social links and the eNamad seal shown on the site (empty = hidden; client answer #30). Admin only. */
 export function SettingsPage() {
   const t = useTranslate();
   const loaded = useQuery({ queryKey: ["admin", "settings"], queryFn: async () => unwrap(await api.GET("/v1/admin/settings", {})) });
@@ -27,6 +27,13 @@ function SettingsForm({ initial }: { initial: Settings }) {
     mutationFn: async () => unwrap(await api.PUT("/v1/admin/settings", { body: v })),
     onSuccess: (s) => qc.setQueryData(["admin", "settings"], s),
   });
+  const enamad = v.enamad ?? { id: "", code: "" };
+  // Either field also takes the whole snippet from the eNamad panel: id and Code are read out of its link.
+  const setEnamad = (text: string, field: "id" | "code") => {
+    const id = /[?&]id=(\d+)/.exec(text)?.[1];
+    const code = /[?&]Code=([A-Za-z0-9]+)/.exec(text)?.[1];
+    setV({ ...v, enamad: id && code ? { id, code } : { ...enamad, [field]: text } });
+  };
   const contact = (k: keyof Settings["contact"], ltr = false) => (
     <Field label={t(`settings.contact.${k}`)}>
       <Input dir={ltr ? "ltr" : undefined} disabled={!writable} value={v.contact[k]} onChange={(e) => setV({ ...v, contact: { ...v.contact, [k]: e.target.value } })} className="w-full" />
@@ -60,6 +67,18 @@ function SettingsForm({ initial }: { initial: Settings }) {
                 <Input dir="ltr" disabled={!writable} placeholder="https://" value={v.social[k]} onChange={(e) => setV({ ...v, social: { ...v.social, [k]: e.target.value } })} className="w-full" />
               </Field>
             ))}
+          </div>
+        </Card>
+        <Card className="space-y-4 p-4">
+          <h2 className="font-bold">{t("settings.enamadTitle")}</h2>
+          <p className="text-sm text-text-2">{t("settings.enamadHint")}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t("settings.enamad.id")}>
+              <Input dir="ltr" disabled={!writable} value={enamad.id} onChange={(e) => setEnamad(e.target.value, "id")} className="w-full" />
+            </Field>
+            <Field label={t("settings.enamad.code")}>
+              <Input dir="ltr" disabled={!writable} value={enamad.code} onChange={(e) => setEnamad(e.target.value, "code")} className="w-full" />
+            </Field>
           </div>
         </Card>
         {save.isError && <Notice tone="error">{errorText(save.error, t)}</Notice>}

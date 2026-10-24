@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -219,6 +220,31 @@ func (s *Server) loadSiteSettings(ctx context.Context) (contactSettings, socialS
 	return c, social, nil
 }
 
+// enamadSettings is the eNamad trust seal (setting "enamad"); empty fields mean no badge.
+type enamadSettings struct {
+	ID   string `json:"id"`
+	Code string `json:"code"`
+}
+
+var (
+	enamadIDRe   = regexp.MustCompile(`^[0-9]{1,20}$`)
+	enamadCodeRe = regexp.MustCompile(`^[A-Za-z0-9]{1,64}$`)
+)
+
+func (s *Server) loadEnamad(ctx context.Context) (enamadSettings, error) {
+	var e enamadSettings
+	rows, err := s.q.GetSettings(ctx, []string{"enamad"})
+	if err != nil {
+		return e, fmt.Errorf("enamad setting: %w", err)
+	}
+	for _, r := range rows {
+		if err := json.Unmarshal(r.Value, &e); err != nil {
+			return e, fmt.Errorf("enamad setting: %w", err)
+		}
+	}
+	return e, nil
+}
+
 // GetSite returns the public site settings. Empty values are left out, so the site hides what isn't set yet.
 func (s *Server) GetSite(ctx context.Context, req GetSiteRequestObject) (GetSiteResponseObject, error) {
 	c, social, err := s.loadSiteSettings(ctx)
@@ -243,6 +269,13 @@ func (s *Server) GetSite(ctx context.Context, req GetSiteRequestObject) (GetSite
 		if v != "" {
 			info.Social[k] = v
 		}
+	}
+	e, err := s.loadEnamad(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if e.ID != "" && e.Code != "" {
+		info.Enamad = &Enamad{Id: e.ID, Code: e.Code}
 	}
 	if info.LicensesPage, err = s.q.FeatureEnabled(ctx, flagLicensesPage); err != nil {
 		return nil, fmt.Errorf("feature flag: %w", err)

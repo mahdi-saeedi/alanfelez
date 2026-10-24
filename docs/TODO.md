@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-23 (back-dated price entry)
+Last updated: 2026-10-24 (eNamad seal)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -53,6 +53,9 @@ Last updated: 2026-10-23 (back-dated price entry)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 eNamad seal in the footer and on the licenses page (id 8262525, set by migration 00006, editable in
+  admin → Site settings). It loads on its own and stays hidden unless eNamad's image actually loads. eNamad only
+  verifies it on alanfelez.ir, so the check happens after publishing to production.
 - 2026-10-23 Next.js 16.3.6 → 16.4.1 (two critical RCE advisories, GHSA-2464-fhr4-w9xw and GHSA-673q-mjm6-r5xr, blocked the release scan).
 - 2026-10-23 Back-dated price entry: a Jalali date + Tehran time picker in the admin (single and table entry, with
   "price on that date" from `GET /v1/admin/prices/at`). A back-dated quote goes into history and the charts, is gated

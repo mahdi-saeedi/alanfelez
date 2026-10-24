@@ -1807,6 +1807,14 @@ export interface components {
             };
             /** @description Show the licenses page and its footer link (flag page.licenses) */
             licensesPage: boolean;
+            enamad?: components["schemas"]["Enamad"];
+        };
+        /** @description The eNamad trust seal (from its HTML snippet: id and Code). Public on every site that has one. Left out of SiteInfo until both are set; the site then shows the badge only if eNamad's image actually loads. */
+        Enamad: {
+            /** @description Digits */
+            id: string;
+            /** @description Latin letters and digits */
+            code: string;
         };
         /** @enum {string} */
         ContactSubject: "general" | "support" | "billing" | "partnership" | "feedback" | "other";
@@ -1975,6 +1983,7 @@ export interface components {
                 bale: string;
                 eitaa: string;
             };
+            enamad?: components["schemas"]["Enamad"];
         };
         AdminContactMessage: {
             /** Format: uuid */

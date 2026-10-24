@@ -639,7 +639,11 @@ func (s *Server) AdminGetSettings(ctx context.Context, _ AdminGetSettingsRequest
 	if err != nil {
 		return nil, err
 	}
-	return AdminGetSettings200JSONResponse(settingsOf(c, social)), nil
+	e, err := s.loadEnamad(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return AdminGetSettings200JSONResponse(settingsOf(c, social, e)), nil
 }
 
 // AdminUpdateSettings saves contact details and social links.
@@ -675,29 +679,44 @@ func (s *Server) AdminUpdateSettings(ctx context.Context, req AdminUpdateSetting
 			return fail[AdminUpdateSettingsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, k+": use a full https:// link")), nil
 		}
 	}
+	e, err := s.loadEnamad(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if in.Enamad != nil { // left out = unchanged
+		e = enamadSettings{ID: strings.TrimSpace(in.Enamad.Id), Code: strings.TrimSpace(in.Enamad.Code)}
+		if (e.ID != "" && !enamadIDRe.MatchString(e.ID)) || (e.Code != "" && !enamadCodeRe.MatchString(e.Code)) {
+			return fail[AdminUpdateSettingsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "enamad: id is digits, code is latin letters and digits")), nil
+		}
+	}
 	cj, _ := json.Marshal(c)
 	sj, _ := json.Marshal(social)
-	err := s.tx(ctx, func(q *dbq.Queries) error {
+	ej, _ := json.Marshal(e)
+	err = s.tx(ctx, func(q *dbq.Queries) error {
 		if err := q.PutSetting(ctx, dbq.PutSettingParams{Key: "contact", Value: cj}); err != nil {
 			return err
 		}
 		if err := q.PutSetting(ctx, dbq.PutSettingParams{Key: "social", Value: sj}); err != nil {
 			return err
 		}
-		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "settings.update", Entity: "site_settings", EntityID: "contact,social", Data: map[string]any{"contact": c, "social": social}})
+		if err := q.PutSetting(ctx, dbq.PutSettingParams{Key: "enamad", Value: ej}); err != nil {
+			return err
+		}
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "settings.update", Entity: "site_settings", EntityID: "contact,social,enamad", Data: map[string]any{"contact": c, "social": social, "enamad": e}})
 	})
 	if err != nil {
 		return nil, fmt.Errorf("save settings: %w", err)
 	}
-	return AdminUpdateSettings200JSONResponse(settingsOf(c, social)), nil
+	return AdminUpdateSettings200JSONResponse(settingsOf(c, social, e)), nil
 }
 
-func settingsOf(c contactSettings, social socialSettings) AdminSettings {
+func settingsOf(c contactSettings, social socialSettings, e enamadSettings) AdminSettings {
 	var out AdminSettings
 	out.Contact.Phone, out.Contact.Email = c.Phone, c.Email
 	out.Contact.AddressFa, out.Contact.AddressEn, out.Contact.HoursFa, out.Contact.HoursEn = c.AddressFa, c.AddressEn, c.HoursFa, c.HoursEn
 	out.Social.Telegram, out.Social.Instagram, out.Social.Linkedin = social["telegram"], social["instagram"], social["linkedin"]
 	out.Social.Bale, out.Social.Eitaa = social["bale"], social["eitaa"]
+	out.Enamad = &Enamad{Id: e.ID, Code: e.Code}
 	return out
 }
 

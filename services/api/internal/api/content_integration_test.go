@@ -197,6 +197,21 @@ func TestFaqPagesAndSettings(t *testing.T) {
 	if c["phone"] != "021-12345678" || c["address"] != "تهران" || site["social"].(map[string]any)["telegram"] != "https://t.me/alanfelez" {
 		t.Fatalf("site after save: %v", site)
 	}
+	// eNamad: the migration sets it, a save without it keeps it, bad values are refused, empty hides the badge.
+	if en, _ := site["enamad"].(map[string]any); en["id"] != "8262525" || en["code"] == "" {
+		t.Fatalf("enamad after a save without it: %v", site["enamad"])
+	}
+	settings["enamad"] = map[string]any{"id": "12ab", "code": "x"}
+	if st, _, _ := e.call(http.MethodPut, "/v1/admin/settings", "admin", settings); st != 400 {
+		t.Fatalf("bad enamad id: %d", st)
+	}
+	settings["enamad"] = map[string]any{"id": "", "code": ""}
+	if st, _, raw := e.call(http.MethodPut, "/v1/admin/settings", "admin", settings); st != 200 {
+		t.Fatalf("clear enamad: %d %s", st, raw)
+	}
+	if _, site, _ := e.call(http.MethodGet, "/v1/site", "", nil); site["enamad"] != nil {
+		t.Fatalf("empty enamad must be left out: %v", site["enamad"])
+	}
 	settings["social"].(map[string]any)["instagram"] = "javascript:alert(1)"
 	if st, _, _ := e.call(http.MethodPut, "/v1/admin/settings", "admin", settings); st != 400 {
 		t.Fatalf("unsafe link: %d", st)
