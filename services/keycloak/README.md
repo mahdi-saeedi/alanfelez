@@ -29,3 +29,7 @@ froze): `console` (writes codes to the log, local/staging only) or `smsir`
 (`extensions/.../sms/smsir`): sms.ir "verify" with an approved template whose parameter `CODE` receives the code, so the
 realm's `messageTemplate` isn't used for it. Options: `KC_SPI_SMS_SENDER__SMSIR__API_KEY` (Secret `alanfelez-sms`),
 `__TEMPLATE_ID`, `__PARAMETER` (default `CODE`), `__BASE_URL` (default `https://api.sms.ir/v1`). Helm: `keycloak.otp.smsir`.
+Speed: when the phone form is shown, the sender opens its connection to sms.ir in the background (`warmUp`, no key, at
+most every 15 s), and the send runs off the request thread: the code page waits at most 2.5 s for it, so a quick refusal
+still shows «ارسال پیامک ممکن نشد» while a slow link no longer holds the page. The SMS delivery itself (sms.ir → operator,
+30–60 s reported on 2026-10-24) is on sms.ir's side.

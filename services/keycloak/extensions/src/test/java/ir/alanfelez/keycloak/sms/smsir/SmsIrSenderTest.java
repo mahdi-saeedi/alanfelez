@@ -10,6 +10,9 @@ import ir.alanfelez.keycloak.sms.SmsException;
 import java.net.InetSocketAddress;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
@@ -68,6 +71,35 @@ class SmsIrSenderTest {
 
             reply.set("{\"status\":10,\"message\":\"کلید نامعتبر\"}");
             assertThrows(SmsException.class, () -> sender.sendCode("+989121234567", "482913", "ignored"));
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void warmUpConnectsWithoutTheKeyAtMostOnceIn15s() throws Exception {
+        AtomicInteger hits = new AtomicInteger();
+        AtomicReference<String> key = new AtomicReference<>("unset");
+        CountDownLatch first = new CountDownLatch(1);
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", ex -> {
+            hits.incrementAndGet();
+            key.set(ex.getRequestHeaders().getFirst("x-api-key"));
+            ex.sendResponseHeaders(404, -1);
+            ex.close();
+            first.countDown();
+        });
+        server.start();
+        try {
+            SmsIrSender.resetWarmUp();
+            String base = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1";
+            SmsIrSender sender = new SmsIrSender(HttpClient.newHttpClient(), base, "test-key", 987654, "CODE");
+            sender.warmUp();
+            sender.warmUp();
+            assertTrue(first.await(5, TimeUnit.SECONDS));
+            Thread.sleep(200);
+            assertEquals(1, hits.get());
+            assertEquals(null, key.get());
         } finally {
             server.stop(0);
         }
