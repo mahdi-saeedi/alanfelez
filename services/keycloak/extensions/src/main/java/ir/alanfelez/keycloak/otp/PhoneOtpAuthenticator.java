@@ -5,7 +5,6 @@ import ir.alanfelez.keycloak.sms.SmsSender;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -248,20 +247,18 @@ public class PhoneOtpAuthenticator implements Authenticator {
         return user;
     }
 
-    /** Per-phone hourly send limit, shared across sessions and cluster nodes. */
+    /** Per-phone hourly send limit (one hour from the first code), shared across sessions and cluster nodes. */
     private static boolean allowSend(KeycloakSession session, String phone, OtpSettings s) {
         SingleUseObjectProvider store = session.singleUseObjects();
         String key = RATE_KEY_PREFIX + phone;
-        Map<String, String> entry = store.get(key);
-        if (entry == null) {
-            store.put(key, 3600, Map.of("count", "1"));
-            return true;
-        }
-        int count = parseInt(entry.get("count"));
-        if (count >= s.maxSendsPerPhonePerHour()) {
+        long now = Time.currentTime();
+        SendWindow window = SendWindow.next(store.get(key), now, s.maxSendsPerPhonePerHour());
+        if (window == null) {
             return false;
         }
-        store.replace(key, Map.of("count", Integer.toString(count + 1)));
+        // Always put with the window's remaining lifespan: replace() drops the expiry, and the counter then never reset.
+        store.remove(key);
+        store.put(key, window.secondsLeft(now), window.toNotes());
         return true;
     }
 

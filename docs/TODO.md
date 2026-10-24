@@ -54,6 +54,8 @@ Last updated: 2026-10-24 (faster sign-in code page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 Fixed the sign-in code limit (5 per phone per hour) never resetting: updating the counter dropped its
+  one-hour expiry. On production after the next publish.
 - 2026-10-24 Sign-in codes: the connection to sms.ir is opened while the user types the number, and the code page no
   longer waits for a slow send (at most 2.5 s). Codes still took 30–60 s to reach phones: the client asked sms.ir support.
 - 2026-10-24 Production (alanfelez.ir) sends sign-in codes by real SMS through sms.ir, like staging.
