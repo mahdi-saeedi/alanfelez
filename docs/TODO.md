@@ -53,6 +53,7 @@ Last updated: 2026-10-24 (sms.ir sign-in codes on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 Staging sends sign-in codes by real SMS (sms.ir verify, template 972517); key sealed in `alanfelez-sms`.
 - 2026-10-24 Keycloak 26.8.1: its image ships the fixed `ca-certificates` (CVE-2026-114406, CRITICAL), which had
   blocked every Release (and so staging) since 2026-10-23.
 - 2026-10-24 eNamad seal in the footer and on the licenses page (id 8262525, set by migration 00006, editable in
