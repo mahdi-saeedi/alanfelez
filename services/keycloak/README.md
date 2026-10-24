@@ -33,3 +33,5 @@ Speed: when the phone form is shown, the sender opens its connection to sms.ir i
 most every 15 s), and the send runs off the request thread: the code page waits at most 2.5 s for it, so a quick refusal
 still shows «ارسال پیامک ممکن نشد» while a slow link no longer holds the page. The SMS delivery itself (sms.ir → operator,
 30–60 s reported on 2026-10-24) is on sms.ir's side.
+Code lifetime: 5 minutes (`OTP_TTL_SECONDS`, Helm `keycloak.otp.ttlSeconds`; wins over the realm's stored `ttlSeconds`,
+like `OTP_SMS_PROVIDER`). A new code can still be asked for after 120 s (`resendCooldownSeconds`); it replaces the old one.

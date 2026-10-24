@@ -76,6 +76,7 @@ keycloak:
   otp:
     smsProvider: console           # id of the SmsSender SPI provider: console | smsir
     consoleAllowed: false          # the console sender only logs codes, never true in production
+    ttlSeconds: 300                # how long a code stays valid (SMS can take a minute); new codes after 120 s still
     smsir:                         # sms.ir "verify" (ارسال سریع); the API key comes from secrets.sms
       templateId: ""               # id of the approved template on the sms.ir panel
       parameter: CODE              # the template's parameter that receives the code

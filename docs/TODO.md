@@ -54,6 +54,7 @@ Last updated: 2026-10-24 (faster sign-in code page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 Sign-in codes stay valid 5 minutes (was 2), since SMS can take a minute; a new code after 120 s as before.
 - 2026-10-24 Fixed the sign-in code limit (5 per phone per hour) never resetting: updating the counter dropped its
   one-hour expiry. On production after the next publish.
 - 2026-10-24 Sign-in codes: the connection to sms.ir is opened while the user types the number, and the code page no

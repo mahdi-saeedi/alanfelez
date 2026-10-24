@@ -43,6 +43,7 @@ Every limit is configurable. Defaults:
 
 | Control | Default |
 |---|---|
+| Code lifetime | 5 min (client, 2026-10-24: SMS can take a minute); 5 tries per code |
 | Resend cooldown per phone | 120 s |
 | OTPs per phone | 5 / hour, 10 / day |
 | OTPs per IP | 10 / hour |

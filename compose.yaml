@@ -90,6 +90,7 @@ services:
       KC_WEB_CLIENT_SECRET: local-web-secret-change-me
       # Phone OTP: the "console" SMS sender prints codes to this container's log (docker compose logs keycloak).
       OTP_SMS_PROVIDER: console
+      OTP_TTL_SECONDS: "300"
       KC_SPI_SMS_SENDER__CONSOLE__ALLOWED: "true"
     volumes:
       - ./services/keycloak/realm/alanfelez-realm.json:/opt/keycloak/data/import/alanfelez-realm.json:ro

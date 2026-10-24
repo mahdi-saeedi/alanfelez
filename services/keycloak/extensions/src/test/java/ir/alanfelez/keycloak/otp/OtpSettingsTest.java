@@ -30,4 +30,13 @@ class OtpSettingsTest {
     void defaultsToConsoleWhenNothingIsSet() {
         assertEquals("console", OtpSettings.from(null, null).smsProvider());
     }
+
+    @Test
+    void deploymentTtlWinsAndBadValuesFallBack() {
+        // Existing realms keep ttlSeconds 120 from their first import; the deployment sets 300 (client, 2026-10-24).
+        assertEquals(300, OtpSettings.from(config(Map.of("ttlSeconds", "120")), null, "300").ttlSeconds());
+        assertEquals(120, OtpSettings.from(config(Map.of("ttlSeconds", "120")), null, null).ttlSeconds());
+        assertEquals(300, OtpSettings.from(config(Map.of("ttlSeconds", "120")), null, "5000").ttlSeconds()); // out of range → default
+        assertEquals(120, OtpSettings.from(config(Map.of("ttlSeconds", "120")), null, "300").resendCooldownSeconds());
+    }
 }
