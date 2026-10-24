@@ -1,1 +1,2 @@
 ir.alanfelez.keycloak.sms.console.ConsoleSmsSenderFactory
+ir.alanfelez.keycloak.sms.smsir.SmsIrSenderFactory

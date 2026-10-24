@@ -125,7 +125,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
             return;
         }
         try {
-            sender.send(phone, s.message(code));
+            sender.sendCode(phone, code, s.message(code));
         } catch (SmsException e) {
             LOG.errorf(e, "SMS sending failed for %s via %s", PhoneNumbers.mask(phone), s.smsProvider());
             ctx.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR, phoneForm(ctx, "smsSendFailed", null));

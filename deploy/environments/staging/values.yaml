@@ -20,7 +20,7 @@ api:
   paymentGateway: mock # fake gateway page, no real money
   smsProvider: console # SMS written to the worker log
 keycloak:
-  otp: {smsProvider: console, consoleAllowed: true} # switch to the real provider when available (F7)
+  otp: {smsProvider: console, consoleAllowed: true} # sms.ir (line 500037506946788) once secrets/alanfelez-sms exists: see secrets/README.md
 web:
   replicas: 1 # small staging server (2 CPU / 4 GB)
 ingress:
