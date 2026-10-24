@@ -37,4 +37,4 @@ kubectl --context alanfelez-staging create secret generic alanfelez-sms -n alanf
   | kubeseal --context alanfelez-staging --controller-namespace kube-system -o yaml > alanfelez-sms.sealed.yaml \
   && unset SMSIR_API_KEY
 ```
-Then in `../values.yaml` set `keycloak.otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "<id>"}}`.
+Then in `../values.yaml` set `keycloak.otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}` (the template id is already there).

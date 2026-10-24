@@ -20,7 +20,7 @@ Last updated: 2026-10-24 (sms.ir sender)
 ## Waiting on the owner
 - [ ] **sms.ir for sign-in codes:** the client bought sms.ir (line 500037506946788, verify template «کد تأیید الان‌فلز: #CODE#»).
   The `smsir` Keycloak sender is built. Owner: seal the API key the client sends him into `alanfelez-sms`
-  (`deploy/environments/staging/secrets/README.md`), and switch staging's `keycloak.otp` to smsir with the template id.
+  (`deploy/environments/staging/secrets/README.md`), and switch staging's `keycloak.otp.smsProvider` to smsir (template id 972517 is set).
 - [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
   Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)
   and sets a new one in the account page. A proper flow is a Keycloak change for the owner.
