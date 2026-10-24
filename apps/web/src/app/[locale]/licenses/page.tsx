@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { StaticPage, pageMetadata } from "@/components/content/StaticPage";
+import { EnamadBadge } from "@/components/EnamadBadge";
+import { getSite } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
@@ -15,5 +17,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function LicensesPage({ params }: Params) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <StaticPage locale={locale} slug="licenses" />;
+  const site = await getSite(locale);
+  return (
+    <StaticPage locale={locale} slug="licenses">
+      {site?.enamad && <EnamadBadge id={site.enamad.id} code={site.enamad.code} className="mx-auto mt-6 max-w-3xl px-4" />}
+    </StaticPage>
+  );
 }

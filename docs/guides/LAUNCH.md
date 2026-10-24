@@ -13,7 +13,7 @@ file (the PR is the record). Environments and delivery: [DEPLOYMENT.md](DEPLOYME
 | ☐ | **F8 legal review** of Terms, Privacy and the refund rules | Legal |
 | ☐ | **F14 content edits** confirmed, **F4 English** reviewed | Copy is the client's; `locale.en` stays off until F4 |
 | ☐ | **F3 vector logo**, **F5 price sources**, **F16 IME data**, **F12 product list** | Quality of launch content (manual entry works meanwhile) |
-| ☐ | Contact details and social links entered (admin → Site settings), eNamad code (F-licenses) | The site hides empty ones, so this doesn't block, but should be done |
+| ☐ | Contact details and social links entered (admin → Site settings), eNamad (done 2026-10-24: id 8262525 in admin → Site settings; eNamad verifies it once it is on alanfelez.ir) | The site hides empty ones, so this doesn't block, but should be done |
 
 ## 2. Infrastructure (ArvanCloud)
 
