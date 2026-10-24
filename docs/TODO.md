@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-24 (eNamad seal)
+Last updated: 2026-10-24 (sms.ir sender)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -18,6 +18,12 @@ Last updated: 2026-10-24 (eNamad seal)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **sms.ir for sign-in codes:** the client bought sms.ir (line 500037506946788, verify template «کد تأیید الان‌فلز: #CODE#»).
+  The `smsir` Keycloak sender is built. Owner: seal the API key the client sends him into `alanfelez-sms`
+  (`deploy/environments/staging/secrets/README.md`), and switch staging's `keycloak.otp` to smsir with the template id.
+- [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
+  Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)
+  and sets a new one in the account page. A proper flow is a Keycloak change for the owner.
 - [ ] **Keycloak image: CVE-2026-114406 (CRITICAL, `ca-certificates`)** blocks every Release since 2026-10-23 (the image
       scan fails, `deploy-staging` is skipped). Decide: Keycloak patch release that ships the fixed package, or a
       documented temporary Trivy ignore. Nothing new reaches staging until then.

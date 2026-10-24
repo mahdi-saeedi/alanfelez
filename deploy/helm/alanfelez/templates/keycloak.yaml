@@ -46,6 +46,10 @@ spec:
             # Phone OTP (ADR-0022)
             - { name: OTP_SMS_PROVIDER, value: {{ .Values.keycloak.otp.smsProvider | quote }} }
             - { name: KC_SPI_SMS_SENDER__CONSOLE__ALLOWED, value: {{ .Values.keycloak.otp.consoleAllowed | quote }} }
+            - { name: KC_SPI_SMS_SENDER__SMSIR__TEMPLATE_ID, value: {{ .Values.keycloak.otp.smsir.templateId | quote }} }
+            - { name: KC_SPI_SMS_SENDER__SMSIR__PARAMETER, value: {{ .Values.keycloak.otp.smsir.parameter | quote }} }
+            - name: KC_SPI_SMS_SENDER__SMSIR__API_KEY
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.sms }}, key: SMSIR_API_KEY, optional: true } }
             {{- range $k, $v := .Values.keycloak.extraEnv }}
             - { name: {{ $k }}, value: {{ $v | quote }} }
             {{- end }}

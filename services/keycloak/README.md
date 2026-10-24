@@ -22,3 +22,9 @@ required action shows the themed «تکمیل ثبت‌نام» page (`apps/keyc
 Accounts without a name are asked once, at their next sign-in. The rules live in the realm file (component
 `declarative-user-profile`). **A realm that already exists doesn't re-import it:** there, set it once in the console
 (Realm settings → User profile → firstName / lastName → Required for users) or `PUT /admin/realms/alanfelez/users/profile`.
+
+## SMS for sign-in codes
+`OTP_SMS_PROVIDER` picks the `SmsSender`: `console` (writes codes to the log, local/staging only) or `smsir`
+(`extensions/.../sms/smsir`): sms.ir "verify" with an approved template whose parameter `CODE` receives the code, so the
+realm's `messageTemplate` isn't used for it. Options: `KC_SPI_SMS_SENDER__SMSIR__API_KEY` (Secret `alanfelez-sms`),
+`__TEMPLATE_ID`, `__PARAMETER` (default `CODE`), `__BASE_URL` (default `https://api.sms.ir/v1`). Helm: `keycloak.otp.smsir`.

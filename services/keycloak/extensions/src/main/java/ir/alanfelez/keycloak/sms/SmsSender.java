@@ -17,4 +17,12 @@ public interface SmsSender extends Provider {
      * @throws SmsException if the message could not be accepted by the provider
      */
     void send(String phoneE164, String message) throws SmsException;
+
+    /**
+     * Sends a one-time code. {@code message} is the full text from the realm config; providers with approved templates
+     * (sms.ir "verify") send {@code code} into their template instead. The default sends {@code message}.
+     */
+    default void sendCode(String phoneE164, String code, String message) throws SmsException {
+        send(phoneE164, message);
+    }
 }
