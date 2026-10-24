@@ -4,8 +4,16 @@ import ir.alanfelez.keycloak.sms.SmsException;
 import ir.alanfelez.keycloak.sms.SmsSender;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
@@ -54,13 +62,31 @@ public class PhoneOtpAuthenticator implements Authenticator {
 
     private static final String RATE_KEY_PREFIX = "alanfelez-otp-rate:";
 
+    /** How long the request waits for the SMS provider before showing the code page anyway. */
+    static final Duration SEND_WAIT = Duration.ofMillis(2500);
+    /** SMS calls are network waits: one virtual thread each. */
+    private static final ExecutorService SENDERS = Executors.newVirtualThreadPerTaskExecutor();
+
     @Override
     public void authenticate(AuthenticationFlowContext ctx) {
         AuthenticationSessionModel as = ctx.getAuthenticationSession();
         if (as.getAuthNote(NOTE_PHONE) != null && as.getAuthNote(NOTE_HASH) != null) {
             ctx.challenge(codeForm(ctx, null));
         } else {
+            warmUp(ctx);
             ctx.challenge(phoneForm(ctx, null, null));
+        }
+    }
+
+    /** Lets the SMS provider open its connection while the user types the number (see {@link SmsSender#warmUp}). */
+    private void warmUp(AuthenticationFlowContext ctx) {
+        try {
+            SmsSender sender = ctx.getSession().getProvider(SmsSender.class, OtpSettings.from(ctx.getAuthenticatorConfig()).smsProvider());
+            if (sender != null) {
+                sender.warmUp();
+            }
+        } catch (RuntimeException e) {
+            LOG.debugf(e, "SMS warm-up failed");
         }
     }
 
@@ -74,6 +100,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
             case "change" -> {
                 clearCode(ctx.getAuthenticationSession());
                 ctx.getAuthenticationSession().removeAuthNote(NOTE_PHONE);
+                warmUp(ctx);
                 ctx.challenge(phoneForm(ctx, null, null));
             }
             default -> send(ctx, form.getFirst("phone"));
@@ -124,10 +151,31 @@ public class PhoneOtpAuthenticator implements Authenticator {
             ctx.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR, phoneForm(ctx, "smsSendFailed", null));
             return;
         }
+        // The code page shouldn't wait on a slow SMS link: send in the background and wait at most SEND_WAIT. A provider
+        // that refuses quickly (bad key, no credit) still shows the error; one still busy after that finishes on its
+        // own, and if it then fails the user can ask for a new code.
+        String masked = PhoneNumbers.mask(phone);
+        CompletableFuture<Void> sending = CompletableFuture.runAsync(() -> {
+            try {
+                sender.sendCode(phone, code, s.message(code));
+            } catch (SmsException e) {
+                throw new CompletionException(e);
+            }
+        }, SENDERS);
         try {
-            sender.sendCode(phone, code, s.message(code));
-        } catch (SmsException e) {
-            LOG.errorf(e, "SMS sending failed for %s via %s", PhoneNumbers.mask(phone), s.smsProvider());
+            sending.get(SEND_WAIT.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            sending.whenComplete((ok, err) -> {
+                if (err != null) {
+                    LOG.errorf(err, "SMS sending failed (in the background) for %s via %s", masked, s.smsProvider());
+                }
+            });
+        } catch (ExecutionException e) {
+            LOG.errorf(e.getCause(), "SMS sending failed for %s via %s", masked, s.smsProvider());
+            ctx.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR, phoneForm(ctx, "smsSendFailed", null));
+            return;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             ctx.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR, phoneForm(ctx, "smsSendFailed", null));
             return;
         }

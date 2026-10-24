@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-24 (sms.ir sign-in codes on staging)
+Last updated: 2026-10-24 (faster sign-in code page)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -54,6 +54,8 @@ Last updated: 2026-10-24 (sms.ir sign-in codes on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 Sign-in codes: the connection to sms.ir is opened while the user types the number, and the code page no
+  longer waits for a slow send (at most 2.5 s). Codes still took 30–60 s to reach phones: the client asked sms.ir support.
 - 2026-10-24 Production (alanfelez.ir) sends sign-in codes by real SMS through sms.ir, like staging.
 - 2026-10-24 Staging sends sign-in codes by real SMS (sms.ir verify, template 972517); key sealed in `alanfelez-sms`.
   `OTP_SMS_PROVIDER` now overrides the realm's stored provider (the realm import had frozen "console").

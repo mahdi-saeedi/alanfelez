@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 /**
@@ -24,6 +25,10 @@ public class SmsIrSender implements SmsSender {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
     private static final Pattern STATUS_OK = Pattern.compile("\"status\"\\s*:\\s*1\\b");
+
+    /** Warm-ups are skipped while a recent one keeps the connection open (the JDK client keeps idle ones ~30 s). */
+    static final long WARM_EVERY_MS = 15_000;
+    private static final AtomicLong lastWarm = new AtomicLong();
 
     private final HttpClient http;
     private final String baseUrl;
@@ -80,6 +85,27 @@ public class SmsIrSender implements SmsSender {
             // The body carries sms.ir's reason (bad key, template not approved, no credit…); never the key itself.
             throw new SmsException("sms.ir refused the message: HTTP " + res.statusCode() + " " + abbreviate(res.body()));
         }
+    }
+
+    /**
+     * Opens the connection to sms.ir in the background (TLS handshake included) with a request that carries no key and
+     * sends nothing; the reply is ignored. The shared HttpClient keeps the connection for the send that follows.
+     * At most once per {@link #WARM_EVERY_MS} for all sessions.
+     */
+    @Override
+    public void warmUp() {
+        long now = System.currentTimeMillis();
+        long last = lastWarm.get();
+        if (http == null || now - last < WARM_EVERY_MS || !lastWarm.compareAndSet(last, now)) {
+            return;
+        }
+        HttpRequest req = HttpRequest.newBuilder(URI.create(baseUrl + "/")).timeout(TIMEOUT).GET().build();
+        http.sendAsync(req, HttpResponse.BodyHandlers.discarding());
+    }
+
+    /** Tests only: forget the last warm-up. */
+    static void resetWarmUp() {
+        lastWarm.set(0);
     }
 
     private HttpResponse<String> sendOnce(HttpRequest req) throws IOException, InterruptedException {

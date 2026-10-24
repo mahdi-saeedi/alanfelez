@@ -25,4 +25,11 @@ public interface SmsSender extends Provider {
     default void sendCode(String phoneE164, String code, String message) throws SmsException {
         send(phoneE164, message);
     }
+
+    /**
+     * Called when the phone form is shown, while the user is still typing: a provider behind a slow link can open its
+     * connection now, so the send itself doesn't wait for it. Must return at once and never throw. Default: nothing.
+     */
+    default void warmUp() {
+    }
 }
