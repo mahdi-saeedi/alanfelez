@@ -47,12 +47,14 @@ Last updated: 2026-10-24 (sms.ir sign-in codes on staging)
 - [ ] Switch production out of test mode (LAUNCH §3): `env: production`, real providers, `seedProfiles: reference`,
       `indexable: true`, `consoleAllowed: false`.
 - [ ] **New production secrets** (`bootstrap.sh reseal` on the production server); today it shares staging's.
+      Include `alanfelez-sms` (sms.ir key), copied from staging on 2026-10-24.
 - [ ] Postgres: second instance and storage size plan; Keycloak 2 replicas.
 - [ ] First staff accounts on production (with TOTP); disable the Keycloak bootstrap admin.
 - [ ] Monitoring and alerts; restore drill; a penetration test by someone else.
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-24 Production (alanfelez.ir) sends sign-in codes by real SMS through sms.ir, like staging.
 - 2026-10-24 Staging sends sign-in codes by real SMS (sms.ir verify, template 972517); key sealed in `alanfelez-sms`.
   `OTP_SMS_PROVIDER` now overrides the realm's stored provider (the realm import had frozen "console").
 - 2026-10-24 Keycloak 26.8.1: its image ships the fixed `ca-certificates` (CVE-2026-114406, CRITICAL), which had
