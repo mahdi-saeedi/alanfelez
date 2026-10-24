@@ -27,8 +27,19 @@ public record OtpSettings(
     public static final OtpSettings DEFAULTS =
             new OtpSettings(6, 120, 5, 120, 5, "console", "کد ورود الان‌فلز: {code}");
 
+    /** Environment variable that picks the SMS sender; set by the deployment (keycloak.otp.smsProvider in Helm values). */
+    public static final String SMS_PROVIDER_ENV = "OTP_SMS_PROVIDER";
+
     /** Reads settings from the authenticator config, falling back to defaults for missing or invalid values. */
     public static OtpSettings from(AuthenticatorConfigModel model) {
+        return from(model, System.getenv(SMS_PROVIDER_ENV));
+    }
+
+    /**
+     * Like {@link #from(AuthenticatorConfigModel)}, with the deployment's SMS provider. When set it wins over the realm
+     * config: the realm file is imported only once, so a realm created with "console" would otherwise keep it forever.
+     */
+    static OtpSettings from(AuthenticatorConfigModel model, String providerFromEnv) {
         Map<String, String> c = model == null || model.getConfig() == null ? Map.of() : model.getConfig();
         return new OtpSettings(
                 intOr(c.get(CODE_LENGTH), DEFAULTS.codeLength(), 4, 10),
@@ -36,7 +47,7 @@ public record OtpSettings(
                 intOr(c.get(MAX_ATTEMPTS), DEFAULTS.maxAttempts(), 1, 10),
                 intOr(c.get(RESEND_COOLDOWN_SECONDS), DEFAULTS.resendCooldownSeconds(), 10, 900),
                 intOr(c.get(MAX_SENDS_PER_PHONE_PER_HOUR), DEFAULTS.maxSendsPerPhonePerHour(), 1, 50),
-                strOr(c.get(SMS_PROVIDER), DEFAULTS.smsProvider()),
+                strOr(providerFromEnv, strOr(c.get(SMS_PROVIDER), DEFAULTS.smsProvider())),
                 strOr(c.get(MESSAGE_TEMPLATE), DEFAULTS.messageTemplate()));
     }
 

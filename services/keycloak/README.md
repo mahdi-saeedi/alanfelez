@@ -24,7 +24,8 @@ Accounts without a name are asked once, at their next sign-in. The rules live in
 (Realm settings → User profile → firstName / lastName → Required for users) or `PUT /admin/realms/alanfelez/users/profile`.
 
 ## SMS for sign-in codes
-`OTP_SMS_PROVIDER` picks the `SmsSender`: `console` (writes codes to the log, local/staging only) or `smsir`
+`OTP_SMS_PROVIDER` picks the `SmsSender` (it wins over the realm's stored `smsProvider`, which the one-time realm import
+froze): `console` (writes codes to the log, local/staging only) or `smsir`
 (`extensions/.../sms/smsir`): sms.ir "verify" with an approved template whose parameter `CODE` receives the code, so the
 realm's `messageTemplate` isn't used for it. Options: `KC_SPI_SMS_SENDER__SMSIR__API_KEY` (Secret `alanfelez-sms`),
 `__TEMPLATE_ID`, `__PARAMETER` (default `CODE`), `__BASE_URL` (default `https://api.sms.ir/v1`). Helm: `keycloak.otp.smsir`.
