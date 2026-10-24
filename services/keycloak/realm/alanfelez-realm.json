@@ -165,7 +165,7 @@
         "smsProvider": "${OTP_SMS_PROVIDER:console}",
         "messageTemplate": "کد ورود الان‌فلز: {code}",
         "codeLength": "6",
-        "ttlSeconds": "120",
+        "ttlSeconds": "300",
         "maxAttempts": "5",
         "resendCooldownSeconds": "120",
         "maxSendsPerPhonePerHour": "5"
