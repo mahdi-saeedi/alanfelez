@@ -36,7 +36,7 @@ public class SmsIrSenderFactory implements SmsSenderFactory {
 
     @Override
     public void init(Config.Scope config) {
-        http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+        http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
         baseUrl = config.get("base-url", "https://api.sms.ir/v1").replaceAll("/+$", "");
         apiKey = config.get("api-key", "");
         parameter = config.get("parameter", "CODE");

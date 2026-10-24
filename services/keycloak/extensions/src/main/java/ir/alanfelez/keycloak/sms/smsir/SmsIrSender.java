@@ -4,6 +4,7 @@ import ir.alanfelez.keycloak.sms.SmsException;
 import ir.alanfelez.keycloak.sms.SmsSender;
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -57,7 +58,18 @@ public class SmsIrSender implements SmsSender {
                 .build();
         HttpResponse<String> res;
         try {
-            res = http.send(req, HttpResponse.BodyHandlers.ofString());
+            res = sendOnce(req);
+        } catch (HttpConnectTimeoutException e) {
+            // No connection means nothing was sent, so one retry can't send the code twice. Servers in Iran lose
+            // packets now and then; a second attempt usually connects at once.
+            try {
+                res = sendOnce(req);
+            } catch (IOException e2) {
+                throw new SmsException("sms.ir unreachable: " + e2.getMessage(), e2);
+            } catch (InterruptedException e2) {
+                Thread.currentThread().interrupt();
+                throw new SmsException("interrupted while calling sms.ir", e2);
+            }
         } catch (IOException e) {
             throw new SmsException("sms.ir unreachable: " + e.getMessage(), e);
         } catch (InterruptedException e) {
@@ -68,6 +80,10 @@ public class SmsIrSender implements SmsSender {
             // The body carries sms.ir's reason (bad key, template not approved, no credit…); never the key itself.
             throw new SmsException("sms.ir refused the message: HTTP " + res.statusCode() + " " + abbreviate(res.body()));
         }
+    }
+
+    private HttpResponse<String> sendOnce(HttpRequest req) throws IOException, InterruptedException {
+        return http.send(req, HttpResponse.BodyHandlers.ofString());
     }
 
     /** +989121234567 → 09121234567, the form sms.ir expects. */
