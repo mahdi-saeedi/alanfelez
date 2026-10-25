@@ -26,6 +26,7 @@
 | F15 | 🟢 | ⏳ **E-mail provider.** Contact-form messages and ticket replies show in the admin (menu badges) and the user's account. To also notify staff by e-mail (and users when support replies), we need an SMTP / e-mail service account. Or should ticket replies send an SMS (paid per message)? | Support (SCOPE §12, §16) |
 | F16 | 🟠 | ⏳ **IME auction data.** Is there an IME data feed/API you have access to (or a provider)? Until then staff enter each session in the admin (form or pasted table). Which metals/products should the page cover, and do you want the offerings announced *before* the session (volumes and base prices) or only the results? | Daily auctions (SCOPE §7, §17) |
 | F17 | 🟢 | ⏳ **Alert limits.** We set: 20 alerts per user, 10 alert SMS per user per day, one SMS per alert per hour, re-arm after a 0.5 % move back, daily-move alerts 0.5–50 %. SMS cost is included in Gold (#19). OK, or different limits? | SMS alerts (SCOPE §17) |
+| F18 | 🟢 | ✅ **Global (LME) prices free** (2026-10-25, written OK in the chat): «قیمت‌های جهانی (LME) مس، آلومینیوم، روی، سرب، آهن، چدن و برنج برای همه‌ی کاربران به‌صورت رایگان نمایش داده شود». Done for the four that have LME series; iron, cast iron and brass get theirs when a source is added (new LME series are free automatically). | Tier matrix (SCOPE §6) |
 
 ## Round 1 — client answers (numbering = client doc)
 

@@ -196,10 +196,11 @@ ON CONFLICT (slug) DO NOTHING
 RETURNING id;
 
 -- name: InsertSeries :one
--- New series are never base series (the free tier sees base series only: the tier matrix, owner's decision).
+-- New series are base (free) only in the LME market: global prices are free for everyone (client, 2026-10-25).
+-- Other markets stay paid until the owner decides otherwise (the tier matrix).
 -- No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
 INSERT INTO market.price_series (slug, product_id, market_id, currency, unit, is_base, max_jump_bp, sort)
-SELECT sqlc.arg(slug), p.id, mk.id, sqlc.arg(currency), sqlc.arg(unit), false, sqlc.arg(max_jump_bp),
+SELECT sqlc.arg(slug), p.id, mk.id, sqlc.arg(currency), sqlc.arg(unit), mk.slug = 'lme', sqlc.arg(max_jump_bp),
        (SELECT COALESCE(max(sort), 0) + 1 FROM market.price_series)
 FROM market.products p, market.markets mk
 WHERE p.slug = sqlc.arg(product) AND mk.slug = sqlc.arg(market)

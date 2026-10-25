@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (forgot password by SMS)
+Last updated: 2026-10-25 (global prices free)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -17,9 +17,6 @@ Last updated: 2026-10-25 (forgot password by SMS)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Global (LME) prices on the home page, public** (asked 2026-10-21): today LME series are Silver/Gold
-      (`is_base: false`, SCOPE §6). Needs the owner's OK to change the tier matrix, and global series for brass,
-      iron and cast iron (none yet; the client knows a source). Later: which prices are Silver/Gold only.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
@@ -49,6 +46,9 @@ Last updated: 2026-10-25 (forgot password by SMS)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 Global (LME) prices are free for everyone (client's written OK in the chat, owner asked for it): migration
+  00007, and new LME series added in the admin are free too. Global series exist for copper, aluminum, zinc and lead;
+  iron, cast iron and brass have none yet (the client knows a source: add them in the admin, market LME).
 - 2026-10-25 «فراموشی رمز عبور» by SMS code (owner OK): password page link → phone → code (same 5/hour limit) → new password. Existing accounts only. On staging first; the owner tests it with his number before publishing.
 - 2026-10-25 Production: the demo price generator is off (owner OK), so prices entered in the admin stay; the owner made the client's production staff account.
 - 2026-10-25 Site icons (favicon from the logo's mark, app icons from the whole logo) and a 1200×630 share picture per

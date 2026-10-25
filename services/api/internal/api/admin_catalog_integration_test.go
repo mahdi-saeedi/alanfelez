@@ -137,6 +137,7 @@ func TestCatalogAdmin(t *testing.T) {
 		// same product × market × currency × unit under another slug
 		{http.MethodPost, "/v1/admin/series", "editor", map[string]any{"slug": "nickel-2", "product": "nickel-cathode", "market": "lme", "currency": "USD", "unit": "ton"}, 409},
 		{http.MethodPost, "/v1/admin/prices", "editor", map[string]any{"series": "nickel-cathode-lme", "amount": "1650000"}, 201},
+		{http.MethodPost, "/v1/admin/series", "editor", map[string]any{"slug": "nickel-cathode-free", "product": "nickel-cathode", "market": "free", "currency": "IRR", "unit": "kg"}, 201},
 		{http.MethodPost, "/v1/admin/catalog/active", "support", map[string]any{"kind": "product", "slug": "copper-red", "active": false}, 403},
 		{http.MethodPost, "/v1/admin/catalog/active", "editor", map[string]any{"kind": "series", "slug": "nope", "active": false}, 404},
 	}
@@ -147,8 +148,9 @@ func TestCatalogAdmin(t *testing.T) {
 	}
 	_, body, _ := e.call(http.MethodGet, "/v1/admin/series", "support", nil)
 	for _, it := range body["items"].([]any) {
-		if m := it.(map[string]any); m["slug"] == "nickel-cathode-lme" && m["isBase"] != false {
-			t.Fatalf("a new series must never be a base series: %v", m)
+		// New LME series are free like all global prices (client, 2026-10-25); in other markets they stay paid.
+		if m := it.(map[string]any); (m["slug"] == "nickel-cathode-lme" && m["isBase"] != true) || (m["slug"] == "nickel-cathode-free" && m["isBase"] != false) {
+			t.Fatalf("wrong isBase for a new series: %v", m)
 		}
 	}
 
@@ -169,7 +171,7 @@ func TestCatalogAdmin(t *testing.T) {
 	if e.copperRedPublic() == nil {
 		t.Fatal("copper-red-free should be listed again")
 	}
-	for action, want := range map[string]int{"metal.create": 1, "product.create": 1, "series.create": 1, "product.deactivate": 1, "product.activate": 1} {
+	for action, want := range map[string]int{"metal.create": 1, "product.create": 1, "series.create": 2, "product.deactivate": 1, "product.activate": 1} {
 		if n := e.auditCount(action); n != want {
 			t.Errorf("%s audit rows = %d, want %d", action, n, want)
 		}
