@@ -10,6 +10,8 @@ Last updated: 2026-10-26 (full sign-up form on staging)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
+- [ ] Show the sign-up answers (activity, metals, province) in the admin users list (token mappers → `app.users` →
+      API → admin).
 - [ ] Admin screen for **feature flags** (payments, English site, licences page are DB-only today; needed before launch).
 - [ ] **Limit on simultaneous devices** for paid accounts (SECURITY §5, the last open security item).
 - [ ] SEO: Lighthouse check (icons and the share image are done).
