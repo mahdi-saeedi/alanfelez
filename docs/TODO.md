@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-24 (faster sign-in code page)
+Last updated: 2026-10-25 (icons, share image, sign-in error page)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -12,8 +12,7 @@ Last updated: 2026-10-24 (faster sign-in code page)
 ## Next (no one else needed)
 - [ ] Admin screen for **feature flags** (payments, English site, licences page are DB-only today; needed before launch).
 - [ ] **Limit on simultaneous devices** for paid accounts (SECURITY §5, the last open security item).
-- [ ] Persian/English **sign-in error page** instead of Auth.js's English "Server error".
-- [ ] SEO quick wins: **favicon + app icons**, a **default share image** (Telegram/WhatsApp previews), Lighthouse check.
+- [ ] SEO: Lighthouse check (icons and the share image are done).
 - [ ] Windows without Ubuntu: `.gitattributes` (LF line endings) and test the setup on a real Windows machine.
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
@@ -33,7 +32,9 @@ Last updated: 2026-10-24 (faster sign-in code page)
 - [ ] **ArvanCloud Object Storage bucket** + `alanfelez-backup-s3` secret → database backups on for production and
       staging. Until then a lost server loses user data.
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
-- [ ] Wording of the **home page title/description** (SEO), and whether to build **per-metal price pages** («قیمت مس امروز»).
+- [ ] Wording of the **home page title/description** (SEO).
+- [ ] **Per-metal price pages** («قیمت مس امروز», good for Google): the client isn't sure yet (2026-10-25). Suggest it
+  again when they ask "what else can we do?".
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 - [ ] Ask the client whether `alanfelez.ir` had **email or a website** before the DNS move (records not copied are gone).
 
@@ -54,6 +55,9 @@ Last updated: 2026-10-24 (faster sign-in code page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 Site icons (favicon from the logo's mark, app icons from the whole logo) and a 1200×630 share picture per
+  language for Telegram/WhatsApp previews, on every page. Failed sign-ins land on a Persian/English page
+  (`/auth-error`) instead of Auth.js's English "Server error".
 - 2026-10-24 Sign-in codes stay valid 5 minutes (was 2), since SMS can take a minute; a new code after 120 s as before.
 - 2026-10-24 Fixed the sign-in code limit (5 per phone per hour) never resetting: updating the counter dropped its
   one-hour expiry. On production after the next publish.

@@ -17,6 +17,9 @@ const rewritingFetch: typeof fetch = (input, init) => {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   session: { strategy: "jwt", maxAge: SESSION_MAX_AGE },
+  // Our own Persian/English page instead of Auth.js's English ones (src/app/[locale]/auth-error): its "Server error"
+  // page, and its sign-in page, which it shows for errors like an expired form (we always sign in with Keycloak).
+  pages: { error: "/auth-error", signIn: "/auth-error" },
   providers: [
     Keycloak({
       issuer: keycloak.issuer,
