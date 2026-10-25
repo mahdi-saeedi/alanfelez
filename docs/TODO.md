@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (global prices free)
+Last updated: 2026-10-25 (hero carousel, chart compare)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -30,6 +30,8 @@ Last updated: 2026-10-25 (global prices free)
 - [ ] Ask the client whether `alanfelez.ir` had **email or a website** before the DNS move (records not copied are gone).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
+- [ ] **Global prices for iron, brass, cast iron** (LME doesn't trade them) and a source for automatic global prices:
+  the client will send the sources. Ask them again; then a «بازار جهانی» market or a price source.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
 - [ ] **F7 SMS provider** (account, sender number, approved templates). Sign-up needs it.
 - [ ] F11 scope sign-off · F8 legal review (terms, privacy, refunds) · F14 content edits · F4 English review.
@@ -46,6 +48,8 @@ Last updated: 2026-10-25 (global prices free)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 Home hero card: the global prices' 1-month charts in turn (every 6 s, pauses on hover, none with reduced
+  motion). Chart page: product list grouped «فلز · دسته», and a side panel comparing up to 4 charts (c1–c4 in the URL).
 - 2026-10-25 Home page «قیمت لحظه‌ای فلزات» block shows the global (LME) prices only (client); the hero card stays on domestic copper.
 - 2026-10-25 Global (LME) prices are free for everyone (client's written OK in the chat, owner asked for it): migration
   00007, and new LME series added in the admin are free too. Global series exist for copper, aluminum, zinc and lead;

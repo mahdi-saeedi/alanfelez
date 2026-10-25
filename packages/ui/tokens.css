@@ -43,6 +43,7 @@
   --animate-draw: draw 1.2s ease-out forwards;
   --animate-flash-up: flash-up 1.2s ease-out;
   --animate-flash-down: flash-down 1.2s ease-out;
+  --animate-fade-in: fade-in 400ms ease-out; /* home hero chart switching to the next metal */
 
   @keyframes ticker-scroll {
     from { transform: translateX(0); }
@@ -57,6 +58,9 @@
   }
   @keyframes flash-down {
     from { background-color: var(--color-down-bg); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
   }
 }
 
