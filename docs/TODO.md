@@ -17,9 +17,6 @@ Last updated: 2026-10-25 (global prices free)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
-  Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)
-  and sets a new one in the account page. A proper flow is a Keycloak change for the owner.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
@@ -52,6 +49,7 @@ Last updated: 2026-10-25 (global prices free)
 - 2026-10-25 Global (LME) prices are free for everyone (client's written OK in the chat, owner asked for it): migration
   00007, and new LME series added in the admin are free too. Global series exist for copper, aluminum, zinc and lead;
   iron, cast iron and brass have none yet (the client knows a source: add them in the admin, market LME).
+- 2026-10-25 «فراموشی رمز عبور» by SMS code (owner OK): password page link → phone → code (same 5/hour limit) → new password. Existing accounts only. On staging first; the owner tests it with his number before publishing.
 - 2026-10-25 Production: the demo price generator is off (owner OK), so prices entered in the admin stay; the owner made the client's production staff account.
 - 2026-10-25 Site icons (favicon from the logo's mark, app icons from the whole logo) and a 1200×630 share picture per
   language for Telegram/WhatsApp previews, on every page. Failed sign-ins land on a Persian/English page

@@ -25,6 +25,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.SingleUseObjectProvider;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
 /**
@@ -55,6 +56,13 @@ public class PhoneOtpAuthenticator implements Authenticator {
     static final String NOTE_EXPIRES = "alanfelez.otp.expires";
     static final String NOTE_ATTEMPTS = "alanfelez.otp.attempts";
     static final String NOTE_SENT_AT = "alanfelez.otp.sentAt";
+    /** "Forgot password" mode: only existing accounts, and a new password is asked right after the code. */
+    static final String NOTE_RESET = "alanfelez.otp.reset";
+    /**
+     * Set by the theme's «رمز عبور را فراموش کرده‌اید؟» link (login.ftl) just before it restarts the login, so this step
+     * starts in reset mode. Keycloak's own e-mail reset can't work (no SMTP), so the link never goes there.
+     */
+    static final String RESET_COOKIE = "alanfelez_reset";
 
     static final String ATTR_PHONE = "phoneNumber";
     static final String ATTR_PHONE_VERIFIED = "phoneNumberVerified";
@@ -69,6 +77,9 @@ public class PhoneOtpAuthenticator implements Authenticator {
     @Override
     public void authenticate(AuthenticationFlowContext ctx) {
         AuthenticationSessionModel as = ctx.getAuthenticationSession();
+        if (resetRequested(ctx)) {
+            as.setAuthNote(NOTE_RESET, "1");
+        }
         if (as.getAuthNote(NOTE_PHONE) != null && as.getAuthNote(NOTE_HASH) != null) {
             ctx.challenge(codeForm(ctx, null));
         } else {
@@ -112,8 +123,22 @@ public class PhoneOtpAuthenticator implements Authenticator {
             ctx.failureChallenge(AuthenticationFlowError.INVALID_CREDENTIALS, phoneForm(ctx, "invalidPhone", rawPhone));
             return;
         }
+        if (isReset(ctx) && ctx.getSession().users().getUserByUsername(ctx.getRealm(), PhoneNumbers.toUsername(phone.get())) == null) {
+            // Resetting never creates an account (the normal sign-in does that).
+            ctx.failureChallenge(AuthenticationFlowError.INVALID_USER, phoneForm(ctx, "resetNoAccount", rawPhone));
+            return;
+        }
         ctx.getAuthenticationSession().setAuthNote(NOTE_PHONE, phone.get());
         issueCode(ctx, phone.get(), true);
+    }
+
+    private static boolean resetRequested(AuthenticationFlowContext ctx) {
+        var cookie = ctx.getHttpRequest().getHttpHeaders().getCookies().get(RESET_COOKIE);
+        return cookie != null && "1".equals(cookie.getValue());
+    }
+
+    private static boolean isReset(AuthenticationFlowContext ctx) {
+        return "1".equals(ctx.getAuthenticationSession().getAuthNote(NOTE_RESET));
     }
 
     private void resend(AuthenticationFlowContext ctx) {
@@ -223,6 +248,11 @@ public class PhoneOtpAuthenticator implements Authenticator {
             ctx.failureChallenge(AuthenticationFlowError.USER_DISABLED, phoneForm(ctx, "accountDisabledMessage", null));
             return;
         }
+        if (isReset(ctx) && user.credentialManager().isConfiguredFor(PasswordCredentialModel.TYPE)) {
+            // The code proved the phone: Keycloak asks for the new password (login-update-password.ftl) next.
+            user.addRequiredAction(UserModel.RequiredAction.UPDATE_PASSWORD);
+            LOG.infof("Password reset by SMS code: %s", PhoneNumbers.mask(phone));
+        }
         ctx.setUser(user);
         ctx.success();
     }
@@ -275,7 +305,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
     }
 
     private Response phoneForm(AuthenticationFlowContext ctx, String error, String enteredPhone) {
-        LoginFormsProvider f = ctx.form();
+        LoginFormsProvider f = ctx.form().setAttribute("resetMode", isReset(ctx));
         if (enteredPhone != null) {
             f.setAttribute("phone", enteredPhone);
         }
