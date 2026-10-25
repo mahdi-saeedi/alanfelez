@@ -10,7 +10,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jboss.logging.Logger;
 
 /**
  * Sends one-time codes through sms.ir "verify" (ارسال سریع): an approved template on the sms.ir panel with one
@@ -24,6 +26,8 @@ import java.util.regex.Pattern;
 public class SmsIrSender implements SmsSender {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
+    private static final Logger LOG = Logger.getLogger(SmsIrSender.class);
+    private static final Pattern MESSAGE_ID = Pattern.compile("\"messageId\"\\s*:\\s*(\\d+)");
     private static final Pattern STATUS_OK = Pattern.compile("\"status\"\\s*:\\s*1\\b");
 
     /** Warm-ups are skipped while a recent one keeps the connection open (the JDK client keeps idle ones ~30 s). */
@@ -61,6 +65,7 @@ public class SmsIrSender implements SmsSender {
                 .header("x-api-key", apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(verifyBody(localMobile(phoneE164), templateId, parameter, code)))
                 .build();
+        long started = System.nanoTime();
         HttpResponse<String> res;
         try {
             res = sendOnce(req);
@@ -85,6 +90,21 @@ public class SmsIrSender implements SmsSender {
             // The body carries sms.ir's reason (bad key, template not approved, no credit…); never the key itself.
             throw new SmsException("sms.ir refused the message: HTTP " + res.statusCode() + " " + abbreviate(res.body()));
         }
+        // When codes arrive late, this shows how long our side took; sms.ir support traces a message by its id.
+        LOG.infof("sms.ir accepted a code for %s in %d ms (messageId %s)", maskMobile(phoneE164),
+                (System.nanoTime() - started) / 1_000_000, messageId(res.body()));
+    }
+
+    /** The messageId from sms.ir's reply ({@code "data":{"messageId":123,...}}), or "?" if missing. */
+    static String messageId(String body) {
+        Matcher m = body == null ? null : MESSAGE_ID.matcher(body);
+        return m != null && m.find() ? m.group(1) : "?";
+    }
+
+    /** +989121234567 → 0912***4567 for logs. */
+    static String maskMobile(String phoneE164) {
+        String p = phoneE164 == null ? "" : phoneE164;
+        return p.length() == 13 ? "0" + p.substring(3, 6) + "***" + p.substring(9) : "***";
     }
 
     /**

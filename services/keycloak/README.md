@@ -35,3 +35,5 @@ still shows «ارسال پیامک ممکن نشد» while a slow link no longe
 30–60 s reported on 2026-10-24) is on sms.ir's side.
 Code lifetime: 5 minutes (`OTP_TTL_SECONDS`, Helm `keycloak.otp.ttlSeconds`; wins over the realm's stored `ttlSeconds`,
 like `OTP_SMS_PROVIDER`). A new code can still be asked for after 120 s (`resendCooldownSeconds`); it replaces the old one.
+Each accepted code is logged as `sms.ir accepted a code for 0912***4567 in 412 ms (messageId 88412)`: if codes arrive
+late, compare that time with the phone, and give sms.ir support the messageId.
