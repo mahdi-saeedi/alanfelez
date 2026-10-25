@@ -5,6 +5,10 @@ import ir.alanfelez.keycloak.sms.SmsSender;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -23,6 +27,11 @@ import org.keycloak.events.EventType;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserCredentialModel;
+import org.keycloak.models.credential.PasswordCredentialModel;
+import org.keycloak.policy.PasswordPolicyManagerProvider;
+import org.keycloak.policy.PolicyError;
 import org.keycloak.models.SingleUseObjectProvider;
 import org.keycloak.models.UserModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
@@ -47,6 +56,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
 
     static final String FORM_PHONE = "login-phone.ftl";
     static final String FORM_CODE = "login-phone-otp.ftl";
+    static final String FORM_SIGNUP = "login-complete-signup.ftl";
 
     // Authentication-session notes (server side, never sent to the browser).
     static final String NOTE_PHONE = "alanfelez.otp.phone";
@@ -55,9 +65,18 @@ public class PhoneOtpAuthenticator implements Authenticator {
     static final String NOTE_EXPIRES = "alanfelez.otp.expires";
     static final String NOTE_ATTEMPTS = "alanfelez.otp.attempts";
     static final String NOTE_SENT_AT = "alanfelez.otp.sentAt";
+    /** Set once the code is right but the account still needs the sign-up form (id of that user). */
+    static final String NOTE_SIGNUP_USER = "alanfelez.signup.user";
 
     static final String ATTR_PHONE = "phoneNumber";
     static final String ATTR_PHONE_VERIFIED = "phoneNumberVerified";
+    // Sign-up form (SignupForm). Declared in the realm's user profile so admins see them.
+    static final String ATTR_ACTIVITY = "activity";
+    static final String ATTR_METALS = "metals";
+    static final String ATTR_PROVINCE = "province";
+    static final String ATTR_CITY = "city";
+    static final String ATTR_ADDRESS = "address";
+    static final String ATTR_TERMS_ACCEPTED_AT = "termsAcceptedAt";
 
     private static final String RATE_KEY_PREFIX = "alanfelez-otp-rate:";
 
@@ -69,6 +88,11 @@ public class PhoneOtpAuthenticator implements Authenticator {
     @Override
     public void authenticate(AuthenticationFlowContext ctx) {
         AuthenticationSessionModel as = ctx.getAuthenticationSession();
+        UserModel pending = signupUser(ctx);
+        if (pending != null) {
+            ctx.challenge(signupForm(ctx, pending, null, Map.of()));
+            return;
+        }
         if (as.getAuthNote(NOTE_PHONE) != null && as.getAuthNote(NOTE_HASH) != null) {
             ctx.challenge(codeForm(ctx, null));
         } else {
@@ -96,8 +120,10 @@ public class PhoneOtpAuthenticator implements Authenticator {
         switch (op) {
             case "verify" -> verify(ctx, form.getFirst("code"));
             case "resend" -> resend(ctx);
+            case "complete" -> complete(ctx, form);
             case "change" -> {
                 clearCode(ctx.getAuthenticationSession());
+                ctx.getAuthenticationSession().removeAuthNote(NOTE_SIGNUP_USER);
                 ctx.getAuthenticationSession().removeAuthNote(NOTE_PHONE);
                 warmUp(ctx);
                 ctx.challenge(phoneForm(ctx, null, null));
@@ -223,8 +249,108 @@ public class PhoneOtpAuthenticator implements Authenticator {
             ctx.failureChallenge(AuthenticationFlowError.USER_DISABLED, phoneForm(ctx, "accountDisabledMessage", null));
             return;
         }
+        if (needsSignup(ctx.getRealm(), user)) {
+            // The code proved the phone; the account is finished (and usable) only after the sign-up form.
+            ctx.getAuthenticationSession().setAuthNote(NOTE_SIGNUP_USER, user.getId());
+            ctx.challenge(signupForm(ctx, user, null, Map.of()));
+            return;
+        }
         ctx.setUser(user);
         ctx.success();
+    }
+
+    /**
+     * New accounts, and older ones the first time after this form existed, fill it once: when the name, the activity or
+     * the terms acceptance is missing, or there is no password yet. Staff accounts are made by an admin and skip it.
+     */
+    static boolean needsSignup(RealmModel realm, UserModel user) {
+        RoleModel staff = realm.getRole("staff");
+        if (staff != null && user.hasRole(staff)) {
+            return false;
+        }
+        return blank(user.getFirstName()) || blank(user.getFirstAttribute(ATTR_ACTIVITY))
+                || blank(user.getFirstAttribute(ATTR_TERMS_ACCEPTED_AT)) || !hasPassword(user);
+    }
+
+    private static boolean hasPassword(UserModel user) {
+        return user.credentialManager().isConfiguredFor(PasswordCredentialModel.TYPE);
+    }
+
+    private static boolean blank(String v) {
+        return v == null || v.isBlank();
+    }
+
+    private UserModel signupUser(AuthenticationFlowContext ctx) {
+        String id = ctx.getAuthenticationSession().getAuthNote(NOTE_SIGNUP_USER);
+        return id == null ? null : ctx.getSession().users().getUserById(ctx.getRealm(), id);
+    }
+
+    private void complete(AuthenticationFlowContext ctx, MultivaluedMap<String, String> form) {
+        UserModel user = signupUser(ctx);
+        if (user == null) {
+            ctx.challenge(phoneForm(ctx, null, null));
+            return;
+        }
+        boolean needPassword = !hasPassword(user);
+        SignupForm f = SignupForm.from(form);
+        Map<String, String> errors = new LinkedHashMap<>(f.errors(needPassword));
+        if (needPassword && !errors.containsKey("password") && !errors.containsKey("passwordConfirm")) {
+            PolicyError pe = ctx.getSession().getProvider(PasswordPolicyManagerProvider.class).validate(ctx.getRealm(), user, f.password());
+            if (pe != null) {
+                errors.put("password", pe.getMessage().contains("MinLength") ? "signupPasswordTooShort" : "signupPasswordNotAllowed");
+            }
+        }
+        if (!errors.isEmpty()) {
+            ctx.challenge(signupForm(ctx, user, f, errors));
+            return;
+        }
+        user.setFirstName(f.fullName());
+        user.setSingleAttribute(ATTR_ACTIVITY, f.activity());
+        setOrRemove(user, ATTR_METALS, f.metals());
+        setOrRemove(user, ATTR_PROVINCE, f.province().isEmpty() ? List.of() : List.of(f.province()));
+        setOrRemove(user, ATTR_CITY, f.city().isEmpty() ? List.of() : List.of(f.city()));
+        setOrRemove(user, ATTR_ADDRESS, f.address().isEmpty() ? List.of() : List.of(f.address()));
+        user.setSingleAttribute(ATTR_TERMS_ACCEPTED_AT, Instant.now().toString());
+        if (needPassword) {
+            user.credentialManager().updateCredential(UserCredentialModel.password(f.password(), false));
+        }
+        ctx.getAuthenticationSession().removeAuthNote(NOTE_SIGNUP_USER);
+        LOG.infof("Sign-up form completed: %s", PhoneNumbers.mask(user.getFirstAttribute(ATTR_PHONE)));
+        ctx.setUser(user);
+        ctx.success();
+    }
+
+    private static void setOrRemove(UserModel user, String name, List<String> values) {
+        if (values.isEmpty()) {
+            user.removeAttribute(name);
+        } else {
+            user.setAttribute(name, values);
+        }
+    }
+
+    /** The form, filled from what was posted (never the passwords) or from the account, with errors per field. */
+    private Response signupForm(AuthenticationFlowContext ctx, UserModel user, SignupForm posted, Map<String, String> errors) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("fullName", posted != null ? posted.fullName() : Optional.ofNullable(user.getFirstName()).orElse(""));
+        values.put("activity", posted != null ? posted.activity() : Optional.ofNullable(user.getFirstAttribute(ATTR_ACTIVITY)).orElse(""));
+        values.put("metals", posted != null ? posted.metals() : user.getAttributeStream(ATTR_METALS).toList());
+        values.put("province", posted != null ? posted.province() : Optional.ofNullable(user.getFirstAttribute(ATTR_PROVINCE)).orElse(""));
+        values.put("city", posted != null ? posted.city() : Optional.ofNullable(user.getFirstAttribute(ATTR_CITY)).orElse(""));
+        values.put("address", posted != null ? posted.address() : Optional.ofNullable(user.getFirstAttribute(ATTR_ADDRESS)).orElse(""));
+        String site = Optional.ofNullable(System.getenv("WEB_URL")).filter(v -> !v.isBlank()).orElse("https://alanfelez.ir").replaceAll("/+$", "");
+        String lang = ctx.getSession().getContext().resolveLocale(user).getLanguage();
+        String prefix = "en".equals(lang) ? site + "/en" : site;
+        return ctx.form()
+                .setAttribute("phoneNational", user.getUsername())
+                .setAttribute("needPassword", !hasPassword(user))
+                .setAttribute("values", values)
+                .setAttribute("fieldErrors", errors)
+                .setAttribute("activities", SignupForm.ACTIVITIES)
+                .setAttribute("metalOptions", SignupForm.METALS)
+                .setAttribute("provinces", SignupForm.PROVINCES)
+                .setAttribute("termsUrl", prefix + "/terms")
+                .setAttribute("privacyUrl", prefix + "/privacy")
+                .createForm(FORM_SIGNUP);
     }
 
     private UserModel findOrCreateUser(AuthenticationFlowContext ctx, String phone) {

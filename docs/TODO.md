@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (icons, share image, sign-in error page)
+Last updated: 2026-10-25 (full sign-up form)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -17,6 +17,10 @@ Last updated: 2026-10-25 (icons, share image, sign-in error page)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Full sign-up form** (client, 2026-10-25) is built on `feat/full-signup-form`, tested end to end on a local
+  Keycloak. Owner: OK it, then run `services/keycloak/realm/apply-user-profile.sh` on staging (and later production)
+  **before** it is shipped. Next step after it: show activity/metals/province in the admin users list (token mappers →
+  `app.users` → API → admin).
 - [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
   Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)
   and sets a new one in the account page. A proper flow is a Keycloak change for the owner.

@@ -8,6 +8,17 @@ export const { getKcContextMock } = createGetKcContextMock({
   kcContextExtensionPerPage: {
     "login-phone.ftl": {},
     "login-phone-otp.ftl": { phoneMasked: "+98912***4567", phoneNational: "09121234567", codeLength: 6, resendIn: 42 },
+    "login-complete-signup.ftl": {
+      phoneNational: "09121234567",
+      needPassword: true,
+      values: { fullName: "", activity: "", metals: [], province: "", city: "", address: "" },
+      fieldErrors: {},
+      activities: ["trader", "producer", "industrial-consumer", "distributor", "recycler", "investor", "other"],
+      metalOptions: ["aluminum", "copper", "brass", "zinc", "lead", "iron", "cast-iron"],
+      provinces: ["alborz", "ardabil", "azerbaijan-east", "azerbaijan-west", "bushehr", "chaharmahal-bakhtiari", "fars", "gilan", "golestan", "hamadan", "hormozgan", "ilam", "isfahan", "kerman", "kermanshah", "khorasan-north", "khorasan-razavi", "khorasan-south", "khuzestan", "kohgiluyeh-boyerahmad", "kurdistan", "lorestan", "markazi", "mazandaran", "qazvin", "qom", "semnan", "sistan-baluchestan", "tehran", "yazd", "zanjan"],
+      termsUrl: "https://alanfelez.ir/terms",
+      privacyUrl: "https://alanfelez.ir/privacy",
+    },
   } satisfies KcContextExtensionPerPage,
   overrides: {
     locale: {

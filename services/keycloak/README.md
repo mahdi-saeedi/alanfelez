@@ -16,12 +16,17 @@ Import only happens when the realm **doesn't exist yet**. After changing the rea
 or edit the realm in the console and export it. In Kubernetes the realm is applied by the Keycloak Operator (`KeycloakRealmImport`).
 
 ## Sign-up
-Sign-up and sign-in are the same flow: mobile number → SMS code (`PhoneOtpAuthenticator` creates the account for a new number),
-then the user profile makes **first and last name required** (email optional), so Keycloak's built-in `VERIFY_PROFILE`
-required action shows the themed «تکمیل ثبت‌نام» page (`apps/keycloak-theme/src/login/pages/LoginUpdateProfile.tsx`).
-Accounts without a name are asked once, at their next sign-in. The rules live in the realm file (component
-`declarative-user-profile`). **A realm that already exists doesn't re-import it:** there, set it once in the console
-(Realm settings → User profile → firstName / lastName → Required for users) or `PUT /admin/realms/alanfelez/users/profile`.
+Sign-up and sign-in are the same flow: mobile number → SMS code (`PhoneOtpAuthenticator` creates the account for a new number).
+Then, once, the **sign-up form** (client, 2026-10-25; `SignupForm.java`, page `login-complete-signup.ftl`,
+`apps/keycloak-theme/src/login/pages/LoginCompleteSignup.tsx`): name or company (→ `firstName`), the verified phone
+(read-only), password + repeat, field of activity, the terms checkbox (required); specialty metals, province, city,
+address (optional). Stored as user attributes `activity`, `metals`, `province`, `city`, `address`, `termsAcceptedAt`
+(slugs; labels are in the theme). Older accounts see it once with what they have (no password fields if they have one);
+staff accounts never do. `lastName` is no longer asked.
+
+**The user profile of an existing realm isn't re-imported.** Whenever the profile in the realm file changes, run
+`realm/apply-user-profile.sh` against that realm **before** deploying the code that needs it (the new profile also works
+with the old code). Without it, a new user is sent to Keycloak's own "update profile" page asking for a last name.
 
 ## SMS for sign-in codes
 `OTP_SMS_PROVIDER` picks the `SmsSender` (it wins over the realm's stored `smsProvider`, which the one-time realm import
