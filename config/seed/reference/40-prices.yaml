@@ -42,3 +42,7 @@ datasets:
       - { slug: copper-lme,              product: copper-cathode,      market: lme,  currency: USD, unit: ton, is_base: true,  sort: 120 }
       - { slug: zinc-lme,                product: zinc-ingot,          market: lme,  currency: USD, unit: ton, is_base: true,  sort: 140 }
       - { slug: lead-lme,                product: lead-ingot,          market: lme,  currency: USD, unit: ton, is_base: true,  sort: 150 }
+      # LME doesn't trade these: «بازار جهانی» (migration 00008), prices entered by hand until a source exists.
+      - { slug: brass-yellow-global,     product: brass-yellow,        market: global, currency: USD, unit: ton, is_base: true, sort: 130 }
+      - { slug: rebar-16-global,         product: rebar-16,            market: global, currency: USD, unit: ton, is_base: true, sort: 160 }
+      - { slug: cast-iron-scrap-global,  product: cast-iron-scrap,     market: global, currency: USD, unit: ton, is_base: true, sort: 170 }

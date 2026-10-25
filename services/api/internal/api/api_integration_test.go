@@ -163,6 +163,11 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		if !strings.Contains(raw, `"slug":"copper-lme"`) || !strings.Contains(raw, "980000") {
 			t.Fatalf("%q: the free tier must see LME prices: %s", tok, raw)
 		}
+		for _, g := range []string{"rebar-16-global", "brass-yellow-global", "cast-iron-scrap-global"} {
+			if !strings.Contains(raw, `"slug":"`+g+`"`) {
+				t.Fatalf("%q: the free tier must see the global series %s", tok, g)
+			}
+		}
 		if body["lockedCount"].(float64) < 1 {
 			t.Fatalf("%q: lockedCount = %v", tok, body["lockedCount"])
 		}

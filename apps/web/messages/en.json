@@ -180,7 +180,14 @@
     "compareHint": "Pick up to 4 charts to compare them one under another.",
     "compareSlot": "Chart {n, number}",
     "compareNone": "— none —",
-    "compareOpen": "Open the chart of {name}"
+    "compareOpen": "Open the chart of {name}",
+    "category": "Category",
+    "categories": {
+      "global": "Global price",
+      "intermediate": "Intermediate products",
+      "scrap": "Scrap",
+      "raw": "Raw materials (domestic)"
+    }
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",
