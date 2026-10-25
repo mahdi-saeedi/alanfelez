@@ -37,3 +37,10 @@ Code lifetime: 5 minutes (`OTP_TTL_SECONDS`, Helm `keycloak.otp.ttlSeconds`; win
 like `OTP_SMS_PROVIDER`). A new code can still be asked for after 120 s (`resendCooldownSeconds`); it replaces the old one.
 Each accepted code is logged as `sms.ir accepted a code for 0912***4567 in 412 ms (messageId 88412)`: if codes arrive
 late, compare that time with the phone, and give sms.ir support the messageId.
+
+## Forgot password (by SMS code)
+The password page's «رمز عبور را فراموش کرده‌اید؟» doesn't go to Keycloak's e-mail reset (no SMTP). The theme
+(`src/login/forgot-password.ts`) sets the short-lived cookie `alanfelez_reset=1` and restarts the login; the phone OTP
+step then runs in reset mode: title «بازیابی رمز عبور», only existing accounts (no account is created, «حسابی با این
+شماره پیدا نشد»), the same send limits (5 codes per phone per hour), and after the code Keycloak's UPDATE_PASSWORD page
+asks for the new password. No realm change needed.
