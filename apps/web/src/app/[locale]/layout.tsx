@@ -11,6 +11,7 @@ import { LivePricesProvider } from "@/components/prices/LivePrices";
 import { PriceTicker } from "@/components/prices/PriceTicker";
 import { getBasePrices } from "@/lib/prices";
 import { INDEXABLE, SITE_URL, alternatesFor, englishEnabled } from "@/lib/site";
+import { shareImage } from "@/lib/seo";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -27,9 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: t("brand.tagline"),
     applicationName: t("brand.name"),
     alternates: alternatesFor(locale, "/", english),
-    openGraph: { siteName: t("brand.name"), locale: locale === "fa" ? "fa_IR" : "en_US", type: "website", images: [{ url: "/logo.png", width: 215, height: 215 }] },
-    twitter: { card: "summary" },
-    icons: { icon: "/logo.png", apple: "/logo.png" },
+    openGraph: { siteName: t("brand.name"), locale: locale === "fa" ? "fa_IR" : "en_US", type: "website", images: [shareImage(locale)] },
+    twitter: { card: "summary_large_image" },
+    // favicon: the logo's mark only (the wordmark can't be read at 16–48 px); app icons: the whole logo
+    icons: {
+      icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/icon-32.png", sizes: "32x32", type: "image/png" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+      apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+    },
     // Only production is indexed (SITE_INDEXABLE); staging and local demos never show up in search.
     ...(INDEXABLE ? {} : { robots: { index: false, follow: false } }),
   };

@@ -509,5 +509,18 @@
     "full": "You've reached the maximum number of alerts.",
     "locked": "SMS alerts are for {plan} subscribers.",
     "note": "After an alert fires it waits until the price moves back before it can fire again; at most 10 SMS a day."
+  },
+  "authError": {
+    "title": "Sign-in didn't work",
+    "body": {
+      "Default": "We couldn't sign you in just now. Please try again.",
+      "AccessDenied": "Signing in with this account isn't allowed.",
+      "Verification": "This sign-in link has expired or was already used. Please sign in again."
+    },
+    "retry": "Try again",
+    "home": "Home",
+    "help": "If it keeps happening:",
+    "contact": "Contact support",
+    "code": "Error code"
   }
 }
