@@ -20,7 +20,7 @@ images:
 api:
   replicas: 2
   seedProfiles: reference,demo # until launch; then: reference
-  demoPrices: true # until launch; then: false
+  demoPrices: false # off since 2026-10-25 (owner OK): staff enter prices by hand in the admin (the demo history stays)
   paymentGateway: mock # until launch (F13); then the real gateway
   smsProvider: console # until launch (F7); then the real provider
 web:
