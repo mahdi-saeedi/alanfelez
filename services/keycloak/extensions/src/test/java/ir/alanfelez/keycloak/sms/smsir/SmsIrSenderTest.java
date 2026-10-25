@@ -104,4 +104,13 @@ class SmsIrSenderTest {
             server.stop(0);
         }
     }
+
+    @Test
+    void logHelpers() {
+        assertEquals("88412", SmsIrSender.messageId("{\"status\":1,\"message\":\"موفق\",\"data\":{\"messageId\":88412,\"cost\":1.0}}"));
+        assertEquals("?", SmsIrSender.messageId("{\"status\":1}"));
+        assertEquals("?", SmsIrSender.messageId(null));
+        assertEquals("0912***4567", SmsIrSender.maskMobile("+989121234567"));
+        assertEquals("***", SmsIrSender.maskMobile(null));
+    }
 }
