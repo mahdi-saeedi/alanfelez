@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-26 (released v0.8.0)
+Last updated: 2026-10-26 (full sign-up form on staging)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -43,11 +43,15 @@ Last updated: 2026-10-26 (released v0.8.0)
 - [ ] **New production secrets** (`bootstrap.sh reseal` on the production server); today it shares staging's.
       Include `alanfelez-sms` (sms.ir key), copied from staging on 2026-10-24.
 - [ ] Postgres: second instance and storage size plan; Keycloak 2 replicas.
-- [ ] First staff accounts on production (with TOTP); disable the Keycloak bootstrap admin.
+- [ ] First staff accounts on production (with TOTP); disable the Keycloak bootstrap admin. **First** give the
+      keycloak-profile job its own service account (it logs in with the bootstrap admin today), or sign-up field
+      changes silently stop reaching Keycloak.
 - [ ] Monitoring and alerts; restore drill; a penetration test by someone else.
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Full sign-up form after the SMS code (client, 2026-10-25), on staging; the user profile is applied by a
+  PreSync job before each deploy.
 - 2026-10-26 Charts drawn at real size (readable on phones, taller there), round gridline values, the latest price marked, page scroll works over charts on touch, tooltip kept inside.
 - 2026-10-26 Home: «نمودار قیمت جهانی فلزات» section under the global prices, a full 1-month chart per metal in turn (8 s, tabs, pauses on hover).
 - 2026-10-26 Released v0.8.0: global prices free (7 metals), home global block and rotating chart card, chart page picker and compare panel, forgot password by SMS (owner tested on staging).

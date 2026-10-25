@@ -144,9 +144,9 @@ The result is labeled «برآورد» (estimate) per the copy rule.
 ## 9. Auth — 🛠 for client answer #11 (OTP required at sign-up)
 
 - **Keycloak** (self-hosted) with a Persian/English themed login.
-- **Sign-up: mobile number + SMS OTP (required).** Then first name, last name, and an optional email. ✅ Built: «ثبت‌نام» in the
-  header opens the phone page; a new number creates the account, then Keycloak's verify-profile step shows «تکمیل ثبت‌نام».
-  Older accounts without a name get the same step once, at their next sign-in.
+- **Sign-up: mobile number + SMS OTP (required)**, then one form (client, 2026-10-25): name or company, password and its
+  repeat, field of activity, acceptance of the terms and privacy policy (required); specialty metals (several), province,
+  city, address (optional). Older accounts fill the missing required parts once, at their next sign-in.
 - **Login: mobile + OTP (default), or mobile + password** if the user set one in the account page.
 - «فراموشی رمز عبور» = OTP to the mobile, then set a new password.
 - Needs an SMS provider for OTP. The client will provide the account details ("I'll send you the info").
