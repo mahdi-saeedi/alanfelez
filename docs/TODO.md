@@ -17,9 +17,6 @@ Last updated: 2026-10-25 (forgot password by SMS)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Price management in the admin (2026-10-23): needs from the owner** a staff account for the client's price
-      editor (role `editor`, TOTP) on staging and production, and when manual prices should stick: turn off the demo
-      price generator (`demoPrices: false`) on staging and production (production values = owner).
 - [ ] **Global (LME) prices on the home page, public** (asked 2026-10-21): today LME series are Silver/Gold
       (`is_base: false`, SCOPE §6). Needs the owner's OK to change the tier matrix, and global series for brass,
       iron and cast iron (none yet; the client knows a source). Later: which prices are Silver/Gold only.
@@ -53,6 +50,7 @@ Last updated: 2026-10-25 (forgot password by SMS)
 
 ## Done (last 30 days)
 - 2026-10-25 «فراموشی رمز عبور» by SMS code (owner OK): password page link → phone → code (same 5/hour limit) → new password. Existing accounts only. On staging first; the owner tests it with his number before publishing.
+- 2026-10-25 Production: the demo price generator is off (owner OK), so prices entered in the admin stay; the owner made the client's production staff account.
 - 2026-10-25 Site icons (favicon from the logo's mark, app icons from the whole logo) and a 1200×630 share picture per
   language for Telegram/WhatsApp previews, on every page. Failed sign-ins land on a Persian/English page
   (`/auth-error`) instead of Auth.js's English "Server error".
