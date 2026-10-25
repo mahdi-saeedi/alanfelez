@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Copies the user profile (fields, who sees/edits them) from alanfelez-realm.json to a realm that already exists:
 # Keycloak imports the realm file only once, so later profile changes have to be applied like this.
-# Safe to run more than once. Run it BEFORE deploying code that relies on the new profile.
+# Normally not needed: the keycloak-profile job (Helm, PreSync) does this before every deploy. Use it when that job
+# skipped (first install, admin login refused). Safe to run more than once, and before the new code.
 #
 #   KC_URL=http://localhost:8081 KC_ADMIN=admin KC_ADMIN_PASSWORD=… ./apply-user-profile.sh
 #   (staging/production: kubectl port-forward svc/alanfelez-keycloak 8081:8080, admin login from the
