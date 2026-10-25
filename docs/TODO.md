@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (icons, share image, sign-in error page)
+Last updated: 2026-10-25 (production demo prices off)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -20,9 +20,6 @@ Last updated: 2026-10-25 (icons, share image, sign-in error page)
 - [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
   Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)
   and sets a new one in the account page. A proper flow is a Keycloak change for the owner.
-- [ ] **Price management in the admin (2026-10-23): needs from the owner** a staff account for the client's price
-      editor (role `editor`, TOTP) on staging and production, and when manual prices should stick: turn off the demo
-      price generator (`demoPrices: false`) on staging and production (production values = owner).
 - [ ] **Global (LME) prices on the home page, public** (asked 2026-10-21): today LME series are Silver/Gold
       (`is_base: false`, SCOPE §6). Needs the owner's OK to change the tier matrix, and global series for brass,
       iron and cast iron (none yet; the client knows a source). Later: which prices are Silver/Gold only.
@@ -55,6 +52,7 @@ Last updated: 2026-10-25 (icons, share image, sign-in error page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 Production: the demo price generator is off (owner OK), so prices entered in the admin stay; the owner made the client's production staff account.
 - 2026-10-25 Site icons (favicon from the logo's mark, app icons from the whole logo) and a 1200×630 share picture per
   language for Telegram/WhatsApp previews, on every page. Failed sign-ins land on a Persian/English page
   (`/auth-error`) instead of Auth.js's English "Server error".
