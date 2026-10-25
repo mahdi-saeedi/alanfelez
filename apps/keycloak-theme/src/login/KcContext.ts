@@ -14,6 +14,8 @@ export type KcContextExtension = {
 export type KcContextExtensionPerPage = {
   "login-phone.ftl": {
     phone?: string;
+    /** «رمز عبور را فراموش کرده‌اید؟»: existing accounts only, a new password right after the code. */
+    resetMode?: boolean;
   };
   "login-phone-otp.ftl": {
     phoneMasked: string;

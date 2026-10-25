@@ -1,10 +1,11 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import DefaultPage from "keycloakify/login/DefaultPage";
 import type { KcContext } from "./KcContext";
 import { useI18n } from "./i18n";
 import Template from "./Template";
 import { classes } from "./classes";
 import "./main.css";
+import { FORGOT_HREF, startSmsReset } from "./forgot-password";
 
 const UserProfileFormFields = lazy(() => import("keycloakify/login/UserProfileFormFields"));
 const LoginPhone = lazy(() => import("./pages/LoginPhone"));
@@ -17,6 +18,21 @@ const doUseDefaultCss = false;
 export default function KcPage(props: { kcContext: KcContext }) {
   const { kcContext } = props;
   const { i18n } = useI18n({ kcContext });
+
+  // Password page: its "forgot password" link starts the SMS reset instead of Keycloak's e-mail reset.
+  const restartUrl = kcContext.url.loginRestartFlowUrl;
+  useEffect(() => {
+    if (kcContext.pageId !== "login.ftl") return;
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.("a");
+      if (a?.getAttribute("href") === FORGOT_HREF) {
+        e.preventDefault();
+        startSmsReset(restartUrl);
+      }
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [kcContext.pageId, restartUrl]);
 
   return (
     <Suspense>
@@ -31,7 +47,11 @@ export default function KcPage(props: { kcContext: KcContext }) {
           default:
             return (
               <DefaultPage
-                kcContext={kcContext}
+                kcContext={
+                  kcContext.pageId === "login.ftl"
+                    ? { ...kcContext, realm: { ...kcContext.realm, resetPasswordAllowed: true }, url: { ...kcContext.url, loginResetCredentialsUrl: FORGOT_HREF } }
+                    : kcContext
+                }
                 i18n={i18n}
                 classes={classes}
                 Template={Template}

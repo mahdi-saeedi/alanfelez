@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (production demo prices off)
+Last updated: 2026-10-25 (forgot password by SMS)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -17,9 +17,6 @@ Last updated: 2026-10-25 (production demo prices off)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
-  Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)
-  and sets a new one in the account page. A proper flow is a Keycloak change for the owner.
 - [ ] **Global (LME) prices on the home page, public** (asked 2026-10-21): today LME series are Silver/Gold
       (`is_base: false`, SCOPE §6). Needs the owner's OK to change the tier matrix, and global series for brass,
       iron and cast iron (none yet; the client knows a source). Later: which prices are Silver/Gold only.
@@ -52,6 +49,7 @@ Last updated: 2026-10-25 (production demo prices off)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 «فراموشی رمز عبور» by SMS code (owner OK): password page link → phone → code (same 5/hour limit) → new password. Existing accounts only. On staging first; the owner tests it with his number before publishing.
 - 2026-10-25 Production: the demo price generator is off (owner OK), so prices entered in the admin stay; the owner made the client's production staff account.
 - 2026-10-25 Site icons (favicon from the logo's mark, app icons from the whole logo) and a 1200×630 share picture per
   language for Telegram/WhatsApp previews, on every page. Failed sign-ins land on a Persian/English page
