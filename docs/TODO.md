@@ -46,6 +46,7 @@ Last updated: 2026-10-25 (global prices free)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 Home page «قیمت لحظه‌ای فلزات» block shows the global (LME) prices only (client); the hero card stays on domestic copper.
 - 2026-10-25 Global (LME) prices are free for everyone (client's written OK in the chat, owner asked for it): migration
   00007, and new LME series added in the admin are free too. Global series exist for copper, aluminum, zinc and lead;
   iron, cast iron and brass have none yet (the client knows a source: add them in the admin, market LME).
