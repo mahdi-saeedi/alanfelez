@@ -84,7 +84,7 @@ The yearly −20% matches the design badge. The quarterly −10% is our proposal
 | Feature | Free | Silver | Gold |
 |---|---|---|---|
 | Main prices: 7 base metals (ticker, home cards) | ✓ | ✓ | ✓ |
-| Full price table (all products, all markets, domestic + global) | partial (base product per metal) | ✓ | ✓ |
+| Full price table (all products, all markets, domestic + global) | partial (base product per metal + **all global/LME prices**, client 2026-10-25) | ✓ | ✓ |
 | Price chart | last 1 month | full history + compare | full history + compare |
 | News | ✓ | ✓ | ✓ |
 | Expert market analysis | ✗ (locked, blurred teaser) | ✗ | ✓ |
@@ -211,7 +211,7 @@ text is Gold; title, summary and cover are public teasers, and the API never sen
 editors can't publish paid text by mistake. Each article can have a metal and/or a topic category (tabs: the 7 metals + اقتصاد ·
 بازار جهانی · ضایعات), an optional **analyst view** (صعودی / نزولی / خنثی, labeled «دیدگاه کارشناس», never a promise), a featured flag
 (the big card) and an author. Analyses and forecasts always end with the estimate disclaimer. The sidebar shows the base prices
-(free for everyone) with source and time, not LME, which is Silver data. Reading a Gold body counts as "used" for refunds.
+(free for everyone, LME included since 2026-10-25) with source and time. Reading a Gold body counts as "used" for refunds.
 
 **FAQ (#8).** From FAQ.docx, with the page requirements in CLAUDE.md (accordion, search, categories, popular block, deep link
 `/faq#slug`, FAQPage schema with exactly the visible questions, CTA). Marketplace questions 19–26 and 43, 49 are left out;

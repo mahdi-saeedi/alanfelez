@@ -134,6 +134,7 @@ func (e *env) seedPrices() {
 		{Series: "copper-red-free", ObservedAt: now.Add(-24 * time.Hour), Price: 6_400_000},
 		{Series: "copper-red-free", ObservedAt: now.Add(-time.Minute), Price: 6_464_000},
 		{Series: "copper-lme", ObservedAt: now.Add(-time.Minute), Price: 980_000},
+		{Series: "copper-cable-free", ObservedAt: now.Add(-time.Minute), Price: 7_100_000}, // a paid (non-base) series
 	}
 	res, err := e.prices.Ingest(e.t.Context(), prices.Origin{SourceID: src.ID}, quotes, prices.IngestOptions{})
 	if err != nil {
@@ -155,8 +156,12 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		if st != http.StatusOK {
 			t.Fatalf("%q: status %d", tok, st)
 		}
-		if strings.Contains(raw, "copper-lme") || strings.Contains(raw, "980000") {
+		if strings.Contains(raw, "copper-cable-free") || strings.Contains(raw, "7100000") {
 			t.Fatalf("%q: locked series leaked: %s", tok, raw)
+		}
+		// Global (LME) prices are free for everyone (client, 2026-10-25).
+		if !strings.Contains(raw, `"slug":"copper-lme"`) || !strings.Contains(raw, "980000") {
+			t.Fatalf("%q: the free tier must see LME prices: %s", tok, raw)
 		}
 		if body["lockedCount"].(float64) < 1 {
 			t.Fatalf("%q: lockedCount = %v", tok, body["lockedCount"])
@@ -181,7 +186,7 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 	}
 
 	// Non-base history is locked for free, as is a range beyond 30 days.
-	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-lme/points", "user", nil); st != 403 || body["code"] != "FEATURE_LOCKED" || body["feature"] != "prices.full" || body["requiredPlan"] != "silver" {
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-cable-free/points", "user", nil); st != 403 || body["code"] != "FEATURE_LOCKED" || body["feature"] != "prices.full" || body["requiredPlan"] != "silver" {
 		t.Fatalf("free non-base history: %d %v", st, body)
 	}
 	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-red-free/points?range=3M", "", nil); st != 403 || body["feature"] != "chart.full" {

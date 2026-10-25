@@ -201,14 +201,14 @@ func TestRefunds(t *testing.T) {
 	// Using a paid feature ends the refund right (SCOPE §6). The base prices (ticker, home) don't count.
 	_, id2, auth2, _ := e.checkout(customer, "silver", "key-refund-2")
 	e.pay(id2, auth2, true)
-	if _, _, raw := e.call(http.MethodGet, "/v1/prices?base=true", customer, nil); strings.Contains(raw, "copper-lme") {
+	if _, _, raw := e.call(http.MethodGet, "/v1/prices?base=true", customer, nil); strings.Contains(raw, "copper-cable-free") {
 		t.Fatal("base=true must return base series only")
 	}
 	if _, o, _ := e.call(http.MethodGet, "/v1/me/orders/"+id2, customer, nil); o["refundable"] != true {
 		t.Fatalf("base prices must not count as paid use: %v", o)
 	}
-	if _, _, raw := e.call(http.MethodGet, "/v1/prices", customer, nil); !strings.Contains(raw, "copper-lme") {
-		t.Fatal("silver must see LME")
+	if _, _, raw := e.call(http.MethodGet, "/v1/prices", customer, nil); !strings.Contains(raw, "copper-cable-free") {
+		t.Fatal("silver must see the full table")
 	}
 	_, o, _ = e.call(http.MethodGet, "/v1/me/orders/"+id2, customer, nil)
 	if o["refundable"] != false {
