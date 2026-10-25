@@ -180,7 +180,14 @@
     "compareHint": "تا ۴ نمودار را انتخاب کنید تا زیر هم مقایسه شوند.",
     "compareSlot": "نمودار {n, number}",
     "compareNone": "— انتخاب نشده —",
-    "compareOpen": "نمایش بزرگ نمودار {name}"
+    "compareOpen": "نمایش بزرگ نمودار {name}",
+    "category": "دسته‌بندی",
+    "categories": {
+      "global": "قیمت جهانی",
+      "intermediate": "محصولات میانی",
+      "scrap": "ضایعات",
+      "raw": "مواد اولیه (بازار داخلی)"
+    }
   },
   "lock": {
     "upgrade": "ارتقا به {plan}",

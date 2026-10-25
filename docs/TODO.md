@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (hero carousel, chart compare)
+Last updated: 2026-10-25 (7 global metals, step-by-step chart picker)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -30,8 +30,8 @@ Last updated: 2026-10-25 (hero carousel, chart compare)
 - [ ] Ask the client whether `alanfelez.ir` had **email or a website** before the DNS move (records not copied are gone).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
-- [ ] **Global prices for iron, brass, cast iron** (LME doesn't trade them) and a source for automatic global prices:
-  the client will send the sources. Ask them again; then a «بازار جهانی» market or a price source.
+- [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
+  entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
 - [ ] **F7 SMS provider** (account, sender number, approved templates). Sign-up needs it.
 - [ ] F11 scope sign-off · F8 legal review (terms, privacy, refunds) · F14 content edits · F4 English review.
@@ -48,6 +48,9 @@ Last updated: 2026-10-25 (hero carousel, chart compare)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-25 Global prices for all 7 metals: «بازار جهانی» market with rebar, yellow brass and cast-iron scrap in USD/ton
+  (free, like LME; any new series in a global market is free). Home shows all 7. Chart page picker: metal → category
+  (قیمت جهانی، محصولات میانی، ضایعات، مواد اولیه) → product; global charts in $/ton, the others Toman/kg by default.
 - 2026-10-25 Home hero card: the global prices' 1-month charts in turn (every 6 s, pauses on hover, none with reduced
   motion). Chart page: product list grouped «فلز · دسته», and a side panel comparing up to 4 charts (c1–c4 in the URL).
 - 2026-10-25 Home page «قیمت لحظه‌ای فلزات» block shows the global (LME) prices only (client); the hero card stays on domestic copper.

@@ -109,8 +109,8 @@ type Querier interface {
 	InsertProduct(ctx context.Context, arg InsertProductParams) (int16, error)
 	// Refunds ---------------------------------------------------------------------------------------------------
 	InsertRefund(ctx context.Context, arg InsertRefundParams) (AppRefund, error)
-	// New series are base (free) only in the LME market: global prices are free for everyone (client, 2026-10-25).
-	// Other markets stay paid until the owner decides otherwise (the tier matrix).
+	// New series are base (free) only in global markets (LME, «بازار جهانی»): global prices are free for everyone
+	// (client, 2026-10-25). Other markets stay paid until the owner decides otherwise (the tier matrix).
 	// No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
 	InsertSeries(ctx context.Context, arg InsertSeriesParams) (int32, error)
 	InsertSourceRun(ctx context.Context, arg InsertSourceRunParams) error

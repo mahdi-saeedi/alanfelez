@@ -619,7 +619,7 @@ func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (i
 
 const insertSeries = `-- name: InsertSeries :one
 INSERT INTO market.price_series (slug, product_id, market_id, currency, unit, is_base, max_jump_bp, sort)
-SELECT $1, p.id, mk.id, $2, $3, mk.slug = 'lme', $4,
+SELECT $1, p.id, mk.id, $2, $3, mk.scope = 'global', $4,
        (SELECT COALESCE(max(sort), 0) + 1 FROM market.price_series)
 FROM market.products p, market.markets mk
 WHERE p.slug = $5 AND mk.slug = $6
@@ -636,8 +636,8 @@ type InsertSeriesParams struct {
 	Market    string
 }
 
-// New series are base (free) only in the LME market: global prices are free for everyone (client, 2026-10-25).
-// Other markets stay paid until the owner decides otherwise (the tier matrix).
+// New series are base (free) only in global markets (LME, «بازار جهانی»): global prices are free for everyone
+// (client, 2026-10-25). Other markets stay paid until the owner decides otherwise (the tier matrix).
 // No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
 func (q *Queries) InsertSeries(ctx context.Context, arg InsertSeriesParams) (int32, error) {
 	row := q.db.QueryRow(ctx, insertSeries,

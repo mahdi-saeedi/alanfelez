@@ -22,7 +22,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   const global = base.filter((r) => r.series.market.scope === "global");
   const live = global.length ? global : base;
   // Hero card: the global prices' 1-month charts in turn (client, 2026-10-25); the domestic ones while none exist.
-  const heroRows = (global.length ? global : domestic).filter((r) => r.price).slice(0, 4);
+  const heroRows = (global.length ? global : domestic).filter((r) => r.price);
   const heroItems: HeroItem[] = await Promise.all(
     heroRows.map(async (r) => {
       const h = await getHistory(locale, r.series.slug, "1M");
@@ -88,7 +88,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             <Link href="/prices" className="text-sm font-bold text-gold-dark hover:text-gold">{t("home.seeAll")}</Link>
           </div>
           {live.length ? (
-            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
               {live.map((r) => (
                 <li key={r.series.slug}><PriceCard row={r} /></li>
               ))}

@@ -22,3 +22,4 @@ datasets:
       - { slug: iron, name_fa: تالار آهن ایران,     name_en: Iran Iron Market,         scope: domestic, sort: 2 }
       - { slug: free, name_fa: بازار آزاد,          name_en: Free market,              scope: domestic, sort: 3 }
       - { slug: lme,  name_fa: بورس فلزات لندن (LME), name_en: London Metal Exchange,  scope: global,   sort: 4 }
+      - { slug: global, name_fa: بازار جهانی,        name_en: Global market,          scope: global,   sort: 5 }

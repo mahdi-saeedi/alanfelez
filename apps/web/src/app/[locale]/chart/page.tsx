@@ -21,7 +21,7 @@ type UnitOpt = (typeof UNITS)[number] | "usd-ton";
 
 const SLOTS = ["c1", "c2", "c3", "c4"] as const; // the side panel compares up to 4 charts (client, 2026-10-25)
 type Slot = (typeof SLOTS)[number];
-type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ series?: string; range?: string; unit?: string } & Partial<Record<Slot, string>>> };
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ series?: string; metal?: string; cat?: string; range?: string; unit?: string } & Partial<Record<Slot, string>>> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -42,7 +42,16 @@ export default async function ChartPage({ params, searchParams }: Params) {
   if (rows.length === 0) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
   }
-  const row = rows.find((r) => r.series.slug === q.series) ?? rows.find((r) => r.series.slug === "copper-red-free") ?? rows[0]!;
+  // The picker narrows step by step (client, 2026-10-25): metal → category (global price, intermediate, scrap, raw)
+  // → product. Each select submits the form; a choice that no longer fits the earlier ones falls back to the first.
+  const metals = uniqueBy(rows.map((r) => r.series.metal), (m) => m.slug);
+  const asked = rows.find((r) => r.series.slug === q.series) ?? rows.find((r) => r.series.slug === "copper-red-free") ?? rows[0]!;
+  const metal = metals.find((m) => m.slug === q.metal)?.slug ?? asked.series.metal.slug;
+  const inMetal = rows.filter((r) => r.series.metal.slug === metal);
+  const cats = CATS.filter((c) => inMetal.some((r) => catOf(r) === c));
+  const cat = cats.find((c) => c === q.cat) ?? (asked.series.metal.slug === metal ? catOf(asked) : cats[0]!);
+  const products = inMetal.filter((r) => catOf(r) === cat);
+  const row = products.find((r) => r.series.slug === q.series) ?? products[0]!;
   const range: Range = RANGES.includes(q.range as Range) ? (q.range as Range) : "1M";
   const usd = row.series.currency === "USD";
   const unit: UnitOpt = usd ? "usd-ton" : UNITS.includes(q.unit as (typeof UNITS)[number]) ? (q.unit as UnitOpt) : "toman-kg";
@@ -74,9 +83,11 @@ export default async function ChartPage({ params, searchParams }: Params) {
       return { row: r, values: "data" in h && h.data ? h.data.points.map((p) => Number(p.amount)) : [], locked: "locked" in h && h.locked ? h.locked.plan : null };
     }),
   );
-  const groups = groupByMetalAndCategory(rows);
+  const catLabel = (c: Cat) => t(`categories.${c}`);
+  const groups = groupByMetalAndCategory(rows, catLabel);
   const slotQuery = Object.fromEntries(SLOTS.map((k, i) => [k, picked[i]!]));
   const chartHref = (qq: Record<string, string>) => ({ pathname: "/chart", query: { series: row.series.slug, range, unit, ...slotQuery, ...qq } });
+  const openHref = (r: PriceRow) => chartHref({ series: r.series.slug, metal: r.series.metal.slug, cat: catOf(r) });
   const lockedPlan = "locked" in history && history.locked ? history.locked.plan : null;
   const analysisAllowed = ent?.features["analysis.read"] === true;
 
@@ -92,15 +103,17 @@ export default async function ChartPage({ params, searchParams }: Params) {
           <form action={locale === "en" ? "/en/chart" : "/chart"} className="flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface p-4 shadow-soft">
             <input type="hidden" name="range" value={range} />
             {SLOTS.map((k, i) => <input key={k} type="hidden" name={k} value={picked[i]} />)}
+            <AutoSubmitSelect name="metal" value={metal} label={t("metal")}>
+              {metals.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
+            </AutoSubmitSelect>
+            <AutoSubmitSelect name="cat" value={cat} label={t("category")}>
+              {cats.map((c) => <option key={c} value={c}>{t(`categories.${c}`)}</option>)}
+            </AutoSubmitSelect>
             <AutoSubmitSelect name="series" value={row.series.slug} label={t("product")}>
-              {groups.map(([group, list]) => (
-                <optgroup key={group} label={group}>
-                  {list.map((r) => (
-                    <option key={r.series.slug} value={r.series.slug}>
-                      {r.series.product.name} — {r.series.market.name}
-                    </option>
-                  ))}
-                </optgroup>
+              {products.map((r) => (
+                <option key={r.series.slug} value={r.series.slug}>
+                  {r.series.product.name} — {r.series.market.name}
+                </option>
               ))}
             </AutoSubmitSelect>
             {!usd && (
@@ -180,6 +193,8 @@ export default async function ChartPage({ params, searchParams }: Params) {
           <p className="mb-3 text-xs text-text-3">{t("compareHint")}</p>
           <form action={locale === "en" ? "/en/chart" : "/chart"} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <input type="hidden" name="series" value={row.series.slug} />
+            <input type="hidden" name="metal" value={metal} />
+            <input type="hidden" name="cat" value={cat} />
             <input type="hidden" name="range" value={range} />
             <input type="hidden" name="unit" value={unit} />
             {SLOTS.map((k, i) => {
@@ -195,9 +210,9 @@ export default async function ChartPage({ params, searchParams }: Params) {
                     ))}
                   </AutoSubmitSelect>
                   {c && (
-                    <Link href={chartHref({ series: c.row.series.slug })} className="mt-2 block rounded-md hover:bg-surface-2" aria-label={t("compareOpen", { name: c.row.series.product.name })}>
+                    <Link href={openHref(c.row)} className="mt-2 block rounded-md hover:bg-surface-2" aria-label={t("compareOpen", { name: c.row.series.product.name })}>
                       <div className="flex items-baseline justify-between gap-2 text-xs">
-                        <span className="truncate font-bold">{c.row.series.metal.name} · {c.row.series.category.name}</span>
+                        <span className="truncate font-bold">{c.row.series.metal.name} · {catLabel(catOf(c.row))}</span>
                         <span className="shrink-0 tabular-nums">
                           {c.row.price ? (c.row.series.currency === "USD" ? "$" : "") + formatPriceValue(c.row.price, locale) : "—"}
                         </span>
@@ -238,11 +253,25 @@ function statsOf(vs: number[]) {
   };
 }
 
-/** Option groups "metal · category" (e.g. «مس · ضایعات»), in the API's order. */
-function groupByMetalAndCategory(rows: PriceRow[]): [string, PriceRow[]][] {
+/** Picker categories, in this order: a global price is its own category whatever its product. */
+const CATS = ["global", "intermediate", "scrap", "raw"] as const;
+type Cat = (typeof CATS)[number];
+function catOf(r: PriceRow): Cat {
+  if (r.series.market.scope === "global") return "global";
+  const c = r.series.category.slug;
+  return c === "intermediate" || c === "scrap" ? c : "raw";
+}
+
+function uniqueBy<T>(xs: T[], key: (x: T) => string): T[] {
+  const seen = new Set<string>();
+  return xs.filter((x) => (seen.has(key(x)) ? false : (seen.add(key(x)), true)));
+}
+
+/** Option groups "metal · category" (e.g. «مس · ضایعات», «مس · قیمت جهانی»), in the API's order. */
+function groupByMetalAndCategory(rows: PriceRow[], label: (c: Cat) => string): [string, PriceRow[]][] {
   const m = new Map<string, PriceRow[]>();
   for (const r of rows) {
-    const key = `${r.series.metal.name} · ${r.series.category.name}`;
+    const key = `${r.series.metal.name} · ${label(catOf(r))}`;
     m.set(key, [...(m.get(key) ?? []), r]);
   }
   return [...m];

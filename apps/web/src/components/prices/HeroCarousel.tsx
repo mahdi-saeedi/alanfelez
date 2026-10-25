@@ -20,7 +20,7 @@ export type HeroItem = {
 const ROTATE_MS = 6000;
 
 /**
- * Home hero card: the global prices' 1-month charts, one after another (client, 2026-10-25). Pauses while hovered or
+ * Home hero card: the global prices' 1-month charts (all 7 metals once they have prices), one after another (client, 2026-10-25). Pauses while hovered or
  * focused, never rotates for people who prefer reduced motion, and the dots pick a chart by hand.
  */
 export function HeroCarousel({ items, changeLabel, showLabel }: { items: HeroItem[]; changeLabel: string; showLabel: string }) {
@@ -53,8 +53,8 @@ export function HeroCarousel({ items, changeLabel, showLabel }: { items: HeroIte
         </div>
         <Sparkline key={cur.slug} values={cur.points} className="mt-4 h-32 w-full motion-safe:animate-fade-in" />
       </Link>
-      <ul className="mt-4 grid grid-cols-4 gap-2 text-center text-xs">
-        {items.slice(0, 4).map((it, k) => (
+      <ul className="mt-4 grid grid-cols-4 gap-2 text-center text-xs sm:grid-cols-7">
+        {items.map((it, k) => (
           <li key={it.slug}>
             <button
               type="button"
