@@ -17,7 +17,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   const t = await getTranslations();
   const prices = await getBasePrices(locale);
   const base = (prices?.items ?? []).filter((r) => r.series.isBase);
-  const hero = base.find((r) => r.series.metal.slug === "copper") ?? base[0];
+  const domestic = base.filter((r) => r.series.market.scope !== "global");
+  // The live prices block shows global (LME) prices only (client, 2026-10-25); the domestic ones until any exist.
+  const global = base.filter((r) => r.series.market.scope === "global");
+  const live = global.length ? global : base;
+  const hero = domestic.find((r) => r.series.metal.slug === "copper") ?? domestic[0] ?? base[0];
   const heroHistory = hero ? await getHistory(locale, hero.series.slug, "1M") : null;
   const heroPoints = heroHistory && "data" in heroHistory && heroHistory.data ? heroHistory.data.points.map((p) => Number(p.amount)) : [];
   const heroChange = heroPoints.length > 1 ? Math.trunc(((heroPoints.at(-1)! - heroPoints[0]!) * 10_000) / heroPoints[0]!) : undefined;
@@ -68,7 +72,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
               </div>
               <Sparkline values={heroPoints} className="mt-4 h-32 w-full" />
               <ul className="mt-4 grid grid-cols-4 gap-2 text-center text-xs">
-                {base.slice(0, 4).map((r) => (
+                {domestic.slice(0, 4).map((r) => (
                   <li key={r.series.slug}>
                     <div className="text-silver-light">{r.series.metal.name}</div>
                     <div className={(r.change?.bp ?? 0) >= 0 ? "text-up" : "text-down"} dir="ltr">{r.change ? formatBp(r.change.bp, locale) : "—"}</div>
@@ -88,9 +92,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             </h2>
             <Link href="/prices" className="text-sm font-bold text-gold-dark hover:text-gold">{t("home.seeAll")}</Link>
           </div>
-          {base.length ? (
-            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-              {base.map((r) => (
+          {live.length ? (
+            <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {live.map((r) => (
                 <li key={r.series.slug}><PriceCard row={r} /></li>
               ))}
             </ul>
