@@ -43,6 +43,11 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --froze
 RUN --mount=type=cache,target=/root/.m2 cd apps/keycloak-theme && pnpm build-keycloak-theme \
     && mkdir -p /out && cp dist_keycloak/alanfelez-keycloak-theme.jar /out/
 
+# --- user profile (for the profile-sync job: Keycloak imports the realm file only once) ---------------------
+FROM node AS user-profile
+COPY services/keycloak/realm/alanfelez-realm.json /src/realm.json
+RUN mkdir -p /out && node -e 'const r = require("/src/realm.json"); process.stdout.write(r.components["org.keycloak.userprofile.UserProfileProvider"][0].config["kc.user.profile.config"][0])' > /out/user-profile.json
+
 FROM scratch AS theme-prebuilt
 COPY apps/keycloak-theme/dist_keycloak/alanfelez-keycloak-theme.jar /out/
 
@@ -60,5 +65,7 @@ FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 # Production-safe realm (no users). Imported with --import-realm only if the realm doesn't exist yet.
 COPY services/keycloak/realm/alanfelez-realm.json /opt/keycloak/data/import/alanfelez-realm.json
+# The realm's user profile on its own, applied to existing realms by the keycloak-profile job (Helm).
+COPY --from=user-profile /out/user-profile.json /opt/keycloak/data/user-profile.json
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
 CMD ["start", "--optimized"]

@@ -24,9 +24,13 @@ address (optional). Stored as user attributes `activity`, `metals`, `province`, 
 (slugs; labels are in the theme). Older accounts see it once with what they have (no password fields if they have one);
 staff accounts never do. `lastName` is no longer asked.
 
-**The user profile of an existing realm isn't re-imported.** Whenever the profile in the realm file changes, run
-`realm/apply-user-profile.sh` against that realm **before** deploying the code that needs it (the new profile also works
-with the old code). Without it, a new user is sent to Keycloak's own "update profile" page asking for a last name.
+**The user profile of an existing realm isn't re-imported**, so it is applied on every deploy: the image carries the
+realm's profile as `/opt/keycloak/data/user-profile.json`, and the Helm PreSync job `keycloak-profile`
+(`templates/keycloak-profile-job.yaml`) PUTs it to the running Keycloak **before** the new pods start (the new profile
+also works with the old code). It never blocks a deploy: on a first install or an error it logs and exits 0; then run
+`realm/apply-user-profile.sh` by hand. Without the profile, a new user is sent to Keycloak's own "update profile" page
+asking for a last name. The job logs in with the bootstrap admin (`alanfelez-keycloak-admin`); when that admin is
+disabled before launch, give the job a service account instead.
 
 ## SMS for sign-in codes
 `OTP_SMS_PROVIDER` picks the `SmsSender` (it wins over the realm's stored `smsProvider`, which the one-time realm import

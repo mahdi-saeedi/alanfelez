@@ -18,8 +18,8 @@ Last updated: 2026-10-25 (full sign-up form)
 
 ## Waiting on the owner
 - [ ] **Full sign-up form** (client, 2026-10-25) is built on `feat/full-signup-form`, tested end to end on a local
-  Keycloak. Owner: OK it, then run `services/keycloak/realm/apply-user-profile.sh` on staging (and later production)
-  **before** it is shipped. Next step after it: show activity/metals/province in the admin users list (token mappers →
+  Keycloak. Owner: OK it. The user profile is applied automatically before each deploy (PreSync job
+  `keycloak-profile`); the job uses the bootstrap admin, so give it a service account before that admin is disabled. Next step after it: show activity/metals/province in the admin users list (token mappers →
   `app.users` → API → admin).
 - [ ] «فراموشی رمز عبور» by SMS code (SCOPE §9) isn't built: the realm has no reset-credentials flow and no SMTP, so
   Keycloak's default e-mail reset can't work. Today a user who forgot the password signs in with the SMS code (the default)

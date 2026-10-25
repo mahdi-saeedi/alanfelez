@@ -80,6 +80,8 @@ keycloak:
     smsir:                         # sms.ir "verify" (ارسال سریع); the API key comes from secrets.sms
       templateId: ""               # id of the approved template on the sms.ir panel
       parameter: CODE              # the template's parameter that receives the code
+  profileSync:
+    enabled: true                  # PreSync job: apply the realm file's user profile to the running realm
   extraEnv: {}
   resources:
     requests: { cpu: 250m, memory: 768Mi }
