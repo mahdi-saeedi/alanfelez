@@ -3,7 +3,7 @@ import { formatBp, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format
 import { Link } from "@/i18n/navigation";
 import { getBasePrices, getHistory } from "@/lib/prices";
 import { PriceCard } from "@/components/prices/PriceCard";
-import { Sparkline } from "@/components/prices/Sparkline";
+import { HeroCarousel, type HeroItem } from "@/components/prices/HeroCarousel";
 import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
@@ -21,10 +21,26 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   // The live prices block shows global (LME) prices only (client, 2026-10-25); the domestic ones until any exist.
   const global = base.filter((r) => r.series.market.scope === "global");
   const live = global.length ? global : base;
-  const hero = domestic.find((r) => r.series.metal.slug === "copper") ?? domestic[0] ?? base[0];
-  const heroHistory = hero ? await getHistory(locale, hero.series.slug, "1M") : null;
-  const heroPoints = heroHistory && "data" in heroHistory && heroHistory.data ? heroHistory.data.points.map((p) => Number(p.amount)) : [];
-  const heroChange = heroPoints.length > 1 ? Math.trunc(((heroPoints.at(-1)! - heroPoints[0]!) * 10_000) / heroPoints[0]!) : undefined;
+  // Hero card: the global prices' 1-month charts in turn (client, 2026-10-25); the domestic ones while none exist.
+  const heroRows = (global.length ? global : domestic).filter((r) => r.price).slice(0, 4);
+  const heroItems: HeroItem[] = await Promise.all(
+    heroRows.map(async (r) => {
+      const h = await getHistory(locale, r.series.slug, "1M");
+      const points = "data" in h && h.data ? h.data.points.map((p) => Number(p.amount)) : [];
+      const bp = points.length > 1 ? Math.trunc(((points.at(-1)! - points[0]!) * 10_000) / points[0]!) : undefined;
+      return {
+        slug: r.series.slug,
+        name: r.series.metal.name,
+        price: formatPriceValue(r.price!, locale),
+        unit: priceUnitLabel(r.series, locale),
+        change: bp !== undefined ? formatBp(bp, locale) : undefined,
+        up: (bp ?? 0) >= 0,
+        dayChange: r.change ? formatBp(r.change.bp, locale) : undefined,
+        dayUp: (r.change?.bp ?? 0) >= 0,
+        points,
+      };
+    }),
+  );
 
   const home = `${SITE_URL}${locale === "en" ? "/en" : "/"}`;
   return (
@@ -59,28 +75,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             </Link>
           </div>
           </div>
-          {hero?.price && (
-            <Link href={{ pathname: "/chart", query: { series: hero.series.slug } }} className="block rounded-card border border-graphite-3 bg-graphite-2/60 p-6 hover:border-gold">
-              <div className="flex items-baseline justify-between gap-4">
-                <span className="font-bold">
-                  {hero.series.metal.name} — {formatPriceValue(hero.price, locale)}{" "}
-                  <span className="text-sm font-normal text-silver-light" dir="ltr">{priceUnitLabel(hero.series, locale)}</span>
-                </span>
-                <span className="text-xs text-silver-light">
-                  {t("home.heroChange")} {heroChange !== undefined && <span className={heroChange >= 0 ? "text-up" : "text-down"} dir="ltr">{formatBp(heroChange, locale)}</span>}
-                </span>
-              </div>
-              <Sparkline values={heroPoints} className="mt-4 h-32 w-full" />
-              <ul className="mt-4 grid grid-cols-4 gap-2 text-center text-xs">
-                {domestic.slice(0, 4).map((r) => (
-                  <li key={r.series.slug}>
-                    <div className="text-silver-light">{r.series.metal.name}</div>
-                    <div className={(r.change?.bp ?? 0) >= 0 ? "text-up" : "text-down"} dir="ltr">{r.change ? formatBp(r.change.bp, locale) : "—"}</div>
-                  </li>
-                ))}
-              </ul>
-            </Link>
-          )}
+          {heroItems.length > 0 && <HeroCarousel items={heroItems} changeLabel={t("home.heroChange")} showLabel={t("home.heroShow")} />}
         </div>
       </section>
 

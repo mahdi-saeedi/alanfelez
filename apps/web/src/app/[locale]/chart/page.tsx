@@ -19,7 +19,9 @@ const RANGE_DAYS: Record<Range, number> = { "1D": 1, "1W": 7, "1M": 30, "3M": 90
 const UNITS = ["toman-kg", "toman-ton", "rial-kg", "rial-ton"] as const;
 type UnitOpt = (typeof UNITS)[number] | "usd-ton";
 
-type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ series?: string; range?: string; unit?: string }> };
+const SLOTS = ["c1", "c2", "c3", "c4"] as const; // the side panel compares up to 4 charts (client, 2026-10-25)
+type Slot = (typeof SLOTS)[number];
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ series?: string; range?: string; unit?: string } & Partial<Record<Slot, string>>> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -56,11 +58,25 @@ export default async function ChartPage({ params, searchParams }: Params) {
   const stats = points.length ? statsOf(points.map((p) => p.v)) : null;
   const fmt = (v: number) => (usd ? "$" : "") + new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US", { maximumFractionDigits: 0 }).format(v);
 
-  // Quick compare: the base series of every metal, 1M sparkline each (always allowed for base series).
-  const compare = rows.filter((r) => r.series.isBase);
-  const sparks = await Promise.all(compare.map((r) => getHistory(locale, r.series.slug, "1M")));
-  const byMetal = groupByMetal(rows);
-  const chartHref = (qq: Record<string, string>) => ({ pathname: "/chart", query: { series: row.series.slug, range, unit, ...qq } });
+  // Compare panel: up to 4 charts of any series the caller may see, one under another. Defaults: the global prices,
+  // else the first base series. "" in a slot = empty.
+  const bySlug = new Map(rows.map((r) => [r.series.slug, r]));
+  const global = rows.filter((r) => r.series.isBase && r.series.market.scope === "global");
+  const defaults = (global.length ? global : rows.filter((r) => r.series.isBase)).slice(0, 4).map((r) => r.series.slug);
+  const anySlot = SLOTS.some((k) => q[k] !== undefined);
+  const picked = SLOTS.map((k, i) => (anySlot ? (q[k] && bySlug.has(q[k]!) ? q[k]! : "") : (defaults[i] ?? "")));
+  const compareRange: Range = rangeAllowed(range) ? range : "1M";
+  const compare = await Promise.all(
+    picked.map(async (slug) => {
+      const r = slug ? bySlug.get(slug) : undefined;
+      if (!r) return null;
+      const h = await getHistory(locale, slug, compareRange);
+      return { row: r, values: "data" in h && h.data ? h.data.points.map((p) => Number(p.amount)) : [], locked: "locked" in h && h.locked ? h.locked.plan : null };
+    }),
+  );
+  const groups = groupByMetalAndCategory(rows);
+  const slotQuery = Object.fromEntries(SLOTS.map((k, i) => [k, picked[i]!]));
+  const chartHref = (qq: Record<string, string>) => ({ pathname: "/chart", query: { series: row.series.slug, range, unit, ...slotQuery, ...qq } });
   const lockedPlan = "locked" in history && history.locked ? history.locked.plan : null;
   const analysisAllowed = ent?.features["analysis.read"] === true;
 
@@ -71,13 +87,14 @@ export default async function ChartPage({ params, searchParams }: Params) {
         <p className="mt-2 text-text-2">{t("subtitle")}</p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0 space-y-4">
           <form action={locale === "en" ? "/en/chart" : "/chart"} className="flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface p-4 shadow-soft">
             <input type="hidden" name="range" value={range} />
+            {SLOTS.map((k, i) => <input key={k} type="hidden" name={k} value={picked[i]} />)}
             <AutoSubmitSelect name="series" value={row.series.slug} label={t("product")}>
-              {byMetal.map(([metal, list]) => (
-                <optgroup key={metal} label={metal}>
+              {groups.map(([group, list]) => (
+                <optgroup key={group} label={group}>
                   {list.map((r) => (
                     <option key={r.series.slug} value={r.series.slug}>
                       {r.series.product.name} — {r.series.market.name}
@@ -158,26 +175,43 @@ export default async function ChartPage({ params, searchParams }: Params) {
           )}
         </div>
 
-        <aside>
-          <h2 className="mb-3 text-sm font-bold">{t("quickCompare")}</h2>
-          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-            {compare.map((r, i) => {
-              const h = sparks[i];
-              const vs = h && "data" in h && h.data ? h.data.points.map((p) => Number(p.amount)) : [];
-              const on = r.series.slug === row.series.slug;
+        <aside className="min-w-0">
+          <h2 className="mb-1 text-sm font-bold">{t("compareTitle")}</h2>
+          <p className="mb-3 text-xs text-text-3">{t("compareHint")}</p>
+          <form action={locale === "en" ? "/en/chart" : "/chart"} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <input type="hidden" name="series" value={row.series.slug} />
+            <input type="hidden" name="range" value={range} />
+            <input type="hidden" name="unit" value={unit} />
+            {SLOTS.map((k, i) => {
+              const c = compare[i];
               return (
-                <li key={r.series.slug}>
-                  <Link
-                    href={chartHref({ series: r.series.slug })}
-                    className={`block rounded-card border bg-surface p-3 shadow-soft ${on ? "border-gold" : "border-border hover:border-border-strong"}`}
-                  >
-                    <div className="text-xs font-bold">{r.series.metal.name}</div>
-                    <Sparkline values={vs} className="mt-1 h-10 w-full" />
-                  </Link>
-                </li>
+                <div key={k} className={`rounded-card border bg-surface p-3 shadow-soft ${c && c.row.series.slug === row.series.slug ? "border-gold" : "border-border"}`}>
+                  <AutoSubmitSelect name={k} value={picked[i]!} label={t("compareSlot", { n: i + 1 })}>
+                    <option value="">{t("compareNone")}</option>
+                    {groups.map(([group, list]) => (
+                      <optgroup key={group} label={group}>
+                        {list.map((r) => <option key={r.series.slug} value={r.series.slug}>{r.series.product.name} — {r.series.market.name}</option>)}
+                      </optgroup>
+                    ))}
+                  </AutoSubmitSelect>
+                  {c && (
+                    <Link href={chartHref({ series: c.row.series.slug })} className="mt-2 block rounded-md hover:bg-surface-2" aria-label={t("compareOpen", { name: c.row.series.product.name })}>
+                      <div className="flex items-baseline justify-between gap-2 text-xs">
+                        <span className="truncate font-bold">{c.row.series.metal.name} · {c.row.series.category.name}</span>
+                        <span className="shrink-0 tabular-nums">
+                          {c.row.price ? (c.row.series.currency === "USD" ? "$" : "") + formatPriceValue(c.row.price, locale) : "—"}
+                        </span>
+                      </div>
+                      {c.locked ? <p className="mt-2 text-xs text-text-3">{t("lockedSeries", { plan: tl(`plan.${c.locked}`) })}</p> : <Sparkline values={c.values} className="mt-1 h-14 w-full" />}
+                    </Link>
+                  )}
+                </div>
               );
             })}
-          </ul>
+            <noscript>
+              <button className="rounded-control bg-graphite px-4 py-2 text-sm text-white">OK</button>
+            </noscript>
+          </form>
         </aside>
       </div>
     </div>
@@ -204,8 +238,12 @@ function statsOf(vs: number[]) {
   };
 }
 
-function groupByMetal(rows: PriceRow[]): [string, PriceRow[]][] {
+/** Option groups "metal · category" (e.g. «مس · ضایعات»), in the API's order. */
+function groupByMetalAndCategory(rows: PriceRow[]): [string, PriceRow[]][] {
   const m = new Map<string, PriceRow[]>();
-  for (const r of rows) m.set(r.series.metal.name, [...(m.get(r.series.metal.name) ?? []), r]);
+  for (const r of rows) {
+    const key = `${r.series.metal.name} · ${r.series.category.name}`;
+    m.set(key, [...(m.get(key) ?? []), r]);
+  }
   return [...m];
 }

@@ -49,7 +49,8 @@
     "plansCta": "View plans and pricing",
     "liveTitle": "Global metal prices",
     "seeAll": "See all →",
-    "heroChange": "30-day change"
+    "heroChange": "30-day change",
+    "heroShow": "Show the chart of"
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
@@ -163,7 +164,6 @@
       "MAX": "MAX"
     },
     "source": "Source: {source} | Last update: {time}",
-    "quickCompare": "Quick compare",
     "advancedTitle": "Advanced market analysis",
     "advancedBody": "Technical analysis, support/resistance levels, trend forecasts and market AI",
     "lockedRange": "This range unlocks with the {plan} plan",
@@ -175,7 +175,12 @@
       "rial-kg": "Rial / kg",
       "rial-ton": "Rial / ton",
       "usd-ton": "USD / ton"
-    }
+    },
+    "compareTitle": "Compare charts",
+    "compareHint": "Pick up to 4 charts to compare them one under another.",
+    "compareSlot": "Chart {n, number}",
+    "compareNone": "— none —",
+    "compareOpen": "Open the chart of {name}"
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",
