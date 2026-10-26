@@ -24,6 +24,9 @@ env:
 jobs:
   images:
     runs-on: ubuntu-latest
+    # A push to the registry in Iran can hang without failing (2026-10-26: 25+ min on the Keycloak image). Without a
+    # limit the job waits up to 6 h and every later release queues behind it.
+    timeout-minutes: 60
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     strategy:
@@ -54,6 +57,7 @@ jobs:
           exit 1
       - id: push
         continue-on-error: true
+        timeout-minutes: 20 # a hung push counts as failed, so the second try below runs
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -72,6 +76,7 @@ jobs:
         run: sleep 60
       - name: Push again (the first push failed)
         if: steps.push.outcome == 'failure'
+        timeout-minutes: 20
         uses: docker/build-push-action@v6
         with:
           context: .
