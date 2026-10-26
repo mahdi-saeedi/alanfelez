@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-25 (7 global metals, step-by-step chart picker)
+Last updated: 2026-10-26 (released v0.8.0)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -48,6 +48,7 @@ Last updated: 2026-10-25 (7 global metals, step-by-step chart picker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Released v0.8.0: global prices free (7 metals), home global block and rotating chart card, chart page picker and compare panel, forgot password by SMS (owner tested on staging).
 - 2026-10-25 Global prices for all 7 metals: «بازار جهانی» market with rebar, yellow brass and cast-iron scrap in USD/ton
   (free, like LME; any new series in a global market is free). Home shows all 7. Chart page picker: metal → category
   (قیمت جهانی، محصولات میانی، ضایعات، مواد اولیه) → product; global charts in $/ton, the others Toman/kg by default.
