@@ -8,6 +8,7 @@ import { GlobalChartCarousel, type GlobalChartItem } from "@/components/prices/G
 import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
 import { PlanCards } from "@/components/PlanCards";
+import { WhyAlanFelez } from "@/components/WhyAlanFelez";
 import { api } from "@/lib/api";
 import { getMe } from "@/lib/account";
 import { SITE_URL } from "@/lib/site";
@@ -161,6 +162,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
           </div>
         </section>
       )}
+
+      <WhyAlanFelez locale={locale} signedIn={!!me} />
     </>
   );
 }

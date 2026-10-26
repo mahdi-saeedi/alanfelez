@@ -54,7 +54,47 @@
     "globalChartTitle": "Global metal prices chart",
     "globalChartSubtitle": "Global prices over the last month (dollars per ton). The next metal shows every few seconds; tap a name to pick one.",
     "globalChartFull": "Full chart →",
-    "plansPeriods": "Quarterly and yearly plans at a discount"
+    "plansPeriods": "Quarterly and yearly plans at a discount",
+    "why": {
+      "title": "Why Alan Felez?",
+      "subtitle": "Alan Felez brings the prices, charts and analysis of Iran's and the world's metals markets together in one place, with their sources, so you can make buying and selling decisions with better information.",
+      "cta": "Start for free",
+      "plan": {
+        "free": "Free",
+        "silver": "Silver",
+        "gold": "Gold"
+      },
+      "items": {
+        "prices": {
+          "title": "Quick access to metal and scrap prices",
+          "text": "Global metal prices and IME prices, with their source and last update time."
+        },
+        "floor": {
+          "title": "Market floor prices, updated continuously",
+          "text": "Day prices of the free market and the Iran Iron Market for each product."
+        },
+        "history": {
+          "title": "Price history",
+          "text": "Past prices of each product, from one month to the full period."
+        },
+        "charts": {
+          "title": "Price charts",
+          "text": "Price trends over different ranges, and several products compared side by side."
+        },
+        "calculator": {
+          "title": "Specialist calculator",
+          "text": "The value of a load from its weight, impurity, deductions and shipping."
+        },
+        "analysis": {
+          "title": "Market analysis and forecasts",
+          "text": "Analysis and scenarios from Alan Felez's experts on where prices are heading."
+        },
+        "auctions": {
+          "title": "Daily auctions",
+          "text": "The IME's daily offerings and auctions on one page."
+        }
+      }
+    }
   },
   "plans": {
     "title": "Choose the plan that fits your activity",

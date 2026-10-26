@@ -8,6 +8,11 @@ export async function signInTo(redirectTo: string, locale: string) {
   await signIn("keycloak", { redirectTo: safePath(redirectTo) }, { ...PASSWORD_FIRST, ui_locales: locale });
 }
 
+/** «ثبت‌نام»: the mobile number + SMS code page, then the sign-up form (no PASSWORD_FIRST). */
+export async function signUp(locale: string) {
+  await signIn("keycloak", undefined, { ui_locales: locale });
+}
+
 /**
  * Keycloak "application initiated actions": the themed login pages let the user set a password or edit their
  * name, then come back (SCOPE §9: password login is optional and set from the account page).
