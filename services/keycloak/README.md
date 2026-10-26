@@ -19,7 +19,7 @@ or edit the realm in the console and export it. In Kubernetes the realm is appli
 Sign-up and sign-in are the same flow: mobile number → SMS code (`PhoneOtpAuthenticator` creates the account for a new number).
 Then, once, the **sign-up form** (client, 2026-10-25; `SignupForm.java`, page `login-complete-signup.ftl`,
 `apps/keycloak-theme/src/login/pages/LoginCompleteSignup.tsx`): name or company (→ `firstName`), the verified phone
-(read-only), password + repeat, field of activity, the terms checkbox (required); specialty metals, province, city,
+shown as the username (read-only; customers sign in with it and the password), password + repeat, field of activity, the terms checkbox (required); specialty metals, province, city,
 address (optional). Stored as user attributes `activity`, `metals`, `province`, `city`, `address`, `termsAcceptedAt`
 (slugs; labels are in the theme). Older accounts see it once with what they have (no password fields if they have one);
 staff accounts never do. `lastName` is no longer asked.
