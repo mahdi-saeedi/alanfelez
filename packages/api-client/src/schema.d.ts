@@ -1138,10 +1138,27 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
-         * @description Everyone gets the day's summary and the list of dates; `items` is left out when locked (FEATURE teaser).
+         * Metal auctions, newest first. The deadline, place, organiser, details and PDF need auctions.read (Gold)
+         * @description Everyone gets each auction's title, metal, category, quantity and status. When locked (FEATURE teaser), `deadlineAt`, `location`, `organizer`, `details` and `hasPdf` are left out.
          */
-        get: operations["getAuctions"];
+        get: operations["listAuctions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auctions/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An auction's PDF notice. Needs auctions.read (Gold) → 403 FEATURE_LOCKED; anonymous → 401 */
+        get: operations["getAuctionPdf"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1248,30 +1265,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** IME offerings of one day, for editing */
+        /** Metal auctions for editing, newest first */
         get: operations["adminListAuctions"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/auctions/bulk": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
-         * @description Rows are keyed by (tradeDate, productFa, producerFa); re-entering a row corrects it. With dryRun nothing is saved.
-         */
-        post: operations["adminBulkAuctions"];
+        /** Add an auction. Roles, editor, admin */
+        post: operations["adminCreateAuction"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1286,10 +1284,30 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /** Edit an auction, including its status. Roles, editor, admin */
+        put: operations["adminUpdateAuction"];
         post?: never;
-        /** Delete an offering entered by mistake. Roles, editor, admin */
+        /** Delete an auction and its PDF. Roles, editor, admin */
         delete: operations["adminDeleteAuction"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/auctions/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The auction's PDF notice, for checking it */
+        get: operations["adminGetAuctionPdf"];
+        /** Upload or replace the auction's PDF notice (a PDF, at most 10 MB). Roles, editor, admin */
+        put: operations["adminPutAuctionPdf"];
+        post?: never;
+        /** Remove the auction's PDF notice. Roles, editor, admin */
+        delete: operations["adminDeleteAuctionPdf"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2013,59 +2031,50 @@ export interface components {
             ticket: components["schemas"]["AdminTicket"];
             messages: components["schemas"]["TicketMessage"][];
         };
-        AuctionOffering: {
+        /**
+         * @description intermediate = ingots and intermediate products, scrap, raw = raw materials
+         * @enum {string}
+         */
+        AuctionCategory: "intermediate" | "scrap" | "raw";
+        /**
+         * @description Set by staff. open = in progress, paused = stopped, closed = finished
+         * @enum {string}
+         */
+        AuctionStatus: "open" | "paused" | "closed";
+        /** @enum {string} */
+        AuctionUnit: "ton" | "kg" | "piece";
+        Auction: {
             /** Format: uuid */
             id: string;
+            title: string;
             metal: components["schemas"]["Localized"];
-            product: string;
-            producer: string;
+            category: components["schemas"]["AuctionCategory"];
             /** Format: int64 */
-            offeredKg: number;
+            quantity: number;
+            unit: components["schemas"]["AuctionUnit"];
+            status: components["schemas"]["AuctionStatus"];
+            /** Format: date-time */
+            publishedAt: string;
             /**
-             * Format: int64
-             * @description Rial per kg
+             * Format: date-time
+             * @description Gold only
              */
-            basePriceRial: number;
-            /** Format: int64 */
-            demandKg?: number;
-            /** Format: int64 */
-            tradedKg?: number;
-            /**
-             * Format: int64
-             * @description Rial per kg
-             */
-            clearingPriceRial?: number;
-            /** @description Clearing vs base */
-            changeBp?: number;
+            deadlineAt?: string;
+            /** @description Gold only */
+            location?: string;
+            /** @description Gold only */
+            organizer?: string;
+            /** @description Gold only; plain text with line breaks */
+            details?: string;
+            /** @description Gold only */
+            hasPdf?: boolean;
         };
-        AuctionSummary: {
-            offerings: number;
-            /** Format: int64 */
-            offeredKg: number;
-            /** Format: int64 */
-            demandKg: number;
-            /** Format: int64 */
-            tradedKg: number;
-            value: components["schemas"]["Money"];
-            avgChangeBp: number;
-        };
-        AuctionDay: {
-            /**
-             * Format: date
-             * @description Absent when there's no data at all
-             */
-            date?: string;
-            /** @description Recent trading days with data, newest first */
-            dates: string[];
-            summary: components["schemas"]["AuctionSummary"];
-            /** @description Absent when locked */
-            items?: components["schemas"]["AuctionOffering"][];
+        AuctionList: {
+            items: components["schemas"]["Auction"][];
+            total: number;
+            /** @description The Gold-only fields are left out */
             locked: boolean;
             requiredPlan?: components["schemas"]["Tier"];
-            /** @description Where the data comes from, in the requested language */
-            source: string;
-            /** Format: date-time */
-            updatedAt?: string;
         };
         CalculatorInput: {
             /** @description IRR price series whose latest price is the base (optional) */
@@ -2139,30 +2148,31 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
-        AdminOfferingInput: {
-            /** Format: date */
-            tradeDate: string;
+        AdminAuctionInput: {
+            titleFa: string;
+            titleEn?: string;
             metal: string;
-            productFa: string;
-            productEn?: string;
-            producerFa: string;
-            producerEn?: string;
+            category: components["schemas"]["AuctionCategory"];
             /** Format: int64 */
-            offeredKg: number;
-            /** Format: int64 */
-            basePriceRial: number;
-            /** Format: int64 */
-            demandKg?: number;
-            /** Format: int64 */
-            tradedKg?: number;
-            /** Format: int64 */
-            clearingPriceRial?: number;
+            quantity: number;
+            unit: components["schemas"]["AuctionUnit"];
+            status: components["schemas"]["AuctionStatus"];
+            /** Format: date-time */
+            deadlineAt?: string;
+            locationFa?: string;
+            locationEn?: string;
+            organizerFa?: string;
+            organizerEn?: string;
+            detailsFa?: string;
+            detailsEn?: string;
         };
-        AdminOffering: components["schemas"]["AdminOfferingInput"] & {
+        AdminAuction: components["schemas"]["AdminAuctionInput"] & {
             /** Format: uuid */
             id: string;
-            /** @enum {string} */
-            source: "manual" | "demo" | "api";
+            pdfName?: string;
+            pdfSize?: number;
+            /** Format: date-time */
+            createdAt: string;
             /** Format: date-time */
             updatedAt: string;
         };
@@ -4118,11 +4128,14 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
-    getAuctions: {
+    listAuctions: {
         parameters: {
             query?: {
-                date?: string;
                 metal?: string;
+                category?: components["schemas"]["AuctionCategory"];
+                status?: components["schemas"]["AuctionStatus"];
+                limit?: number;
+                offset?: number;
             };
             header?: {
                 "Accept-Language"?: components["parameters"]["AcceptLanguage"];
@@ -4132,13 +4145,37 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The day */
+            /** @description Auctions */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuctionDay"];
+                    "application/json": components["schemas"]["AuctionList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAuctionPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The PDF */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
                 };
             };
             default: components["responses"]["Problem"];
@@ -4345,8 +4382,10 @@ export interface operations {
     };
     adminListAuctions: {
         parameters: {
-            query: {
-                date: string;
+            query?: {
+                status?: components["schemas"]["AuctionStatus"];
+                limit?: number;
+                offset?: number;
             };
             header?: never;
             path?: never;
@@ -4354,22 +4393,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Offerings */
+            /** @description Auctions */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["AdminOffering"][];
-                        dates: string[];
+                        items: components["schemas"]["AdminAuction"][];
+                        total: number;
                     };
                 };
             };
             default: components["responses"]["Problem"];
         };
     };
-    adminBulkAuctions: {
+    adminCreateAuction: {
         parameters: {
             query?: never;
             header?: never;
@@ -4378,29 +4417,46 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    rows: components["schemas"]["AdminOfferingInput"][];
-                    dryRun?: boolean;
-                };
+                "application/json": components["schemas"]["AdminAuctionInput"];
             };
         };
         responses: {
-            /** @description Per-row result */
-            200: {
+            /** @description Created */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        saved: number;
-                        results: {
-                            index: number;
-                            ok: boolean;
-                            inserted?: boolean;
-                            error?: string;
-                        }[];
+                        /** Format: uuid */
+                        id: string;
                     };
                 };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateAuction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAuctionInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Problem"];
         };
@@ -4417,6 +4473,78 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetAuctionPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The PDF */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminPutAuctionPdf: {
+        parameters: {
+            query: {
+                fileName: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/pdf": string;
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteAuctionPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
             204: {
                 headers: {
                     [name: string]: unknown;

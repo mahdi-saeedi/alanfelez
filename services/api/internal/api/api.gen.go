@@ -24,27 +24,6 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Defines values for AdminOfferingSource.
-const (
-	AdminOfferingSourceApi    AdminOfferingSource = "api"
-	AdminOfferingSourceDemo   AdminOfferingSource = "demo"
-	AdminOfferingSourceManual AdminOfferingSource = "manual"
-)
-
-// Valid indicates whether the value is a known member of the AdminOfferingSource enum.
-func (e AdminOfferingSource) Valid() bool {
-	switch e {
-	case AdminOfferingSourceApi:
-		return true
-	case AdminOfferingSourceDemo:
-		return true
-	case AdminOfferingSourceManual:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for AdminOrderKind.
 const (
 	AdminOrderKindDowngrade AdminOrderKind = "downgrade"
@@ -144,6 +123,69 @@ func (e ArticleType) Valid() bool {
 	case Forecast:
 		return true
 	case News:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuctionCategory.
+const (
+	Intermediate AuctionCategory = "intermediate"
+	Raw          AuctionCategory = "raw"
+	Scrap        AuctionCategory = "scrap"
+)
+
+// Valid indicates whether the value is a known member of the AuctionCategory enum.
+func (e AuctionCategory) Valid() bool {
+	switch e {
+	case Intermediate:
+		return true
+	case Raw:
+		return true
+	case Scrap:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuctionStatus.
+const (
+	AuctionStatusClosed AuctionStatus = "closed"
+	AuctionStatusOpen   AuctionStatus = "open"
+	AuctionStatusPaused AuctionStatus = "paused"
+)
+
+// Valid indicates whether the value is a known member of the AuctionStatus enum.
+func (e AuctionStatus) Valid() bool {
+	switch e {
+	case AuctionStatusClosed:
+		return true
+	case AuctionStatusOpen:
+		return true
+	case AuctionStatusPaused:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AuctionUnit.
+const (
+	AuctionUnitKg    AuctionUnit = "kg"
+	AuctionUnitPiece AuctionUnit = "piece"
+	AuctionUnitTon   AuctionUnit = "ton"
+)
+
+// Valid indicates whether the value is a known member of the AuctionUnit enum.
+func (e AuctionUnit) Valid() bool {
+	switch e {
+	case AuctionUnitKg:
+		return true
+	case AuctionUnitPiece:
+		return true
+	case AuctionUnitTon:
 		return true
 	default:
 		return false
@@ -629,19 +671,19 @@ func (e TicketPriority) Valid() bool {
 
 // Defines values for TicketStatus.
 const (
-	Answered TicketStatus = "answered"
-	Closed   TicketStatus = "closed"
-	Open     TicketStatus = "open"
+	TicketStatusAnswered TicketStatus = "answered"
+	TicketStatusClosed   TicketStatus = "closed"
+	TicketStatusOpen     TicketStatus = "open"
 )
 
 // Valid indicates whether the value is a known member of the TicketStatus enum.
 func (e TicketStatus) Valid() bool {
 	switch e {
-	case Answered:
+	case TicketStatusAnswered:
 		return true
-	case Closed:
+	case TicketStatusClosed:
 		return true
-	case Open:
+	case TicketStatusOpen:
 		return true
 	default:
 		return false
@@ -671,16 +713,16 @@ func (e Tier) Valid() bool {
 
 // Defines values for Unit.
 const (
-	Kg  Unit = "kg"
-	Ton Unit = "ton"
+	UnitKg  Unit = "kg"
+	UnitTon Unit = "ton"
 )
 
 // Valid indicates whether the value is a known member of the Unit enum.
 func (e Unit) Valid() bool {
 	switch e {
-	case Kg:
+	case UnitKg:
 		return true
-	case Ton:
+	case UnitTon:
 		return true
 	default:
 		return false
@@ -813,18 +855,18 @@ func (e GetArticleParamsAcceptLanguage) Valid() bool {
 	}
 }
 
-// Defines values for GetAuctionsParamsAcceptLanguage.
+// Defines values for ListAuctionsParamsAcceptLanguage.
 const (
-	GetAuctionsParamsAcceptLanguageEn GetAuctionsParamsAcceptLanguage = "en"
-	GetAuctionsParamsAcceptLanguageFa GetAuctionsParamsAcceptLanguage = "fa"
+	ListAuctionsParamsAcceptLanguageEn ListAuctionsParamsAcceptLanguage = "en"
+	ListAuctionsParamsAcceptLanguageFa ListAuctionsParamsAcceptLanguage = "fa"
 )
 
-// Valid indicates whether the value is a known member of the GetAuctionsParamsAcceptLanguage enum.
-func (e GetAuctionsParamsAcceptLanguage) Valid() bool {
+// Valid indicates whether the value is a known member of the ListAuctionsParamsAcceptLanguage enum.
+func (e ListAuctionsParamsAcceptLanguage) Valid() bool {
 	switch e {
-	case GetAuctionsParamsAcceptLanguageEn:
+	case ListAuctionsParamsAcceptLanguageEn:
 		return true
-	case GetAuctionsParamsAcceptLanguageFa:
+	case ListAuctionsParamsAcceptLanguageFa:
 		return true
 	default:
 		return false
@@ -1128,6 +1170,53 @@ type AdminArticleRow struct {
 	UpdatedAt   time.Time          `json:"updatedAt"`
 }
 
+// AdminAuction defines model for AdminAuction.
+type AdminAuction struct {
+	// Category intermediate = ingots and intermediate products, scrap, raw = raw materials
+	Category    AuctionCategory    `json:"category"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	DeadlineAt  *time.Time         `json:"deadlineAt,omitempty"`
+	DetailsEn   *string            `json:"detailsEn,omitempty"`
+	DetailsFa   *string            `json:"detailsFa,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	LocationEn  *string            `json:"locationEn,omitempty"`
+	LocationFa  *string            `json:"locationFa,omitempty"`
+	Metal       string             `json:"metal"`
+	OrganizerEn *string            `json:"organizerEn,omitempty"`
+	OrganizerFa *string            `json:"organizerFa,omitempty"`
+	PdfName     *string            `json:"pdfName,omitempty"`
+	PdfSize     *int               `json:"pdfSize,omitempty"`
+	Quantity    int64              `json:"quantity"`
+
+	// Status Set by staff. open = in progress, paused = stopped, closed = finished
+	Status    AuctionStatus `json:"status"`
+	TitleEn   *string       `json:"titleEn,omitempty"`
+	TitleFa   string        `json:"titleFa"`
+	Unit      AuctionUnit   `json:"unit"`
+	UpdatedAt time.Time     `json:"updatedAt"`
+}
+
+// AdminAuctionInput defines model for AdminAuctionInput.
+type AdminAuctionInput struct {
+	// Category intermediate = ingots and intermediate products, scrap, raw = raw materials
+	Category    AuctionCategory `json:"category"`
+	DeadlineAt  *time.Time      `json:"deadlineAt,omitempty"`
+	DetailsEn   *string         `json:"detailsEn,omitempty"`
+	DetailsFa   *string         `json:"detailsFa,omitempty"`
+	LocationEn  *string         `json:"locationEn,omitempty"`
+	LocationFa  *string         `json:"locationFa,omitempty"`
+	Metal       string          `json:"metal"`
+	OrganizerEn *string         `json:"organizerEn,omitempty"`
+	OrganizerFa *string         `json:"organizerFa,omitempty"`
+	Quantity    int64           `json:"quantity"`
+
+	// Status Set by staff. open = in progress, paused = stopped, closed = finished
+	Status  AuctionStatus `json:"status"`
+	TitleEn *string       `json:"titleEn,omitempty"`
+	TitleFa string        `json:"titleFa"`
+	Unit    AuctionUnit   `json:"unit"`
+}
+
 // AdminCatalogItem defines model for AdminCatalogItem.
 type AdminCatalogItem struct {
 	NameEn *string `json:"nameEn,omitempty"`
@@ -1195,42 +1284,6 @@ type AdminMetalInput struct {
 	NameEn *string `json:"nameEn,omitempty"`
 	NameFa string  `json:"nameFa"`
 	Slug   string  `json:"slug"`
-}
-
-// AdminOffering defines model for AdminOffering.
-type AdminOffering struct {
-	BasePriceRial     int64               `json:"basePriceRial"`
-	ClearingPriceRial *int64              `json:"clearingPriceRial,omitempty"`
-	DemandKg          *int64              `json:"demandKg,omitempty"`
-	Id                openapi_types.UUID  `json:"id"`
-	Metal             string              `json:"metal"`
-	OfferedKg         int64               `json:"offeredKg"`
-	ProducerEn        *string             `json:"producerEn,omitempty"`
-	ProducerFa        string              `json:"producerFa"`
-	ProductEn         *string             `json:"productEn,omitempty"`
-	ProductFa         string              `json:"productFa"`
-	Source            AdminOfferingSource `json:"source"`
-	TradeDate         openapi_types.Date  `json:"tradeDate"`
-	TradedKg          *int64              `json:"tradedKg,omitempty"`
-	UpdatedAt         time.Time           `json:"updatedAt"`
-}
-
-// AdminOfferingSource defines model for AdminOffering.Source.
-type AdminOfferingSource string
-
-// AdminOfferingInput defines model for AdminOfferingInput.
-type AdminOfferingInput struct {
-	BasePriceRial     int64              `json:"basePriceRial"`
-	ClearingPriceRial *int64             `json:"clearingPriceRial,omitempty"`
-	DemandKg          *int64             `json:"demandKg,omitempty"`
-	Metal             string             `json:"metal"`
-	OfferedKg         int64              `json:"offeredKg"`
-	ProducerEn        *string            `json:"producerEn,omitempty"`
-	ProducerFa        string             `json:"producerFa"`
-	ProductEn         *string            `json:"productEn,omitempty"`
-	ProductFa         string             `json:"productFa"`
-	TradeDate         openapi_types.Date `json:"tradeDate"`
-	TradedKg          *int64             `json:"tradedKg,omitempty"`
 }
 
 // AdminOrder defines model for AdminOrder.
@@ -1520,57 +1573,56 @@ type ArticleSummary struct {
 // ArticleType defines model for ArticleType.
 type ArticleType string
 
-// AuctionDay defines model for AuctionDay.
-type AuctionDay struct {
-	// Date Absent when there's no data at all
-	Date *openapi_types.Date `json:"date,omitempty"`
+// Auction defines model for Auction.
+type Auction struct {
+	// Category intermediate = ingots and intermediate products, scrap, raw = raw materials
+	Category AuctionCategory `json:"category"`
 
-	// Dates Recent trading days with data, newest first
-	Dates []openapi_types.Date `json:"dates"`
+	// DeadlineAt Gold only
+	DeadlineAt *time.Time `json:"deadlineAt,omitempty"`
 
-	// Items Absent when locked
-	Items  *[]AuctionOffering `json:"items,omitempty"`
-	Locked bool               `json:"locked"`
+	// Details Gold only; plain text with line breaks
+	Details *string `json:"details,omitempty"`
+
+	// HasPdf Gold only
+	HasPdf *bool              `json:"hasPdf,omitempty"`
+	Id     openapi_types.UUID `json:"id"`
+
+	// Location Gold only
+	Location *string   `json:"location,omitempty"`
+	Metal    Localized `json:"metal"`
+
+	// Organizer Gold only
+	Organizer   *string   `json:"organizer,omitempty"`
+	PublishedAt time.Time `json:"publishedAt"`
+	Quantity    int64     `json:"quantity"`
+
+	// Status Set by staff. open = in progress, paused = stopped, closed = finished
+	Status AuctionStatus `json:"status"`
+	Title  string        `json:"title"`
+	Unit   AuctionUnit   `json:"unit"`
+}
+
+// AuctionCategory intermediate = ingots and intermediate products, scrap, raw = raw materials
+type AuctionCategory string
+
+// AuctionList defines model for AuctionList.
+type AuctionList struct {
+	Items []Auction `json:"items"`
+
+	// Locked The Gold-only fields are left out
+	Locked bool `json:"locked"`
 
 	// RequiredPlan Subscription tier (plan code)
 	RequiredPlan *Tier `json:"requiredPlan,omitempty"`
-
-	// Source Where the data comes from, in the requested language
-	Source    string         `json:"source"`
-	Summary   AuctionSummary `json:"summary"`
-	UpdatedAt *time.Time     `json:"updatedAt,omitempty"`
+	Total        int   `json:"total"`
 }
 
-// AuctionOffering defines model for AuctionOffering.
-type AuctionOffering struct {
-	// BasePriceRial Rial per kg
-	BasePriceRial int64 `json:"basePriceRial"`
+// AuctionStatus Set by staff. open = in progress, paused = stopped, closed = finished
+type AuctionStatus string
 
-	// ChangeBp Clearing vs base
-	ChangeBp *int `json:"changeBp,omitempty"`
-
-	// ClearingPriceRial Rial per kg
-	ClearingPriceRial *int64             `json:"clearingPriceRial,omitempty"`
-	DemandKg          *int64             `json:"demandKg,omitempty"`
-	Id                openapi_types.UUID `json:"id"`
-	Metal             Localized          `json:"metal"`
-	OfferedKg         int64              `json:"offeredKg"`
-	Producer          string             `json:"producer"`
-	Product           string             `json:"product"`
-	TradedKg          *int64             `json:"tradedKg,omitempty"`
-}
-
-// AuctionSummary defines model for AuctionSummary.
-type AuctionSummary struct {
-	AvgChangeBp int   `json:"avgChangeBp"`
-	DemandKg    int64 `json:"demandKg"`
-	OfferedKg   int64 `json:"offeredKg"`
-	Offerings   int   `json:"offerings"`
-	TradedKg    int64 `json:"tradedKg"`
-
-	// Value Amount as a string of integer minor units (Rial for IRR) to avoid JS precision loss.
-	Value Money `json:"value"`
-}
+// AuctionUnit defines model for AuctionUnit.
+type AuctionUnit string
 
 // BillingPeriod defines model for BillingPeriod.
 type BillingPeriod string
@@ -2153,13 +2205,14 @@ type AdminListArticlesParams struct {
 
 // AdminListAuctionsParams defines parameters for AdminListAuctions.
 type AdminListAuctionsParams struct {
-	Date openapi_types.Date `form:"date" json:"date"`
+	Status *AuctionStatus `form:"status,omitempty" json:"status,omitempty"`
+	Limit  *int           `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset *int           `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
-// AdminBulkAuctionsJSONBody defines parameters for AdminBulkAuctions.
-type AdminBulkAuctionsJSONBody struct {
-	DryRun *bool                `json:"dryRun,omitempty"`
-	Rows   []AdminOfferingInput `json:"rows"`
+// AdminPutAuctionPdfParams defines parameters for AdminPutAuctionPdf.
+type AdminPutAuctionPdfParams struct {
+	FileName string `form:"fileName" json:"fileName"`
 }
 
 // AdminSetCatalogActiveJSONBody defines parameters for AdminSetCatalogActive.
@@ -2289,15 +2342,18 @@ type GetArticleParams struct {
 // GetArticleParamsAcceptLanguage defines parameters for GetArticle.
 type GetArticleParamsAcceptLanguage string
 
-// GetAuctionsParams defines parameters for GetAuctions.
-type GetAuctionsParams struct {
-	Date           *openapi_types.Date              `form:"date,omitempty" json:"date,omitempty"`
-	Metal          *string                          `form:"metal,omitempty" json:"metal,omitempty"`
-	AcceptLanguage *GetAuctionsParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+// ListAuctionsParams defines parameters for ListAuctions.
+type ListAuctionsParams struct {
+	Metal          *string                           `form:"metal,omitempty" json:"metal,omitempty"`
+	Category       *AuctionCategory                  `form:"category,omitempty" json:"category,omitempty"`
+	Status         *AuctionStatus                    `form:"status,omitempty" json:"status,omitempty"`
+	Limit          *int                              `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset         *int                              `form:"offset,omitempty" json:"offset,omitempty"`
+	AcceptLanguage *ListAuctionsParamsAcceptLanguage `json:"Accept-Language,omitempty"`
 }
 
-// GetAuctionsParamsAcceptLanguage defines parameters for GetAuctions.
-type GetAuctionsParamsAcceptLanguage string
+// ListAuctionsParamsAcceptLanguage defines parameters for ListAuctions.
+type ListAuctionsParamsAcceptLanguage string
 
 // ListCategoriesParams defines parameters for ListCategories.
 type ListCategoriesParams struct {
@@ -2450,8 +2506,11 @@ type AdminCreateArticleJSONRequestBody = AdminArticleInput
 // AdminUpdateArticleJSONRequestBody defines body for AdminUpdateArticle for application/json ContentType.
 type AdminUpdateArticleJSONRequestBody = AdminArticleInput
 
-// AdminBulkAuctionsJSONRequestBody defines body for AdminBulkAuctions for application/json ContentType.
-type AdminBulkAuctionsJSONRequestBody AdminBulkAuctionsJSONBody
+// AdminCreateAuctionJSONRequestBody defines body for AdminCreateAuction for application/json ContentType.
+type AdminCreateAuctionJSONRequestBody = AdminAuctionInput
+
+// AdminUpdateAuctionJSONRequestBody defines body for AdminUpdateAuction for application/json ContentType.
+type AdminUpdateAuctionJSONRequestBody = AdminAuctionInput
 
 // AdminSetCatalogActiveJSONRequestBody defines body for AdminSetCatalogActive for application/json ContentType.
 type AdminSetCatalogActiveJSONRequestBody AdminSetCatalogActiveJSONBody
@@ -2566,15 +2625,27 @@ type ServerInterface interface {
 	// AdminUpdateArticle Replace an article (archive = status archived). Roles, editor, admin
 	// (PUT /v1/admin/articles/{id})
 	AdminUpdateArticle(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
-	// AdminListAuctions IME offerings of one day, for editing
+	// AdminListAuctions Metal auctions for editing, newest first
 	// (GET /v1/admin/auctions)
 	AdminListAuctions(w http.ResponseWriter, r *http.Request, params AdminListAuctionsParams)
-	// AdminBulkAuctions Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
-	// (POST /v1/admin/auctions/bulk)
-	AdminBulkAuctions(w http.ResponseWriter, r *http.Request)
-	// AdminDeleteAuction Delete an offering entered by mistake. Roles, editor, admin
+	// AdminCreateAuction Add an auction. Roles, editor, admin
+	// (POST /v1/admin/auctions)
+	AdminCreateAuction(w http.ResponseWriter, r *http.Request)
+	// AdminDeleteAuction Delete an auction and its PDF. Roles, editor, admin
 	// (DELETE /v1/admin/auctions/{id})
 	AdminDeleteAuction(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminUpdateAuction Edit an auction, including its status. Roles, editor, admin
+	// (PUT /v1/admin/auctions/{id})
+	AdminUpdateAuction(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminDeleteAuctionPdf Remove the auction's PDF notice. Roles, editor, admin
+	// (DELETE /v1/admin/auctions/{id}/pdf)
+	AdminDeleteAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminGetAuctionPdf The auction's PDF notice, for checking it
+	// (GET /v1/admin/auctions/{id}/pdf)
+	AdminGetAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// AdminPutAuctionPdf Upload or replace the auction's PDF notice (a PDF, at most 10 MB). Roles, editor, admin
+	// (PUT /v1/admin/auctions/{id}/pdf)
+	AdminPutAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params AdminPutAuctionPdfParams)
 	// AdminCatalog Metals, products (active and inactive), categories and markets, for the catalog page
 	// (GET /v1/admin/catalog)
 	AdminCatalog(w http.ResponseWriter, r *http.Request)
@@ -2695,9 +2766,12 @@ type ServerInterface interface {
 	// GetArticle One published article. `body` is present only when the caller's plan includes its type
 	// (GET /v1/articles/{slug})
 	GetArticle(w http.ResponseWriter, r *http.Request, slug string, params GetArticleParams)
-	// GetAuctions IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
+	// ListAuctions Metal auctions, newest first. The deadline, place, organiser, details and PDF need auctions.read (Gold)
 	// (GET /v1/auctions)
-	GetAuctions(w http.ResponseWriter, r *http.Request, params GetAuctionsParams)
+	ListAuctions(w http.ResponseWriter, r *http.Request, params ListAuctionsParams)
+	// GetAuctionPdf An auction's PDF notice. Needs auctions.read (Gold) → 403 FEATURE_LOCKED; anonymous → 401
+	// (GET /v1/auctions/{id}/pdf)
+	GetAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// EstimateLoad Estimate a load's value (SCOPE §8). Needs calculator.use (Gold) → 403 FEATURE_LOCKED
 	// (POST /v1/calculator/estimate)
 	EstimateLoad(w http.ResponseWriter, r *http.Request)
@@ -2842,21 +2916,45 @@ func (_ Unimplemented) AdminUpdateArticle(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// AdminListAuctions IME offerings of one day, for editing
+// AdminListAuctions Metal auctions for editing, newest first
 // (GET /v1/admin/auctions)
 func (_ Unimplemented) AdminListAuctions(w http.ResponseWriter, r *http.Request, params AdminListAuctionsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// AdminBulkAuctions Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
-// (POST /v1/admin/auctions/bulk)
-func (_ Unimplemented) AdminBulkAuctions(w http.ResponseWriter, r *http.Request) {
+// AdminCreateAuction Add an auction. Roles, editor, admin
+// (POST /v1/admin/auctions)
+func (_ Unimplemented) AdminCreateAuction(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// AdminDeleteAuction Delete an offering entered by mistake. Roles, editor, admin
+// AdminDeleteAuction Delete an auction and its PDF. Roles, editor, admin
 // (DELETE /v1/admin/auctions/{id})
 func (_ Unimplemented) AdminDeleteAuction(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminUpdateAuction Edit an auction, including its status. Roles, editor, admin
+// (PUT /v1/admin/auctions/{id})
+func (_ Unimplemented) AdminUpdateAuction(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminDeleteAuctionPdf Remove the auction's PDF notice. Roles, editor, admin
+// (DELETE /v1/admin/auctions/{id}/pdf)
+func (_ Unimplemented) AdminDeleteAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminGetAuctionPdf The auction's PDF notice, for checking it
+// (GET /v1/admin/auctions/{id}/pdf)
+func (_ Unimplemented) AdminGetAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminPutAuctionPdf Upload or replace the auction's PDF notice (a PDF, at most 10 MB). Roles, editor, admin
+// (PUT /v1/admin/auctions/{id}/pdf)
+func (_ Unimplemented) AdminPutAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params AdminPutAuctionPdfParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3100,9 +3198,15 @@ func (_ Unimplemented) GetArticle(w http.ResponseWriter, r *http.Request, slug s
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// GetAuctions IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
+// ListAuctions Metal auctions, newest first. The deadline, place, organiser, details and PDF need auctions.read (Gold)
 // (GET /v1/auctions)
-func (_ Unimplemented) GetAuctions(w http.ResponseWriter, r *http.Request, params GetAuctionsParams) {
+func (_ Unimplemented) ListAuctions(w http.ResponseWriter, r *http.Request, params ListAuctionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetAuctionPdf An auction's PDF notice. Needs auctions.read (Gold) → 403 FEATURE_LOCKED; anonymous → 401
+// (GET /v1/auctions/{id}/pdf)
+func (_ Unimplemented) GetAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3495,15 +3599,41 @@ func (siw *ServerInterfaceWrapper) AdminListAuctions(w http.ResponseWriter, r *h
 	// Parameter object where we will unmarshal all parameters from the context
 	var params AdminListAuctionsParams
 
-	// ------------- Required query parameter "date" -------------
+	// ------------- Optional query parameter "status" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "date", r.URL.Query(), &params.Date, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "date"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "date", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "offset", r.URL.Query(), &params.Offset, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "offset"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
 		}
 		return
 	}
@@ -3519,11 +3649,11 @@ func (siw *ServerInterfaceWrapper) AdminListAuctions(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
-// AdminBulkAuctions operation middleware
-func (siw *ServerInterfaceWrapper) AdminBulkAuctions(w http.ResponseWriter, r *http.Request) {
+// AdminCreateAuction operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateAuction(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminBulkAuctions(w, r)
+		siw.Handler.AdminCreateAuction(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3550,6 +3680,126 @@ func (siw *ServerInterfaceWrapper) AdminDeleteAuction(w http.ResponseWriter, r *
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminDeleteAuction(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminUpdateAuction operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateAuction(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateAuction(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminDeleteAuctionPdf operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteAuctionPdf(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteAuctionPdf(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminGetAuctionPdf operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetAuctionPdf(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetAuctionPdf(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminPutAuctionPdf operation middleware
+func (siw *ServerInterfaceWrapper) AdminPutAuctionPdf(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminPutAuctionPdfParams
+
+	// ------------- Required query parameter "fileName" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "fileName", r.URL.Query(), &params.FileName, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "fileName"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fileName", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminPutAuctionPdf(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4599,27 +4849,14 @@ func (siw *ServerInterfaceWrapper) GetArticle(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
-// GetAuctions operation middleware
-func (siw *ServerInterfaceWrapper) GetAuctions(w http.ResponseWriter, r *http.Request) {
+// ListAuctions operation middleware
+func (siw *ServerInterfaceWrapper) ListAuctions(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetAuctionsParams
-
-	// ------------- Optional query parameter "date" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "date", r.URL.Query(), &params.Date, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "date"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "date", Err: err})
-		}
-		return
-	}
+	var params ListAuctionsParams
 
 	// ------------- Optional query parameter "metal" -------------
 
@@ -4634,11 +4871,63 @@ func (siw *ServerInterfaceWrapper) GetAuctions(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// ------------- Optional query parameter "category" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category", r.URL.Query(), &params.Category, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "offset", r.URL.Query(), &params.Offset, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "offset"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		}
+		return
+	}
+
 	headers := r.Header
 
 	// ------------- Optional header parameter "Accept-Language" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
-		var AcceptLanguage GetAuctionsParamsAcceptLanguage
+		var AcceptLanguage ListAuctionsParamsAcceptLanguage
 		n := len(valueList)
 		if n != 1 {
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
@@ -4656,7 +4945,33 @@ func (siw *ServerInterfaceWrapper) GetAuctions(w http.ResponseWriter, r *http.Re
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetAuctions(w, r, params)
+		siw.Handler.ListAuctions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAuctionPdf operation middleware
+func (siw *ServerInterfaceWrapper) GetAuctionPdf(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAuctionPdf(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5998,7 +6313,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/v1/admin/tickets/{id}/status", wrapper.AdminSetTicketStatus)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/v1/auctions", wrapper.GetAuctions)
+		r.Get(options.BaseURL+"/v1/auctions", wrapper.ListAuctions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/auctions/{id}/pdf", wrapper.GetAuctionPdf)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/calculator/estimate", wrapper.EstimateLoad)
@@ -6028,10 +6346,22 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/v1/admin/auctions", wrapper.AdminListAuctions)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1/admin/auctions/bulk", wrapper.AdminBulkAuctions)
+		r.Post(options.BaseURL+"/v1/admin/auctions", wrapper.AdminCreateAuction)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/v1/admin/auctions/{id}", wrapper.AdminDeleteAuction)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/auctions/{id}", wrapper.AdminUpdateAuction)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/admin/auctions/{id}/pdf", wrapper.AdminDeleteAuctionPdf)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/auctions/{id}/pdf", wrapper.AdminGetAuctionPdf)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/auctions/{id}/pdf", wrapper.AdminPutAuctionPdf)
 	})
 
 	return r
@@ -6326,8 +6656,8 @@ type AdminListAuctionsResponseObject interface {
 }
 
 type AdminListAuctions200JSONResponse struct {
-	Dates []openapi_types.Date `json:"dates"`
-	Items []AdminOffering      `json:"items"`
+	Items []AdminAuction `json:"items"`
+	Total int            `json:"total"`
 }
 
 func (response AdminListAuctions200JSONResponse) VisitAdminListAuctionsResponse(w http.ResponseWriter) error {
@@ -6359,42 +6689,36 @@ func (response AdminListAuctionsdefaultApplicationProblemPlusJSONResponse) Visit
 	return err
 }
 
-type AdminBulkAuctionsRequestObject struct {
-	Body *AdminBulkAuctionsJSONRequestBody
+type AdminCreateAuctionRequestObject struct {
+	Body *AdminCreateAuctionJSONRequestBody
 }
 
-type AdminBulkAuctionsResponseObject interface {
-	VisitAdminBulkAuctionsResponse(w http.ResponseWriter) error
+type AdminCreateAuctionResponseObject interface {
+	VisitAdminCreateAuctionResponse(w http.ResponseWriter) error
 }
 
-type AdminBulkAuctions200JSONResponse struct {
-	Results []struct {
-		Error    *string `json:"error,omitempty"`
-		Index    int     `json:"index"`
-		Inserted *bool   `json:"inserted,omitempty"`
-		Ok       bool    `json:"ok"`
-	} `json:"results"`
-	Saved int `json:"saved"`
+type AdminCreateAuction201JSONResponse struct {
+	Id openapi_types.UUID `json:"id"`
 }
 
-func (response AdminBulkAuctions200JSONResponse) VisitAdminBulkAuctionsResponse(w http.ResponseWriter) error {
+func (response AdminCreateAuction201JSONResponse) VisitAdminCreateAuctionResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+	w.WriteHeader(201)
 	_, err := buf.WriteTo(w)
 	return err
 }
 
-type AdminBulkAuctionsdefaultApplicationProblemPlusJSONResponse struct {
+type AdminCreateAuctiondefaultApplicationProblemPlusJSONResponse struct {
 	Body       Problem
 	StatusCode int
 }
 
-func (response AdminBulkAuctionsdefaultApplicationProblemPlusJSONResponse) VisitAdminBulkAuctionsResponse(w http.ResponseWriter) error {
+func (response AdminCreateAuctiondefaultApplicationProblemPlusJSONResponse) VisitAdminCreateAuctionResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -6428,6 +6752,161 @@ type AdminDeleteAuctiondefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminDeleteAuctiondefaultApplicationProblemPlusJSONResponse) VisitAdminDeleteAuctionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminUpdateAuctionRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminUpdateAuctionJSONRequestBody
+}
+
+type AdminUpdateAuctionResponseObject interface {
+	VisitAdminUpdateAuctionResponse(w http.ResponseWriter) error
+}
+
+type AdminUpdateAuction204Response struct {
+}
+
+func (response AdminUpdateAuction204Response) VisitAdminUpdateAuctionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AdminUpdateAuctiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminUpdateAuctiondefaultApplicationProblemPlusJSONResponse) VisitAdminUpdateAuctionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminDeleteAuctionPdfRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type AdminDeleteAuctionPdfResponseObject interface {
+	VisitAdminDeleteAuctionPdfResponse(w http.ResponseWriter) error
+}
+
+type AdminDeleteAuctionPdf204Response struct {
+}
+
+func (response AdminDeleteAuctionPdf204Response) VisitAdminDeleteAuctionPdfResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AdminDeleteAuctionPdfdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminDeleteAuctionPdfdefaultApplicationProblemPlusJSONResponse) VisitAdminDeleteAuctionPdfResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminGetAuctionPdfRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type AdminGetAuctionPdfResponseObject interface {
+	VisitAdminGetAuctionPdfResponse(w http.ResponseWriter) error
+}
+
+type AdminGetAuctionPdf200ResponseHeaders struct {
+	ContentDisposition *string
+}
+
+type AdminGetAuctionPdf200ApplicationpdfResponse struct {
+	Body          io.Reader
+	Headers       AdminGetAuctionPdf200ResponseHeaders
+	ContentLength int64
+}
+
+func (response AdminGetAuctionPdf200ApplicationpdfResponse) VisitAdminGetAuctionPdfResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "application/pdf")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.ContentDisposition != nil {
+		w.Header().Set("Content-Disposition", fmt.Sprint(*response.Headers.ContentDisposition))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type AdminGetAuctionPdfdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminGetAuctionPdfdefaultApplicationProblemPlusJSONResponse) VisitAdminGetAuctionPdfResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminPutAuctionPdfRequestObject struct {
+	Id     openapi_types.UUID `json:"id"`
+	Params AdminPutAuctionPdfParams
+	Body   io.Reader
+}
+
+type AdminPutAuctionPdfResponseObject interface {
+	VisitAdminPutAuctionPdfResponse(w http.ResponseWriter) error
+}
+
+type AdminPutAuctionPdf204Response struct {
+}
+
+func (response AdminPutAuctionPdf204Response) VisitAdminPutAuctionPdfResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AdminPutAuctionPdfdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminPutAuctionPdfdefaultApplicationProblemPlusJSONResponse) VisitAdminPutAuctionPdfResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -8498,17 +8977,17 @@ func (response GetArticledefaultApplicationProblemPlusJSONResponse) VisitGetArti
 	return err
 }
 
-type GetAuctionsRequestObject struct {
-	Params GetAuctionsParams
+type ListAuctionsRequestObject struct {
+	Params ListAuctionsParams
 }
 
-type GetAuctionsResponseObject interface {
-	VisitGetAuctionsResponse(w http.ResponseWriter) error
+type ListAuctionsResponseObject interface {
+	VisitListAuctionsResponse(w http.ResponseWriter) error
 }
 
-type GetAuctions200JSONResponse AuctionDay
+type ListAuctions200JSONResponse AuctionList
 
-func (response GetAuctions200JSONResponse) VisitGetAuctionsResponse(w http.ResponseWriter) error {
+func (response ListAuctions200JSONResponse) VisitListAuctionsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -8520,12 +8999,65 @@ func (response GetAuctions200JSONResponse) VisitGetAuctionsResponse(w http.Respo
 	return err
 }
 
-type GetAuctionsdefaultApplicationProblemPlusJSONResponse struct {
+type ListAuctionsdefaultApplicationProblemPlusJSONResponse struct {
 	Body       Problem
 	StatusCode int
 }
 
-func (response GetAuctionsdefaultApplicationProblemPlusJSONResponse) VisitGetAuctionsResponse(w http.ResponseWriter) error {
+func (response ListAuctionsdefaultApplicationProblemPlusJSONResponse) VisitListAuctionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAuctionPdfRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type GetAuctionPdfResponseObject interface {
+	VisitGetAuctionPdfResponse(w http.ResponseWriter) error
+}
+
+type GetAuctionPdf200ResponseHeaders struct {
+	ContentDisposition *string
+}
+
+type GetAuctionPdf200ApplicationpdfResponse struct {
+	Body          io.Reader
+	Headers       GetAuctionPdf200ResponseHeaders
+	ContentLength int64
+}
+
+func (response GetAuctionPdf200ApplicationpdfResponse) VisitGetAuctionPdfResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "application/pdf")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	if response.Headers.ContentDisposition != nil {
+		w.Header().Set("Content-Disposition", fmt.Sprint(*response.Headers.ContentDisposition))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetAuctionPdfdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAuctionPdfdefaultApplicationProblemPlusJSONResponse) VisitGetAuctionPdfResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -10183,15 +10715,27 @@ type StrictServerInterface interface {
 	// AdminUpdateArticle Replace an article (archive = status archived). Roles, editor, admin
 	// (PUT /v1/admin/articles/{id})
 	AdminUpdateArticle(ctx context.Context, request AdminUpdateArticleRequestObject) (AdminUpdateArticleResponseObject, error)
-	// AdminListAuctions IME offerings of one day, for editing
+	// AdminListAuctions Metal auctions for editing, newest first
 	// (GET /v1/admin/auctions)
 	AdminListAuctions(ctx context.Context, request AdminListAuctionsRequestObject) (AdminListAuctionsResponseObject, error)
-	// AdminBulkAuctions Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
-	// (POST /v1/admin/auctions/bulk)
-	AdminBulkAuctions(ctx context.Context, request AdminBulkAuctionsRequestObject) (AdminBulkAuctionsResponseObject, error)
-	// AdminDeleteAuction Delete an offering entered by mistake. Roles, editor, admin
+	// AdminCreateAuction Add an auction. Roles, editor, admin
+	// (POST /v1/admin/auctions)
+	AdminCreateAuction(ctx context.Context, request AdminCreateAuctionRequestObject) (AdminCreateAuctionResponseObject, error)
+	// AdminDeleteAuction Delete an auction and its PDF. Roles, editor, admin
 	// (DELETE /v1/admin/auctions/{id})
 	AdminDeleteAuction(ctx context.Context, request AdminDeleteAuctionRequestObject) (AdminDeleteAuctionResponseObject, error)
+	// AdminUpdateAuction Edit an auction, including its status. Roles, editor, admin
+	// (PUT /v1/admin/auctions/{id})
+	AdminUpdateAuction(ctx context.Context, request AdminUpdateAuctionRequestObject) (AdminUpdateAuctionResponseObject, error)
+	// AdminDeleteAuctionPdf Remove the auction's PDF notice. Roles, editor, admin
+	// (DELETE /v1/admin/auctions/{id}/pdf)
+	AdminDeleteAuctionPdf(ctx context.Context, request AdminDeleteAuctionPdfRequestObject) (AdminDeleteAuctionPdfResponseObject, error)
+	// AdminGetAuctionPdf The auction's PDF notice, for checking it
+	// (GET /v1/admin/auctions/{id}/pdf)
+	AdminGetAuctionPdf(ctx context.Context, request AdminGetAuctionPdfRequestObject) (AdminGetAuctionPdfResponseObject, error)
+	// AdminPutAuctionPdf Upload or replace the auction's PDF notice (a PDF, at most 10 MB). Roles, editor, admin
+	// (PUT /v1/admin/auctions/{id}/pdf)
+	AdminPutAuctionPdf(ctx context.Context, request AdminPutAuctionPdfRequestObject) (AdminPutAuctionPdfResponseObject, error)
 	// AdminCatalog Metals, products (active and inactive), categories and markets, for the catalog page
 	// (GET /v1/admin/catalog)
 	AdminCatalog(ctx context.Context, request AdminCatalogRequestObject) (AdminCatalogResponseObject, error)
@@ -10312,9 +10856,12 @@ type StrictServerInterface interface {
 	// GetArticle One published article. `body` is present only when the caller's plan includes its type
 	// (GET /v1/articles/{slug})
 	GetArticle(ctx context.Context, request GetArticleRequestObject) (GetArticleResponseObject, error)
-	// GetAuctions IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
+	// ListAuctions Metal auctions, newest first. The deadline, place, organiser, details and PDF need auctions.read (Gold)
 	// (GET /v1/auctions)
-	GetAuctions(ctx context.Context, request GetAuctionsRequestObject) (GetAuctionsResponseObject, error)
+	ListAuctions(ctx context.Context, request ListAuctionsRequestObject) (ListAuctionsResponseObject, error)
+	// GetAuctionPdf An auction's PDF notice. Needs auctions.read (Gold) → 403 FEATURE_LOCKED; anonymous → 401
+	// (GET /v1/auctions/{id}/pdf)
+	GetAuctionPdf(ctx context.Context, request GetAuctionPdfRequestObject) (GetAuctionPdfResponseObject, error)
 	// EstimateLoad Estimate a load's value (SCOPE §8). Needs calculator.use (Gold) → 403 FEATURE_LOCKED
 	// (POST /v1/calculator/estimate)
 	EstimateLoad(ctx context.Context, request EstimateLoadRequestObject) (EstimateLoadResponseObject, error)
@@ -10682,11 +11229,11 @@ func (sh *strictHandler) AdminListAuctions(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// AdminBulkAuctions operation middleware
-func (sh *strictHandler) AdminBulkAuctions(w http.ResponseWriter, r *http.Request) {
-	var request AdminBulkAuctionsRequestObject
+// AdminCreateAuction operation middleware
+func (sh *strictHandler) AdminCreateAuction(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateAuctionRequestObject
 
-	var body AdminBulkAuctionsJSONRequestBody
+	var body AdminCreateAuctionJSONRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
 		return
@@ -10694,18 +11241,18 @@ func (sh *strictHandler) AdminBulkAuctions(w http.ResponseWriter, r *http.Reques
 	request.Body = &body
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.AdminBulkAuctions(ctx, request.(AdminBulkAuctionsRequestObject))
+		return sh.ssi.AdminCreateAuction(ctx, request.(AdminCreateAuctionRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "AdminBulkAuctions")
+		handler = middleware(handler, "AdminCreateAuction")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(AdminBulkAuctionsResponseObject); ok {
-		if err := validResponse.VisitAdminBulkAuctionsResponse(w); err != nil {
+	} else if validResponse, ok := response.(AdminCreateAuctionResponseObject); ok {
+		if err := validResponse.VisitAdminCreateAuctionResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10732,6 +11279,120 @@ func (sh *strictHandler) AdminDeleteAuction(w http.ResponseWriter, r *http.Reque
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminDeleteAuctionResponseObject); ok {
 		if err := validResponse.VisitAdminDeleteAuctionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminUpdateAuction operation middleware
+func (sh *strictHandler) AdminUpdateAuction(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminUpdateAuctionRequestObject
+
+	request.Id = id
+
+	var body AdminUpdateAuctionJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminUpdateAuction(ctx, request.(AdminUpdateAuctionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminUpdateAuction")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminUpdateAuctionResponseObject); ok {
+		if err := validResponse.VisitAdminUpdateAuctionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminDeleteAuctionPdf operation middleware
+func (sh *strictHandler) AdminDeleteAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminDeleteAuctionPdfRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminDeleteAuctionPdf(ctx, request.(AdminDeleteAuctionPdfRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminDeleteAuctionPdf")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminDeleteAuctionPdfResponseObject); ok {
+		if err := validResponse.VisitAdminDeleteAuctionPdfResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminGetAuctionPdf operation middleware
+func (sh *strictHandler) AdminGetAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminGetAuctionPdfRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminGetAuctionPdf(ctx, request.(AdminGetAuctionPdfRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminGetAuctionPdf")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminGetAuctionPdfResponseObject); ok {
+		if err := validResponse.VisitAdminGetAuctionPdfResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminPutAuctionPdf operation middleware
+func (sh *strictHandler) AdminPutAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params AdminPutAuctionPdfParams) {
+	var request AdminPutAuctionPdfRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	request.Body = r.Body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminPutAuctionPdf(ctx, request.(AdminPutAuctionPdfRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminPutAuctionPdf")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminPutAuctionPdfResponseObject); ok {
+		if err := validResponse.VisitAdminPutAuctionPdfResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -11881,25 +12542,51 @@ func (sh *strictHandler) GetArticle(w http.ResponseWriter, r *http.Request, slug
 	}
 }
 
-// GetAuctions operation middleware
-func (sh *strictHandler) GetAuctions(w http.ResponseWriter, r *http.Request, params GetAuctionsParams) {
-	var request GetAuctionsRequestObject
+// ListAuctions operation middleware
+func (sh *strictHandler) ListAuctions(w http.ResponseWriter, r *http.Request, params ListAuctionsParams) {
+	var request ListAuctionsRequestObject
 
 	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetAuctions(ctx, request.(GetAuctionsRequestObject))
+		return sh.ssi.ListAuctions(ctx, request.(ListAuctionsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetAuctions")
+		handler = middleware(handler, "ListAuctions")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetAuctionsResponseObject); ok {
-		if err := validResponse.VisitGetAuctionsResponse(w); err != nil {
+	} else if validResponse, ok := response.(ListAuctionsResponseObject); ok {
+		if err := validResponse.VisitListAuctionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAuctionPdf operation middleware
+func (sh *strictHandler) GetAuctionPdf(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request GetAuctionPdfRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAuctionPdf(ctx, request.(GetAuctionPdfRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAuctionPdf")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAuctionPdfResponseObject); ok {
+		if err := validResponse.VisitGetAuctionPdfResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -12804,222 +13491,223 @@ func (sh *strictHandler) GetSite(w http.ResponseWriter, r *http.Request, params 
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7H3dchy5searIPqcjWmGS/zRSOMZKiY2OBQ1pkeaoUnJ3hMe7RCsyu6GWQ3UACi22hPaOBtx1ld7dfZi",
-	"H8H3u29w9iXsWz/JRuKnflHV1c0mKY19oxC7UCggkUgkMr/M/GkUi3kmOHCtRoc/jTIq6Rw0SPPXURxD",
-	"pl9SPs3pFPAXxkeHoxnQBOQoGnE6h9Gha/aoaBeNVDyDOcUXEpjQPNWjw9GEjqIR8Hw+Ovy9/2P0Nhrp",
-	"ZYadKC0Zn47ev38fjSSoTHAFZhBnUlylMMf/xoJr4Br/S7MsZTHVTPC9zLb4xR+U4Pis/Po/S5iMDkf/",
-	"tFfOcs8+VXu+X/PFBFQsWYbdjQ5HJ1IKScbnL47JF0+e/nJnhE3ce4YuyZzxI6lZnBqq0DT9bjI6/H3/",
-	"B6tvnfIs16P30U+jTIoMpGZ2srEEqiE5MnOcCDmnenQ4SqiGR5rNYdQiVzRiSa1tnrMk1EwCTV4xnmv7",
-	"IfeccQ1TkNggz5L1Pm06/TFnEhJcUvPZ6leiymyq3ZdrLq7+ALEevX/7Phq1qXPYJA7N9UzIE7PGc/ru",
-	"JfCpno0OD/b3A/O1jV/QQY2vRLJs9ft4f3+/s/ULx91VtvnV61cvyUSKOdEzIJAwjVykKGea/RESIjhR",
-	"9AZ2RtGgz8RUw1TIZftDjkzEtyAqzaehRY/FDcg3Mm3M7GnwexOgOjeLWbDHlRApUI5P56Bp2h7KK/y5",
-	"8/si16kQ16u24neu2ftolOVXKVMzz4f1jz23wkQRLQyJJ0wqTdwrxHHpsF1jRtxgjcchqihNda5WzcCt",
-	"yIVtjK/l8zmVbab6LEh61/oFHdRaM51CiF272r6gobZzxv3fn4beND8MmvZrbNqUB+Z9R+iCjBUuK8dW",
-	"nX+xu9pSoi4jzsWiLSGqW2ZN/h4oRott0HrS4Nz12HBbbFdhjT5WuP1ib+m8WIdJ+k4QxxvHVNNUTE81",
-	"zNvMgdpKB2nwUQdlOlaoMRk3AddP3/gK/uwaXGWbfh7a0eVYGy0r+/lgmMT7LCiLhNQhDaF3xu617okL",
-	"rmmsX4FSTpOsTx83fZD8GyhEMKcsvEVnlCfpnWhXVhMOcZbQ4QfZTHC4xdZ3FK2eOJbkA9/LiwXKFcjT",
-	"IdMMbWAzcT+bchBWjFe3dLmQnUzygv7YpflxtQAZ1tBCup9p/oIObN57amQiy1Mqw4dGIfPDj3/MQaHq",
-	"0hr4p8Fx+OYvaKj5iuPab++6xnQ65UJa1dOKz1E0QOVZSwIU1KtNoLIIJQ2rBFslMZAZnBhf43pVsFD7",
-	"ajVwJ2/lWBt02TGqcwfD399xkFGtQfLR4ei//p4++uP+oy8evf3pcfRk//0/r5zrwFPvu8kEzPvrraV/",
-	"7ZYLqkQuYyNpvfFhTnlO01E0SmAukFMzFjBEbIkV3OcH8kR9zu1jkio4kyyGc0bT2qgY1589GUWtPRuN",
-	"4hQodrnuewnMKU++mQ5s3q0YC5wTDO8pkyLJ47C4D6ySb/6CrtFcr9W5Hti3ljSB51RDbaZO7IZbDyVL",
-	"83JVfMlTvjrWGlGqCxA1OKh7y8oEZOAcnoucr1QxXgkOyw2Vt1hCwoZ/YUo1LGj45B4oH64ZT6rSgcNi",
-	"hMTmsDBkzbMpEnsUjRKx4Pb/IWmRUbbWTDOQTCSrZvoVS1PcvLYxvpZSvtK0SVlyljoVBRd7MD0lTE6T",
-	"IDUlTHKenA41NmLjc6DOItvR4GKQpntebTtYPzYcXL40WMm1TTv0+eBZb3t2K1Osq2MsvwAFZ0d+EwV1",
-	"45KjO7fmmbtArXGS4itdp2inBeK2p59TDgYde+UAgzfDkP68yjQ7pPUK9X37drbHgTdvQComeFt3fz0D",
-	"4h6SK2B8akzKkJCxyDSbM6VZTFIRX+8MOC8KK4qjUF0V92PoZbqgxW0FCTu5a1ND1dpcWSPwsBtNSawQ",
-	"jQYZos4E47rv/NyKoYNrkJB8FT7+iqffOllW564LTScTMof5FUiymAni2hOmydhqyCTDWaidbrtI+2f1",
-	"yrwa5oY/5PPsqyzsfhJXCuTNegTIJNwwkaujgqztHWTEL05qQRVBAUlxkgumZ2SMPoSUalB6FI2EJBMh",
-	"CSVXNL5+ZFbYEsC4GgQHQqXIORJIGV/DzuiQ52kaPP5uGCzWm4t/Z/B60SyT4gas1w2ZD6/5ktwIlphV",
-	"7BydAslqTsDQXanxcfN7p5unPJG9ElXdOD/mVFKuGa+NNeT6DV2f7GArp2aFUSpHaMF4lRvXAJOTUYWP",
-	"1tupG7H+JuzduVBNseVpZCgWJlQxuh5SmOtDgBSxZjcQnlav6az7SngPpnh/K6qYpwpbtZvRKlJ0aCS3",
-	"nvNKA1zQpnPwuK5LbGDU+WwNo043/TrJdlHw6xoMlEsJPF6uNFv7dmanfUVVR39WnB91717XYI1taN+4",
-	"KERje82pvAbd8ejdr3sOvR5vYtVM0W+WGO5UzPnqq/UbbNPBE1ULg5t0ZQVd/8X6FPusSoYVzNO15Tbg",
-	"kqGrUj/pEIrAQBK8hhHGyRVVTDlFiIwdmokcPN3fJ1+Sg6fkPzk0B5vjwXdgLxpzxou/uy1cunfxOrbw",
-	"58EtvLWl7VvYnqXTmvFpYOfH1tnUfkCTRIJSAx0jrvULOqh14f9beWmbiVyqEz687VAbo/ftVVo+2V8l",
-	"eL0PzY6/OuuoQq9yJOX4QysDnM7pSvPSiW1lVL/Y2YabJucUhpGdaTpsgRhXmk4lnQ9qnTJ+DQkbxika",
-	"UhjYc/OG7N+sjq/y9chSws+zTfJGf571C8p2bp/XLHaCaphJx7Vvm3LWtHGF7xkvDKaK8oSkVGni/Lu3",
-	"MJIV9rHilR5DkJ3b65kEy7v1Cc4tfMD8n2mYrzQC2u486qDAuYyolNQcErqg/Uojmid7y7ISW3FZDK5z",
-	"od+okE39Ck04XfaTTSzoRmzrE56oDV47G2Befs3sMdYNtDDAvG+7MBEDDfMp7ekDH14A8HWm2A252MDk",
-	"6zZG1XRbGVNULGudskHeWBtI7FBfFjQXEAQW+xqcqQfaNO73BUYVMay75OhKAddkMQNOinls3UK80jRs",
-	"5/mSqYAGUez/QYKgRbKWJEjZnOmwlp45i3v7iRZ1/b3LsGjH6Nu7Hv03e3jiomVYSSSd6IZlksp4xm6C",
-	"JpVo1Jh57222j4IvRUxTZJEmrnhNnGUp7dq2upimKchPFEFXCkkEKP6JJozHaZ4A0TOmCHb4zFjkkJPJ",
-	"QmCLKyDIr6Mo8L3iijV4crcGLQ81+K0A5HsGWkckd+NJy/Wv0/0spYwTDe/0qMutsR3EaIetHZ/575TD",
-	"rEFA60EFVWIX7NSzh167gVb8u8rAk2i6VExZxDjEVOnw/sljpNRzGtg7iXP1N9D5FeGpZyDhE0W4IAnV",
-	"lFBNaJo2UeohyuPvqt35OcTYuZY0QY9QQpfKGrOx+4hwWIDSFhg/ikrZuPJzTXFYvNk9t+JgGCaBLR0L",
-	"LFBIBPcoQhtthg5r9u9wUYwMMWsSizkoE7cR4Y0ff8evgdKASnAR1NS3pwbMvHL23PbgtLxR3S3FWrg5",
-	"B/dDYwVWo4sarMfQJQSSXE9H0WrESjSKZ5RPwVpZqnYU75mod3/scErkRqHVBYaDmW4zzGh0I9J8Do8W",
-	"wKYzDYkd3Pr4p3XjB4YfRxvCp/oMh8Fnt8Ejmck2gEijyljWBiHV90zbfnQzPa5w163Ra+sSWbhN1HF0",
-	"r0XKaHRD03woRqdB+HIgdRIX868Mxn8oqpEvRP466qgKnRRcz5xPT5t1XQKVwYPzqzy9tosMykSAtjR4",
-	"nsC7MP3+0GszL2IIBjiE1/J+trRtcW18jMLqITgqYx66oalh+CS3QagwwJlpJlvxZ7qPhah/TNM4T6kW",
-	"ssMcnkBi94elUaf5OWh8ZvMsl0wvN3m3JF4DZn5+7hzttgU6qJX3rbsnTFm1nSqwCBbBaRrEFqgZyzJk",
-	"P8ocuMGvhwK8IKAEyZcQZjv/cifStX+GaOkuRNMZyG8CoPpXDh2BzZ4RvApJloCdnpu/B30N2Pz24Pla",
-	"0oamNmS8DSardlVb6KjGMg0itQjez5NnHlBY58nN8Bs9fpAhKIWBfvHyQKqMsn+WXUKroKNaA0o9lUKt",
-	"0575bd/r62pICfQbg/7dCm4K6QsDAKLN5R+y0TrOucHtWxIUZ9maZJW6UXN5WpxejiC4/DMq9Tmei/XU",
-	"BQevKqkLDp6PotHB70aR/flT/Ocz/OfgX/BP/OfV0X8JyqbjGcTXIu8CFtwLIrjpdKqBVsNEsYP+Te5C",
-	"2W4LCV8H3w1rWrG3Bub+EMHZSlOp1ca3xk3wyfZ7xTr08UeXxBQ+lGAlWtve8xMmIdbOuFg/eL+22GiS",
-	"0eUcuCZoRn1GaMUmwYWe4R2SKZLCRGOigIwuV5LGjjE4O+vGO+UT0R7PyTzTSzJhkCaKUAlEzJk2CN04",
-	"ZTgmGwNH/unT/UMyYWkKCVoYUC2S3tRA0TO0M4oaVHMO3+D51xPgig7htcJN3/fNuROQ3c4n0cAm3c4v",
-	"710xzbwdK5DUxRwbFk6QiqE9mU2ZtutETcYao9TXBlP7xC+DJp8Ng2wXcKVYyFr4K9zdmdC75Ff5nHLk",
-	"W3pjAKuA3PXM882XRLEUuE6XJJEiy9qDX+ni7o/V7eH+thvCylUXT419ZXQePvLqlKh0MQUO0p7ReZYJ",
-	"aQZiBSoOkkrNQeLxbYzBkCAsdxSNhJ51aP7HFZCQ/8jp+fkoGr25eB5846TASLR9EfAtPiNa5koTBTQl",
-	"Y5PaBVnIJHpRnGUZ6EPCEuMuPxYJ7OySMzRPxxhwCzeAqVmYRlsj1WRGFREcdslLlEwi10RMyAXTgMKF",
-	"5FyzlFwJPTMcqkBbN4d7HzhRM7Hwd6hkCkTwdEnYxI30E0XYnE6Rt3VO03RJUkETtduSLLFIAmz4kmqU",
-	"TKA1SGXmY7dLnck+e9IJBW9kagm8/Hh/EOLXjC/EjCfceAnmRa6qls8TuDbX8Q4bsnMpePnK7BX0rNZN",
-	"+y14R+dZ6jQfFoPaNdbJQy1ziPxPkzxNR4cTmioISVTj6Bvy3ZoFq0pQhJvl3PRjNlxlVDFqrbszprSQ",
-	"yx/QI4CAl9AwNAM51HiObdfDEDQWs74g7uOVRSioElrrF/TH7lwZ67l+fSB5wOHQmbVh7aQfhRekYzLh",
-	"jCRWPVjljg/enPuyEvgw/N6ptaILrlIgCUBGEPJExnsT+uM/YeOdoYjh4rM+9r8S+R8ki+WElyK+bpPG",
-	"sQn+t2D12mYLelTX9RE1JuI/2ugqNPjSRB+M3d8SV4W+bK1P5hrelS2jIxzmFeNCErRwKeMgcbYq/IGM",
-	"8VK8dz2NSGzopIVVSiso1P1HX7z9RRB8OhEyrl+ZjSSMWkwmJOCxyPHYwoNsLm6AwLsYILEnm3DwWz2T",
-	"oGYiTYI+/bqtqTtHGBeLXXJMHUTAKdyT3K3xukEYjclY4oVDYroMUW5lwsvq4cpDuSkWdcd2Iua4AeNR",
-	"NJqm4qpm42gzYbmr1gjmdKLOfjo4C+gCb6++8y8v8quSwg+ML+PwboMRd9xATnYPqhau8ivrHMibY9TM",
-	"V8KrZVwpt7norWKczqvFK+8IDbN7yZ5//R9/+b+jQYwc47VIrsXLwZEZe0sb+mD2LqGKUGJ7Rv3dKWxk",
-	"XpGtRpaaYMLT8/MdFEQUo/LIry9IJiFmJqI3FSqgnJeiu5yW8czs7+/XxfGj/9wjkNePl2gqb94GVPQU",
-	"pFR9A7QWc13r3cCNKySbMl4VfUVGl6Yhp3xpXdPcusa2kPuwiH+JKY8hTR2aKUtpPDgA0lnt2ra4qAx+",
-	"dAQJLdHHksjjH8k6bpGsI2wllRADyzTh+fwqJBZvl4XDvou3hoCoJPYpiSmmLqjAqbhYBDW6DXJ69GyW",
-	"W6bgqEytc0u1TWIZ8MTbrsxgJpSl7q6eMY9kxJ47kLrflbjTtjnKQro/UQSjxPHg0UVsuzWY45kyppyA",
-	"0mxONUSEowGKUJJJMWfKpB32Y80zt0OMPy3XskNZPOtN1rjupbU/GcTDpnsoMxYOzfNQ7NsqPoGlN2ar",
-	"TfHqEqSoeyNskxuiB25mxWoiIKm2eGqDtHYIa0XGgA5SnLTNY42Uk5ymezSOQSlrkXxzqhxvXQNk+BOT",
-	"RCw4mVMt2budUYBY2zeAtT7ReVGyVoPB9iJcocLJ3bQYScqvB3CWWc/iumReKsYx1ARWjqPHUbwBLmud",
-	"M6YxrUKu2j6Co/a9NwBCATU5A1mxPTjIplebI/LmwpoizAMtuHny5uL5TlUFH6ZBf/YkpEFvVX++RQRu",
-	"W9fuCbi1CStSkOsmatg0kGw9IqypxvXuw2Km32Brd2F/Ldl0CnK9maCZqQtOuCEGqTRQbTXQvp7zpMQt",
-	"tYPsnWpTXjF6k52UxOy47G+2IiVh69sdfz8kCWXpklgUeDuW/un+3/71f6FBYWfUDzXsp339w/QKLYp7",
-	"5ApSsTj0yENeheaVIoiMT8/PD0lF+qDUeX5Ylzs7w817hoj95P+mcYExA0blAwc8shQNKw7YhQXttqdt",
-	"fyd0ShlX2umGFgqLISKfKBKnAnGXR4rRvdcwk5RjtBXwhEpssdMjRzuNyGsYJK4CTPJVjR0OHj8lX5Jf",
-	"HOw+dkkVVhyxhdS8yrpJvo3QQYsGFYvuiJXjMKWchXjGkgQ4uVoSXQ1x0wwkJtrSsQGs2HIWqQapwvvB",
-	"fupF6Rbp9XlVXCtdsYjVsXcSMFxloeDClXRzDLtxfi8WD/tOXWL0Nbercg6TYRFCVoJsGCIUlhNhYhdF",
-	"jsI3g1KZOf329cn5t0fBG1YCutNkXnJOI+D/5Oj1m/OTH15+d/zNyfNDMznLG8S9Q65h2eVvA6U7E4Zu",
-	"ELFV3KrbG2B1KGKpdki2cjGagYeFIaALfmANIA9hSksgZsndlC3oqk5g7KiDk712pnlVG5iWQhqRH06/",
-	"5aZ71drWmmL7Yp/tTHrBI/iC3kDikdBBg/fdle/qvN3KAnY5DL/tYJp9xRxcl6tIayXpryzuJODBl2K+",
-	"Bhm4BnlD0wuIBU8C/tavcsyzQRT7I5BcoXASkqAJS6FgtIa3gHbvAg4HnvV2SjZ5Z/j2v/rcq4DIb3so",
-	"tSWd2DQZr1dR7RQiuzqmwzbtC7J1r/rK/KbD7tmhnJ1sDt6+aTLQmLH4U/cqd9lWNqCB7nfAl2uwpRwJ",
-	"t8psVyfKb5liiM/xdc8kAHF4qkDGgwJJ0Hsg2VYbhaRW7syD3+ly1z6SkDzCCd1xVrN2OsPVGeyCbOIA",
-	"m73JzgZgg00fG+TpAj7F9AcXQTAxegpObAMLHKWa7AFHOHxmcanjSUqnqN/RFHaB7+yS7yaTQ9PIQ+8N",
-	"dMaBpoMMlrIYuALlvQONa89MLOzudc0MTN9AStHqNxFCg3QgMzMYfLzrG+8Ev1gmJ1thPq4qTdVBfQt6",
-	"IeQ1+duf/p28OX8ZWfCsS+yriAI9WjuhV4MQ9aUJso4R7L8CmurZeta7Ceh4dto+IgPXRKq0KV/amTXJ",
-	"iO718l8qfZ7zDV65CAfUghnf2473LnLja1jncz2mf3HDko5Y+L7aeyGv5rfCnUUcFgaiRjkxTY8mGmR5",
-	"eAa9m41Wa9VXG1UmUrH42WGGeg8y30MgNXruFx8vhONtRzq8jWuoNStIbIr1KBMJNg4mtP2tC964o3sM",
-	"7nAHO1trh1sMw+CIViGZrgWCcHwN2WvGprPgEg67q1oaB6vuDVjpAorhX6ssbDHqJpFW3cPqSQ4Pu5PB",
-	"tXUF5DzMTmSFjJDWTm7DcQidAtefKFICDzsSyofxAP2Jpe6OwxQmyg8do0FXi2lc+P6HELo81OrzFRlw",
-	"8iVZUKbRoIvXU0fJyMUBQtJ4rt0SVJAZ2EsBoLfpA83uDbLsh5kt81aJMl+zYEBE5fBylnMDXIgx5qpa",
-	"Vt7eI1bDMN64i4V/0eQK0oKHQXkKYpNJ4QJn6DAwQCXIo1zPyr9eeNb89e9ej5oa6DewjFNBr4mFUhAt",
-	"rgERO3nCgMdAaEr5BFL44yOasR1fQ98wsOm8ZPWZ1pmtWs+CUak2Ai0ynGXUbhNiSo7OTg3T/eXPf/23",
-	"v/z5r3/627/+z7/+97/+21/+zy7BK4mksX5kC2qPj56fP9rfP3iyc2hKzlikyISlEH3PTSiazDm51FRd",
-	"ExvFp+HS9HIDHAehDkkiYrVnEhNqiHUuYe/o7PSHr9+cPj95efrtycXuPNn9nhcG2MPREa7nCyQAjrSC",
-	"wzkc7e8+3d03WkMGnGZsdDj6dPdg17nzZ2Y99m4O9sw896hN+/bI3fTcZphavsX9YWx3eFjbrKzoI3Kp",
-	"4o7LV4wVLBOo3eN7j/f3/RXPQdlpZnO/MMH3/uDsn3YH3DpXZa1ScGsbBt057a30vnUHqszOPHOhGuHB",
-	"FLPf866J6kYwKUqrW+D3b9+/rSREa1aotxTVdKqMToUTHL015jnVtSzHRhTXF2Y5KpwOX7kzZ/CKrEHx",
-	"Oom1zOF9ix0O7vLjjXWzh9I9LFqCkayE1tduuUvORQoqMrJAyMjKk8B6vo96t+HeT3ineW+rRnUt+5ss",
-	"CS57RiWdgwapzDQYEgY3v78iHfoLU33hosoi9Be+fv/WvvsB8Nb+/fGWJfc98NY54DJhgSIJ5oYX4jRb",
-	"kQkXEi/WS7VzK9YbLvdVB4P9mENR+GR0WBSrH0b6eu7TcI+F8r9Wn6WnLNzrj6MOtj/Y7+L7hzzq3KyC",
-	"EIuND7tiZe/rqFPooqB8SeyaRgZ+b9I1uKp9Trea03fksQM9bXwe3uU56D7hkko9wFno5/iQR6H9UEVG",
-	"7ZKvRMLApg9RBdTdqcqPn95SVO39xJL3/fLqa9Dl6q8+DlnSexiuMlO9vetTqWeVi0d3vcrfmaJ+9gzC",
-	"qxEunfMkt7fmMJXl3tbmg9n998cX96ismBC9qooydkn2yZdOwBP3Q7Lpznd56gYoKb7lICXFJfgewF3h",
-	"VOBb1geKNOZbSEU+XKXozjLeAYa0wxyiWPiu70GzOH11Qor8voiJEBwQrButEFZBPtu7ylObZ8PpGI2s",
-	"2WJhz7ZrWEKCaNVxUWM+IkXht4iUleV3nhEJj4BrM0BCiRQLEgtpfchM75LfmcT0cnme1zKzKcRRYeRG",
-	"gOExa3CF4TeVcw0mNEPoSCwvFhsyV5F2c07fndq3P3Xh8e7PgxXcZ74dZrrtSt06OSy+qz7regvo9CD3",
-	"JG1mXIHsTL4krofY5E3vpnHIONyUDIaRBvhS/YT9G0P2+RlCU8SCSIeXuw/ji5B+/1T2/Rh3PY7kS7P/",
-	"UXwS4FouIzLH+8aXGOJJDRLZJPG55XlUaKIJpGC9t4Ft+tw8dBv1YfTRJ6HcLynci4JgP4T6gV+nonz2",
-	"1ZLMmdL0GjZbh5hqmoppv1pw7BptVSzUDeZrmapxMF1JtizMast9gqbpdrt0R9yanfqiyav0DDfgymei",
-	"Uc027qk0RDTZUkmWA+6c1U2eFlWoAIqMLSTCArq4/WMnqlj6zRM3n6jwc7oBE1f6asge2CshUWGl5YgX",
-	"I/DjQxnqAr0SpmiWAZU2cqPIpvjM4NBcvjxraNwlR7mx0nRoJRegHfsceTzIdjSTPtBXM9dFCWZsBZKs",
-	"m2PMBQ86k3lnOewhikhIDAsO9yGDzbipdlbl4i9a5QVar0swrqih9oDb9P7m4ICPql72/nucA36+8i8M",
-	"us6taSGuJ2z9AIy79Ulv0cBbkPHubYF2Clbz8stdL7XVa9btZZtC3VplX2oQ8sM2M9XZxqMA69mK9zfG",
-	"YDWZvAGc7Cqs8hCutwb3P6BNC/H+hHr+JS51M9kjKqPzyNaQo3hLL/XWEr40RCBO6I8rDdgv6I8fjM7a",
-	"Aa/YyN7UmWO2iSGvqnzDZd2Lo9/cPYOcmHTVL45+U7pjLWYf5hEpii7imcqFHsAMe/W1Wenaqqb8/QfM",
-	"4+5hHtWV3kwFqi/yGvCO+lL/A9rxM4R2bIe7SvPkAOlhJPAdrjR+4sGc4sUJ89CCg/g037vkVNv8x760",
-	"WwZyTvFLZR7xWy79OsbIkgP+To2RxcqQcSZhYrJruXOb8enwa240RH7fK6k/iA29f28b+t4k90nCdI1v",
-	"CvhdbJKm20QvEVGCqBmVkJg9rWzeP4ynXIuvalu8tOCuFO2vXOjunfGB+cDDifaaYTpk6NA0JTRJ7k/E",
-	"m8XZbF2NAjDAGPadbXcXNrBGlthwn7XUt0N7biYqCXddhPPdH9rq1ma6ov7alqxzbnnfR6Mn+wddIwjw",
-	"Krb/dK32d7sfXtoKtparrZXvYH9/JyK+gG26dGm7IFm1NbJhZuIzZxx+WIbAUWwXkWvmRcZoaMLaV1cG",
-	"Trlz90uI25XFJHNkXb1ElYtsrzHrbKgddivX17vURc46jJP29/tAYSLhbw3BvN8FuSNl5KwoyPEQWmkX",
-	"J5jUV2TsYvLIL8jBs3qWSYzzxXvgNWSuRgY+wcb3scWxYiK1iUTIpRvkJZlj6b4r8Gk+yFLkpigezuTJ",
-	"/hfk+LtvX7w8PX6N1YiUmAO2MQAhk6wU9AJMgpRN1KAy53SH59qWPkqpnPpUEmWK0k/aZZBcBLEiTx4/",
-	"Jmfnp8cnP/z6zaszzIgNSpFLU4Hp0lzEZQ6733Mz6MP6oG3AZaeefeay5N8Fa7eKVj2Eou3yegXkHD4g",
-	"ts6/MXoX5m6rkeyvqcHcrcbzZP/Jmu2/WK/948cfkAZWLbZvcW9kPKFpiuVAbc1fSmzGNOPTFwsekYvj",
-	"785OyH/8+eDTnWEbdY/q/uPecK7NxDHgwkL1cAR2V+6yB78S2JzFepuXAg7GnVQtPldURvVADVOYgGoy",
-	"F3Pg94C7fF0keRUTX7LVDo2ibcQOg4yZVi4dXeEJs8mAqIGZXMFESJzdjgNne1S0gxkNZMOBGO0bmjJj",
-	"IiKMJ5ABT0ykmQNcX1q482UNcm1k2y75Ts9ALphyfRDpu3TCj3E8Kb/nWlKuqK0qQrlr53zEf8jnmX3n",
-	"mmUZJI1DaJesdfYg4PvMV0bYNty7WY+wDbJab2O0j7Eq+vvpeujvvo1zl/Dv9aZcrM95AYRuwbAN7wzA",
-	"YftoC/fC+jBsZdIvMyS9vZN/iOfz3corXA9ik2X547AoI08yKhVYZ8zxxW9Rd8253bYuCsOilbQwxaRN",
-	"u4RNJgOlExYXoVwzDv2HJVoxflO2ffCDLJzOdeNjrJyaOwN+BnYuQyNFZpAmxGhWLl29v4hMTRiQSJMC",
-	"8jaQZ9CBt4dXQVisMPafm0b+EnJrx9KQBLTbg7glrqxjLXWcTStdZJVeXfCv6OWDAK+tuC7RiQZJ3NL+",
-	"DK49d+xYscxAxk5/3LF4CVxc44FriJTbWB3snsOKo92qpNF6zTKmQG9AFeB4o+3hH6aqvHpmr1hMkwVV",
-	"LiezsYibT0V1G1BTNb4CUzfhe155z5Qo2SUXry4ITUGaQEFCUwk0WRLti/sY9ZILTTCOhhuJVEL0uzTJ",
-	"3wqWfKTio0yhX7E8fhrK1hEQDB+GIEB+K1Lv3uVOwmUmtMVsY0oWUthALLncQXRK1R7pE/v7sogO/L/p",
-	"PitjhVa6r8+KsI27sxnbTzygZc3NMcQj9tH9OrCLAJDJ7bzZ1kvsJGr1jO+WqnPBYUmYVpBOkAEl6Fyi",
-	"XBe5Viyx1mi1VBrmzwjeY/Bvc92emON0AtLkA3QJ7w0gOyzvnkPMEnBlST6meIANlaUoFEhwsB+Wkh+k",
-	"WuXWKrBL7BMnSs21zI/5H5rVUM3KYk99id3IljYt0jbXFS7byhdxssJhoEwoK3r034Av4INIJOmGscXM",
-	"WmlKVNHpx33tPanae42dxNp5SxXX6MMtd1xv8q5m5YGF/4BRao32cUWVd/Yd1it6EAWgqs9NpYKILGYs",
-	"nnmgrWloq+1+z8eNIr07ZsgWuofNpcinM/OaWHCQkdWrvclohU+wwsR3pLvYLzyc6uL3R8Dn7VbtfhWX",
-	"arCqV2P+3/928dT4P1+tBP+fc6Y39FDbbzisy15ZJ6lbqFUq/6jtwCxax3bYnWaKJNfwdMVSPN03Bng2",
-	"Ry3isbO/278OAiUk3/7cbJF2NSLvuCrS0t91xEcMXPvSnS4xkWWoelysiytczESRH0PYqyIkBGg8I2PL",
-	"8c5NtrOaa7U2yZdWgbMufMO7vhwXHwpKEP/sPpDcmPzF2nA8lcjYhRsTWxgSYzpN7RqL497ZCGVVo+yd",
-	"HQpVot6z3bN3RU3+oPsBNNWWcj0V1eAhhuioruEDisVaUaTtCUY/s49eRbUTITNDIDI2GASZ88iiEZQt",
-	"lhTZQkQE62mtlqGVYgpDeKTWfBD+5SNDwFdnuE0WrBIulC8CkeQ/G4h8javIuIqPF9IoCMgVa6c9/lpS",
-	"XmPB7aFE6FI5Y5JTGPe/eNqvPwYtUE+DmSzWrVVVFpDqKBuCDYjZOutVmGoWlzLT3swQtr2bV33H9W8d",
-	"EpfxrX9fUA/D+whvrFLDQj/SJRnnXLOUxDOIrzGgAt4xpdXOeoqCzfCxV3yz9/5nG1+4tlsV2BwWryqJ",
-	"lNobT2TAbWGhIcXzqq2jWueDCqWI3IE67jqxEH6nyJBmITxz4Dm5osmAaBVd0qP/CC9Jsf1ou3pBtJ9T",
-	"TJyvY7U1hcAvw71gWn0Vtx9zyNE4ngH3d3IsgUd8uTn/o8P2FOXJ8NedgRw4LHv9a18A7ONPXl8rvBbM",
-	"0Gif3LnRkNgVKG3X8zK73OCV26vmsOtFaGXp8p5X8Q5CUexkH8Ti3KiwF3Cu3I+x2awkwiK8lBhbt4Lh",
-	"JQfbId8XVQi/H+1smBSsxmZldrduG9MF6NqJ8jH5tTepIPoBJ68r6jg+XIKKY+PFItSx5ifKmbg35EbU",
-	"QgaoS2/U4NQEH1mpJZzZFhUaS6iP38QGWMvD3LCVyd8trhheoXxaK5ZYe83T3vSew8tOdlWcbPBbaKZl",
-	"k72jOIZMv6R8mpvD5CGZ66WIaYoFke6kXCVioRKmspQuy6iPzViiVJFFxmJMmG/8V+b6xWm6VEzZWPTx",
-	"FSiWgLLosZqrxFO0ufTVBa9P5aWIrw2o1bYj4+Jbe3j7g5gqq8IJhwebANW5hB0DGUiZSe6P+Fughkex",
-	"KblMba9fmpDfyzZIrL/A3ZrcFf00gndZKhLwB+ygCnnDRFO1VF6tnEYo1miZ4g94qI+6bptxmVxwcEx/",
-	"R1dzl3zotv24tOcBF/ZBVDVBrnRhr+8jP3hc+cLTu3aRD1hoZMyu+FCz+RC2eev6fWVsS4EU9p3WjfG1",
-	"0m4Wn2O33JA9vypZSF/VtvW34C1zWRw8vu/sIt3FvNBGQW9b6K2eQ6S5zrvkEuu6m7QImQQFXBs0lY1p",
-	"sEUJ0tRUwDdYQcbjNEeZjxdpJ8q6GaBdv6s+QYMtQ7/HFLSFbSV0iRqsHXQRaIG8hhxvSlA9I5dGZJox",
-	"pzDRiD2z43Xifvzi5Oj1m/MTdxjstOU+slxnybANeS5cZGx4UbFtSdc7ZVZLtOd02cWvCV1ugVexrFdC",
-	"WbqsFPnxPrKELsnY9U++tPxh/Wv4xEZyUk3NdXyhCAfkdrfYuxJoQsZfizSpqiu2Br5n25imcZ5SLeQe",
-	"KM3mVPfU17Dh5BbYc2kYlgtymXOmbUQwo+kZyG+ml1Ete0kNP8kUKtYJGZ+en1chjQHGPXEDeilockfo",
-	"kuNi+g+SY6f8vI+mDjOaXxrUFIs/fOgKJRPGfUqMnS0wpKc7oSY9zicKkwOg0djn0fh8Z5d8C5AoUrLP",
-	"bq7AMRv525/+nTzZ/5Q40fTDy++Ovzl53sODg65I/7gbPdDdCIlfhNCUi0XGki4IMopkpiSQAR7PIWHI",
-	"O669ioiKJc2qEqgIaqmwgPNadsue0wTmmdAGZwiSFH/Gy0ffwPKQSMiAGlcFih4nK1y0jQtntNf3BCRu",
-	"o4RkdGlyeaCKubP7Pf8dnqqxhIRpEosbkPa1xUykUItvNLqBIr7ATGJyfnCHDeeCYBemaFsl3CeEq77Q",
-	"VOpjP/OwfWkGFBexOCEb8x6s6bl7hP/78+CRvMkuugOZ7CjyIBZ5//FueWxSWXoQAkaZGKYw3nbkPleT",
-	"j+iZiTZc7vw9pox6+kHZ88ri3T4dfUIU7j2j2DsxsEvOK7JiSjUs6JK8OX9psmOAU86vMPENSKJFRZ5d",
-	"sTTFPdSSZns/5qKuT9UFwG/wcUUAfCC7aX/rHzcTDefOMA/uY4c8+ZDSa9hQIpLlMp5RBQXmw6C6xu4Q",
-	"wh8pJ3k2lTSByPEs3qjsIyKBw4KmO4Wt0EglU3yXL02up14utVjwbva8AJ60ykzdCY/aj6zBoo9vo64l",
-	"Q7yADVVsWHYiDIRgt0KEh6uMjSkXfDkXuSI0TcUCkmdEYrI4Y+aDxKpEZ1bxfvwFOT96ffLDy9NXp69P",
-	"nlc1L+ceK3mgr0hTUZ/pQ9K1NyjwVK0us0ZBpjsvxBQwSGKVlKtlWXDJuOFRP43MUaWsY8qWYVLYGvOz",
-	"EjtRlB0E3tFYp0ujffT6KCpVWDsvXK9cm4/5tmXnsM06g5Yod3bPcgtD9nzsXxGS0XN9mkPfLn4Fdxn1",
-	"9Ao60jxMWAqbHNX3gIVjUw7JI8bNeYvmXjtaGylr4im1veaNJUwkqJnLiJPi3b1oXVSR1eIaeHW7zWtr",
-	"s2cz2/TvteWRbfQxbzabIhTnES78/K59rX8llPaZf3xQAJnTJZnRm4rheFUGQex7WLC6IfK9cFnhTMDk",
-	"Ri543E507Fy4cAO8kuPBcFxKM2WQLAJ/w7OAkysgEjBBdNJgsshb0rpiJlzFFMtc2+Gt7at/Jds8yJW/",
-	"yrUPX4avwSze0Gr+ULtqrvqNrM9ILZM5tfgB7+4NM09TUK2ssmUrTHVy1d9PtX/qCNCxJfPgpcrL+qJ0",
-	"+MeDaOwuT96Qy9suIX5vCMMzimq0SQ2j8nm5yKgJqHyOd2tuNuTXNgt/QiQ8onKuMNfzyv3l3SW9kZZW",
-	"HTiuNn3IYEiMcK4MZqtei8oU7yWGOiHVFSDjem6CNqZvyBGL/daWa2sRiSav8doeTC80avb/z+vm/4NV",
-	"9g7TReRG8ODRgS0WfLBA/GMxz3KXFVPZKiMVjnJH827rDH66b1onawmIwcdwnff+Xqtdqub+Xkls4Jrp",
-	"FObQl+rma9An1XZ3eJOufScYLwYy8lhQZXjQ2P9wUNZPaIZ0TOMZPEL7oRRp/evNpXy/BbAAYgOMK8wN",
-	"jMxpVtiz7R2oar/80uS26rksr6gYaE/Holzgg52LH06FvLu/yToria965zwJRZKeOnxy1cr2Bwd+DX51",
-	"P/bAQMcgHSv98fuwEGLpoPIN/vDAClujweIrBnGFy6/a7ZE6t3rVR5jjNJjRuStZ6YCUzgf3l4TUEcBn",
-	"XDj4e8olqq4LV6uhhSlXyTj5JeIvTaiIY/YIi8ZxQTLKypNwQS3YsYf7hyXfsYdeM/POwzlVlveRIueD",
-	"PgtVXzKfAjhugu0TIjioHh5YlbfBrn6ZtOHB1v3jzoBQ2OMdvaOiBgEaq4rUB81rQ+kz7zey9wbC3x+M",
-	"b2sn1pV7vZ7aqGFHCKU6Urld78bQn9Zf/XSVCcJ3E9mRPHQIdHf085GrVuEhgQaV7+F/SJDtZwx4UEfF",
-	"d5kpstjMNGFln0sdsUtee8Rtg9VrkFz7jutp/Hh/f6d797Xk5YCLxM8jxciHkl2kovE3ZWlvwpFBC7kX",
-	"p0L1YCWP8fHPa0WDuxineR+GTPwOEd0ruvb6rU4aY7KMvPpHxpifT8YYLfpYCH1mIgNuajqxCTE7PBki",
-	"4jVNV6jDtslHjUzDKWwTmGZIcme4NFOCYO7J3oNFQ3PPkDDocHX+e4+Bvu+o0q6K+q8d0nML63VksuKw",
-	"2GWuoFci1xHRIOcqIplkNzReRiRlMWAnxl31xMYU57ysdN4DHnU2D7V3A5JNlt1BW98KQnM9A64dsQ4L",
-	"QWGqSiK4iUrJbqACg1KgFDrTgCdYkOtbX7WY1yK7bGl7pREKrWfwPT86OyVUXdfjNxTIG5CPtHhk/+dq",
-	"YUDs2pktEplB2ux3+JzORY4BIRd0AijibGhZKILrt2b+Z5YcW/P7mkGdDkGpu+1j3qJJwmyO3bNab61X",
-	"2nznqPWJKlfGBGaTcudFtmiag7e3xVEj36abQTG++69qvA4RhyXqMnb7jjxd5YR7M3aFIsnsC75qHjKU",
-	"m+JmYTFPPsBArZr73LlrvZOg3Pd+z/rwSaiHXBm2HBsdI/HlaBdwpZiGKuM2vQ2tsBdEWfYrF2emxUcN",
-	"xHVZpJsQXBdvhJUhAtH9M9AzkAaGqjzu9AqrBWnCxYKMvVkbs8r79VO7wLE7q9b1g8I8WLc6ikFFTcyA",
-	"zBazSy8pv96WXmORavWcypYC5kpboMF9Sfo+zce26UoA8kIC2Mjjwhu+43RmRaZgkZrNSk/PfF4nkxz4",
-	"kih0O2Ct7jnlmJlMutBTMvb5P77nLr1UUcvfpgkoIpHJUbrAXkzJ70sbX2CzOVyKK3NMJkf6knB4ZyqD",
-	"uyJEoePPbBZPmDtJLNJOCDIwk0gw5dPAd20Ixqo3m7mK0mVrAcssmlbxmIk5Kj8yQaXruQDFP9EkxoUl",
-	"xlNkIvdqLqRROK8WfiSc3GlCUwWBnXinKi2yQFcSp5eV5B+B28kDIleqIzMBdMoXN/N73G3oxgbfU1oC",
-	"nY8Of3I/ryid1UgDhFWOTBtfvc0U7qiUrzXjYdxmHWJzIFe5tY9S8v3I3KFt/lVb0O0KlsKXaHb37+/5",
-	"panWvOsAGj+gr/LSYoUiw4iOP4vacTFFTlQAEbE5XgPI8i4B0F8G7H7ucwM3tkSSDc5kfow0NFS+4/1j",
-	"Kfgru1jdVb3MDYj5HBb3EfZ/27jGaimvZlmwRCy4oqgOJuaU0WQulCb/7dP9fZJ5ZuraiIrp3oi3C3z+",
-	"0Apc75IzDad8IoJO8Gqdp22Fl8ZrVQLz9SV91RajVVtlQvCOuNKG9RD3YMCAaG7hdjnqszahdaNolMt0",
-	"dDiaaZ0d7u2ZH2dC6cPP9z/fN0vivvxTG6viCiUnVFMytpaqyIdT2uqvaqciC/wLo/ZhXj+zTK6YKivv",
-	"kt8yxa5YigaDBDLgCSprTRso4h6btTjL79vOAx/3rmpUBnJVdRrPQ2P1KRZIJaWNKlM1fRaRi5PjN+en",
-	"r/+F/Meff7ljHXP+qlXcmphyWmLVpkLQpGJvpKBappSKNuKuWIHBvbogjkXIuMy2+OLoN5FlqajOlju7",
-	"5MinQsX5FMlQr2xGRkvsIK3L4bgPhoZTjanH/pG+pbXa0+zgcWWdvHW63ZuJACnQuMXbv4wwQ1ZU9mBw",
-	"x+3XLzSdTGz+wbEEms6JFCmQS4W/Xz4jC8k0uJRul7aU5yURklyaRMOXO7vEVqs17XABaZ4w/SgV0ykk",
-	"5ddN69H7t+///wA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -8,7 +8,7 @@
     "prices": "Metal prices",
     "chart": "Price chart",
     "analysis": "Forecast & analysis",
-    "auctions": "Daily auctions",
+    "auctions": "Auctions",
     "calculator": "Calculator",
     "plans": "Plans",
     "faq": "FAQ",
@@ -91,7 +91,7 @@
         },
         "auctions": {
           "title": "Daily auctions",
-          "text": "The IME's daily offerings and auctions on one page."
+          "text": "Auctions of ingots, scrap and raw materials, with each one's deadline, place and notice."
         }
       }
     }
@@ -464,36 +464,45 @@
     "lastActivity": "Last activity: {date}"
   },
   "auctions": {
-    "title": "IME daily offerings & auctions",
-    "subtitle": "Daily metal offerings and trades on the Iran Mercantile Exchange: volume offered, demand, volume traded and the price discovered.",
-    "date": "Trading day",
+    "title": "Metal auctions",
+    "subtitle": "Auctions of metal ingots and intermediate products, scrap and raw materials. Every auction's title and quantity are shown to everyone.",
     "all": "All",
-    "go": "Show",
-    "offerings": "Offerings",
-    "offered": "Offered",
-    "demand": "Demand",
-    "traded": "Traded",
-    "value": "Trade value",
-    "avgChange": "Average change vs base",
-    "col": {
-      "product": "Product",
-      "producer": "Producer",
-      "offered": "Offered",
-      "base": "Base price",
-      "demand": "Demand",
-      "traded": "Traded",
-      "clearing": "Discovered price",
-      "change": "Change"
+    "empty": "No auctions match these filters.",
+    "filter": {
+      "metal": "Metal",
+      "category": "Category",
+      "status": "Status"
     },
-    "perKg": "Toman/kg",
-    "pending": "Not traded yet",
-    "empty": "No offerings were recorded for this day.",
-    "noData": "No auction data has been recorded yet.",
-    "lockedTitle": "The full offerings table is for {plan} subscribers",
-    "lockedBody": "The details of each offering (product, producer, base and discovered price) are shown to {plan} subscribers. The day's summary is free for everyone.",
-    "source": "Source: {source}",
-    "updated": "Last updated: {time}",
-    "info": "For information only: prices are the results of that session, not prices for future trades."
+    "category": {
+      "intermediate": "Ingots and intermediate products",
+      "scrap": "Scrap",
+      "raw": "Raw materials"
+    },
+    "status": {
+      "open": "In progress",
+      "paused": "Stopped",
+      "closed": "Finished"
+    },
+    "unit": {
+      "ton": "t",
+      "kg": "kg",
+      "piece": "pcs"
+    },
+    "quantity": "Quantity",
+    "deadline": "Deadline",
+    "location": "Place",
+    "organizer": "Organiser",
+    "pdf": "View the notice (PDF)",
+    "published": "Posted: {date}",
+    "lockedLine": "Deadline, place, organiser and the notice are for Gold subscribers",
+    "lockedTitle": "Auction details are for {plan} subscribers",
+    "lockedBody": "The deadline, place, organiser, details and notice of each auction are shown to {plan} subscribers. Every auction's title and quantity are free for everyone.",
+    "pages": "Pages",
+    "prev": "Previous page",
+    "next": "Next page",
+    "info": "For information only. Alan Felez doesn't run these auctions; check each auction's terms and deadline in the organiser's notice.",
+    "latestTitle": "Latest auctions",
+    "latestAll": "All auctions →"
   },
   "calculator": {
     "title": "Load value calculator",

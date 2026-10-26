@@ -54,9 +54,10 @@ type Querier interface {
 	DBNow(ctx context.Context) (pgtype.Timestamptz, error)
 	DecideRefund(ctx context.Context, arg DecideRefundParams) error
 	DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64, error)
+	DeleteAuction(ctx context.Context, id pgtype.UUID) (string, error)
+	DeleteAuctionFile(ctx context.Context, auctionID pgtype.UUID) (int64, error)
 	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
-	DeleteImeOffering(ctx context.Context, id pgtype.UUID) (DeleteImeOfferingRow, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	ExpirePendingOrders(ctx context.Context) (int64, error)
@@ -68,6 +69,7 @@ type Querier interface {
 	FindOrderByKey(ctx context.Context, arg FindOrderByKeyParams) (AppOrder, error)
 	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
 	GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error)
+	GetAuctionFile(ctx context.Context, auctionID pgtype.UUID) (GetAuctionFileRow, error)
 	// The calculator's base price: the latest published point of one series, with its source.
 	GetLatestPrice(ctx context.Context, seriesID int32) (GetLatestPriceRow, error)
 	GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error)
@@ -86,11 +88,9 @@ type Querier interface {
 	GetTicket(ctx context.Context, id pgtype.UUID) (GetTicketRow, error)
 	GetTicketForUpdate(ctx context.Context, id pgtype.UUID) (GetTicketForUpdateRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
-	// Gold features: IME daily offerings, saved calculations, SMS price alerts.
-	// The most recent trading days that have offerings (for the date picker).
-	ImeDates(ctx context.Context) ([]pgtype.Date, error)
 	ImeUpdatedAt(ctx context.Context, tradeDate pgtype.Date) (pgtype.Timestamptz, error)
 	InsertAlert(ctx context.Context, arg InsertAlertParams) (InsertAlertRow, error)
+	InsertAuction(ctx context.Context, arg InsertAuctionParams) (pgtype.UUID, error)
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
 	InsertCalculation(ctx context.Context, arg InsertCalculationParams) (InsertCalculationRow, error)
 	// Support (internal/support): contact form messages and user tickets.
@@ -126,6 +126,9 @@ type Querier interface {
 	ListActivePlans(ctx context.Context) ([]ListActivePlansRow, error)
 	// CMS content (internal/content): articles, FAQ, pages, site settings. Public reads only see published rows.
 	ListArticleCategories(ctx context.Context) ([]ListArticleCategoriesRow, error)
+	// Gold features: metal auctions, saved calculations, SMS price alerts.
+	// Metal auctions, newest first, with optional filters. total is the count of all matching rows (for paging).
+	ListAuctions(ctx context.Context, arg ListAuctionsParams) ([]ListAuctionsRow, error)
 	ListCalculations(ctx context.Context, userID pgtype.UUID) ([]ListCalculationsRow, error)
 	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
@@ -134,7 +137,6 @@ type Querier interface {
 	ListFaqItems(ctx context.Context, publishedOnly bool) ([]ListFaqItemsRow, error)
 	// Active subscriptions that haven't ended, with the value paid for them (0 for manual grants).
 	ListHeldSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListHeldSubscriptionsRow, error)
-	ListImeOfferings(ctx context.Context, arg ListImeOfferingsParams) ([]ListImeOfferingsRow, error)
 	// Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
 	// One row per active series, with its latest published point (NULL when the series has no data yet).
 	ListLatestPrices(ctx context.Context, includeInactive bool) ([]ListLatestPricesRow, error)
@@ -166,6 +168,8 @@ type Querier interface {
 	// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
 	// (when there is none) the first one after it. No row = the series has no published price at all.
 	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
+	// Adds or replaces the auction's PDF notice (0 rows: no such auction).
+	PutAuctionFile(ctx context.Context, arg PutAuctionFileParams) (int64, error)
 	PutSetting(ctx context.Context, arg PutSettingParams) error
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
@@ -197,13 +201,12 @@ type Querier interface {
 	// Publishing for the first time stamps published_at (unless one is given, e.g. a scheduled time).
 	UpdateArticle(ctx context.Context, arg UpdateArticleParams) (pgtype.UUID, error)
 	UpdateArticleCategory(ctx context.Context, arg UpdateArticleCategoryParams) (UpdateArticleCategoryRow, error)
+	UpdateAuction(ctx context.Context, arg UpdateAuctionParams) (int64, error)
 	UpdateContactMessage(ctx context.Context, arg UpdateContactMessageParams) (UpdateContactMessageRow, error)
 	UpdateFaqCategory(ctx context.Context, arg UpdateFaqCategoryParams) (UpdateFaqCategoryRow, error)
 	UpdateFaqItem(ctx context.Context, arg UpdateFaqItemParams) (pgtype.UUID, error)
 	// Optimistic lock: no row when someone saved a newer version in between.
 	UpdatePage(ctx context.Context, arg UpdatePageParams) (UpdatePageRow, error)
-	// The natural key is (day, product, producer): re-entering a row corrects it.
-	UpsertImeOffering(ctx context.Context, arg UpsertImeOfferingParams) (UpsertImeOfferingRow, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.

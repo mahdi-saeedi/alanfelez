@@ -316,6 +316,36 @@ type AppUser struct {
 	UpdatedAt  pgtype.Timestamptz
 }
 
+type MarketAuction struct {
+	ID          pgtype.UUID
+	TitleFa     string
+	TitleEn     pgtype.Text
+	MetalID     int16
+	Category    string
+	Quantity    int64
+	Unit        string
+	Status      string
+	DeadlineAt  pgtype.Timestamptz
+	LocationFa  pgtype.Text
+	LocationEn  pgtype.Text
+	OrganizerFa pgtype.Text
+	OrganizerEn pgtype.Text
+	DetailsFa   pgtype.Text
+	DetailsEn   pgtype.Text
+	CreatedBy   pgtype.UUID
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+}
+
+type MarketAuctionFile struct {
+	AuctionID  pgtype.UUID
+	FileName   string
+	SizeBytes  int32
+	Content    []byte
+	UploadedBy pgtype.UUID
+	UploadedAt pgtype.Timestamptz
+}
+
 type MarketImeOffering struct {
 	ID                pgtype.UUID
 	TradeDate         pgtype.Date

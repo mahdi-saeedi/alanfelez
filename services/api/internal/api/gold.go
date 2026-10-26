@@ -7,16 +7,12 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 
 	"github.com/alanfelez/alanfelez/services/api/internal/access"
 	"github.com/alanfelez/alanfelez/services/api/internal/alerts"
-	"github.com/alanfelez/alanfelez/services/api/internal/auctions"
-	"github.com/alanfelez/alanfelez/services/api/internal/audit"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
 	"github.com/alanfelez/alanfelez/services/api/internal/calculator"
 	"github.com/alanfelez/alanfelez/services/api/internal/content"
@@ -25,99 +21,6 @@ import (
 
 // Limits for saved things (🛠 SCOPE §17).
 const maxCalculations = 50
-
-// --- IME daily offerings ------------------------------------------------------------
-
-// GetAuctions returns one day of IME offerings. The summary is public; rows need auctions.read.
-func (s *Server) GetAuctions(ctx context.Context, req GetAuctionsRequestObject) (GetAuctionsResponseObject, error) {
-	lang := langOf((*string)(req.Params.AcceptLanguage))
-	dates, err := s.q.ImeDates(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("ime dates: %w", err)
-	}
-	cur, err := s.tiers.Tier(ctx, auth.FromContext(ctx))
-	if err != nil {
-		return nil, err
-	}
-	day := AuctionDay{Dates: make([]openapi_types.Date, 0, len(dates)), Source: s.imeSourceName(ctx, lang), Summary: summaryOf(auctions.Summary{})}
-	for _, d := range dates {
-		day.Dates = append(day.Dates, openapi_types.Date{Time: d.Time})
-	}
-	day.Locked, day.RequiredPlan = featureLock(cur.Tier, access.AuctionsRead)
-	var date pgtype.Date
-	switch {
-	case req.Params.Date != nil:
-		date = pgtype.Date{Time: req.Params.Date.Time, Valid: true}
-	case len(dates) > 0:
-		date = dates[0]
-	default:
-		return GetAuctions200JSONResponse(day), nil
-	}
-	day.Date = &openapi_types.Date{Time: date.Time}
-	rows, err := s.q.ListImeOfferings(ctx, dbq.ListImeOfferingsParams{TradeDate: date, Metal: textOfPtr(req.Params.Metal)})
-	if err != nil {
-		return nil, fmt.Errorf("ime offerings: %w", err)
-	}
-	all := make([]auctions.Offering, 0, len(rows))
-	items := make([]AuctionOffering, 0, len(rows))
-	var updated time.Time
-	for _, r := range rows {
-		o := offeringOf(r.OfferedKg, r.BasePriceRial, r.DemandKg, r.TradedKg, r.ClearingPriceRial)
-		all = append(all, o)
-		if r.UpdatedAt.Time.After(updated) {
-			updated = r.UpdatedAt.Time
-		}
-		item := AuctionOffering{
-			Id: r.ID.Bytes, Metal: Localized{Slug: r.MetalSlug, Name: localized(lang, r.MetalFa, r.MetalEn)},
-			Product: localized(lang, r.ProductFa, r.ProductEn), Producer: localized(lang, r.ProducerFa, r.ProducerEn),
-			OfferedKg: r.OfferedKg, BasePriceRial: r.BasePriceRial, DemandKg: i64p(r.DemandKg), TradedKg: i64p(r.TradedKg),
-			ClearingPriceRial: i64p(r.ClearingPriceRial),
-		}
-		if bp, ok := auctions.ChangeBp(o); ok {
-			v := int(bp)
-			item.ChangeBp = &v
-		}
-		items = append(items, item)
-	}
-	day.Summary = summaryOf(auctions.Summarize(all))
-	if !updated.IsZero() {
-		u := updated.UTC()
-		day.UpdatedAt = &u
-	}
-	if !day.Locked {
-		day.Items = &items
-		if len(items) > 0 && !access.Allowed(access.Free, access.AuctionsRead) {
-			s.billing.RecordUsage(ctx, cur.SubscriptionID, access.AuctionsRead)
-		}
-	}
-	return GetAuctions200JSONResponse(day), nil
-}
-
-func (s *Server) imeSourceName(ctx context.Context, lang string) string {
-	markets, err := s.q.ListMarkets(ctx)
-	if err == nil {
-		for _, m := range markets {
-			if m.Slug == "ime" {
-				return localized(lang, m.NameFa, m.NameEn)
-			}
-		}
-	}
-	if lang == "en" {
-		return "Iran Mercantile Exchange"
-	}
-	return "بورس کالای ایران"
-}
-
-func summaryOf(v auctions.Summary) AuctionSummary {
-	return AuctionSummary{
-		Offerings: v.Offerings, OfferedKg: v.OfferedKg, DemandKg: v.DemandKg, TradedKg: v.TradedKg,
-		Value: rial(v.ValueRial), AvgChangeBp: int(v.AvgChangeBp),
-	}
-}
-
-func offeringOf(offered, base int64, demand, traded, clearing pgtype.Int8) auctions.Offering {
-	return auctions.Offering{OfferedKg: offered, BasePriceRial: base, DemandKg: i64p(demand), TradedKg: i64p(traded), ClearingPriceRial: i64p(clearing)}
-}
 
 // --- calculator ---------------------------------------------------------------------
 
@@ -415,132 +318,6 @@ func alertOf(lang string, r dbq.ListUserAlertsRow) PriceAlert {
 	return a
 }
 
-// --- admin: IME offerings -------------------------------------------------------------
-
-// AdminListAuctions returns one day's offerings for editing.
-func (s *Server) AdminListAuctions(ctx context.Context, req AdminListAuctionsRequestObject) (AdminListAuctionsResponseObject, error) {
-	if _, pr := requireRoles(ctx, rolesRead...); pr != nil {
-		return fail[AdminListAuctionsdefaultApplicationProblemPlusJSONResponse](*pr), nil
-	}
-	rows, err := s.q.ListImeOfferings(ctx, dbq.ListImeOfferingsParams{TradeDate: pgtype.Date{Time: req.Params.Date.Time, Valid: true}})
-	if err != nil {
-		return nil, fmt.Errorf("ime offerings: %w", err)
-	}
-	dates, err := s.q.ImeDates(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("ime dates: %w", err)
-	}
-	out := AdminListAuctions200JSONResponse{Items: make([]AdminOffering, 0, len(rows)), Dates: make([]openapi_types.Date, 0, len(dates))}
-	for _, d := range dates {
-		out.Dates = append(out.Dates, openapi_types.Date{Time: d.Time})
-	}
-	for _, r := range rows {
-		out.Items = append(out.Items, AdminOffering{
-			Id: r.ID.Bytes, TradeDate: openapi_types.Date{Time: r.TradeDate.Time}, Metal: r.MetalSlug,
-			ProductFa: r.ProductFa, ProductEn: textp(r.ProductEn), ProducerFa: r.ProducerFa, ProducerEn: textp(r.ProducerEn),
-			OfferedKg: r.OfferedKg, BasePriceRial: r.BasePriceRial, DemandKg: i64p(r.DemandKg), TradedKg: i64p(r.TradedKg),
-			ClearingPriceRial: i64p(r.ClearingPriceRial), Source: AdminOfferingSource(r.Source), UpdatedAt: r.UpdatedAt.Time.UTC(),
-		})
-	}
-	return out, nil
-}
-
-// AdminBulkAuctions validates and upserts offerings (all-or-nothing when any row is invalid).
-func (s *Server) AdminBulkAuctions(ctx context.Context, req AdminBulkAuctionsRequestObject) (AdminBulkAuctionsResponseObject, error) {
-	p, pr := requireRoles(ctx, rolesPriceWrite...)
-	if pr != nil {
-		return fail[AdminBulkAuctionsdefaultApplicationProblemPlusJSONResponse](*pr), nil
-	}
-	rows := req.Body.Rows
-	if len(rows) == 0 || len(rows) > 300 {
-		return fail[AdminBulkAuctionsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "1–300 rows")), nil
-	}
-	metals, err := s.q.ListMetals(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("metals: %w", err)
-	}
-	known := map[string]bool{}
-	for _, m := range metals {
-		known[m.Slug] = true
-	}
-	out := AdminBulkAuctions200JSONResponse{}
-	params := make([]dbq.UpsertImeOfferingParams, 0, len(rows))
-	invalid := false
-	for i, r := range rows {
-		res := struct {
-			Error    *string `json:"error,omitempty"`
-			Index    int     `json:"index"`
-			Inserted *bool   `json:"inserted,omitempty"`
-			Ok       bool    `json:"ok"`
-		}{Index: i, Ok: true}
-		product, ok1 := content.Clean(r.ProductFa, 2, 200)
-		producer, ok2 := content.Clean(r.ProducerFa, 2, 200)
-		var msg string
-		switch {
-		case !known[r.Metal]:
-			msg = "unknown metal"
-		case !ok1 || !ok2:
-			msg = "product and producer are required (2–200 characters)"
-		default:
-			if err := auctions.Validate(auctions.Offering{OfferedKg: r.OfferedKg, BasePriceRial: r.BasePriceRial, DemandKg: r.DemandKg, TradedKg: r.TradedKg, ClearingPriceRial: r.ClearingPriceRial}); err != nil {
-				msg = err.Error()
-			}
-		}
-		if msg != "" {
-			res.Ok, res.Error, invalid = false, &msg, true
-		}
-		out.Results = append(out.Results, res)
-		params = append(params, dbq.UpsertImeOfferingParams{
-			TradeDate: pgtype.Date{Time: r.TradeDate.Time, Valid: true}, MetalSlug: r.Metal, ProductFa: product, ProductEn: optText(r.ProductEn),
-			ProducerFa: producer, ProducerEn: optText(r.ProducerEn), OfferedKg: r.OfferedKg, BasePriceRial: r.BasePriceRial,
-			DemandKg: i64n(r.DemandKg), TradedKg: i64n(r.TradedKg), ClearingPriceRial: i64n(r.ClearingPriceRial), Source: "manual", EnteredBy: p.ID,
-		})
-	}
-	if invalid || (req.Body.DryRun != nil && *req.Body.DryRun) {
-		return out, nil
-	}
-	err = s.tx(ctx, func(q *dbq.Queries) error {
-		for i, arg := range params {
-			row, err := q.UpsertImeOffering(ctx, arg)
-			if err != nil {
-				return fmt.Errorf("row %d: %w", i, err)
-			}
-			ins := row.Inserted
-			out.Results[i].Inserted = &ins
-		}
-		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "ime.bulk", Entity: "ime_offering", Data: map[string]int{"rows": len(params)}})
-	})
-	if err != nil {
-		return nil, fmt.Errorf("save offerings: %w", err)
-	}
-	out.Saved = len(params)
-	return out, nil
-}
-
-// AdminDeleteAuction deletes one offering.
-func (s *Server) AdminDeleteAuction(ctx context.Context, req AdminDeleteAuctionRequestObject) (AdminDeleteAuctionResponseObject, error) {
-	p, pr := requireRoles(ctx, rolesPriceWrite...)
-	if pr != nil {
-		return fail[AdminDeleteAuctiondefaultApplicationProblemPlusJSONResponse](*pr), nil
-	}
-	id := pgtype.UUID{Bytes: req.Id, Valid: true}
-	err := s.tx(ctx, func(q *dbq.Queries) error {
-		row, err := q.DeleteImeOffering(ctx, id)
-		if err != nil {
-			return err
-		}
-		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "ime.delete", Entity: "ime_offering", EntityID: *uuidString(id),
-			Data: map[string]string{"date": row.TradeDate.Time.Format(time.DateOnly), "product": row.ProductFa, "producer": row.ProducerFa}})
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return fail[AdminDeleteAuctiondefaultApplicationProblemPlusJSONResponse](notFound(ctx, "offering")), nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("delete offering: %w", err)
-	}
-	return AdminDeleteAuction204Response{}, nil
-}
-
 // --- helpers --------------------------------------------------------------------------
 
 // featureLock reports whether tier t lacks f, and the plan that unlocks it.
@@ -553,20 +330,6 @@ func featureLock(t access.Tier, f access.Feature) (bool, *Tier) {
 		return true, &plan
 	}
 	return true, nil
-}
-
-func i64p(v pgtype.Int8) *int64 {
-	if !v.Valid {
-		return nil
-	}
-	return &v.Int64
-}
-
-func i64n(v *int64) pgtype.Int8 {
-	if v == nil {
-		return pgtype.Int8{}
-	}
-	return pgtype.Int8{Int64: *v, Valid: true}
 }
 
 func isNotNullViolation(err error) bool {

@@ -21,6 +21,7 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] Drop the unused IME offerings (`market.ime_offerings`, no longer shown since 2026-10-26)? Deleting data = owner's OK.
 - [ ] **New plan table from the client (2026-10-26, image in the chat):** free = global prices + global chart + IME prices;
   silver adds domestic product prices and their charts/history; gold adds auctions, analysis/forecast, calculator,
   daily SMS of the user's specialty product price (new) and SMS alerts on sharp moves. Discounts: 3 months −5 %,
@@ -58,6 +59,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Metal auctions («مزایدات», SCOPE §7) replace the IME offerings page: admin CRUD with status and a PDF notice
+  (in Postgres, ADR-0027), site page with filters, Gold-only deadline/place/organiser/details/PDF, home «تازه‌ترین مزایدات».
 - 2026-10-26 Home: «چرا الان‌فلز؟» after the plans: the client's subtitle, 7 benefits (each links to its page and shows
   its plan) and «شروع رایگان» for signed-out visitors. Released v0.10.0 before it (plan table, «ورود» = password page).
 - 2026-10-26 Sign-up form: the verified mobile number is shown as the username («نام کاربری (شماره موبایل)»).

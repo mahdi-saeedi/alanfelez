@@ -142,6 +142,29 @@ func (q *Queries) DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64
 	return result.RowsAffected(), nil
 }
 
+const deleteAuction = `-- name: DeleteAuction :one
+DELETE FROM market.auctions WHERE id = $1 RETURNING title_fa
+`
+
+func (q *Queries) DeleteAuction(ctx context.Context, id pgtype.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, deleteAuction, id)
+	var title_fa string
+	err := row.Scan(&title_fa)
+	return title_fa, err
+}
+
+const deleteAuctionFile = `-- name: DeleteAuctionFile :execrows
+DELETE FROM market.auction_files WHERE auction_id = $1
+`
+
+func (q *Queries) DeleteAuctionFile(ctx context.Context, auctionID pgtype.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteAuctionFile, auctionID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteCalculation = `-- name: DeleteCalculation :execrows
 DELETE FROM app.calculations WHERE id = $1 AND user_id = $2
 `
@@ -159,20 +182,20 @@ func (q *Queries) DeleteCalculation(ctx context.Context, arg DeleteCalculationPa
 	return result.RowsAffected(), nil
 }
 
-const deleteImeOffering = `-- name: DeleteImeOffering :one
-DELETE FROM market.ime_offerings WHERE id = $1 RETURNING trade_date, product_fa, producer_fa
+const getAuctionFile = `-- name: GetAuctionFile :one
+SELECT f.file_name, f.content, f.uploaded_at FROM market.auction_files f WHERE f.auction_id = $1
 `
 
-type DeleteImeOfferingRow struct {
-	TradeDate  pgtype.Date
-	ProductFa  string
-	ProducerFa string
+type GetAuctionFileRow struct {
+	FileName   string
+	Content    []byte
+	UploadedAt pgtype.Timestamptz
 }
 
-func (q *Queries) DeleteImeOffering(ctx context.Context, id pgtype.UUID) (DeleteImeOfferingRow, error) {
-	row := q.db.QueryRow(ctx, deleteImeOffering, id)
-	var i DeleteImeOfferingRow
-	err := row.Scan(&i.TradeDate, &i.ProductFa, &i.ProducerFa)
+func (q *Queries) GetAuctionFile(ctx context.Context, auctionID pgtype.UUID) (GetAuctionFileRow, error) {
+	row := q.db.QueryRow(ctx, getAuctionFile, auctionID)
+	var i GetAuctionFileRow
+	err := row.Scan(&i.FileName, &i.Content, &i.UploadedAt)
 	return i, err
 }
 
@@ -208,33 +231,6 @@ func (q *Queries) GetLatestPrice(ctx context.Context, seriesID int32) (GetLatest
 		&i.MarketEn,
 	)
 	return i, err
-}
-
-const imeDates = `-- name: ImeDates :many
-
-SELECT DISTINCT trade_date FROM market.ime_offerings ORDER BY trade_date DESC LIMIT 60
-`
-
-// Gold features: IME daily offerings, saved calculations, SMS price alerts.
-// The most recent trading days that have offerings (for the date picker).
-func (q *Queries) ImeDates(ctx context.Context) ([]pgtype.Date, error) {
-	rows, err := q.db.Query(ctx, imeDates)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []pgtype.Date{}
-	for rows.Next() {
-		var trade_date pgtype.Date
-		if err := rows.Scan(&trade_date); err != nil {
-			return nil, err
-		}
-		items = append(items, trade_date)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const imeUpdatedAt = `-- name: ImeUpdatedAt :one
@@ -281,6 +277,57 @@ func (q *Queries) InsertAlert(ctx context.Context, arg InsertAlertParams) (Inser
 	return i, err
 }
 
+const insertAuction = `-- name: InsertAuction :one
+INSERT INTO market.auctions (title_fa, title_en, metal_id, category, quantity, unit, status, deadline_at,
+                             location_fa, location_en, organizer_fa, organizer_en, details_fa, details_en, created_by)
+VALUES ($1, $2, (SELECT mm.id FROM market.metals mm WHERE mm.slug = $3::text),
+        $4, $5, $6, $7, $8,
+        $9, $10, $11, $12,
+        $13, $14, $15)
+RETURNING id
+`
+
+type InsertAuctionParams struct {
+	TitleFa     string
+	TitleEn     pgtype.Text
+	MetalSlug   string
+	Category    string
+	Quantity    int64
+	Unit        string
+	Status      string
+	DeadlineAt  pgtype.Timestamptz
+	LocationFa  pgtype.Text
+	LocationEn  pgtype.Text
+	OrganizerFa pgtype.Text
+	OrganizerEn pgtype.Text
+	DetailsFa   pgtype.Text
+	DetailsEn   pgtype.Text
+	CreatedBy   pgtype.UUID
+}
+
+func (q *Queries) InsertAuction(ctx context.Context, arg InsertAuctionParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, insertAuction,
+		arg.TitleFa,
+		arg.TitleEn,
+		arg.MetalSlug,
+		arg.Category,
+		arg.Quantity,
+		arg.Unit,
+		arg.Status,
+		arg.DeadlineAt,
+		arg.LocationFa,
+		arg.LocationEn,
+		arg.OrganizerFa,
+		arg.OrganizerEn,
+		arg.DetailsFa,
+		arg.DetailsEn,
+		arg.CreatedBy,
+	)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const insertCalculation = `-- name: InsertCalculation :one
 INSERT INTO app.calculations (user_id, name, series_id, input, result)
 VALUES ($1, $2, (SELECT ps.id FROM market.price_series ps WHERE ps.slug = $5::text), $3, $4)
@@ -311,6 +358,106 @@ func (q *Queries) InsertCalculation(ctx context.Context, arg InsertCalculationPa
 	var i InsertCalculationRow
 	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err
+}
+
+const listAuctions = `-- name: ListAuctions :many
+
+SELECT a.id, a.title_fa, a.title_en, m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en, a.category,
+       a.quantity, a.unit, a.status, a.deadline_at, a.location_fa, a.location_en, a.organizer_fa, a.organizer_en,
+       a.details_fa, a.details_en, a.created_at, a.updated_at,
+       f.file_name AS pdf_name, f.size_bytes AS pdf_size, count(*) OVER () AS total
+FROM market.auctions a
+JOIN market.metals m ON m.id = a.metal_id
+LEFT JOIN market.auction_files f ON f.auction_id = a.id
+WHERE ($1::text IS NULL OR m.slug = $1::text)
+  AND ($2::text IS NULL OR a.category = $2::text)
+  AND ($3::text IS NULL OR a.status = $3::text)
+ORDER BY a.created_at DESC, a.id
+LIMIT $5 OFFSET $4
+`
+
+type ListAuctionsParams struct {
+	Metal    pgtype.Text
+	Category pgtype.Text
+	Status   pgtype.Text
+	Off      int32
+	Lim      int32
+}
+
+type ListAuctionsRow struct {
+	ID          pgtype.UUID
+	TitleFa     string
+	TitleEn     pgtype.Text
+	MetalSlug   string
+	MetalFa     string
+	MetalEn     pgtype.Text
+	Category    string
+	Quantity    int64
+	Unit        string
+	Status      string
+	DeadlineAt  pgtype.Timestamptz
+	LocationFa  pgtype.Text
+	LocationEn  pgtype.Text
+	OrganizerFa pgtype.Text
+	OrganizerEn pgtype.Text
+	DetailsFa   pgtype.Text
+	DetailsEn   pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	PdfName     pgtype.Text
+	PdfSize     pgtype.Int4
+	Total       int64
+}
+
+// Gold features: metal auctions, saved calculations, SMS price alerts.
+// Metal auctions, newest first, with optional filters. total is the count of all matching rows (for paging).
+func (q *Queries) ListAuctions(ctx context.Context, arg ListAuctionsParams) ([]ListAuctionsRow, error) {
+	rows, err := q.db.Query(ctx, listAuctions,
+		arg.Metal,
+		arg.Category,
+		arg.Status,
+		arg.Off,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAuctionsRow{}
+	for rows.Next() {
+		var i ListAuctionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TitleFa,
+			&i.TitleEn,
+			&i.MetalSlug,
+			&i.MetalFa,
+			&i.MetalEn,
+			&i.Category,
+			&i.Quantity,
+			&i.Unit,
+			&i.Status,
+			&i.DeadlineAt,
+			&i.LocationFa,
+			&i.LocationEn,
+			&i.OrganizerFa,
+			&i.OrganizerEn,
+			&i.DetailsFa,
+			&i.DetailsEn,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.PdfName,
+			&i.PdfSize,
+			&i.Total,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listCalculations = `-- name: ListCalculations :many
@@ -344,77 +491,6 @@ func (q *Queries) ListCalculations(ctx context.Context, userID pgtype.UUID) ([]L
 			&i.Input,
 			&i.Result,
 			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listImeOfferings = `-- name: ListImeOfferings :many
-SELECT o.id, o.trade_date, m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
-       o.product_fa, o.product_en, o.producer_fa, o.producer_en, o.offered_kg, o.base_price_rial,
-       o.demand_kg, o.traded_kg, o.clearing_price_rial, o.source, o.updated_at
-FROM market.ime_offerings o JOIN market.metals m ON m.id = o.metal_id
-WHERE o.trade_date = $1::date
-  AND ($2::text IS NULL OR m.slug = $2::text)
-ORDER BY m.sort, o.product_fa, o.producer_fa
-`
-
-type ListImeOfferingsParams struct {
-	TradeDate pgtype.Date
-	Metal     pgtype.Text
-}
-
-type ListImeOfferingsRow struct {
-	ID                pgtype.UUID
-	TradeDate         pgtype.Date
-	MetalSlug         string
-	MetalFa           string
-	MetalEn           pgtype.Text
-	ProductFa         string
-	ProductEn         pgtype.Text
-	ProducerFa        string
-	ProducerEn        pgtype.Text
-	OfferedKg         int64
-	BasePriceRial     int64
-	DemandKg          pgtype.Int8
-	TradedKg          pgtype.Int8
-	ClearingPriceRial pgtype.Int8
-	Source            string
-	UpdatedAt         pgtype.Timestamptz
-}
-
-func (q *Queries) ListImeOfferings(ctx context.Context, arg ListImeOfferingsParams) ([]ListImeOfferingsRow, error) {
-	rows, err := q.db.Query(ctx, listImeOfferings, arg.TradeDate, arg.Metal)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListImeOfferingsRow{}
-	for rows.Next() {
-		var i ListImeOfferingsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.TradeDate,
-			&i.MetalSlug,
-			&i.MetalFa,
-			&i.MetalEn,
-			&i.ProductFa,
-			&i.ProductEn,
-			&i.ProducerFa,
-			&i.ProducerEn,
-			&i.OfferedKg,
-			&i.BasePriceRial,
-			&i.DemandKg,
-			&i.TradedKg,
-			&i.ClearingPriceRial,
-			&i.Source,
-			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -501,6 +577,38 @@ func (q *Queries) MarkAlert(ctx context.Context, arg MarkAlertParams) error {
 	return err
 }
 
+const putAuctionFile = `-- name: PutAuctionFile :execrows
+INSERT INTO market.auction_files (auction_id, file_name, size_bytes, content, uploaded_by)
+SELECT a.id, $1, $2, $3, $4
+FROM market.auctions a WHERE a.id = $5
+ON CONFLICT (auction_id) DO UPDATE SET
+  file_name = EXCLUDED.file_name, size_bytes = EXCLUDED.size_bytes, content = EXCLUDED.content,
+  uploaded_by = EXCLUDED.uploaded_by, uploaded_at = now()
+`
+
+type PutAuctionFileParams struct {
+	FileName   string
+	SizeBytes  int32
+	Content    []byte
+	UploadedBy pgtype.UUID
+	AuctionID  pgtype.UUID
+}
+
+// Adds or replaces the auction's PDF notice (0 rows: no such auction).
+func (q *Queries) PutAuctionFile(ctx context.Context, arg PutAuctionFileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, putAuctionFile,
+		arg.FileName,
+		arg.SizeBytes,
+		arg.Content,
+		arg.UploadedBy,
+		arg.AuctionID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const sMSCostSince = `-- name: SMSCostSince :one
 SELECT coalesce(sum(cost_rial), 0)::bigint FROM app.notifications WHERE status = 'sent' AND created_at >= $1
 `
@@ -533,60 +641,55 @@ func (q *Queries) SetAlertActive(ctx context.Context, arg SetAlertActiveParams) 
 	return result.RowsAffected(), nil
 }
 
-const upsertImeOffering = `-- name: UpsertImeOffering :one
-INSERT INTO market.ime_offerings (trade_date, metal_id, product_fa, product_en, producer_fa, producer_en, offered_kg,
-                                  base_price_rial, demand_kg, traded_kg, clearing_price_rial, source, entered_by)
-VALUES ($1, (SELECT mm.id FROM market.metals mm WHERE mm.slug = $2::text),
-        $3, $4, $5, $6, $7,
-        $8, $9, $10, $11,
-        $12, $13)
-ON CONFLICT (trade_date, product_fa, producer_fa) DO UPDATE SET
-  metal_id = EXCLUDED.metal_id, product_en = EXCLUDED.product_en, producer_en = EXCLUDED.producer_en,
-  offered_kg = EXCLUDED.offered_kg, base_price_rial = EXCLUDED.base_price_rial, demand_kg = EXCLUDED.demand_kg,
-  traded_kg = EXCLUDED.traded_kg, clearing_price_rial = EXCLUDED.clearing_price_rial, source = EXCLUDED.source,
-  entered_by = EXCLUDED.entered_by
-RETURNING id, (xmax = 0) AS inserted
+const updateAuction = `-- name: UpdateAuction :execrows
+UPDATE market.auctions a SET
+  title_fa = $1, title_en = $2,
+  metal_id = (SELECT mm.id FROM market.metals mm WHERE mm.slug = $3::text),
+  category = $4, quantity = $5, unit = $6, status = $7,
+  deadline_at = $8, location_fa = $9, location_en = $10,
+  organizer_fa = $11, organizer_en = $12,
+  details_fa = $13, details_en = $14, updated_at = now()
+WHERE a.id = $15
 `
 
-type UpsertImeOfferingParams struct {
-	TradeDate         pgtype.Date
-	MetalSlug         string
-	ProductFa         string
-	ProductEn         pgtype.Text
-	ProducerFa        string
-	ProducerEn        pgtype.Text
-	OfferedKg         int64
-	BasePriceRial     int64
-	DemandKg          pgtype.Int8
-	TradedKg          pgtype.Int8
-	ClearingPriceRial pgtype.Int8
-	Source            string
-	EnteredBy         pgtype.UUID
+type UpdateAuctionParams struct {
+	TitleFa     string
+	TitleEn     pgtype.Text
+	MetalSlug   string
+	Category    string
+	Quantity    int64
+	Unit        string
+	Status      string
+	DeadlineAt  pgtype.Timestamptz
+	LocationFa  pgtype.Text
+	LocationEn  pgtype.Text
+	OrganizerFa pgtype.Text
+	OrganizerEn pgtype.Text
+	DetailsFa   pgtype.Text
+	DetailsEn   pgtype.Text
+	ID          pgtype.UUID
 }
 
-type UpsertImeOfferingRow struct {
-	ID       pgtype.UUID
-	Inserted bool
-}
-
-// The natural key is (day, product, producer): re-entering a row corrects it.
-func (q *Queries) UpsertImeOffering(ctx context.Context, arg UpsertImeOfferingParams) (UpsertImeOfferingRow, error) {
-	row := q.db.QueryRow(ctx, upsertImeOffering,
-		arg.TradeDate,
+func (q *Queries) UpdateAuction(ctx context.Context, arg UpdateAuctionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateAuction,
+		arg.TitleFa,
+		arg.TitleEn,
 		arg.MetalSlug,
-		arg.ProductFa,
-		arg.ProductEn,
-		arg.ProducerFa,
-		arg.ProducerEn,
-		arg.OfferedKg,
-		arg.BasePriceRial,
-		arg.DemandKg,
-		arg.TradedKg,
-		arg.ClearingPriceRial,
-		arg.Source,
-		arg.EnteredBy,
+		arg.Category,
+		arg.Quantity,
+		arg.Unit,
+		arg.Status,
+		arg.DeadlineAt,
+		arg.LocationFa,
+		arg.LocationEn,
+		arg.OrganizerFa,
+		arg.OrganizerEn,
+		arg.DetailsFa,
+		arg.DetailsEn,
+		arg.ID,
 	)
-	var i UpsertImeOfferingRow
-	err := row.Scan(&i.ID, &i.Inserted)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

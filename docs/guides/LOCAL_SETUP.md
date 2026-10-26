@@ -88,7 +88,7 @@ The contact form allows 5 messages per hour per IP (Redis), so repeat tests may 
 (the demo profile seeds two IME sessions, `config/seed/demo/30-ime.yaml`; signed out you see only the summary),
 http://localhost:3000/calculator (pick a product, change the weight; save, share), and *Account → SMS price alerts*: add
 «تغییر روزانه بیش از ۰٫۵» on any product; within a minute the worker logs the SMS (`task logs -- worker`, console provider).
-Staff enter IME sessions under *Market & prices → IME auctions* (paste rows, "Check", then "Save").
+Staff add metal auctions under *Auctions* (title, metal, category, quantity, status; Gold fields and a PDF notice).
 Lost the TOTP device for a local staff user? Remove it in the Keycloak console (Users → user → Credentials → delete OTP).
 
 ## 5. Daily commands
