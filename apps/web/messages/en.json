@@ -53,7 +53,8 @@
     "heroShow": "Show the chart of",
     "globalChartTitle": "Global metal prices chart",
     "globalChartSubtitle": "Global prices over the last month (dollars per ton). The next metal shows every few seconds; tap a name to pick one.",
-    "globalChartFull": "Full chart →"
+    "globalChartFull": "Full chart →",
+    "plansPeriods": "Quarterly and yearly plans at a discount"
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
@@ -88,7 +89,8 @@
     "compareTitle": "Compare all features",
     "feature": "Features",
     "limitDays": "last {days} days",
-    "unlimited": "full"
+    "unlimited": "full",
+    "notIncluded": "Not included"
   },
   "footer": {
     "rights": "© 2026 Alan Felez — All rights reserved",

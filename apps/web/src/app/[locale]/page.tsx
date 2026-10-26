@@ -7,6 +7,9 @@ import { HeroCarousel, type HeroItem } from "@/components/prices/HeroCarousel";
 import { GlobalChartCarousel, type GlobalChartItem } from "@/components/prices/GlobalChartCarousel";
 import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
+import { PlanCards } from "@/components/PlanCards";
+import { api } from "@/lib/api";
+import { getMe } from "@/lib/account";
 import { SITE_URL } from "@/lib/site";
 
 // Rendered per request (no API needed at build time); anonymous API responses are cached briefly in Next's data cache.
@@ -67,6 +70,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
       }),
     )
   ).filter((it) => it.points.length > 1);
+
+  // Plans section after the global chart (client, 2026-10-26): the same cards as /plans.
+  const [plansRes, me] = await Promise.all([
+    api.GET("/v1/plans", { params: { header: { "Accept-Language": locale } }, next: { revalidate: 60 } }),
+    getMe(),
+  ]);
+  const plans = plansRes.data;
 
   const home = `${SITE_URL}${locale === "en" ? "/en" : "/"}`;
   return (
@@ -138,15 +148,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
         </section>
       )}
 
-      <div className="h-12" />
-      <section className="mx-auto max-w-7xl px-4">
-        <div className="rounded-card bg-graphite p-8 text-center text-white sm:p-12">
-          <h2 className="text-2xl font-extrabold sm:text-3xl">{t("home.plansTitle")}</h2>
-          <Link href="/plans" className="mt-6 inline-block rounded-lg bg-gold px-6 py-3 font-bold text-graphite hover:bg-gold-light">
-            {t("home.plansCta")}
-          </Link>
-        </div>
-      </section>
+      {plans && (
+        <section className="mt-12 bg-surface py-12">
+          <div className="mx-auto max-w-6xl px-4">
+            <h2 className="text-center text-2xl font-extrabold sm:text-3xl">{t("home.plansTitle")}</h2>
+            <p className="mt-2 text-center text-text-2">{t("plans.subtitle")}</p>
+            <PlanCards plans={plans} me={me} period="month" locale={locale} />
+            <p className="mt-6 text-center text-sm">
+              <Link href="/plans" className="font-bold text-gold-dark hover:text-gold">{t("home.plansCta")}</Link>
+              <span className="ms-2 text-text-3">{t("home.plansPeriods")}</span>
+            </p>
+          </div>
+        </section>
+      )}
     </>
   );
 }
