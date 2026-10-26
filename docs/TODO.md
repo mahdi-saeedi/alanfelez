@@ -58,6 +58,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Sign-up form: the verified mobile number is shown as the username («نام کاربری (شماره موبایل)»).
+- 2026-10-26 Released v0.9.0: home plan cards, full sign-up form after the SMS code, clearer charts.
 - 2026-10-26 «ورود» opens the username + password page (username = mobile number, Persian digits accepted); «امتحان
   روش‌های دیگر» there is the SMS code, «ثبت‌نام» still starts with the SMS code. Forgot password: number → code → the
   username shown read-only + new password and repeat. Owner and client OK'd; no realm change.
