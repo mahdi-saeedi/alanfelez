@@ -25,9 +25,10 @@ export async function WhyAlanFelez({ locale, signedIn }: { locale: string; signe
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="text-center text-2xl font-extrabold sm:text-3xl">{t("home.why.title")}</h2>
         <p className="mx-auto mt-3 max-w-3xl text-center leading-8 text-text-2">{t("home.why.subtitle")}</p>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Flex, not grid: a short last row (7 cards = 4 + 3) is centred instead of leaving a gap at the end. */}
+        <ul className="mt-8 flex flex-wrap justify-center gap-4">
           {BENEFITS.map((b) => (
-            <li key={b.key}>
+            <li key={b.key} className="w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-3rem)/4)]">
               <Link href={b.href} className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-5 shadow-soft transition hover:border-gold">
                 <span className="flex items-start justify-between gap-3">
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold-dark">
