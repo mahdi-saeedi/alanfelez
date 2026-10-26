@@ -1,9 +1,10 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { formatBp, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format";
+import { displayAmount, formatBp, formatDate, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { getBasePrices, getHistory } from "@/lib/prices";
 import { PriceCard } from "@/components/prices/PriceCard";
 import { HeroCarousel, type HeroItem } from "@/components/prices/HeroCarousel";
+import { GlobalChartCarousel, type GlobalChartItem } from "@/components/prices/GlobalChartCarousel";
 import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
@@ -41,6 +42,31 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
       };
     }),
   );
+
+  // Global prices chart section (client, 2026-10-26): 1-month history of each global price, in dollars per ton.
+  const chartItems: GlobalChartItem[] = (
+    await Promise.all(
+      global.filter((r) => r.price).map(async (r) => {
+        const h = await getHistory(locale, r.series.slug, "1M");
+        const pts = "data" in h && h.data ? h.data.points : [];
+        const points = pts.map((p) => ({ t: p.t, v: Number(displayAmount({ amount: p.amount, currency: r.series.currency, unit: r.series.unit })) }));
+        const first = points[0]?.v ?? 0;
+        const bp = points.length > 1 && first ? Math.trunc(((points.at(-1)!.v - first) * 10_000) / first) : undefined;
+        return {
+          slug: r.series.slug,
+          metal: r.series.metal.slug,
+          name: r.series.metal.name,
+          price: formatPriceValue(r.price!, locale),
+          unit: priceUnitLabel(r.series, locale),
+          change: bp !== undefined ? formatBp(bp, locale) : undefined,
+          up: (bp ?? 0) >= 0,
+          source: r.source ?? r.series.market.name,
+          updated: r.observedAt ? formatDate(r.observedAt, locale, true) : "—",
+          points,
+        };
+      }),
+    )
+  ).filter((it) => it.points.length > 1);
 
   const home = `${SITE_URL}${locale === "en" ? "/en" : "/"}`;
   return (
@@ -99,6 +125,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
           <p className="mt-4 text-xs text-text-3">{t("prices.info")}</p>
         </div>
       </section>
+
+      {chartItems.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pt-12">
+          <h2 className="text-2xl font-extrabold">{t("home.globalChartTitle")}</h2>
+          <p className="mt-2 mb-5 text-sm text-text-2">{t("home.globalChartSubtitle")}</p>
+          <GlobalChartCarousel
+            items={chartItems}
+            locale={locale}
+            labels={{ change: t("home.heroChange"), source: t.raw("chart.source") as string, full: t("home.globalChartFull") }}
+          />
+        </section>
+      )}
 
       <div className="h-12" />
       <section className="mx-auto max-w-7xl px-4">
