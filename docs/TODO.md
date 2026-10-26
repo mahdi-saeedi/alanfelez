@@ -59,6 +59,7 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Home: closing call to action «بازار را قبل از معامله بشناسید» after the latest auctions (sign-up / plans).
 - 2026-10-26 Metal auctions («مزایدات», SCOPE §7) replace the IME offerings page: admin CRUD with status and a PDF notice
   (in Postgres, ADR-0027), site page with filters, Gold-only deadline/place/organiser/details/PDF, home «تازه‌ترین مزایدات».
 - 2026-10-26 Home: «چرا الان‌فلز؟» after the plans: the client's subtitle, 7 benefits (each links to its page and shows
