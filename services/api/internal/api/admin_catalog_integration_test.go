@@ -8,10 +8,11 @@ import (
 	"time"
 )
 
-// copperRedPublic returns the public price item of copper-red-free (nil when it isn't listed).
+// copperRedPublic returns the site's price item of copper-red-free as a paying subscriber sees it (domestic day
+// prices are Silver and Gold since 2026-10-26; the test grants Gold first); nil when it isn't listed.
 func (e *env) copperRedPublic() map[string]any {
 	e.t.Helper()
-	st, body, _ := e.call(http.MethodGet, "/v1/prices", "", nil)
+	st, body, _ := e.call(http.MethodGet, "/v1/prices", "gold", nil)
 	if st != 200 {
 		e.t.Fatalf("GET /v1/prices: %d", st)
 	}
@@ -35,6 +36,7 @@ func (e *env) auditCount(action string) int {
 
 func TestPriceHistoryAndVoid(t *testing.T) {
 	e := setup(t)
+	e.grantGold()
 	at := time.Now().UTC().Add(-2 * time.Hour).Truncate(time.Second)
 	ids := make([]string, 0, 2)
 	for i, amount := range []string{"6400000", "6600000"} {
@@ -110,6 +112,7 @@ func TestPriceHistoryAndVoid(t *testing.T) {
 
 func TestCatalogAdmin(t *testing.T) {
 	e := setup(t)
+	e.grantGold()
 	if st, body, _ := e.call(http.MethodGet, "/v1/admin/catalog", "support", nil); st != 200 || len(body["metals"].([]any)) == 0 {
 		t.Fatalf("catalog: %d %v", st, body)
 	}
@@ -180,6 +183,7 @@ func TestCatalogAdmin(t *testing.T) {
 
 func TestBackDatedEntry(t *testing.T) {
 	e := setup(t)
+	e.grantGold()
 	e.grantGold()
 	now := time.Now().UTC().Truncate(time.Second)
 	old := now.AddDate(0, 0, -20)

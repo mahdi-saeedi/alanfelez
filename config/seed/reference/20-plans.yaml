@@ -11,8 +11,8 @@ datasets:
   - name: plan_prices
     rows:
       - { plan_code: silver, period: month,   amount_rial: 10000000 }
-      - { plan_code: silver, period: quarter, amount_rial: 27000000 }   # −10 %
-      - { plan_code: silver, period: year,    amount_rial: 96000000 }   # −20 %
+      - { plan_code: silver, period: quarter, amount_rial: 28500000 }   # −5 % (client, 2026-10-26)
+      - { plan_code: silver, period: year,    amount_rial: 102000000 }  # −15 %
       - { plan_code: gold,   period: month,   amount_rial: 20000000 }
-      - { plan_code: gold,   period: quarter, amount_rial: 54000000 }   # −10 %
-      - { plan_code: gold,   period: year,    amount_rial: 192000000 }  # −20 %
+      - { plan_code: gold,   period: quarter, amount_rial: 57000000 }   # −5 %
+      - { plan_code: gold,   period: year,    amount_rial: 204000000 }  # −15 %

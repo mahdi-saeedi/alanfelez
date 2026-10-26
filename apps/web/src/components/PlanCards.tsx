@@ -6,10 +6,11 @@ import { TierBadge } from "@/components/Locked";
 
 type Period = Schemas["BillingPeriod"];
 type PlanList = { items: Schemas["Plan"][]; purchasable: boolean };
-// Display order of the features (what each plan includes comes from the API: the matrix lives in Go).
+// The rows of the client's plan table (2026-10-26), in its order. «پیش‌بینی و تحلیل» is one row: analysis.read and
+// forecast.read unlock together (Gold). What each plan includes still comes from the API.
 export const PLAN_FEATURES = [
-  "prices.base", "prices.full", "chart.basic", "chart.full", "news.read", "analysis.read",
-  "forecast.read", "auctions.read", "calculator.use", "alerts.sms", "support.priority",
+  "prices.base", "chart.basic", "prices.full", "chart.full",
+  "auctions.read", "analysis.read", "calculator.use", "alerts.sms",
 ] as const;
 
 /** The three plan cards (plans page and home page), from GET /v1/plans. */

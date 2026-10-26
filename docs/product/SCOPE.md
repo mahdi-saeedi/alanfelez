@@ -74,17 +74,23 @@ Mobile layouts: 🛠 we design them, since there's no mobile design (#9).
 | Tier | Monthly price | Quarterly 🛠 | Yearly 🛠 |
 |---|---|---|---|
 | رایگان / Free | 0 | — | — |
-| نقره‌ای / Silver | **1,000,000 Toman** | 2,700,000 (−10%) | 9,600,000 (−20%) |
-| طلایی / Gold | **2,000,000 Toman** | 5,400,000 (−10%) | 19,200,000 (−20%) |
+| نقره‌ای / Silver | **1,000,000 Toman** | 2,850,000 (−5%) | 10,200,000 (−15%) |
+| طلایی / Gold | **2,000,000 Toman** | 5,700,000 (−5%) | 20,400,000 (−15%) |
 
-The yearly −20% matches the design badge. The quarterly −10% is our proposal (follow-up F6). Prices are editable in the admin.
+Discounts −5% quarterly and −15% yearly: the client's plan table (2026-10-26, OK'd by the owner; closes F6). Before that
+we used −10% / −20%. Prices are versioned (migration 00009 closed the old rows; past orders keep theirs).
 
-### Feature matrix — 🛠 derived from FAQ.docx #12–15 (the client's answer #3 was cut off after «طبق…», follow-up F2)
+### Feature matrix ✅ the client's plan table (2026-10-26, OK'd by the owner; closes F2)
+
+Free: global metal prices, global charts, IME (بورس کالا) prices. Silver adds «قیمت روز کالا» (the domestic day prices of
+the free market and the Iran iron market) and «نمودار و تاریخچه کالا». Gold adds daily auctions, forecasts and analysis,
+the calculator, a daily SMS with the price of the user's own product (**not built yet**: needs the sign-up form's product
+field) and SMS alerts for sharp moves.
 
 | Feature | Free | Silver | Gold |
 |---|---|---|---|
 | Main prices: 7 base metals (ticker, home cards) | ✓ | ✓ | ✓ |
-| Full price table (all products, all markets, domestic + global) | partial (base product per metal + **all global/LME prices**, client 2026-10-25) | ✓ | ✓ |
+| Full price table (all products, all markets, domestic + global) | partial (**global and IME prices only**; domestic day prices are paid, 2026-10-26) | ✓ | ✓ |
 | Price chart | last 1 month | full history + compare | full history + compare |
 | News | ✓ | ✓ | ✓ |
 | Expert market analysis | ✗ (locked, blurred teaser) | ✗ | ✓ |
@@ -92,6 +98,7 @@ The yearly −20% matches the design badge. The quarterly −10% is our proposal
 | Daily auctions / IME offerings | ✗ (teaser) | ✗ | ✓ |
 | Price calculator | ✗ (locked preview) | ✗ | ✓ |
 | SMS + price alerts (included in Gold, #19) | ✗ | ✗ | ✓ |
+| Daily SMS with the price of the user's product (not built yet) | ✗ | ✗ | ✓ |
 | Support | ticket | ticket | ticket (priority) |
 
 This lives in `services/api/internal/access` as config (exposed to the UIs via `/v1/me/entitlements`), so when the client corrects it, one file changes.

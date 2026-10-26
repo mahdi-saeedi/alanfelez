@@ -70,8 +70,8 @@
       "year": "Toman / year"
     },
     "save": {
-      "quarter": "10% off",
-      "year": "20% off"
+      "quarter": "5% off",
+      "year": "15% off"
     },
     "audience": {
       "free": "To get to know the platform",
@@ -203,16 +203,16 @@
     }
   },
   "features": {
-    "prices_base": "Base metal prices",
-    "prices_full": "Full price table (every product, domestic and global markets)",
-    "chart_basic": "Price chart",
-    "chart_full": "Full chart history and compare",
+    "prices_base": "Global metal prices and IME prices",
+    "prices_full": "Day prices of products",
+    "chart_basic": "Global metal charts",
+    "chart_full": "Product charts and history",
     "news_read": "Market news",
-    "analysis_read": "Expert market analysis",
+    "analysis_read": "Forecasts and analysis",
     "forecast_read": "Price forecast scenarios",
-    "auctions_read": "IME daily auctions",
-    "calculator_use": "Price calculator",
-    "alerts_sms": "SMS price alerts",
+    "auctions_read": "Daily auctions",
+    "calculator_use": "Calculator",
+    "alerts_sms": "SMS alerts for sharp price moves",
     "support_priority": "Priority support"
   },
   "checkout": {
