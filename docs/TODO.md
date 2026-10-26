@@ -58,6 +58,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Home: «چرا الان‌فلز؟» after the plans: the client's subtitle, 7 benefits (each links to its page and shows
+  its plan) and «شروع رایگان» for signed-out visitors. Released v0.10.0 before it (plan table, «ورود» = password page).
 - 2026-10-26 Sign-up form: the verified mobile number is shown as the username («نام کاربری (شماره موبایل)»).
 - 2026-10-26 Released v0.9.0: home plan cards, full sign-up form after the SMS code, clearer charts.
 - 2026-10-26 «ورود» opens the username + password page (username = mobile number, Persian digits accepted); «امتحان
