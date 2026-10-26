@@ -10,11 +10,11 @@
 | # | Priority | Question | Why |
 |---|---|---|---|
 | F1 | 🔴 | ⏳ **Newest design link.** The link https://ratio-donkey-94517275.figma.site/ still serves the old build (menu has «خرید و فروش», and the bundle hasn't changed). Please publish the latest version and send the link. | Needed for pixel-accurate UI (answer #6) |
-| F2 | 🔴 | ⏳ **Feature table per tier.** Answer #3 was cut off («طبق…»). We derived a matrix from FAQ.docx (SCOPE §6). Please confirm or correct it, especially: is the **calculator Gold-only**? (The design shows it as free.) | Access control everywhere |
+| F2 | 🔴 | ✅ Answered by the client's plan table (2026-10-26, SCOPE §6): Free = global + IME prices and global charts; Silver adds domestic day prices and history; Gold adds auctions, analysis, calculator, SMS. Was: ⏳ **Feature table per tier.** Answer #3 was cut off («طبق…»). We derived a matrix from FAQ.docx (SCOPE §6). Please confirm or correct it, especially: is the **calculator Gold-only**? (The design shows it as free.) | Access control everywhere |
 | F3 | 🟠 | ⏳ **Logo as SVG** (or at least a 1024px+ PNG with a transparent background), plus the brand colors if the logo colors should replace the gold UI accent. | Header, favicon, OG images |
 | F4 | 🟠 | ⏳ **English copy.** Who writes it? Our proposal: we draft the English and you review. **Done as drafts:** the UI, the FAQ, About, Terms and Privacy (`config/seed/reference/50-faq.yaml`, `60-pages.yaml`); please review them on staging (`/en`). | i18n (answer #24) |
 | F5 | 🔴 | ⏳ **Price APIs.** Which APIs or data providers do you have access to (IME, Iron market, free market, LME, USD rate)? Please send docs and keys. Until then we build manual entry + seed data. | Answer #8 |
-| F6 | 🟢 | ⏳ **Quarterly/yearly discount.** We proposed quarterly −10% and yearly −20% (SCOPE §6). OK? | Plans page |
+| F6 | 🟢 | ✅ **Quarterly/yearly discount.** Answered by the client's plan table (2026-10-26): quarterly −5%, yearly −15% (SCOPE §6). | Plans page |
 | F7 | 🟠 | ⏳ **SMS provider account**: sms.ir (2026-10-24), line 500037506946788, verify template for codes (`#CODE#`). For sign-up/sign-in codes only; alerts and renewal SMS not decided. template id 972517. Waiting: the API key (to the owner) | Sign-up needs OTP (answer #11) |
 | F8 | 🟢 | ⏳ **Legal review.** Privacy is drafted and the Terms are edited (SCOPE §11, §16; editable in the admin → Static pages). They, and the refund rules (SCOPE §6), should be reviewed by a lawyer before launch. | Answers #27, #32 |
 | F9 | 🟢 | ⏳ **Review all 🛠 dev decisions** in SCOPE.md on staging (auctions = IME info page, calculator logic, auth flow, stats, icons, mobile nav). | Client said "I'll correct later" |

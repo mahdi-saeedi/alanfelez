@@ -29,15 +29,15 @@ datasets:
     rows:
       - { slug: aluminum-ingot-ime,      product: aluminum-ingot,      market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 10 }
       - { slug: aluminum-soft-scrap-free, product: aluminum-soft-scrap, market: free, currency: IRR, unit: kg,  is_base: false, sort: 11 }
-      - { slug: copper-red-free,         product: copper-red,          market: free, currency: IRR, unit: kg,  is_base: true,  sort: 20 }
+      - { slug: copper-red-free,         product: copper-red,          market: free, currency: IRR, unit: kg,  is_base: false, sort: 20 }
       - { slug: copper-cable-free,       product: copper-cable,        market: free, currency: IRR, unit: kg,  is_base: false, sort: 21 }
-      - { slug: brass-yellow-free,       product: brass-yellow,        market: free, currency: IRR, unit: kg,  is_base: true,  sort: 30 }
+      - { slug: brass-yellow-free,       product: brass-yellow,        market: free, currency: IRR, unit: kg,  is_base: false, sort: 30 }
       - { slug: brass-scrap-free,        product: brass-scrap,         market: free, currency: IRR, unit: kg,  is_base: false, sort: 31 }
       - { slug: zinc-ingot-ime,          product: zinc-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 40 }
       - { slug: lead-ingot-ime,          product: lead-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 50 }
-      - { slug: rebar-16-iron,           product: rebar-16,            market: iron, currency: IRR, unit: kg,  is_base: true,  sort: 60 }
+      - { slug: rebar-16-iron,           product: rebar-16,            market: iron, currency: IRR, unit: kg,  is_base: false, sort: 60 }
       - { slug: steel-sheet-4-iron,      product: steel-sheet-4,       market: iron, currency: IRR, unit: kg,  is_base: false, sort: 61 }
-      - { slug: cast-iron-scrap-free,    product: cast-iron-scrap,     market: free, currency: IRR, unit: kg,  is_base: true,  sort: 70 }
+      - { slug: cast-iron-scrap-free,    product: cast-iron-scrap,     market: free, currency: IRR, unit: kg,  is_base: false, sort: 70 }
       - { slug: aluminum-lme,            product: aluminum-ingot,      market: lme,  currency: USD, unit: ton, is_base: true,  sort: 110 }
       - { slug: copper-lme,              product: copper-cathode,      market: lme,  currency: USD, unit: ton, is_base: true,  sort: 120 }
       - { slug: zinc-lme,                product: zinc-ingot,          market: lme,  currency: USD, unit: ton, is_base: true,  sort: 140 }

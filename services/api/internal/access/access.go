@@ -46,7 +46,7 @@ const (
 	SupportPriority Feature = "support.priority" // priority ticket handling
 )
 
-// minTier is the tier matrix (SCOPE.md §6, pending client confirmation F2).
+// minTier is the tier matrix (SCOPE.md §6, the client's plan table of 2026-10-26).
 // A feature missing here is denied to everyone (deny by default).
 var minTier = map[Feature]Tier{
 	PricesBase:      Free,

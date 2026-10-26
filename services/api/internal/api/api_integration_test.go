@@ -150,13 +150,24 @@ func (e *env) seedPrices() {
 func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 	e := setup(t)
 	e.seedPrices()
+	// IME (بورس کالا) prices are free (the plan table, 2026-10-26).
+	src, _ := dbq.New(e.pool).GetSourceBySlug(t.Context(), "test")
+	now := time.Now().UTC().Truncate(time.Second)
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{
+		{Series: "aluminum-ingot-ime", ObservedAt: now.Add(-100 * 24 * time.Hour), Price: 2_000_000},
+		{Series: "aluminum-ingot-ime", ObservedAt: now.Add(-24 * time.Hour), Price: 2_100_000},
+		{Series: "aluminum-ingot-ime", ObservedAt: now.Add(-time.Minute), Price: 2_121_000},
+	}, prices.IngestOptions{}); err != nil {
+		t.Fatal(err)
+	}
 
 	for _, tok := range []string{"", "user"} {
 		st, body, raw := e.call(http.MethodGet, "/v1/prices", tok, nil)
 		if st != http.StatusOK {
 			t.Fatalf("%q: status %d", tok, st)
 		}
-		if strings.Contains(raw, "copper-cable-free") || strings.Contains(raw, "7100000") {
+		// Domestic day prices (free market, Iran iron market) are Silver and Gold since 2026-10-26.
+		if strings.Contains(raw, "copper-cable-free") || strings.Contains(raw, "7100000") || strings.Contains(raw, "copper-red-free") || strings.Contains(raw, "6464000") {
 			t.Fatalf("%q: locked series leaked: %s", tok, raw)
 		}
 		// Global (LME) prices are free for everyone (client, 2026-10-25).
@@ -173,20 +184,20 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		}
 		// The base series has the price, the daily change and the source.
 		items := body["items"].([]any)
-		var copper map[string]any
+		var alu map[string]any
 		for _, it := range items {
-			if m := it.(map[string]any); m["series"].(map[string]any)["slug"] == "copper-red-free" {
-				copper = m
+			if m := it.(map[string]any); m["series"].(map[string]any)["slug"] == "aluminum-ingot-ime" {
+				alu = m
 			}
 		}
-		if copper == nil || copper["price"].(map[string]any)["amount"] != "6464000" {
-			t.Fatalf("%q: copper row = %v", tok, copper)
+		if alu == nil || alu["price"].(map[string]any)["amount"] != "2121000" {
+			t.Fatalf("%q: IME aluminium row = %v", tok, alu)
 		}
-		if ch := copper["change"].(map[string]any); ch["amount"] != "64000" || ch["bp"].(float64) != 100 {
-			t.Fatalf("%q: change = %v, want +64000 / 100 bp", tok, ch)
+		if ch := alu["change"].(map[string]any); ch["amount"] != "21000" || ch["bp"].(float64) != 100 {
+			t.Fatalf("%q: change = %v, want +21000 / 100 bp", tok, ch)
 		}
-		if copper["source"] != "آزمایشی" {
-			t.Fatalf("%q: source = %v", tok, copper["source"])
+		if alu["source"] != "آزمایشی" {
+			t.Fatalf("%q: source = %v", tok, alu["source"])
 		}
 	}
 
@@ -194,10 +205,10 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-cable-free/points", "user", nil); st != 403 || body["code"] != "FEATURE_LOCKED" || body["feature"] != "prices.full" || body["requiredPlan"] != "silver" {
 		t.Fatalf("free non-base history: %d %v", st, body)
 	}
-	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-red-free/points?range=3M", "", nil); st != 403 || body["feature"] != "chart.full" {
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=3M", "", nil); st != 403 || body["feature"] != "chart.full" {
 		t.Fatalf("free 3M: %d %v", st, body)
 	}
-	st, body, _ := e.call(http.MethodGet, "/v1/series/copper-red-free/points?range=1M", "", nil)
+	st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=1M", "", nil)
 	if st != 200 || len(body["points"].([]any)) != 2 {
 		t.Fatalf("free 1M: %d %v", st, body)
 	}
@@ -260,6 +271,7 @@ func TestAdminRoles(t *testing.T) {
 
 func TestManualEntryGateAndAudit(t *testing.T) {
 	e := setup(t)
+	e.grantGold()
 	at := time.Now().UTC().Add(-time.Hour).Truncate(time.Second)
 	post := func(amount string, at time.Time, force bool) (int, map[string]any) {
 		st, body, _ := e.call(http.MethodPost, "/v1/admin/prices", "editor",
@@ -289,7 +301,7 @@ func TestManualEntryGateAndAudit(t *testing.T) {
 		t.Fatalf("future: %d", st)
 	}
 
-	st, body, _ := e.call(http.MethodGet, "/v1/prices", "", nil)
+	st, body, _ := e.call(http.MethodGet, "/v1/prices", "gold", nil)
 	if st != 200 {
 		t.Fatal(st)
 	}
@@ -339,6 +351,7 @@ func TestBulkDryRunStoresNothing(t *testing.T) {
 
 func TestQuarantineReview(t *testing.T) {
 	e := setup(t)
+	e.grantGold()
 	e.seedPrices()
 	src, _ := dbq.New(e.pool).GetSourceBySlug(t.Context(), "test")
 	// An automated +50 % move is stored but held back.
@@ -347,7 +360,7 @@ func TestQuarantineReview(t *testing.T) {
 	if err != nil || res[0].Outcome != prices.Quarantined {
 		t.Fatalf("ingest: %v %+v", err, res)
 	}
-	if _, _, raw := e.call(http.MethodGet, "/v1/prices", "", nil); strings.Contains(raw, "9700000") {
+	if _, _, raw := e.call(http.MethodGet, "/v1/prices", "gold", nil); strings.Contains(raw, "9700000") {
 		t.Fatal("a quarantined price was published")
 	}
 	st, body, _ := e.call(http.MethodGet, "/v1/admin/prices/quarantine", "support", nil)
@@ -365,7 +378,7 @@ func TestQuarantineReview(t *testing.T) {
 	if st, body, _ := e.call(http.MethodPost, "/v1/admin/prices/"+id+"/review", "editor", map[string]any{"decision": "approve"}); st != 200 || body["status"] != "published" {
 		t.Fatalf("approve: %d %v", st, body)
 	}
-	if _, _, raw := e.call(http.MethodGet, "/v1/prices", "", nil); !strings.Contains(raw, "9700000") {
+	if _, _, raw := e.call(http.MethodGet, "/v1/prices", "gold", nil); !strings.Contains(raw, "9700000") {
 		t.Fatal("approved price is not the latest")
 	}
 	if st, _, _ := e.call(http.MethodPost, "/v1/admin/prices/"+id+"/review", "editor", map[string]any{"decision": "reject"}); st != 409 {
