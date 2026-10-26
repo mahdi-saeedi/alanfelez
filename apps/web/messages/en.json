@@ -94,6 +94,14 @@
           "text": "Auctions of ingots, scrap and raw materials, with each one's deadline, place and notice."
         }
       }
+    },
+    "finalCta": {
+      "eyebrow": "Alan Felez",
+      "title": "Know the market before you trade",
+      "text": "With prices, charts, analysis and forecasts, auctions, price alerts and specialist tools, trade with better information.",
+      "start": "Start for free",
+      "plans": "See the plans",
+      "prices": "See the prices"
     }
   },
   "plans": {
