@@ -19,6 +19,10 @@ Last updated: 2026-10-26 (full sign-up form on staging)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **New plan table from the client (2026-10-26, image in the chat):** free = global prices + global chart + IME prices;
+  silver adds domestic product prices and their charts/history; gold adds auctions, analysis/forecast, calculator,
+  daily SMS of the user's specialty product price (new) and SMS alerts on sharp moves. Discounts: 3 months −5 %,
+  1 year −15 % (today −10 % / −20 %). Tier matrix + prices = owner's OK; the daily specialty SMS needs the sign-up form.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
@@ -52,6 +56,7 @@ Last updated: 2026-10-26 (full sign-up form on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Home: the plan cards after the global chart (same component as /plans); cards list every feature, the missing ones greyed out.
 - 2026-10-26 Full sign-up form after the SMS code (client, 2026-10-25), on staging; the user profile is applied by a
   PreSync job before each deploy.
 - 2026-10-26 Charts drawn at real size (readable on phones, taller there), round gridline values, the latest price marked, page scroll works over charts on touch, tooltip kept inside.
