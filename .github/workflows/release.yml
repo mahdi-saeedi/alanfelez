@@ -128,10 +128,16 @@ jobs:
       - name: Bump staging image tags (GitOps)
         env: { TAG: "${{ needs.images.outputs.tag }}" }
         run: |
-          yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' \
-            deploy/environments/staging/values.yaml
           git config user.name "alanfelez-bot"
           git config user.email "bot@alanfelez.ir"
-          git commit -am "chore(deploy): staging → ${TAG} [skip ci]"
-          # main may have moved while the images were building: rebase on it and retry.
-          for _ in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 10; done; exit 1
+          # main may have moved while the images were building (often another release's own bump of these very lines,
+          # which made a rebase conflict): start from the newest main each time and set the tags there.
+          for _ in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            yq -i '.images.api.tag = strenv(TAG) | .images.web.tag = strenv(TAG) | .images.keycloak.tag = strenv(TAG) | .images.admin.tag = strenv(TAG)' \
+              deploy/environments/staging/values.yaml
+            git diff --quiet && exit 0   # already on this tag
+            git commit -qam "chore(deploy): staging → ${TAG} [skip ci]" && git push origin HEAD:main && exit 0
+            sleep 10
+          done
+          exit 1
