@@ -3,7 +3,8 @@ import type { Schemas } from "@alanfelez/api-client";
 import { callerApi } from "./api";
 import type { Locale } from "./prices";
 
-export type AuctionDay = Schemas["AuctionDay"];
+export type AuctionList = Schemas["AuctionList"];
+export type Auction = Schemas["Auction"];
 export type CalculatorInput = Schemas["CalculatorInput"];
 export type CalculatorResult = Schemas["CalculatorResult"];
 export type SavedCalculation = Schemas["SavedCalculation"];
@@ -16,7 +17,11 @@ type Problem = Schemas["Problem"];
  * Gold features (SCOPE §7, §8, #19). Every response depends on the caller's plan, so nothing here is cached.
  * Locked answers come back as data (`locked`) or as a FEATURE_LOCKED problem; the API never sends locked rows.
  */
-export async function getAuctions(locale: Locale, query: { date?: string; metal?: string }): Promise<AuctionDay | null> {
+/** Metal auctions: the Gold fields are only in the answer when the caller has Gold. */
+export async function getAuctions(
+  locale: Locale,
+  query: { metal?: string; category?: Schemas["AuctionCategory"]; status?: Schemas["AuctionStatus"]; limit?: number; offset?: number },
+): Promise<AuctionList | null> {
   const { client } = await callerApi();
   const res = await client.GET("/v1/auctions", { params: { header: { "Accept-Language": locale }, query }, cache: "no-store" });
   return res.data ?? null;

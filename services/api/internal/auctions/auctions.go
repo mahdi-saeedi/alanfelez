@@ -1,107 +1,137 @@
-// Package auctions holds the rules for IME daily offerings (SCOPE §7): validation of a row and the day's summary.
-// Information only: there's no bidding on the site. Prices are Rial per kg, weights kg, all integers.
+// Package auctions holds the rules for metal auction notices («مزایدات», client 2026-10-26): what a staff entry
+// must look like and which uploaded files count as a PDF notice. Information only: there's no bidding on the site.
 package auctions
 
 import (
+	"bytes"
 	"errors"
-	"math"
-	"math/big"
+	"path"
+	"strings"
+	"unicode/utf8"
 )
 
-// Offering is one IME offering as entered or fetched.
-type Offering struct {
-	OfferedKg         int64
-	BasePriceRial     int64
-	DemandKg          *int64 // nil until the session closes
-	TradedKg          *int64
-	ClearingPriceRial *int64
-}
+// The allowed values (the database CHECKs say the same).
+var (
+	Categories = []string{"intermediate", "scrap", "raw"} // ingots and intermediate products, scrap, raw materials
+	Units      = []string{"ton", "kg", "piece"}
+	Statuses   = []string{"open", "paused", "closed"} // in progress, stopped, finished (set by staff)
+)
 
-// Limits keep one row's value (kg × Rial/kg ≤ 10^18) inside int64; the day's total is summed in big.Int.
+// Limits.
 const (
-	MaxKg   = 1_000_000_000 // 1 million tonnes
-	MaxRial = 1_000_000_000 // 100 million Toman per kg
+	MaxQuantity = 1_000_000_000
+	MaxTitle    = 200
+	MaxShort    = 200  // place, organiser
+	MaxDetails  = 5000 // details (plain text)
+	MaxPDFBytes = 10 << 20
 )
 
 // Validation errors.
 var (
-	ErrOffered  = errors.New("offered volume must be positive")
-	ErrBase     = errors.New("base price must be positive")
-	ErrTraded   = errors.New("traded volume can't exceed the offered volume")
-	ErrClearing = errors.New("clearing price must be positive when there's a trade")
-	ErrRange    = errors.New("value out of range")
+	ErrTitle    = errors.New("title must be 2–200 characters")
+	ErrCategory = errors.New("unknown category")
+	ErrUnit     = errors.New("unknown unit")
+	ErrStatus   = errors.New("unknown status")
+	ErrQuantity = errors.New("quantity must be 1–1,000,000,000")
+	ErrTooLong  = errors.New("a text is too long")
+	ErrNotPDF   = errors.New("the file is not a PDF")
+	ErrPDFSize  = errors.New("the PDF must be at most 10 MB")
 )
 
-// Validate checks one offering.
-func Validate(o Offering) error {
-	switch {
-	case o.OfferedKg <= 0:
-		return ErrOffered
-	case o.BasePriceRial <= 0:
-		return ErrBase
-	case o.OfferedKg > MaxKg || o.BasePriceRial > MaxRial:
-		return ErrRange
+// Input is a staff entry before it's saved. Optional texts are nil when not given.
+type Input struct {
+	TitleFa                string
+	TitleEn                *string
+	Category, Unit, Status string
+	Quantity               int64
+	Texts                  map[string]*string // locationFa, locationEn, organizerFa, organizerEn, detailsFa, detailsEn
+}
+
+// Validate checks an entry and returns it with every text trimmed (empty optional texts become nil).
+func Validate(in Input) (Input, error) {
+	in.TitleFa = strings.TrimSpace(in.TitleFa)
+	if n := utf8.RuneCountInString(in.TitleFa); n < 2 || n > MaxTitle {
+		return in, ErrTitle
 	}
-	for _, v := range []*int64{o.DemandKg, o.TradedKg} {
-		if v != nil && (*v < 0 || *v > MaxKg) {
-			return ErrRange
+	switch {
+	case !oneOf(in.Category, Categories):
+		return in, ErrCategory
+	case !oneOf(in.Unit, Units):
+		return in, ErrUnit
+	case !oneOf(in.Status, Statuses):
+		return in, ErrStatus
+	case in.Quantity <= 0 || in.Quantity > MaxQuantity:
+		return in, ErrQuantity
+	}
+	var err error
+	if in.TitleEn, err = optional(in.TitleEn, MaxTitle); err != nil {
+		return in, err
+	}
+	texts := make(map[string]*string, len(in.Texts))
+	for k, v := range in.Texts {
+		limit := MaxShort
+		if strings.HasPrefix(k, "details") {
+			limit = MaxDetails
+		}
+		if texts[k], err = optional(v, limit); err != nil {
+			return in, err
 		}
 	}
-	if o.TradedKg != nil && *o.TradedKg > o.OfferedKg {
-		return ErrTraded
-	}
-	if o.ClearingPriceRial != nil && (*o.ClearingPriceRial <= 0 || *o.ClearingPriceRial > MaxRial) {
-		return ErrClearing
-	}
-	if o.TradedKg != nil && *o.TradedKg > 0 && o.ClearingPriceRial == nil {
-		return ErrClearing
+	in.Texts = texts
+	return in, nil
+}
+
+// CheckPDF accepts a PDF notice of at most MaxPDFBytes: the file must start with the PDF signature, whatever its name.
+func CheckPDF(b []byte) error {
+	switch {
+	case len(b) > MaxPDFBytes:
+		return ErrPDFSize
+	case !bytes.HasPrefix(b, []byte("%PDF-")):
+		return ErrNotPDF
 	}
 	return nil
 }
 
-// ChangeBp is the clearing price against the base price in basis points (truncated), or false before the trade.
-func ChangeBp(o Offering) (int64, bool) {
-	if o.ClearingPriceRial == nil {
-		return 0, false
+// FileName is a safe download name: the base name without control characters or quotes, ending in .pdf.
+func FileName(name string) string {
+	name = path.Base(strings.ReplaceAll(strings.TrimSpace(name), `\`, "/"))
+	name = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f || r == '"' || r == ';' {
+			return -1
+		}
+		return r
+	}, name)
+	if r := []rune(name); len(r) > 120 {
+		name = string(r[:120])
 	}
-	return (*o.ClearingPriceRial - o.BasePriceRial) * 10_000 / o.BasePriceRial, true
+	if name == "" || name == "." || name == "/" {
+		name = "auction"
+	}
+	if !strings.HasSuffix(strings.ToLower(name), ".pdf") {
+		name += ".pdf"
+	}
+	return name
 }
 
-// Summary is the day's headline numbers (the teaser everyone sees).
-type Summary struct {
-	Offerings int
-	OfferedKg int64
-	DemandKg  int64
-	TradedKg  int64
-	ValueRial int64 // Σ traded × clearing price
-	// AvgChangeBp is the traded-volume-weighted change vs base over traded rows (0 when nothing traded).
-	AvgChangeBp int64
+func optional(s *string, limit int) (*string, error) {
+	if s == nil {
+		return nil, nil
+	}
+	v := strings.TrimSpace(*s)
+	if v == "" {
+		return nil, nil
+	}
+	if utf8.RuneCountInString(v) > limit {
+		return nil, ErrTooLong
+	}
+	return &v, nil
 }
 
-// Summarize totals a day's offerings.
-func Summarize(rows []Offering) Summary {
-	s := Summary{Offerings: len(rows)}
-	weighted, weight, value := new(big.Int), int64(0), new(big.Int)
-	for _, o := range rows {
-		s.OfferedKg += o.OfferedKg
-		if o.DemandKg != nil {
-			s.DemandKg += *o.DemandKg
+func oneOf(v string, all []string) bool {
+	for _, a := range all {
+		if v == a {
+			return true
 		}
-		if o.TradedKg == nil || *o.TradedKg == 0 || o.ClearingPriceRial == nil {
-			continue
-		}
-		s.TradedKg += *o.TradedKg
-		value.Add(value, new(big.Int).Mul(big.NewInt(*o.TradedKg), big.NewInt(*o.ClearingPriceRial)))
-		bp, _ := ChangeBp(o)
-		weighted.Add(weighted, new(big.Int).Mul(big.NewInt(bp), big.NewInt(*o.TradedKg)))
-		weight += *o.TradedKg
 	}
-	s.ValueRial = math.MaxInt64 // saturate: unreachable with real sessions
-	if value.IsInt64() {
-		s.ValueRial = value.Int64()
-	}
-	if weight > 0 {
-		s.AvgChangeBp = weighted.Quo(weighted, big.NewInt(weight)).Int64()
-	}
-	return s
+	return false
 }

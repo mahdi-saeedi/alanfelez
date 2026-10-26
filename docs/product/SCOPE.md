@@ -49,7 +49,7 @@ Remove these from the design and the content, even where the Figma design or the
 | 2 | قیمت فلزات / Metal Prices | public, depth by tier | Table + filters + gainers/losers + sources |
 | 3 | نمودار قیمت / Price Chart | public, history depth by tier | Chart, compare, ranges |
 | 4 | پیش‌بینی و تحلیل / Forecast & Analysis | news public; analysis + forecasts Gold | Written by the client's experts in the CMS (#22) |
-| 5 | حراج‌های روزانه / Daily Auctions (IME) | Gold (teaser for others) | 🛠 See §7 |
+| 5 | مزایدات / Metal auctions | title, metal, category, quantity, status public; the rest Gold | ✅ See §7 (client 2026-10-26) |
 | 6 | ماشین حساب / Calculator | Gold (locked preview for others) | 🛠 Logic in §8 |
 | 7 | اشتراک‌ها / Plans | public | 3 tiers, §6 |
 | 8 | سوالات متداول / FAQ | public | From FAQ.docx, with the page requirements in CLAUDE.md |
@@ -123,14 +123,18 @@ and later analysis, calculator…). Browsing the base prices (ticker, home cards
 refunded until it starts.
 "Used" means the user opened Gold/Silver-only content or ran a Gold calculation. This is logged server-side so it can be checked. (We draft the text, the client reviews it.)
 
-## 7. Daily auctions («حراج‌های روزانه») — 🛠 decision for client answer #5
+## 7. Metal auctions («مزایدات») ✅ client 2026-10-26
 
-**Chosen: option B. Show IME daily offering and auction data (information only).** There's no in-site bidding system.
-- It matches FAQ.docx category 5 («بورس کالا و حراج‌های روزانه») and the About page («اطلاعات حراج‌ها و عرضه‌های روزانه»).
-- The marketplace was removed (#4), so an internal auction system would have no sellers.
-- Page: a table per day with product, producer/offerer, volume offered, base price, demand, traded volume, clearing price, and change vs base,
-  plus filters (metal, date) and a daily summary. The source is IME data (API if available, admin manual entry as fallback, like all prices).
-- Gold only. Others see today's headline numbers and a blurred table with «ارتقا به طلایی».
+**Auction notices of metals**, entered by staff in the admin: ingots and intermediate products, scrap, raw materials.
+Information only: there's no bidding on the site, and Alan Felez isn't the organiser.
+- Fields: title, metal, category (intermediate / scrap / raw), quantity + unit (tonne, kg, piece), status set by staff
+  (in progress / stopped / finished), deadline, place, organiser, details (plain text) and a **PDF notice** (≤ 10 MB, ADR-0027).
+- Everyone sees the title, metal, category, quantity and status; the deadline, place, organiser, details and PDF are Gold
+  (`auctions.read`), never sent to others. Filters: metal, category, status. Home: «تازه‌ترین مزایدات» (three newest) after
+  «چرا الان‌فلز؟».
+- No contact numbers on the site (the seller-contact feature was removed, §4); contact details are in the organiser's PDF.
+- Replaces the IME daily offerings page (option B of client answer #5): the client removed it on 2026-10-26. The IME data
+  already entered stays in `market.ime_offerings`, unused, until the owner decides to drop it.
 
 ## 8. Price calculator — 🛠 logic for client answer #15
 
@@ -246,11 +250,8 @@ on save (ADR-0025).
 
 ## 17. Gold features — 🛠 decisions built in M5
 
-**Daily auctions (§7).** Page `/auctions`: pick a trading day and a metal; everyone sees the day's summary (offerings,
-volume offered / demanded / traded, trade value, volume-weighted average change vs base); the table (product, producer,
-offered, base price, demand, traded, discovered price, change) is Gold. Data is entered in the admin (*IME auctions*: a form
-row or a table pasted from Excel, checked before saving; re-entering a row corrects it) until an IME data source exists (F16).
-Prices Toman/kg, volumes tonnes. Viewing the table counts as "used" for refunds.
+**Metal auctions (§7).** Page `/auctions` (rebuilt 2026-10-26 from the IME offerings page): cards with filters; the
+Gold fields and the PDF are left out of the API answer for others. Viewing the Gold fields or the PDF counts as "used" for refunds.
 
 **Calculator (§8).** As specified, computed by the API (`internal/calculator`), recalculated as you type. Products: the domestic
 (IRR) price series, grouped metal → product type → product; the base price is the series' latest price with its source and

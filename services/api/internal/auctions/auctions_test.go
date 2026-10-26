@@ -2,55 +2,72 @@ package auctions
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
-func p(v int64) *int64 { return &v }
+func s(v string) *string { return &v }
 
 func TestValidate(t *testing.T) {
-	ok := Offering{OfferedKg: 100_000, BasePriceRial: 1_800_000}
+	ok := Input{TitleFa: " مزایده فروش ضایعات مس ", Category: "scrap", Unit: "ton", Status: "open", Quantity: 50,
+		Texts: map[string]*string{"locationFa": s("  تهران "), "detailsFa": s("   "), "organizerFa": nil}}
+	got, err := Validate(ok)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.TitleFa != "مزایده فروش ضایعات مس" || *got.Texts["locationFa"] != "تهران" || got.Texts["detailsFa"] != nil {
+		t.Fatalf("not trimmed: %+v", got)
+	}
+	bad := func(mut func(*Input)) Input { in := ok; in.Texts = map[string]*string{}; mut(&in); return in }
 	cases := []struct {
 		name string
-		o    Offering
+		in   Input
 		want error
 	}{
-		{"before the session", ok, nil},
-		{"after the session", Offering{OfferedKg: 100_000, BasePriceRial: 1_800_000, DemandKg: p(250_000), TradedKg: p(100_000), ClearingPriceRial: p(1_950_000)}, nil},
-		{"unsold", Offering{OfferedKg: 100_000, BasePriceRial: 1_800_000, DemandKg: p(0), TradedKg: p(0)}, nil},
-		{"no volume", Offering{BasePriceRial: 1}, ErrOffered},
-		{"no base price", Offering{OfferedKg: 1}, ErrBase},
-		{"traded more than offered", Offering{OfferedKg: 10, BasePriceRial: 1, TradedKg: p(11), ClearingPriceRial: p(1)}, ErrTraded},
-		{"traded without a price", Offering{OfferedKg: 10, BasePriceRial: 1, TradedKg: p(5)}, ErrClearing},
-		{"absurd volume", Offering{OfferedKg: MaxKg + 1, BasePriceRial: 1}, ErrRange},
-		{"negative demand", Offering{OfferedKg: 10, BasePriceRial: 1, DemandKg: p(-1)}, ErrRange},
+		{"short title", bad(func(i *Input) { i.TitleFa = "م" }), ErrTitle},
+		{"long title", bad(func(i *Input) { i.TitleFa = strings.Repeat("م", 201) }), ErrTitle},
+		{"category", bad(func(i *Input) { i.Category = "global" }), ErrCategory},
+		{"unit", bad(func(i *Input) { i.Unit = "litre" }), ErrUnit},
+		{"status", bad(func(i *Input) { i.Status = "draft" }), ErrStatus},
+		{"zero quantity", bad(func(i *Input) { i.Quantity = 0 }), ErrQuantity},
+		{"huge quantity", bad(func(i *Input) { i.Quantity = MaxQuantity + 1 }), ErrQuantity},
+		{"long place", bad(func(i *Input) { i.Texts["locationFa"] = s(strings.Repeat("x", 201)) }), ErrTooLong},
+		{"long details", bad(func(i *Input) { i.Texts["detailsFa"] = s(strings.Repeat("x", 5001)) }), ErrTooLong},
+		{"long english title", bad(func(i *Input) { i.TitleEn = s(strings.Repeat("x", 201)) }), ErrTooLong},
 	}
 	for _, c := range cases {
-		if err := Validate(c.o); !errors.Is(err, c.want) {
+		if _, err := Validate(c.in); !errors.Is(err, c.want) {
 			t.Errorf("%s: got %v, want %v", c.name, err, c.want)
 		}
 	}
+	if _, err := Validate(bad(func(i *Input) { i.Texts["detailsFa"] = s(strings.Repeat("x", 5000)) })); err != nil {
+		t.Errorf("5000-character details must pass: %v", err)
+	}
 }
 
-func TestSummarize(t *testing.T) {
-	rows := []Offering{
-		// +10 % on 100 t, −5 % on 300 t → weighted (1000·100 − 500·300)/400 = −125 bp
-		{OfferedKg: 100_000, BasePriceRial: 1_000_000, DemandKg: p(200_000), TradedKg: p(100_000), ClearingPriceRial: p(1_100_000)},
-		{OfferedKg: 400_000, BasePriceRial: 2_000_000, DemandKg: p(300_000), TradedKg: p(300_000), ClearingPriceRial: p(1_900_000)},
-		{OfferedKg: 50_000, BasePriceRial: 3_000_000}, // not traded yet
+func TestCheckPDF(t *testing.T) {
+	if err := CheckPDF([]byte("%PDF-1.7\n...")); err != nil {
+		t.Fatal(err)
 	}
-	s := Summarize(rows)
-	want := Summary{Offerings: 3, OfferedKg: 550_000, DemandKg: 500_000, TradedKg: 400_000,
-		ValueRial: 100_000*1_100_000 + 300_000*1_900_000, AvgChangeBp: -125}
-	if s != want {
-		t.Fatalf("got %+v\nwant %+v", s, want)
+	if err := CheckPDF([]byte("<html>")); !errors.Is(err, ErrNotPDF) {
+		t.Fatalf("html: %v", err)
 	}
-	if bp, ok := ChangeBp(rows[0]); !ok || bp != 1000 {
-		t.Fatalf("change = %d %v", bp, ok)
+	if err := CheckPDF(append([]byte("%PDF-"), make([]byte, MaxPDFBytes)...)); !errors.Is(err, ErrPDFSize) {
+		t.Fatalf("too big: %v", err)
 	}
-	if _, ok := ChangeBp(rows[2]); ok {
-		t.Fatal("no change before the trade")
-	}
-	if Summarize(nil) != (Summary{}) {
-		t.Fatal("empty day")
+}
+
+func TestFileName(t *testing.T) {
+	for in, want := range map[string]string{
+		"آگهی مزایده.pdf":        "آگهی مزایده.pdf",
+		`C:\docs\notice.PDF`:     "notice.PDF",
+		"../../etc/passwd":       "passwd.pdf",
+		"a\"b;c\r\n.pdf":         "abc.pdf",
+		"":                       "auction.pdf",
+		strings.Repeat("ب", 200): strings.Repeat("ب", 120) + ".pdf",
+	} {
+		if got := FileName(in); got != want {
+			t.Errorf("FileName(%q) = %q, want %q", in, got, want)
+		}
 	}
 }

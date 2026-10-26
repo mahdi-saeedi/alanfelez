@@ -30,3 +30,4 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0024](0024-billing-orders-payments.md) | Billing: orders with server-side verification, queued renewals, prorated upgrades | Accepted |
 | [0025](0025-rich-text-sanitized-html.md) | CMS rich text is stored as sanitized HTML (TipTap in the admin, bluemonday on write) | Accepted |
 | [0026](0026-ship-and-publish-from-the-chat.md) | Ship and publish from the chat: `ship/*`, `publish/production`, `rollback/*` branches; production promotes staging's images | Accepted |
+| [0027](0027-auction-pdfs-in-postgres.md) | Auction PDF notices are stored in Postgres (`bytea`, Gold-only download through the API) until Object Storage exists | Accepted |

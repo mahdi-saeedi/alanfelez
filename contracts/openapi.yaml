@@ -1613,20 +1613,42 @@ paths:
 
   /v1/auctions:
     get:
-      operationId: getAuctions
+      operationId: listAuctions
       tags: [gold]
-      summary: IME daily offerings for one day (default = the latest day with data). Rows need auctions.read (Gold)
-      description: Everyone gets the day's summary and the list of dates; `items` is left out when locked (FEATURE teaser).
+      summary: Metal auctions, newest first. The deadline, place, organiser, details and PDF need auctions.read (Gold)
+      description: >
+        Everyone gets each auction's title, metal, category, quantity and status. When locked (FEATURE teaser),
+        `deadlineAt`, `location`, `organizer`, `details` and `hasPdf` are left out.
       parameters:
         - $ref: '#/components/parameters/AcceptLanguage'
-        - { name: date, in: query, required: false, schema: { type: string, format: date } }
         - { name: metal, in: query, required: false, schema: { type: string, maxLength: 60 } }
+        - { name: category, in: query, required: false, schema: { $ref: '#/components/schemas/AuctionCategory' } }
+        - { name: status, in: query, required: false, schema: { $ref: '#/components/schemas/AuctionStatus' } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 50, default: 24 } }
+        - { name: offset, in: query, required: false, schema: { type: integer, minimum: 0, default: 0 } }
       responses:
         '200':
-          description: The day
+          description: Auctions
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AuctionDay' }
+              schema: { $ref: '#/components/schemas/AuctionList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/auctions/{id}/pdf:
+    get:
+      operationId: getAuctionPdf
+      tags: [gold]
+      summary: An auction's PDF notice. Needs auctions.read (Gold) → 403 FEATURE_LOCKED; anonymous → 401
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The PDF
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/calculator/estimate:
@@ -1777,80 +1799,117 @@ paths:
     get:
       operationId: adminListAuctions
       tags: [admin]
-      summary: IME offerings of one day, for editing
+      summary: Metal auctions for editing, newest first
       security: [{ bearerAuth: [] }]
       parameters:
-        - { name: date, in: query, required: true, schema: { type: string, format: date } }
+        - { name: status, in: query, required: false, schema: { $ref: '#/components/schemas/AuctionStatus' } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: offset, in: query, required: false, schema: { type: integer, minimum: 0, default: 0 } }
       responses:
         '200':
-          description: Offerings
+          description: Auctions
           content:
             application/json:
               schema:
                 type: object
-                required: [items, dates]
+                required: [items, total]
                 properties:
                   items:
                     type: array
-                    items: { $ref: '#/components/schemas/AdminOffering' }
-                  dates:
-                    type: array
-                    items: { type: string, format: date }
+                    items: { $ref: '#/components/schemas/AdminAuction' }
+                  total: { type: integer }
         default: { $ref: '#/components/responses/Problem' }
-
-  /v1/admin/auctions/bulk:
     post:
-      operationId: adminBulkAuctions
+      operationId: adminCreateAuction
       tags: [admin]
-      summary: Add or correct offerings (one row = one form entry, many = a pasted table). Roles, editor, admin
-      description: Rows are keyed by (tradeDate, productFa, producerFa); re-entering a row corrects it. With dryRun nothing is saved.
+      summary: Add an auction. Roles, editor, admin
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [rows]
-              properties:
-                rows:
-                  type: array
-                  minItems: 1
-                  maxItems: 300
-                  items: { $ref: '#/components/schemas/AdminOfferingInput' }
-                dryRun: { type: boolean }
+            schema: { $ref: '#/components/schemas/AdminAuctionInput' }
       responses:
-        '200':
-          description: Per-row result
+        '201':
+          description: Created
           content:
             application/json:
               schema:
                 type: object
-                required: [results, saved]
+                required: [id]
                 properties:
-                  saved: { type: integer }
-                  results:
-                    type: array
-                    items:
-                      type: object
-                      required: [index, ok]
-                      properties:
-                        index: { type: integer }
-                        ok: { type: boolean }
-                        inserted: { type: boolean }
-                        error: { type: string }
+                  id: { type: string, format: uuid }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/auctions/{id}:
+    put:
+      operationId: adminUpdateAuction
+      tags: [admin]
+      summary: Edit an auction, including its status. Roles, editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminAuctionInput' }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
     delete:
       operationId: adminDeleteAuction
       tags: [admin]
-      summary: Delete an offering entered by mistake. Roles, editor, admin
+      summary: Delete an auction and its PDF. Roles, editor, admin
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
       responses:
         '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/auctions/{id}/pdf:
+    get:
+      operationId: adminGetAuctionPdf
+      tags: [admin]
+      summary: The auction's PDF notice, for checking it
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The PDF
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: adminPutAuctionPdf
+      tags: [admin]
+      summary: Upload or replace the auction's PDF notice (a PDF, at most 10 MB). Roles, editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: fileName, in: query, required: true, schema: { type: string, maxLength: 200 } }
+      requestBody:
+        required: true
+        content:
+          application/pdf:
+            schema: { type: string, format: binary }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteAuctionPdf
+      tags: [admin]
+      summary: Remove the auction's PDF notice. Roles, editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
         default: { $ref: '#/components/responses/Problem' }
 
 components:
@@ -2684,50 +2743,48 @@ components:
           items: { $ref: '#/components/schemas/TicketMessage' }
 
     # --- Gold features (M5) -----------------------------------------------------------
-    AuctionOffering:
+    AuctionCategory:
+      type: string
+      description: intermediate = ingots and intermediate products, scrap, raw = raw materials
+      enum: [intermediate, scrap, raw]
+
+    AuctionStatus:
+      type: string
+      description: Set by staff. open = in progress, paused = stopped, closed = finished
+      enum: [open, paused, closed]
+
+    AuctionUnit:
+      type: string
+      enum: [ton, kg, piece]
+
+    Auction:
       type: object
-      required: [id, metal, product, producer, offeredKg, basePriceRial]
+      required: [id, title, metal, category, quantity, unit, status, publishedAt]
       properties:
         id: { type: string, format: uuid }
+        title: { type: string }
         metal: { $ref: '#/components/schemas/Localized' }
-        product: { type: string }
-        producer: { type: string }
-        offeredKg: { type: integer, format: int64 }
-        basePriceRial: { type: integer, format: int64, description: Rial per kg }
-        demandKg: { type: integer, format: int64 }
-        tradedKg: { type: integer, format: int64 }
-        clearingPriceRial: { type: integer, format: int64, description: Rial per kg, volume-weighted }
-        changeBp: { type: integer, description: Clearing vs base, basis points }
+        category: { $ref: '#/components/schemas/AuctionCategory' }
+        quantity: { type: integer, format: int64 }
+        unit: { $ref: '#/components/schemas/AuctionUnit' }
+        status: { $ref: '#/components/schemas/AuctionStatus' }
+        publishedAt: { type: string, format: date-time }
+        deadlineAt: { type: string, format: date-time, description: Gold only }
+        location: { type: string, description: Gold only }
+        organizer: { type: string, description: Gold only }
+        details: { type: string, description: Gold only; plain text with line breaks }
+        hasPdf: { type: boolean, description: Gold only }
 
-    AuctionSummary:
+    AuctionList:
       type: object
-      required: [offerings, offeredKg, demandKg, tradedKg, value, avgChangeBp]
+      required: [items, total, locked]
       properties:
-        offerings: { type: integer }
-        offeredKg: { type: integer, format: int64 }
-        demandKg: { type: integer, format: int64 }
-        tradedKg: { type: integer, format: int64 }
-        value: { $ref: '#/components/schemas/Money' }
-        avgChangeBp: { type: integer }
-
-    AuctionDay:
-      type: object
-      required: [dates, summary, locked, source]
-      properties:
-        date: { type: string, format: date, description: Absent when there's no data at all }
-        dates:
-          type: array
-          description: Recent trading days with data, newest first
-          items: { type: string, format: date }
-        summary: { $ref: '#/components/schemas/AuctionSummary' }
         items:
           type: array
-          description: Absent when locked
-          items: { $ref: '#/components/schemas/AuctionOffering' }
-        locked: { type: boolean }
+          items: { $ref: '#/components/schemas/Auction' }
+        total: { type: integer }
+        locked: { type: boolean, description: The Gold-only fields are left out }
         requiredPlan: { $ref: '#/components/schemas/Tier' }
-        source: { type: string, description: 'Where the data comes from, in the requested language' }
-        updatedAt: { type: string, format: date-time }
 
     CalculatorInput:
       type: object
@@ -2800,30 +2857,35 @@ components:
         lastTriggeredAt: { type: string, format: date-time }
         createdAt: { type: string, format: date-time }
 
-    AdminOfferingInput:
+    AdminAuctionInput:
       type: object
-      required: [tradeDate, metal, productFa, producerFa, offeredKg, basePriceRial]
+      required: [titleFa, metal, category, quantity, unit, status]
       properties:
-        tradeDate: { type: string, format: date }
+        titleFa: { type: string, maxLength: 200 }
+        titleEn: { type: string, maxLength: 200 }
         metal: { type: string }
-        productFa: { type: string, maxLength: 200 }
-        productEn: { type: string, maxLength: 200 }
-        producerFa: { type: string, maxLength: 200 }
-        producerEn: { type: string, maxLength: 200 }
-        offeredKg: { type: integer, format: int64 }
-        basePriceRial: { type: integer, format: int64 }
-        demandKg: { type: integer, format: int64 }
-        tradedKg: { type: integer, format: int64 }
-        clearingPriceRial: { type: integer, format: int64 }
+        category: { $ref: '#/components/schemas/AuctionCategory' }
+        quantity: { type: integer, format: int64 }
+        unit: { $ref: '#/components/schemas/AuctionUnit' }
+        status: { $ref: '#/components/schemas/AuctionStatus' }
+        deadlineAt: { type: string, format: date-time }
+        locationFa: { type: string, maxLength: 200 }
+        locationEn: { type: string, maxLength: 200 }
+        organizerFa: { type: string, maxLength: 200 }
+        organizerEn: { type: string, maxLength: 200 }
+        detailsFa: { type: string, maxLength: 5000 }
+        detailsEn: { type: string, maxLength: 5000 }
 
-    AdminOffering:
+    AdminAuction:
       allOf:
-        - $ref: '#/components/schemas/AdminOfferingInput'
+        - $ref: '#/components/schemas/AdminAuctionInput'
         - type: object
-          required: [id, source, updatedAt]
+          required: [id, createdAt, updatedAt]
           properties:
             id: { type: string, format: uuid }
-            source: { type: string, enum: [manual, demo, api] }
+            pdfName: { type: string }
+            pdfSize: { type: integer }
+            createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
 
     Problem:

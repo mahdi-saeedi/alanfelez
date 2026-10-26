@@ -47,5 +47,5 @@ export default async function proxy(req: NextRequest) {
 export const config = {
   // Pages (everything without a file extension, except Next internals) plus the API routes that call the Go API
   // with the user's token. /api/auth is left to Auth.js.
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)", "/api/prices/:path*"],
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)", "/api/prices/:path*", "/api/auctions/:path*"],
 };

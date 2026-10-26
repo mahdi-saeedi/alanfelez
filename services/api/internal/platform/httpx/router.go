@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,21 @@ import (
 // MaxBodyBytes caps every request body (the largest legitimate ones are rich-text pages and 500-row price uploads).
 // The generated server doesn't enforce the OpenAPI maxLength/maxItems, so this is the backstop.
 const MaxBodyBytes = 2 << 20
+
+// MaxUploadBytes is the cap for file uploads (PUT …/pdf: an auction's PDF notice of at most 10 MB, plus room).
+const MaxUploadBytes = 11 << 20
+
+// requestSize caps request bodies: MaxUploadBytes for the upload routes, MaxBodyBytes for everything else.
+func requestSize(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		limit := int64(MaxBodyBytes)
+		if r.Method == http.MethodPut && strings.HasSuffix(r.URL.Path, "/pdf") {
+			limit = MaxUploadBytes
+		}
+		r.Body = http.MaxBytesReader(w, r.Body, limit)
+		next.ServeHTTP(w, r)
+	})
+}
 
 // Pinger is anything whose availability gates readiness (database, Redis).
 type Pinger interface {
@@ -34,7 +50,7 @@ func NewRouter(log *slog.Logger, corsOrigins []string, deps map[string]Pinger, e
 	// Client IPs: middleware.RealIP is intentionally NOT used (it trusts spoofable headers); see ClientInfo.
 	r.Use(requestLogger(log))
 	r.Use(recoverer(log))
-	r.Use(middleware.RequestSize(MaxBodyBytes))
+	r.Use(requestSize)
 	r.Use(securityHeaders)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   corsOrigins,

@@ -3,9 +3,11 @@
 package api_test
 
 import (
+	"bytes"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -13,74 +15,164 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/alerts"
 )
 
-func offering(date, product string, traded bool) map[string]any {
-	o := map[string]any{
-		"tradeDate": date, "metal": "copper", "productFa": product, "producerFa": "ملی مس",
-		"offeredKg": 100000, "basePriceRial": 6000000,
+func auction(title, status string) map[string]any {
+	return map[string]any{
+		"titleFa": title, "metal": "copper", "category": "scrap", "quantity": 50, "unit": "ton", "status": status,
+		"deadlineAt": time.Now().Add(72 * time.Hour).UTC().Format(time.RFC3339), "locationFa": "اصفهان، شهرک صنعتی",
+		"organizerFa": "شرکت نمونه", "detailsFa": "بازدید از ساعت ۸ تا ۱۴.\nضمانتنامه لازم است.",
 	}
-	if traded {
-		o["demandKg"], o["tradedKg"], o["clearingPriceRial"] = 250000, 100000, 6300000
-	}
-	return o
 }
 
-func TestAuctionsTeaserAndGold(t *testing.T) {
+// rawCall sends a non-JSON body (the PDF upload) and returns the status, the body and its headers.
+func (e *env) rawCall(method, path, token, contentType string, body []byte) (int, []byte, http.Header) {
+	e.t.Helper()
+	req, _ := http.NewRequestWithContext(e.t.Context(), method, e.srv.URL+path, bytes.NewReader(body))
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		e.t.Fatal(err)
+	}
+	defer func() { _ = res.Body.Close() }()
+	raw, _ := io.ReadAll(res.Body)
+	return res.StatusCode, raw, res.Header
+}
+
+func TestMetalAuctions(t *testing.T) {
 	e := setup(t)
-	today := time.Now().Format(time.DateOnly)
-	rows := []any{offering(today, "کاتد مس", true), offering(today, "مفتول مس", false)}
-
-	// Dry run and an invalid row save nothing.
-	if st, body, raw := e.call(http.MethodPost, "/v1/admin/auctions/bulk", "editor", map[string]any{"rows": rows, "dryRun": true}); st != 200 || body["saved"].(float64) != 0 {
-		t.Fatalf("dry run: %d %s", st, raw)
+	create := func(in map[string]any) string {
+		t.Helper()
+		st, body, raw := e.call(http.MethodPost, "/v1/admin/auctions", "editor", in)
+		if st != 201 {
+			t.Fatalf("create: %d %s", st, raw)
+		}
+		return body["id"].(string)
 	}
-	bad := offering(today, "کاتد مس", true)
-	bad["tradedKg"] = 200000 // more than offered
-	st, body, _ := e.call(http.MethodPost, "/v1/admin/auctions/bulk", "editor", map[string]any{"rows": []any{rows[1], bad}})
-	if st != 200 || body["saved"].(float64) != 0 || body["results"].([]any)[1].(map[string]any)["ok"] != false {
-		t.Fatalf("invalid row: %d %v", st, body)
+	// Staff rules: support and users can't write; bad input is a 400.
+	if st, _, _ := e.call(http.MethodPost, "/v1/admin/auctions", "support", auction("مزایده", "open")); st != 403 {
+		t.Fatalf("support must not add auctions: %d", st)
 	}
-	if st, _, _ := e.call(http.MethodPost, "/v1/admin/auctions/bulk", "support", map[string]any{"rows": rows}); st != 403 {
-		t.Fatalf("support must not enter offerings: %d", st)
+	if st, _, _ := e.call(http.MethodPost, "/v1/admin/auctions", "user", auction("مزایده", "open")); st != 403 {
+		t.Fatalf("a customer must not add auctions: %d", st)
 	}
-	if st, body, raw := e.call(http.MethodPost, "/v1/admin/auctions/bulk", "editor", map[string]any{"rows": rows}); st != 200 || body["saved"].(float64) != 2 {
-		t.Fatalf("save: %d %s", st, raw)
-	}
-	// Re-entering a row corrects it instead of duplicating.
-	if _, body, _ := e.call(http.MethodPost, "/v1/admin/auctions/bulk", "editor", map[string]any{"rows": rows[:1]}); body["results"].([]any)[0].(map[string]any)["inserted"] != false {
-		t.Fatalf("re-entry must update: %v", body)
-	}
-
-	// Everyone: the summary; rows only for Gold.
-	st, day, raw := e.call(http.MethodGet, "/v1/auctions", "", nil)
-	sum := day["summary"].(map[string]any)
-	if st != 200 || day["locked"] != true || day["items"] != nil || sum["offerings"].(float64) != 2 || sum["tradedKg"].(float64) != 100000 || sum["avgChangeBp"].(float64) != 500 {
-		t.Fatalf("anonymous: %d %s", st, raw)
-	}
-	if day["date"] != today || len(day["dates"].([]any)) != 1 || !strings.Contains(day["source"].(string), "بورس") {
-		t.Fatalf("dates/source: %v", day)
-	}
-	e.grantGold()
-	st, day, _ = e.call(http.MethodGet, "/v1/auctions?metal=copper&date="+today, "gold", nil)
-	items, _ := day["items"].([]any)
-	if st != 200 || day["locked"] != false || len(items) != 2 {
-		t.Fatalf("gold: %d %v", st, day)
-	}
-	var traded map[string]any
-	for _, it := range items {
-		if it.(map[string]any)["product"] == "کاتد مس" {
-			traded = it.(map[string]any)
+	for name, mut := range map[string]func(map[string]any){
+		"unknown metal": func(m map[string]any) { m["metal"] = "gold-bar" },
+		"bad category":  func(m map[string]any) { m["category"] = "global" },
+		"zero quantity": func(m map[string]any) { m["quantity"] = 0 },
+		"short title":   func(m map[string]any) { m["titleFa"] = "م" },
+	} {
+		in := auction("مزایده فروش ضایعات مس", "open")
+		mut(in)
+		if st, _, raw := e.call(http.MethodPost, "/v1/admin/auctions", "editor", in); st != 400 {
+			t.Fatalf("%s: %d %s", name, st, raw)
 		}
 	}
-	if traded["changeBp"].(float64) != 500 {
-		t.Fatalf("change vs base: %v", traded)
+	older := create(auction("مزایده فروش کاتد مس", "closed"))
+	id := create(auction("مزایده فروش ۵۰ تن ضایعات مس", "open"))
+
+	// The PDF notice: only a real PDF, at most 10 MB, only editor/admin.
+	pdf := append([]byte("%PDF-1.7\n"), bytes.Repeat([]byte("x"), 1000)...)
+	if st, _, _ := e.rawCall(http.MethodPut, "/v1/admin/auctions/"+id+"/pdf?fileName=x.pdf", "support", "application/pdf", pdf); st != 403 {
+		t.Fatalf("support must not upload: %d", st)
+	}
+	if st, raw, _ := e.rawCall(http.MethodPut, "/v1/admin/auctions/"+id+"/pdf?fileName=x.pdf", "editor", "application/pdf", []byte("<html>")); st != 400 {
+		t.Fatalf("not a PDF: %d %s", st, raw)
+	}
+	big := append([]byte("%PDF-"), make([]byte, 10<<20)...)
+	if st, _, _ := e.rawCall(http.MethodPut, "/v1/admin/auctions/"+id+"/pdf?fileName=x.pdf", "editor", "application/pdf", big); st != 400 {
+		t.Fatalf("over 10 MB: %d", st)
+	}
+	if st, raw, _ := e.rawCall(http.MethodPut, "/v1/admin/auctions/"+id+"/pdf?fileName="+url.QueryEscape("آگهی مزایده.pdf"), "editor", "application/pdf", pdf); st != 204 {
+		t.Fatalf("upload: %d %s", st, raw)
+	}
+	nine := append([]byte("%PDF-"), make([]byte, 9<<20)...) // a large but allowed notice goes through the body limit
+	if st, raw, _ := e.rawCall(http.MethodPut, "/v1/admin/auctions/"+older+"/pdf?fileName=big.pdf", "editor", "application/pdf", nine); st != 204 {
+		t.Fatalf("9 MB upload: %d %s", st, raw)
+	}
+
+	// Everyone: title, metal, category, quantity, status; never the Gold fields.
+	for _, tok := range []string{"", "user", "silver"} {
+		st, body, raw := e.call(http.MethodGet, "/v1/auctions", tok, nil)
+		if st != 200 || body["locked"] != true || body["requiredPlan"] != "gold" || body["total"].(float64) != 2 {
+			t.Fatalf("%q: %d %s", tok, st, raw)
+		}
+		for _, leak := range []string{"اصفهان", "شرکت نمونه", "ضمانت", "deadlineAt", "hasPdf", "آگهی مزایده"} {
+			if strings.Contains(raw, leak) {
+				t.Fatalf("%q: locked field %q leaked: %s", tok, leak, raw)
+			}
+		}
+		first := body["items"].([]any)[0].(map[string]any)
+		if first["title"] != "مزایده فروش ۵۰ تن ضایعات مس" || first["quantity"].(float64) != 50 || first["unit"] != "ton" ||
+			first["status"] != "open" || first["category"] != "scrap" || first["metal"].(map[string]any)["slug"] != "copper" {
+			t.Fatalf("%q: teaser = %v", tok, first)
+		}
+		if st, _, _ := e.rawCall(http.MethodGet, "/v1/auctions/"+id+"/pdf", tok, "", nil); (tok == "" && st != 401) || (tok != "" && st != 403) {
+			t.Fatalf("%q: pdf without Gold: %d", tok, st)
+		}
+	}
+
+	// Gold: everything, filters, and the PDF.
+	e.grantGold()
+	st, body, raw := e.call(http.MethodGet, "/v1/auctions?status=open&category=scrap&metal=copper", "gold", nil)
+	items := body["items"].([]any)
+	if st != 200 || body["locked"] != false || len(items) != 1 || body["total"].(float64) != 1 {
+		t.Fatalf("gold: %d %s", st, raw)
+	}
+	a := items[0].(map[string]any)
+	if a["location"] != "اصفهان، شهرک صنعتی" || a["organizer"] != "شرکت نمونه" || a["hasPdf"] != true || a["deadlineAt"] == nil ||
+		!strings.Contains(a["details"].(string), "\n") {
+		t.Fatalf("gold fields: %v", a)
+	}
+	if _, body, _ := e.call(http.MethodGet, "/v1/auctions?status=paused", "gold", nil); len(body["items"].([]any)) != 0 {
+		t.Fatalf("status filter: %v", body)
+	}
+	st, got, h := e.rawCall(http.MethodGet, "/v1/auctions/"+id+"/pdf", "gold", "", nil)
+	if st != 200 || !bytes.Equal(got, pdf) || h.Get("Content-Type") != "application/pdf" || !strings.Contains(h.Get("Content-Disposition"), "filename*=utf-8''") {
+		t.Fatalf("gold pdf: %d %v", st, h)
+	}
+	if st, _, _ := e.rawCall(http.MethodGet, "/v1/auctions/00000000-0000-0000-0000-000000000099/pdf", "gold", "", nil); st != 404 {
+		t.Fatalf("missing pdf: %d", st)
 	}
 	if n := e.count(`SELECT count(*) FROM app.entitlement_usage WHERE feature = 'auctions.read'`); n != 1 {
 		t.Fatalf("usage = %d", n)
 	}
-	if st, _, _ := e.call(http.MethodDelete, "/v1/admin/auctions/"+traded["id"].(string), "editor", nil); st != 204 {
+
+	// Edit (status), the admin list, removing the PDF, deleting.
+	upd := auction("مزایده فروش ۵۰ تن ضایعات مس", "paused")
+	if st, _, raw := e.call(http.MethodPut, "/v1/admin/auctions/"+id, "editor", upd); st != 204 {
+		t.Fatalf("update: %d %s", st, raw)
+	}
+	if st, _, _ := e.call(http.MethodPut, "/v1/admin/auctions/00000000-0000-0000-0000-000000000099", "editor", upd); st != 404 {
+		t.Fatalf("update missing: %d", st)
+	}
+	st, body, raw = e.call(http.MethodGet, "/v1/admin/auctions", "support", nil)
+	if st != 200 || body["total"].(float64) != 2 {
+		t.Fatalf("admin list: %d %s", st, raw)
+	}
+	adm := body["items"].([]any)[0].(map[string]any)
+	if adm["status"] != "paused" || adm["pdfName"] != "آگهی مزایده.pdf" || adm["pdfSize"].(float64) != float64(len(pdf)) || adm["organizerFa"] != "شرکت نمونه" {
+		t.Fatalf("admin row: %v", adm)
+	}
+	if st, got, _ := e.rawCall(http.MethodGet, "/v1/admin/auctions/"+id+"/pdf", "support", "", nil); st != 200 || !bytes.Equal(got, pdf) {
+		t.Fatalf("staff pdf: %d", st)
+	}
+	if st, _, _ := e.rawCall(http.MethodDelete, "/v1/admin/auctions/"+id+"/pdf", "editor", "", nil); st != 204 {
+		t.Fatalf("remove pdf: %d", st)
+	}
+	if st, _, _ := e.rawCall(http.MethodGet, "/v1/auctions/"+id+"/pdf", "gold", "", nil); st != 404 {
+		t.Fatalf("removed pdf: %d", st)
+	}
+	if st, _, _ := e.call(http.MethodDelete, "/v1/admin/auctions/"+older, "editor", nil); st != 204 {
 		t.Fatalf("delete: %d", st)
 	}
-	if n := e.count(`SELECT count(*) FROM app.audit_log WHERE action LIKE 'ime.%'`); n != 3 {
+	if n := e.count(`SELECT count(*) FROM market.auction_files`); n != 0 {
+		t.Fatalf("files left after delete = %d", n)
+	}
+	if n := e.count(`SELECT count(*) FROM app.audit_log WHERE action LIKE 'auction.%'`); n != 7 {
 		t.Fatalf("audit rows = %d", n)
 	}
 }
