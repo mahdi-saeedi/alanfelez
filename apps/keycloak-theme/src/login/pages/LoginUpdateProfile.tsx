@@ -30,8 +30,7 @@ export default function LoginUpdateProfile(props: PageProps<Extract<KcContext, {
   });
 
   const fields = [
-    { name: "firstName", autoComplete: "given-name", type: "text" },
-    { name: "lastName", autoComplete: "family-name", type: "text" },
+    { name: "firstName", autoComplete: "name", type: "text" }, // «نام و نام خانوادگی یا نام شرکت» (one box since 2026-10-25)
     { name: "email", autoComplete: "email", type: "email" },
   ] as const;
 
@@ -76,7 +75,7 @@ export default function LoginUpdateProfile(props: PageProps<Extract<KcContext, {
                 dir={f.type === "email" ? "ltr" : undefined}
                 defaultValue={attr.value ?? ""}
                 required={attr.required}
-                maxLength={f.type === "email" ? 255 : 60}
+                maxLength={f.type === "email" ? 255 : 100}
                 aria-invalid={!!error}
                 aria-describedby={error ? `${f.name}-error` : undefined}
                 className={kcClsx("kcInputClass")}
