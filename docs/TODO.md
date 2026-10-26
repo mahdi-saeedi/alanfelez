@@ -48,6 +48,7 @@ Last updated: 2026-10-26 (released v0.8.0)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 Charts drawn at real size (readable on phones, taller there), round gridline values, the latest price marked, page scroll works over charts on touch, tooltip kept inside.
 - 2026-10-26 Home: «نمودار قیمت جهانی فلزات» section under the global prices, a full 1-month chart per metal in turn (8 s, tabs, pauses on hover).
 - 2026-10-26 Released v0.8.0: global prices free (7 metals), home global block and rotating chart card, chart page picker and compare panel, forgot password by SMS (owner tested on staging).
 - 2026-10-25 Global prices for all 7 metals: «بازار جهانی» market with rebar, yellow brass and cast-iron scrap in USD/ton
