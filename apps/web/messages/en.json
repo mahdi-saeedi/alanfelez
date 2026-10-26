@@ -50,7 +50,10 @@
     "liveTitle": "Global metal prices",
     "seeAll": "See all →",
     "heroChange": "30-day change",
-    "heroShow": "Show the chart of"
+    "heroShow": "Show the chart of",
+    "globalChartTitle": "Global metal prices chart",
+    "globalChartSubtitle": "Global prices over the last month (dollars per ton). The next metal shows every few seconds; tap a name to pick one.",
+    "globalChartFull": "Full chart →"
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
