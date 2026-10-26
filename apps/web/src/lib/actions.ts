@@ -1,10 +1,11 @@
 "use server";
 
 import { signIn } from "@/auth";
+import { PASSWORD_FIRST } from "@/lib/keycloak";
 
-/** Sends the user to Keycloak and back to `redirectTo` (a path on this site). */
+/** «ورود»: sends the user to Keycloak's password page and back to `redirectTo` (a path on this site). */
 export async function signInTo(redirectTo: string, locale: string) {
-  await signIn("keycloak", { redirectTo: safePath(redirectTo) }, { ui_locales: locale });
+  await signIn("keycloak", { redirectTo: safePath(redirectTo) }, { ...PASSWORD_FIRST, ui_locales: locale });
 }
 
 /**

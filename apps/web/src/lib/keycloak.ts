@@ -20,3 +20,9 @@ export function internalKeycloakUrl(url: string): string {
 }
 
 export const tokenEndpoint = internalKeycloakUrl(`${keycloak.issuer}/protocol/openid-connect/token`);
+
+/**
+ * «ورود»: the username + password page first (`login=password`, read by PhoneOtpAuthenticator); «امتحان روش‌های
+ * دیگر» there offers the SMS code. «ثبت‌نام» (no parameter) starts with the mobile number and SMS code.
+ */
+export const PASSWORD_FIRST = { login: "password" } as const;

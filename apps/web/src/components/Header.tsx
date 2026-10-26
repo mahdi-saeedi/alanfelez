@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { keycloak } from "@/lib/keycloak";
+import { keycloak, PASSWORD_FIRST } from "@/lib/keycloak";
 import { readSession } from "@/lib/session-refresh";
 import { Link } from "@/i18n/navigation";
 import { auth, signIn, signOut } from "@/auth";
@@ -16,7 +16,12 @@ export async function Header() {
   const locale = await getLocale();
   const [session, site] = await Promise.all([auth(), getSite(locale as "fa" | "en")]);
 
+  // «ورود»: username + password first; «ثبت‌نام»: mobile number + SMS code (see PASSWORD_FIRST).
   async function login() {
+    "use server";
+    await signIn("keycloak", undefined, { ...PASSWORD_FIRST, ui_locales: locale });
+  }
+  async function signup() {
     "use server";
     await signIn("keycloak", undefined, { ui_locales: locale });
   }
@@ -62,8 +67,8 @@ export async function Header() {
           ) : (
             <form action={login} className="flex items-center gap-2">
               <button className="whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.login")}</button>
-              {/* Sign-up is the same phone + code page: a new number creates the account, then Keycloak asks for the name. */}
-              <button className="whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold text-graphite hover:bg-gold-light">
+              {/* Sign-up is the phone + code page: a new number creates the account, then the sign-up form. */}
+              <button formAction={signup} className="whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold text-graphite hover:bg-gold-light">
                 {t("auth.signup")}
               </button>
             </form>

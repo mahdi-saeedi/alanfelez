@@ -73,6 +73,15 @@ public class PhoneOtpAuthenticator implements Authenticator {
      * starts in reset mode. Keycloak's own e-mail reset can't work (no SMTP), so the link never goes there.
      */
     static final String RESET_COOKIE = "alanfelez_reset";
+    /**
+     * The site's «ورود» button asks for the password form first: it adds {@code login=password} to the authorization
+     * request, which Keycloak keeps as a client note. The phone page is then sent once with {@code passwordFirst}
+     * ({@link #NOTE_PASSWORD_FIRST}) and the theme picks the password form for the user, as «امتحان روش‌های دیگر» →
+     * «ورود با رمز عبور» would; the password page then still offers «امتحان روش‌های دیگر» back to the SMS code.
+     * «ثبت‌نام» sends no parameter and starts here, as before. No realm change is needed.
+     */
+    static final String CLIENT_NOTE_LOGIN = "client_request_param_login";
+    static final String NOTE_PASSWORD_FIRST = "alanfelez.otp.passwordFirst";
     /** Set once the code is right but the account still needs the sign-up form (id of that user). */
     static final String NOTE_SIGNUP_USER = "alanfelez.signup.user";
 
@@ -103,6 +112,11 @@ public class PhoneOtpAuthenticator implements Authenticator {
         }
         if (resetRequested(ctx)) {
             as.setAuthNote(NOTE_RESET, "1");
+        }
+        if (passwordFirst(as)) {
+            as.setAuthNote(NOTE_PASSWORD_FIRST, "1");
+            ctx.challenge(ctx.form().setAttribute("resetMode", false).setAttribute("passwordFirst", true).createForm(FORM_PHONE));
+            return;
         }
         if (as.getAuthNote(NOTE_PHONE) != null && as.getAuthNote(NOTE_HASH) != null) {
             ctx.challenge(codeForm(ctx, null));
@@ -156,6 +170,14 @@ public class PhoneOtpAuthenticator implements Authenticator {
         }
         ctx.getAuthenticationSession().setAuthNote(NOTE_PHONE, phone.get());
         issueCode(ctx, phone.get(), true);
+    }
+
+    /** Only the first time, never in reset mode or once a number was entered. */
+    static boolean passwordFirst(AuthenticationSessionModel as) {
+        return "password".equals(as.getClientNote(CLIENT_NOTE_LOGIN))
+                && as.getAuthNote(NOTE_PASSWORD_FIRST) == null
+                && as.getAuthNote(NOTE_RESET) == null
+                && as.getAuthNote(NOTE_PHONE) == null;
     }
 
     private static boolean resetRequested(AuthenticationFlowContext ctx) {

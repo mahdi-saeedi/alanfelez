@@ -16,6 +16,8 @@ export type KcContextExtensionPerPage = {
     phone?: string;
     /** «رمز عبور را فراموش کرده‌اید؟»: existing accounts only, a new password right after the code. */
     resetMode?: boolean;
+    /** «ورود» on the site: the theme picks the password form at once (PhoneOtpAuthenticator.NOTE_PASSWORD_FIRST). */
+    passwordFirst?: boolean;
   };
   "login-phone-otp.ftl": {
     phoneMasked: string;

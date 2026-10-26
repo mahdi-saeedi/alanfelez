@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-26 (new plan table on staging)
+Last updated: 2026-10-26 («ورود» opens the password page)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -58,6 +58,9 @@ Last updated: 2026-10-26 (new plan table on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-26 «ورود» opens the username + password page (username = mobile number, Persian digits accepted); «امتحان
+  روش‌های دیگر» there is the SMS code, «ثبت‌نام» still starts with the SMS code. Forgot password: number → code → the
+  username shown read-only + new password and repeat. Owner and client OK'd; no realm change.
 - 2026-10-26 The client's plan table (owner OK'd by phone): Free = global and IME prices and charts; the domestic day
   prices (free market, Iran iron market) are Silver and Gold (migration 00009; new series are free only in global
   markets and on the IME). Discounts −5 % / −15 % (versioned prices). Plan cards list the table's rows. Closes F2, F6.
