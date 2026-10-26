@@ -1,0 +1,59 @@
+{{- if .Values.keycloak.profileSync.enabled }}
+# Keycloak imports the realm file only when the realm doesn't exist, so later changes to its user profile (sign-up
+# fields, who sees them) never reach a running realm by themselves. Before every sync this job applies the profile
+# from the new Keycloak image to the running Keycloak (the new profile also works with the old code, so before is
+# the safe side). It never blocks a deploy: on a first install (no Keycloak yet) or any error it logs and exits 0;
+# then run services/keycloak/realm/apply-user-profile.sh by hand.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-keycloak-profile
+  labels: {{- include "af.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {{- include "af.selector" (dict "root" . "name" "keycloak-profile") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- include "af.pullSecrets" . | nindent 6 }}
+      securityContext: { runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000 }
+      containers:
+        - name: profile
+          image: {{ include "af.image" (dict "root" . "name" "keycloak") }}
+          imagePullPolicy: {{ .Values.images.keycloak.pullPolicy }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              kcadm=/opt/keycloak/bin/kcadm.sh; cfg=/tmp/kcadm.config
+              url="http://{{ .Release.Name }}-keycloak:8080"
+              for i in $(seq 1 12); do
+                if $kcadm config credentials --config $cfg --server "$url" --realm master --user "$KC_ADMIN" --password "$KC_ADMIN_PASSWORD" >/dev/null 2>&1; then
+                  if $kcadm update users/profile -r alanfelez -f /opt/keycloak/data/user-profile.json --config $cfg; then
+                    echo "user profile of realm alanfelez applied"
+                  else
+                    echo "WARNING: the user profile was not applied; run services/keycloak/realm/apply-user-profile.sh"
+                  fi
+                  exit 0
+                fi
+                sleep 10
+              done
+              echo "Keycloak not reachable or admin login refused: skipped (a first install imports the profile with the realm)"
+          env:
+            - name: KC_ADMIN
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: username } }
+            - name: KC_ADMIN_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: password } }
+            - { name: JAVA_OPTS, value: "-XX:MaxRAMPercentage=70" }
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+          resources: { requests: { cpu: 50m, memory: 128Mi }, limits: { memory: 384Mi } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+      volumes: [{ name: tmp, emptyDir: {} }]
+{{- end }}

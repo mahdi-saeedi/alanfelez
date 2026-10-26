@@ -23,6 +23,18 @@ export type KcContextExtensionPerPage = {
     codeLength: number;
     resendIn: number;
   };
+  /** Sign-up form after the first SMS code (PhoneOtpAuthenticator.signupForm). Errors are message keys per field. */
+  "login-complete-signup.ftl": {
+    phoneNational: string;
+    needPassword: boolean;
+    values: { fullName: string; activity: string; metals: string[]; province: string; city: string; address: string };
+    fieldErrors: Record<string, string>;
+    activities: string[];
+    metalOptions: string[];
+    provinces: string[];
+    termsUrl: string;
+    privacyUrl: string;
+  };
 };
 
 export type KcContext = ExtendKcContext<KcContextExtension, KcContextExtensionPerPage>;
