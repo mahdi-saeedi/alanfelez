@@ -61,6 +61,9 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Content review (client): terms gain subscription/renewal/refund rules and lose the marketplace leftovers,
+  brand «الان‌فلز»; privacy covers the sign-up form, password login and the visitor count; about and FAQ follow the plan
+  table and the metal auctions; new FAQ «بازگشت وجه». Migration 00011 (old text kept as page revisions).
 - 2026-10-27 Footer in four columns: about + social icons, quick links, company links, contact (phone, e-mail, address,
   hours from the admin's Settings, each only when set; the contact form always), the eNamad seal; bottom bar with the
   Jalali year (automatic), terms, privacy and «صرفاً جهت اطلاع». Released v0.12.0 before it (metal auctions, closing CTA).
