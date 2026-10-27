@@ -109,6 +109,18 @@ var Datasets = map[string]Dataset{
 			"metal":              {Ref: &Ref{Table: "market.metals", By: "slug", IDColumn: "metal_id"}},
 		},
 	},
+	// Demo auctions only (staff enter the real ones); a fixed id per row so a re-seed doesn't duplicate them.
+	"auctions": {
+		Table: "market.auctions",
+		Key:   []string{"id"},
+		Columns: map[string]Column{
+			"id": {}, "title_fa": {}, "title_en": {}, "category": {}, "quantity": {}, "unit": {}, "status": {},
+			"location_fa": {}, "location_en": {}, "organizer_fa": {}, "organizer_en": {}, "details_fa": {}, "details_en": {},
+			"metal":             {Ref: &Ref{Table: "market.metals", By: "slug", IDColumn: "metal_id"}},
+			"created_days_ago":  {Ago: "created_at"},
+			"deadline_days_ago": {Ago: "deadline_at"},
+		},
+	},
 	"faq_categories": {
 		Table:   "app.faq_categories",
 		Key:     []string{"slug"},

@@ -38,7 +38,7 @@ file (the PR is the record). Environments and delivery: [DEPLOYMENT.md](DEPLOYME
 | ☐ | `web.cspFormOrigins` | the gateway's payment page origin (F13) |
 | ☐ | `api.paymentGateway` / `api.smsProvider` / `keycloak.otp.smsProvider` | the real providers (F13, F7) |
 | ☐ | `api.seedProfiles` | `reference` only (demo data is refused in production anyway) |
-| ☐ | Demo content already loaded (test mode) | Delete the «(نمونه)» articles in admin → «مقالات» (they show on /analysis and the home page) and any test prices, auctions and users; switching the seed profile doesn't remove them |
+| ☐ | Demo content already loaded (test mode) | Delete the «(نمونه)» articles (admin → «مقالات») and auctions (admin → «مزایدات»), which show on the home page too, and any test prices, auctions and users; switching the seed profile doesn't remove them |
 | ☐ | Feature flags: admin → «قابلیت‌ها» (payments only switch on once the real gateway is configured) | `payments.enabled` on after a real test payment; `locale.en` on after F4; `page.licenses` on when licences exist |
 | ☐ | Keycloak realm: password policy `length(10) and notUsername and notEmail`, brute-force protection on | New realms get it from the realm file; **existing realms: set it once in the console** |
 | ☐ | Staff accounts created with the right roles; every staff member has TOTP set up | SECURITY T5 |
