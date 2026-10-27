@@ -86,6 +86,8 @@ keycloak:
       parameter: CODE              # the template's parameter that receives the code
   profileSync:
     enabled: true                  # PreSync job: apply the realm file's user profile to the running realm
+  sessionLimit: 2                  # devices signed in at once per account (the oldest is signed out); 0 = no limit.
+                                   # Applied by the profile job once; to change it later use the Keycloak admin console
   extraEnv: {}
   resources:
     requests: { cpu: 250m, memory: 768Mi }

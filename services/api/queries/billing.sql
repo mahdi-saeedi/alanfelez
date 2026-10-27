@@ -2,11 +2,15 @@
 -- LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 
 -- name: UpsertUser :one
-INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, last_seen_at)
-VALUES ($1, $2, $3, $4, $5, $6, now())
+-- The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, last_seen_at)
+VALUES (sqlc.arg(id), sqlc.arg(username), sqlc.narg(phone_e164), sqlc.narg(first_name), sqlc.narg(last_name), sqlc.narg(email),
+        sqlc.narg(activity), sqlc.narg(metals)::text[], sqlc.narg(province), now())
 ON CONFLICT (id) DO UPDATE SET
   username = EXCLUDED.username, phone_e164 = COALESCE(EXCLUDED.phone_e164, app.users.phone_e164),
-  first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email, last_seen_at = now()
+  first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email,
+  activity = COALESCE(EXCLUDED.activity, app.users.activity), metals = COALESCE(EXCLUDED.metals, app.users.metals),
+  province = COALESCE(EXCLUDED.province, app.users.province), last_seen_at = now()
 RETURNING id, username, phone_e164, first_name, last_name, email, locale, blocked_at, created_at;
 
 -- name: GetUser :one
@@ -15,6 +19,7 @@ SELECT id, username, phone_e164, first_name, last_name, email, locale, blocked_a
 -- name: SearchUsers :many
 -- Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
+       u.activity, u.metals, u.province,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at
 FROM app.users u
 LEFT JOIN LATERAL (

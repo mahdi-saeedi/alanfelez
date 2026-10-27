@@ -22,7 +22,7 @@ export function UsersPage() {
       <Card>
         <table className="w-full text-sm">
           <thead className="bg-surface-2">
-            <tr><Th>{t("users.user")}</Th><Th>{t("account.name")}</Th><Th>{t("subs.plan")}</Th><Th>{t("users.lastSeen")}</Th><Th /></tr>
+            <tr><Th>{t("users.user")}</Th><Th>{t("account.name")}</Th><Th>{t("users.signup")}</Th><Th>{t("subs.plan")}</Th><Th>{t("users.lastSeen")}</Th><Th /></tr>
           </thead>
           <tbody>
             {list.data?.length === 0 && <tr><Td className="text-text-2">{t("table.empty")}</Td></tr>}
@@ -33,6 +33,15 @@ export function UsersPage() {
                   <code className="text-xs text-text-3" dir="ltr">{u.id}</code>
                 </Td>
                 <Td>{[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}</Td>
+                <Td className="text-xs">
+                  {u.activity || u.metals?.length || u.province ? (
+                    <>
+                      {u.activity && <div className="font-bold">{t(`signup.activity.${u.activity}`, u.activity)}</div>}
+                      {u.metals?.length ? <div className="text-text-2">{u.metals.map((m) => t(`signup.metal.${m}`, m)).join(locale === "fa" ? "، " : ", ")}</div> : null}
+                      {u.province && <div className="text-text-3">{u.province}</div>}
+                    </>
+                  ) : "—"}
+                </Td>
                 <Td>
                   <Badge tone={u.currentPlan === "gold" ? "gold" : u.currentPlan === "silver" ? "gray" : "gray"}>{t(`plan.${u.currentPlan}`)}</Badge>
                   {u.currentEndsAt && <div className="mt-1 text-xs text-text-3">{formatDate(u.currentEndsAt, locale)}</div>}

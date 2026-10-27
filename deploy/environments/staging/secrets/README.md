@@ -38,3 +38,9 @@ kubectl --context alanfelez-staging create secret generic alanfelez-sms -n alanf
   && unset SMSIR_API_KEY
 ```
 Then in `../values.yaml` set `keycloak.otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}` (the template id is already there).
+
+## Object Storage keys for the database backups (`alanfelez-backup-s3`)
+The owner creates the bucket `alanfelez-backups` (private, versioning on) and an access key in the ArvanCloud panel, then
+runs `bash deploy/server/seal-backup-keys.sh`: it asks for the two keys with hidden typing and writes this file for both
+staging and production (one Sealed Secrets key on both clusters). After it's committed, set `postgres.backup.enabled: true`
+in `../data-values.yaml`. Keys never go into a chat or git in plain text.

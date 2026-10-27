@@ -4,6 +4,7 @@ package api_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -226,6 +227,9 @@ func TestAdminUsersAndGrants(t *testing.T) {
 	st, body, _ := e.call(http.MethodGet, "/v1/admin/users?q=%DB%B0%DB%B9%DB%B1%DB%B2%DB%B0%DB%B0%DB%B0", "support", nil) // "۰۹۱۲۰۰۰" in Persian digits
 	if st != 200 || len(body["items"].([]any)) != 1 {
 		t.Fatalf("search: %d %v", st, body)
+	}
+	if u := body["items"].([]any)[0].(map[string]any); u["activity"] != "trader" || fmt.Sprint(u["metals"]) != "[copper zinc]" || u["province"] != "تهران" {
+		t.Fatalf("sign-up answers: %v", u)
 	}
 	if st, _, _ := e.call(http.MethodGet, "/v1/admin/users", customer, nil); st != 403 {
 		t.Fatalf("customer listing users: %d", st)

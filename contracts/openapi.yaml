@@ -2513,6 +2513,14 @@ components:
         blocked: { type: boolean }
         currentPlan: { $ref: '#/components/schemas/Tier' }
         currentEndsAt: { type: string, format: date-time }
+        activity:
+          type: string
+          description: Sign-up answer, one of trader, producer, industrial-consumer, distributor, recycler, investor, other.
+        metals:
+          type: array
+          items: { type: string }
+          description: Sign-up answer, metal slugs (aluminum, copper, brass, zinc, lead, iron, cast-iron).
+        province: { type: string, description: Sign-up answer, the province as chosen (Persian name). }
 
     AdminOrder:
       type: object

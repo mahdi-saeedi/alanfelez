@@ -43,10 +43,12 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --froze
 RUN --mount=type=cache,target=/root/.m2 cd apps/keycloak-theme && pnpm build-keycloak-theme \
     && mkdir -p /out && cp dist_keycloak/alanfelez-keycloak-theme.jar /out/
 
-# --- user profile (for the profile-sync job: Keycloak imports the realm file only once) ---------------------
+# --- user profile and web mappers (for the profile-sync job: Keycloak imports the realm file only once) -----
 FROM node AS user-profile
 COPY services/keycloak/realm/alanfelez-realm.json /src/realm.json
 RUN mkdir -p /out && node -e 'const r = require("/src/realm.json"); process.stdout.write(r.components["org.keycloak.userprofile.UserProfileProvider"][0].config["kc.user.profile.config"][0])' > /out/user-profile.json
+# The web client's token mappers, one file each (the job adds the ones a running realm is missing, e.g. the sign-up answers).
+RUN mkdir -p /out/web-mappers && node -e 'const fs = require("fs"); const r = require("/src/realm.json"); for (const m of r.clients.find((c) => c.clientId === "alanfelez-web").protocolMappers) fs.writeFileSync(`/out/web-mappers/${m.name}.json`, JSON.stringify(m))'
 
 FROM scratch AS theme-prebuilt
 COPY apps/keycloak-theme/dist_keycloak/alanfelez-keycloak-theme.jar /out/
@@ -67,5 +69,6 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY services/keycloak/realm/alanfelez-realm.json /opt/keycloak/data/import/alanfelez-realm.json
 # The realm's user profile on its own, applied to existing realms by the keycloak-profile job (Helm).
 COPY --from=user-profile /out/user-profile.json /opt/keycloak/data/user-profile.json
+COPY --from=user-profile /out/web-mappers/ /opt/keycloak/data/web-mappers/
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
 CMD ["start", "--optimized"]

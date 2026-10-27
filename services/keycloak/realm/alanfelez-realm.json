@@ -108,6 +108,51 @@
             "access.token.claim": "true",
             "id.token.claim": "false"
           }
+        },
+        {
+          "name": "activity",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "activity",
+            "claim.name": "activity",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "metals",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "metals",
+            "claim.name": "metals",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "province",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "province",
+            "claim.name": "province",
+            "jsonType.label": "String",
+            "multivalued": "false",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
         }
       ]
     },
@@ -159,6 +204,15 @@
   "loginTheme": "alanfelez",
   "browserFlow": "alanfelez browser",
   "authenticatorConfig": [
+    {
+      "alias": "alanfelez-session-limit",
+      "config": {
+        "userRealmLimit": "2",
+        "userClientLimit": "0",
+        "behavior": "Terminate oldest session",
+        "errorMessage": ""
+      }
+    },
     {
       "alias": "alanfelez-phone-otp",
       "config": {
@@ -222,6 +276,14 @@
           "flowAlias": "alanfelez staff 2fa",
           "requirement": "CONDITIONAL",
           "priority": 20,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": false,
+          "authenticator": "user-session-limits",
+          "authenticatorConfig": "alanfelez-session-limit",
+          "requirement": "REQUIRED",
+          "priority": 30,
           "userSetupAllowed": false
         }
       ]

@@ -133,9 +133,6 @@ JOIN market.price_series s ON s.id = l.series_id
 JOIN market.markets mk ON mk.id = s.market_id
 WHERE l.series_id = $1;
 
--- name: ImeUpdatedAt :one
-SELECT max(updated_at)::timestamptz FROM market.ime_offerings WHERE trade_date = $1;
-
 -- name: GetSmsPrefs :one
 SELECT m.slug AS metal_slug, p.enabled FROM app.sms_prefs p LEFT JOIN market.metals m ON m.id = p.metal_id WHERE p.user_id = $1;
 

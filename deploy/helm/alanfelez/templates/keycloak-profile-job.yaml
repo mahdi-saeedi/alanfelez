@@ -1,7 +1,7 @@
 {{- if .Values.keycloak.profileSync.enabled }}
 # Keycloak imports the realm file only when the realm doesn't exist, so later changes to its user profile (sign-up
 # fields, who sees them) never reach a running realm by themselves. Before every sync this job applies the profile
-# from the new Keycloak image to the running Keycloak (the new profile also works with the old code, so before is
+# from the new Keycloak image to the running Keycloak, adds web-client token mappers it lacks, and the device limit (the new profile also works with the old code, so before is
 # the safe side). It never blocks a deploy: on a first install (no Keycloak yet) or any error it logs and exits 0;
 # then run services/keycloak/realm/apply-user-profile.sh by hand.
 apiVersion: batch/v1
@@ -34,6 +34,38 @@ spec:
             - |
               kcadm=/opt/keycloak/bin/kcadm.sh; cfg=/tmp/kcadm.config
               url="http://{{ .Release.Name }}-keycloak:8080"
+              # Token mappers of the web client that the running realm lacks (by name; existing ones are left as they are).
+              add_web_mappers() {
+                local cid have f name
+                cid="$($kcadm get clients -r alanfelez -q clientId=alanfelez-web --fields id --format csv --noquotes --config $cfg)"
+                [ -n "$cid" ] || return 1
+                have="$($kcadm get "clients/$cid/protocol-mappers/models" -r alanfelez --fields name --format csv --noquotes --config $cfg)"
+                for f in /opt/keycloak/data/web-mappers/*.json; do
+                  name="$(basename "$f" .json)"
+                  grep -qxF "$name" <<< "$have" && continue
+                  $kcadm create "clients/$cid/protocol-mappers/models" -r alanfelez -f "$f" --config $cfg && echo "token mapper $name added"
+                done
+              }
+              # At most {{ .Values.keycloak.sessionLimit }} devices signed in per account; a new sign-in signs out the oldest
+              # (Keycloak's User Session Count Limiter, after the first factor). Added once; later edits in the admin console stay.
+              add_session_limit() {
+                local flow="alanfelez%20forms" eid
+                {{- if .Values.keycloak.sessionLimit }}
+                $kcadm get "authentication/flows/$flow/executions" -r alanfelez --fields providerId --format csv --noquotes --config $cfg \
+                  | grep -qx user-session-limits && return 0
+                eid="$($kcadm create "authentication/flows/$flow/executions/execution" -r alanfelez -s provider=user-session-limits -i --config $cfg)"
+                $kcadm update "authentication/flows/$flow/executions" -r alanfelez --config $cfg \
+                  -b "{\"id\":\"$eid\",\"requirement\":\"REQUIRED\"}"
+                # A new step starts first; it must run after the user is known (first factor, staff 2FA), so move it last.
+                for _ in 1 2 3 4 5; do
+                  $kcadm create "authentication/executions/$eid/lower-priority" -r alanfelez --config $cfg >/dev/null 2>&1 || true
+                done
+                $kcadm create "authentication/executions/$eid/config" -r alanfelez --config $cfg -s alias=alanfelez-session-limit \
+                  -s 'config."userRealmLimit"={{ .Values.keycloak.sessionLimit }}' -s 'config."userClientLimit"=0' \
+                  -s 'config."behavior"=Terminate oldest session' -s 'config."errorMessage"=' >/dev/null
+                echo "session limit added: {{ .Values.keycloak.sessionLimit }} devices per account"
+                {{- end }}
+              }
               for i in $(seq 1 12); do
                 if $kcadm config credentials --config $cfg --server "$url" --realm master --user "$KC_ADMIN" --password "$KC_ADMIN_PASSWORD" >/dev/null 2>&1; then
                   if $kcadm update users/profile -r alanfelez -f /opt/keycloak/data/user-profile.json --config $cfg; then
@@ -41,6 +73,8 @@ spec:
                   else
                     echo "WARNING: the user profile was not applied; run services/keycloak/realm/apply-user-profile.sh"
                   fi
+                  add_web_mappers || echo "WARNING: the web client's token mappers were not checked"
+                  add_session_limit || echo "WARNING: the session limit was not checked"
                   exit 0
                 fi
                 sleep 10
