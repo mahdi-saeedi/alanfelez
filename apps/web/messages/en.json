@@ -102,7 +102,8 @@
       "start": "Start for free",
       "plans": "See the plans",
       "prices": "See the prices"
-    }
+    },
+    "metalPages": "Each metal's price today"
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
@@ -399,7 +400,9 @@
     "lockedTitle": "This article is for {plan} subscribers",
     "lockedBody": "The full text of analyses and forecasts is available to {plan} subscribers.",
     "disclaimer": "This content is an estimate based on the data and conditions available when it was published. It is not a recommendation to buy or sell and gives no guarantee of future market outcomes.",
-    "source": "Price source: {source}"
+    "source": "Price source: {source}",
+    "latestTitle": "Latest analysis",
+    "latestAll": "All analysis →"
   },
   "faq": {
     "title": "Frequently asked questions",
