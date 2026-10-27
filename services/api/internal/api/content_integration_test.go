@@ -140,7 +140,7 @@ func TestFaqPagesAndSettings(t *testing.T) {
 			}
 		}
 	}
-	if items != 39 || popular != 6 {
+	if items != 40 || popular != 6 { // 39 from FAQ.docx + the refund question (2026-10-27)
 		t.Fatalf("items=%d popular=%d", items, popular)
 	}
 	if _, body, _ := e.callH(http.MethodGet, "/v1/faq", "", nil, map[string]string{"Accept-Language": "en"}); body["categories"].([]any)[0].(map[string]any)["name"] != "About Alan Felez" {

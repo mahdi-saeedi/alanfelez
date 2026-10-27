@@ -9,7 +9,7 @@ datasets:
       - { slug: about, name_fa: "درباره الان‌فلز", name_en: "About Alan Felez", sort: 10 }
       - { slug: prices, name_fa: "قیمت فلزات", name_en: "Metal prices", sort: 20 }
       - { slug: plans, name_fa: "اشتراک‌ها", name_en: "Subscriptions", sort: 30 }
-      - { slug: ime, name_fa: "بورس کالا و حراج‌های روزانه", name_en: "Commodity exchange & daily auctions", sort: 40 }
+      - { slug: ime, name_fa: "بورس کالا و مزایدات", name_en: "Commodity exchange & auctions", sort: 40 }
       - { slug: analysis, name_fa: "تحلیل و پیش‌بینی", name_en: "Analysis & forecasts", sort: 50 }
       - { slug: calculator, name_fa: "ماشین حساب قیمت", name_en: "Price calculator", sort: 60 }
       - { slug: sms, name_fa: "پیامک و اعلان‌ها", name_en: "SMS & notifications", sort: 70 }
@@ -51,9 +51,9 @@ datasets:
         popular: false
         published: true
         question_fa: "آیا الان‌فلز فروشنده فلزات است؟"
-        answer_fa: "<p>الان‌فلز در درجه اول یک پلتفرم اطلاعات بازار و ارتباط تجاری است و خود را به‌عنوان فروشنده تمامی محصولات معرفی نمی‌کند.</p>"
+        answer_fa: "<p>خیر. الان‌فلز یک پلتفرم اطلاعات بازار فلزات است؛ کالایی نمی‌فروشد یا نمی‌خرد و برگزارکننده‌ی مزایده‌هایی که اطلاعات آن‌ها در سایت منتشر می‌شود نیز نیست.</p>"
         question_en: "Does Alan Felez sell metals?"
-        answer_en: "<p>Alan Felez is first and foremost a market-information and business-connection platform, and does not present itself as the seller of all products.</p>"
+        answer_en: "<p>No. Alan Felez is a metals market-information platform: it doesn't sell or buy goods, and it doesn't run the auctions whose details it publishes.</p>"
       - slug: price-sources  # FAQ.docx #5
         category: prices
         sort: 10
@@ -69,9 +69,9 @@ datasets:
         popular: false
         published: true
         question_fa: "آیا قیمت‌های الان‌فلز لحظه‌ای هستند؟"
-        answer_fa: "<p>سرعت به‌روزرسانی قیمت‌ها به منبع اطلاعات و نوع بازار بستگی دارد. برخی قیمت‌ها به‌صورت لحظه‌ای یا نزدیک به لحظه و برخی دیگر به‌صورت روزانه یا در بازه‌های مشخص به‌روزرسانی می‌شوند. زمان آخرین به‌روزرسانی در بخش مربوط به قیمت نمایش داده شود.</p>"
+        answer_fa: "<p>سرعت به‌روزرسانی قیمت‌ها به منبع اطلاعات و نوع بازار بستگی دارد. برخی قیمت‌ها چند بار در روز و برخی روزانه یا در بازه‌های مشخص به‌روزرسانی می‌شوند. زمان آخرین به‌روزرسانی کنار هر قیمت نمایش داده می‌شود.</p>"
         question_en: "Are Alan Felez prices live?"
-        answer_en: "<p>How often prices update depends on the data source and the market. Some prices update live or near-live, others daily or at set intervals. The last-updated time is shown next to each price.</p>"
+        answer_en: "<p>How often prices update depends on the source and the market: some several times a day, others daily or at set intervals. The last-updated time is shown next to each price.</p>"
       - slug: what-is-lme  # FAQ.docx #7
         category: prices
         sort: 30
@@ -132,27 +132,27 @@ datasets:
         popular: false
         published: true
         question_fa: "اشتراک رایگان چه امکاناتی دارد؟"
-        answer_fa: "<p>کاربران رایگان می‌توانند به اطلاعات عمومی و بخشی از قیمت‌های داخلی و جهانی بازار دسترسی داشته باشند. برخی امکانات تخصصی مانند بخشی از تاریخچه قیمت، تحلیل‌ها، ابزارها و خدمات ویژه برای کاربران دارای اشتراک در نظر گرفته شده است.</p>"
+        answer_fa: "<p>کاربران رایگان قیمت جهانی فلزات، قیمت‌های بورس کالا و نمودار یک ماه اخیر این قیمت‌ها را می‌بینند. قیمت روز کالا در بازار آزاد و تالار آهن، تاریخچه‌ی کامل نمودارها و امکانات تخصصی دیگر ویژه‌ی اشتراک‌های نقره‌ای و طلایی است.</p>"
         question_en: "What does the Free plan include?"
-        answer_en: "<p>Free users can access general information and part of the domestic and global market prices. Some specialist features, such as part of the price history, analyses, tools and special services, are reserved for subscribers.</p>"
+        answer_en: "<p>Free users see global metal prices, IME prices and the last month's chart of these prices. Day prices of the free market and the Iran Iron Market, full chart history and the specialist features are for Silver and Gold.</p>"
       - slug: silver-plan  # FAQ.docx #14
         category: plans
         sort: 30
         popular: false
         published: true
         question_fa: "اشتراک نقره‌ای چه امکاناتی دارد؟"
-        answer_fa: "<p>اشتراک نقره‌ای دسترسی گسترده‌تری به اطلاعات بازار، قیمت محصولات، نمودارها و تاریخچه قیمت در اختیار کاربر قرار می‌دهد و برای کاربرانی مناسب است که به بررسی دقیق‌تر قیمت و روند بازار نیاز دارند.</p>"
+        answer_fa: "<p>اشتراک نقره‌ای علاوه بر امکانات رایگان، قیمت روز کالا در بازار آزاد و تالار آهن و نمودار و تاریخچه‌ی کامل قیمت کالاها را در اختیار کاربر قرار می‌دهد و برای کاربرانی مناسب است که قیمت و روند بازار را دقیق‌تر دنبال می‌کنند.</p>"
         question_en: "What does the Silver plan include?"
-        answer_en: "<p>The Silver plan gives wider access to market information, product prices, charts and price history, and suits users who need a closer look at prices and market trends.</p>"
+        answer_en: "<p>On top of the free features, Silver gives the day prices of the free market and the Iran Iron Market and full product charts and history, for users who follow prices and trends closely.</p>"
       - slug: gold-plan  # FAQ.docx #15
         category: plans
         sort: 40
         popular: false
         published: true
         question_fa: "اشتراک طلایی چه امکاناتی دارد؟"
-        answer_fa: "<p>اشتراک طلایی کامل‌ترین سطح دسترسی الان‌فلز است و علاوه بر امکانات اشتراک نقره‌ای، خدماتی مانند تحلیل بازار، پیش‌بینی سناریوهای احتمالی قیمت، اطلاعات حراج‌های روزانه، ماشین حساب قیمت و سرویس‌های اعلان و پیامک را ارائه می‌دهد.</p>"
+        answer_fa: "<p>اشتراک طلایی کامل‌ترین سطح دسترسی الان‌فلز است و علاوه بر امکانات اشتراک نقره‌ای، مزایدات روزانه، تحلیل و پیش‌بینی بازار، ماشین حساب تخصصی و هشدار پیامکی برای نوسانات شدید قیمت را ارائه می‌دهد.</p>"
         question_en: "What does the Gold plan include?"
-        answer_en: "<p>Gold is the most complete level of access. On top of everything in Silver, it offers market analysis, possible price scenarios, daily auction information, the price calculator, and notification and SMS services.</p>"
+        answer_en: "<p>Gold is the most complete level: on top of Silver it adds daily auctions, market analysis and forecasts, the specialist calculator and SMS alerts for sharp price moves.</p>"
       - slug: upgrade-plan  # FAQ.docx #16
         category: plans
         sort: 50
@@ -162,6 +162,15 @@ datasets:
         answer_fa: "<p>بله. کاربران می‌توانند در صورت نیاز سطح اشتراک خود را ارتقا دهند. جزئیات هزینه، مدت اعتبار و مابه‌التفاوت احتمالی در زمان ارتقا نمایش داده خواهد شد.</p>"
         question_en: "Can I upgrade my subscription?"
         answer_en: "<p>Yes. You can upgrade your subscription whenever you need. The cost, validity period and any difference to pay are shown when you upgrade.</p>"
+      - slug: refunds  # content review 2026-10-27
+        category: plans
+        sort: 75
+        popular: false
+        published: true
+        question_fa: "آیا امکان بازگشت وجه اشتراک وجود دارد؟"
+        answer_fa: "<p>بله. تا ۷ روز پس از پرداخت، اگر از امکانات پولی همان اشتراک استفاده نکرده باشید، می‌توانید از بخش حساب کاربری درخواست بازگشت وجه ثبت کنید و کل مبلغ بازگردانده می‌شود. پس از استفاده از امکانات پولی یا پس از ۷ روز، بازگشت وجه ممکن نیست و اشتراک تا پایان دوره فعال می‌ماند. جزئیات در صفحه‌ی <a href=\"/terms\">قوانین</a> آمده است.</p>"
+        question_en: "Can I get a refund?"
+        answer_en: "<p>Yes. Within 7 days of payment, if you haven't used any paid feature of that plan, you can request a refund from your account and the full amount is returned. After using a paid feature, or after 7 days, there's no refund and the plan runs to the end of its period. Details are in the <a href=\"/terms\">terms</a>.</p>"
       - slug: subscription-duration  # FAQ.docx #17
         category: plans
         sort: 60
@@ -177,45 +186,45 @@ datasets:
         popular: false
         published: true
         question_fa: "آیا اشتراک به‌صورت خودکار تمدید می‌شود؟"
-        answer_fa: "<p>تمدید اشتراک مطابق شرایط اعلام‌شده هنگام خرید انجام می‌شود. وضعیت تمدید و تاریخ پایان اشتراک از طریق حساب کاربری قابل مشاهده خواهد بود.</p>"
+        answer_fa: "<p>خیر. اشتراک خودکار تمدید نمی‌شود و هیچ مبلغی بدون پرداخت مستقیم شما کسر نمی‌شود. از یک هفته قبل از پایان اشتراک، پیامک یادآوری برایتان ارسال می‌شود (۷ روز، ۳ روز و ۱ روز قبل از پایان و روز پایان). اگر پیش از پایان، همان اشتراک را دوباره بخرید، دوره‌ی جدید از پایان دوره‌ی فعلی شروع می‌شود و روزی از دست نمی‌رود.</p>"
         question_en: "Does my subscription renew automatically?"
-        answer_en: "<p>Renewal follows the terms shown when you buy. The renewal status and end date of your subscription are visible in your account.</p>"
+        answer_en: "<p>No. Subscriptions don't renew automatically and nothing is charged without your own payment. From a week before your plan ends you get SMS reminders (7, 3 and 1 day before, and on the day it ends). Buying the same plan again before it ends starts the new period when the current one ends, so no day is lost.</p>"
       - slug: ime-data  # FAQ.docx #27
         category: ime
         sort: 10
         popular: false
         published: true
         question_fa: "اطلاعات بورس کالا در الان‌فلز چگونه نمایش داده می‌شود؟"
-        answer_fa: "<p>اطلاعات مرتبط با معاملات و قیمت‌های بورس کالا، متناسب با نوع محصول و داده‌های در دسترس، در بخش مربوطه ارائه می‌شود تا کاربران بتوانند وضعیت بازار داخلی را بهتر بررسی کنند.</p>"
+        answer_fa: "<p>قیمت‌های بورس کالا برای همه‌ی کاربران رایگان است و در صفحه‌ی قیمت فلزات، همراه با منبع و زمان آخرین به‌روزرسانی، نمایش داده می‌شود.</p>"
         question_en: "How is commodity exchange (IME) information shown on Alan Felez?"
-        answer_en: "<p>Information on Iran Mercantile Exchange trades and prices is presented in the relevant section, depending on the product and the data available, so users can better assess the domestic market.</p>"
+        answer_en: "<p>IME prices are free for everyone and are shown on the metal prices page with their source and last-updated time.</p>"
       - slug: ime-trades-and-prices  # FAQ.docx #28
         category: ime
         sort: 20
         popular: false
         published: true
         question_fa: "آیا می‌توان معاملات و قیمت‌های بورس کالا را مشاهده کرد؟"
-        answer_fa: "<p>بسته به نوع داده و سطح دسترسی کاربر، اطلاعات مرتبط با معاملات، عرضه‌ها و قیمت‌های بورس کالا در بخش مربوطه قابل مشاهده و بررسی خواهد بود.</p>"
+        answer_fa: "<p>بله. قیمت‌های بورس کالا و نمودار یک ماه اخیر آن‌ها برای همه قابل مشاهده است و تاریخچه‌ی کامل‌تر برای مشترکان نقره‌ای و طلایی در دسترس است.</p>"
         question_en: "Can I see commodity exchange trades and prices?"
-        answer_en: "<p>Depending on the type of data and your access level, information on IME trades, offerings and prices can be viewed and reviewed in the relevant section.</p>"
+        answer_en: "<p>Yes. IME prices and their last month's chart are open to everyone; the longer history is for Silver and Gold subscribers.</p>"
       - slug: daily-auctions  # FAQ.docx #29
         category: ime
         sort: 30
         popular: false
         published: true
-        question_fa: "حراج‌های روزانه چیست؟"
-        answer_fa: "<p>حراج‌های روزانه شامل اطلاعات مربوط به عرضه‌ها و معاملات روزانه محصولات مختلف است که می‌تواند برای بررسی وضعیت عرضه، قیمت و شرایط بازار مورد استفاده قرار گیرد.</p>"
-        question_en: "What are the daily auctions?"
-        answer_en: "<p>Daily auctions cover information on the daily offerings and trades of different products, which can be used to assess supply, prices and market conditions.</p>"
+        question_fa: "مزایدات الان‌فلز چیست؟"
+        answer_fa: "<p>در بخش «مزایدات»، اطلاعات مزایده‌های فلزات، شامل شمش و محصولات میانی، ضایعات و مواد اولیه، منتشر می‌شود. الان‌فلز برگزارکننده‌ی این مزایده‌ها نیست و اطلاعات آن‌ها صرفاً جهت اطلاع منتشر می‌شود؛ شرایط و مهلت قطعی هر مزایده را در آگهی برگزارکننده بررسی کنید.</p>"
+        question_en: "What are Alan Felez auctions?"
+        answer_en: "<p>The “Auctions” section publishes metal auctions: ingots and intermediate products, scrap and raw materials. Alan Felez doesn't run them; the details are for information, so check each auction's terms and deadline in the organiser's notice.</p>"
       - slug: who-uses-auction-data  # FAQ.docx #30
         category: ime
         sort: 40
         popular: false
         published: true
-        question_fa: "تحلیل حراج‌های روزانه برای چه کسانی کاربرد دارد؟"
-        answer_fa: "<p>این اطلاعات می‌تواند برای تولیدکنندگان، بازرگانان، تأمین‌کنندگان و سایر فعالان بازار که روند عرضه و قیمت محصولات را دنبال می‌کنند مفید باشد.</p>"
-        question_en: "Who is daily auction analysis useful for?"
-        answer_en: "<p>This information can be useful for producers, traders, suppliers and other market players who follow supply and price trends.</p>"
+        question_fa: "چه اطلاعاتی از مزایده‌ها نمایش داده می‌شود؟"
+        answer_fa: "<p>موضوع، فلز، دسته، حجم و وضعیت هر مزایده برای همه‌ی کاربران نمایش داده می‌شود. مهلت شرکت، محل، برگزارکننده، توضیحات و فایل آگهی مزایده ویژه‌ی مشترکان طلایی است.</p>"
+        question_en: "What auction details are shown?"
+        answer_en: "<p>Every auction's title, metal, category, quantity and status are shown to everyone. The deadline, place, organiser, details and the notice file are for Gold subscribers.</p>"
       - slug: analysis-basis  # FAQ.docx #31
         category: analysis
         sort: 10
@@ -231,9 +240,9 @@ datasets:
         popular: false
         published: true
         question_fa: "آیا الان‌فلز پیش‌بینی قیمت ارائه می‌دهد؟"
-        answer_fa: "<p>در سطح خدمات مربوط به این قابلیت، الان‌فلز بر اساس داده‌ها و شرایط موجود، سناریوهای احتمالی حرکت قیمت و تحلیل بازار را ارائه می‌کند.</p>"
+        answer_fa: "<p>بله. تحلیل بازار و سناریوهای احتمالی حرکت قیمت، بر اساس داده‌ها و شرایط موجود، برای مشترکان طلایی ارائه می‌شود. این پیش‌بینی‌ها قطعی نیستند و توصیه‌ی خرید یا فروش محسوب نمی‌شوند.</p>"
         question_en: "Does Alan Felez offer price forecasts?"
-        answer_en: "<p>For the services that include this feature, Alan Felez presents possible price scenarios and market analysis based on the data and conditions available.</p>"
+        answer_en: "<p>Yes. Market analysis and possible price scenarios, based on the data and conditions at the time, are offered to Gold subscribers. They are not certain and are not advice to buy or sell.</p>"
       - slug: are-forecasts-certain  # FAQ.docx #33
         category: analysis
         sort: 30
@@ -312,9 +321,9 @@ datasets:
         popular: false
         published: true
         question_fa: "آیا دریافت پیامک هزینه جداگانه دارد؟"
-        answer_fa: "<p>هزینه و شرایط استفاده از سرویس پیامک مطابق بسته خدماتی و نوع اشتراک کاربر در صفحه اشتراک‌ها اعلام می‌شود.</p>"
+        answer_fa: "<p>خیر. هشدارهای پیامکی قیمت جزو اشتراک طلایی است و هزینه‌ی جداگانه ندارد. پیامک‌های مربوط به حساب و اشتراک، مانند کد ورود و یادآوری پایان اشتراک، برای همه‌ی کاربران رایگان است.</p>"
         question_en: "Does the SMS service cost extra?"
-        answer_en: "<p>The cost and terms of the SMS service are shown on the subscriptions page, according to the service package and your plan.</p>"
+        answer_en: "<p>No. SMS price alerts are included in Gold at no extra cost. Account and subscription messages, such as sign-in codes and renewal reminders, are free for everyone.</p>"
       - slug: do-i-need-to-sign-up  # FAQ.docx #42
         category: account
         sort: 10
@@ -330,9 +339,9 @@ datasets:
         popular: false
         published: true
         question_fa: "اگر رمز عبورم را فراموش کنم چه کار کنم؟"
-        answer_fa: "<p>در صفحه ورود، گزینه «فراموشی رمز عبور» را انتخاب کنید و اطلاعات مورد نیاز را وارد کنید. مراحل بازیابی حساب از طریق روش ارتباطی ثبت‌شده برای شما ارسال خواهد شد.</p>"
+        answer_fa: "<p>در صفحه‌ی ورود روی «رمز عبور را فراموش کرده‌اید؟» بزنید و شماره‌ی موبایل حساب خود را وارد کنید. یک کد تأیید برایتان پیامک می‌شود؛ پس از وارد کردن کد، نام کاربری شما نمایش داده می‌شود و می‌توانید رمز عبور جدید تعیین کنید.</p>"
         question_en: "What if I forget my password?"
-        answer_en: "<p>On the login page choose “Forgot password” and enter the requested details. The account recovery steps will be sent to the contact method registered for you.</p>"
+        answer_en: "<p>On the sign-in page choose “Forgot your password?” and enter your account's mobile number. You'll get a code by SMS; after entering it you see your username and choose a new password.</p>"
       - slug: edit-account  # FAQ.docx #45
         category: account
         sort: 30
@@ -375,6 +384,6 @@ datasets:
         popular: true
         published: true
         question_fa: "چگونه با پشتیبانی الان‌فلز تماس بگیرم؟"
-        answer_fa: "<p>کاربران می‌توانند از طریق بخش «تماس با ما» و روش‌های ارتباطی اعلام‌شده در سایت، مانند تلفن، ایمیل، پیام‌رسان یا تیکت پشتیبانی با تیم الان‌فلز در ارتباط باشند.</p>"
+        answer_fa: "<p>از صفحه‌ی «تماس با ما» پیام بفرستید، یا اگر وارد حساب کاربری شده‌اید، در بخش پشتیبانی حساب تیکت ثبت کنید. تلفن و سایر راه‌های ارتباطی نیز پس از اعلام، در صفحه‌ی «تماس با ما» و پایین صفحه‌های سایت نمایش داده می‌شوند.</p>"
         question_en: "How do I contact Alan Felez support?"
-        answer_en: "<p>You can reach the Alan Felez team through the “Contact us” section and the contact methods listed on the site, such as phone, e-mail, messengers or a support ticket.</p>"
+        answer_en: "<p>Send a message from the “Contact us” page or, when signed in, open a ticket in your account's support section. The phone number and other contact details are shown on the contact page and in the footer once announced.</p>"
