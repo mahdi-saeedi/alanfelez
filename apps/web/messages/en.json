@@ -148,7 +148,9 @@
       "instagram": "Instagram",
       "linkedin": "LinkedIn",
       "bale": "Bale",
-      "eitaa": "Eitaa"
+      "eitaa": "Eitaa",
+      "whatsapp": "WhatsApp",
+      "email": "Email"
     },
     "about": "Alan Felez brings the prices, charts, analysis and auctions of Iran's and the world's metals markets together in one place, with their sources, so you can trade with better information.",
     "socialTitle": "Alan Felez on social media",
@@ -623,6 +625,8 @@
     "save": "Save",
     "saved": "SMS settings saved.",
     "failed": "Couldn't save. Please try again.",
-    "choosePrompt": "Pick your main metal to start receiving price SMS."
+    "choosePrompt": "Pick your main metal to start receiving price SMS.",
+    "phone": "SMS go to:",
+    "noPhone": "This account has no mobile number, so no SMS can be sent. Sign in with an account whose username is a mobile number."
   }
 }

@@ -19,9 +19,10 @@ const COMPANY = [
   ["faq", "/faq"],
 ] as const;
 
-// Networks as set in the admin (Settings); only the ones with a URL are shown.
-const NETWORKS = ["instagram", "telegram", "linkedin", "bale", "eitaa"] as const;
-const ICONS: Partial<Record<(typeof NETWORKS)[number], React.ReactNode>> = {
+// Networks as set in the admin (Settings); only the ones with a URL are shown, then email (contact settings).
+// Simple line icons in the site's style (self-hosted, no brand assets from foreign CDNs).
+const NETWORKS = ["instagram", "telegram", "whatsapp", "bale", "eitaa", "linkedin"] as const;
+const ICONS: Record<(typeof NETWORKS)[number] | "email", React.ReactNode> = {
   instagram: (
     <>
       <rect x="3" y="3" width="18" height="18" rx="5" />
@@ -31,6 +32,23 @@ const ICONS: Partial<Record<(typeof NETWORKS)[number], React.ReactNode>> = {
   ),
   telegram: <path d="m21 4-18 7 6 2 2 6 3-4 5 4zM9 13l9-6" />,
   linkedin: <path d="M4 9h3v11H4zM5.5 4.5v.01M10 20v-6a3 3 0 0 1 6 0v6m-6-11v11m6 0h3v-6a5 5 0 0 0-5-5" />,
+  // A chat bubble with a handset.
+  whatsapp: <path d="m3.5 20.5 1.3-4.1a8.5 8.5 0 1 1 3.1 3zM9 8.2c-.1 3.3 3.4 6.8 6.8 6.8l.9-1.5-2-1.1-1 .8a5 5 0 0 1-2.4-2.4l.8-1-1.1-2z" />,
+  // «بله» means yes: a chat bubble with a tick.
+  bale: <path d="M12 3.5a8.5 8.5 0 1 1-4.3 15.8L3.5 20.5l1.2-4.1A8.5 8.5 0 0 1 12 3.5zM8.5 12.2l2.4 2.4 4.6-4.8" />,
+  // A rounded tile with a lowercase e.
+  eitaa: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="6" />
+      <path d="M8.5 12.5h7a3.5 3.5 0 1 0-1 2.5" />
+    </>
+  ),
+  email: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 6.5 8.5 6.5 8.5-6.5" />
+    </>
+  ),
 };
 
 /**
@@ -41,8 +59,9 @@ export async function Footer() {
   const t = await getTranslations();
   const locale = (await getLocale()) as Locale;
   const site = await getSite(locale);
-  const social = NETWORKS.filter((k) => site?.social[k]).map((k) => [k, site!.social[k]!] as const);
   const contact = site?.contact ?? {};
+  const social: (readonly [keyof typeof ICONS, string])[] = NETWORKS.filter((k) => site?.social[k]).map((k) => [k, site!.social[k]!] as const);
+  if (contact.email) social.push(["email", `mailto:${contact.email}`]);
   const year = new Intl.DateTimeFormat(locale === "fa" ? "fa-IR-u-ca-persian" : "en-GB", { year: "numeric" }).format(new Date());
   const company = site?.licensesPage ? [...COMPANY, ["licenses", "/licenses"] as const] : COMPANY;
   const heading = "mb-3 text-sm font-bold text-white";
@@ -62,15 +81,11 @@ export async function Footer() {
             <ul className="mt-4 flex flex-wrap gap-2" aria-label={t("footer.socialTitle")}>
               {social.map(([k, url]) => (
                 <li key={k}>
-                  <a href={url} rel="noopener noreferrer" target="_blank" aria-label={t(`footer.social.${k}`)}
-                    className="inline-flex h-10 min-w-10 items-center justify-center gap-2 rounded-lg border border-graphite-3 px-2.5 hover:border-gold hover:text-white">
-                    {ICONS[k] ? (
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-                        <g className="fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{ICONS[k]}</g>
-                      </svg>
-                    ) : (
-                      t(`footer.social.${k}`)
-                    )}
+                  <a href={url} {...(k === "email" ? {} : { rel: "noopener noreferrer", target: "_blank" })} aria-label={t(`footer.social.${k}`)} title={t(`footer.social.${k}`)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-graphite-3 hover:border-gold hover:text-white">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+                      <g className="fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{ICONS[k]}</g>
+                    </svg>
                   </a>
                 </li>
               ))}
