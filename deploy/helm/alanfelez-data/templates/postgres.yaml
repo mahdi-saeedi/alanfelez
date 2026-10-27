@@ -57,6 +57,7 @@ metadata:
   labels: {{- include "data.labels" . | nindent 4 }}
 spec:
   schedule: {{ .Values.postgres.backup.schedule | quote }}
+  immediate: true            # also one backup as soon as backups are turned on, not only at the next night
   cluster: { name: {{ .Release.Name }}-pg }
   backupOwnerReference: self
 {{- end }}

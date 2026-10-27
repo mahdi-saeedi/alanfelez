@@ -22,9 +22,8 @@ Last updated: 2026-10-27 (sign-up answers in the admin, device limit, IME table 
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
-- [ ] **ArvanCloud Object Storage bucket** `alanfelez-backups` (private, versioning on) and an access key; then the owner
-      runs `bash deploy/server/seal-backup-keys.sh` (keys typed hidden, never in a chat) and Claude commits the two sealed
-      files and sets `postgres.backup.enabled: true` on staging, then production. Until then a lost server loses user data.
+- [ ] **Database backups on production**: `postgres.backup.enabled: true` in production `data-values.yaml` once staging
+      shows a completed backup (bucket and sealed keys exist since 2026-10-27). Then one restore drill (LAUNCH.md).
 - [ ] After the first production backup holds it: a migration that drops `archive.ime_offerings` (00015 moved it there).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
@@ -54,6 +53,8 @@ Last updated: 2026-10-27 (sign-up answers in the admin, device limit, IME table 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Database backups on **staging**: ArvanCloud Object Storage bucket `alanfelez-backups` (owner), keys sealed
+  with `seal-backup-keys.sh` for both clusters, WAL archiving + nightly backup on.
 - 2026-10-27 Sign-up answers (activity, metals, province) in the admin users list: web-client token mappers (added to running
   realms by the keycloak-profile job), `app.users` columns (00016), `AdminUser` fields. Device limit: 2 signed-in devices
   per account, the oldest is signed out (all accounts, owner OK). The unused IME offerings left the app (00015 moves the
