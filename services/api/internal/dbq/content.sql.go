@@ -624,6 +624,36 @@ func (q *Queries) ListFaqItems(ctx context.Context, publishedOnly bool) ([]ListF
 	return items, nil
 }
 
+const listFlags = `-- name: ListFlags :many
+SELECT key, enabled, updated_at FROM app.feature_flags WHERE key = ANY ($1::text[]) ORDER BY key
+`
+
+type ListFlagsRow struct {
+	Key       string
+	Enabled   bool
+	UpdatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) ListFlags(ctx context.Context, keys []string) ([]ListFlagsRow, error) {
+	rows, err := q.db.Query(ctx, listFlags, keys)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFlagsRow{}
+	for rows.Next() {
+		var i ListFlagsRow
+		if err := rows.Scan(&i.Key, &i.Enabled, &i.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPages = `-- name: ListPages :many
 SELECT slug, title_fa, title_en, published, version, updated_at FROM app.pages ORDER BY slug
 `
@@ -785,6 +815,31 @@ type SavePageRevisionParams struct {
 func (q *Queries) SavePageRevision(ctx context.Context, arg SavePageRevisionParams) error {
 	_, err := q.db.Exec(ctx, savePageRevision, arg.Actor, arg.Slug)
 	return err
+}
+
+const setFlag = `-- name: SetFlag :one
+INSERT INTO app.feature_flags (key, enabled) VALUES ($1, $2)
+ON CONFLICT (key) DO UPDATE SET enabled = EXCLUDED.enabled
+RETURNING key, enabled, updated_at
+`
+
+type SetFlagParams struct {
+	Key     string
+	Enabled bool
+}
+
+type SetFlagRow struct {
+	Key       string
+	Enabled   bool
+	UpdatedAt pgtype.Timestamptz
+}
+
+// Upsert: a flag missing from an environment's seed is created on first switch.
+func (q *Queries) SetFlag(ctx context.Context, arg SetFlagParams) (SetFlagRow, error) {
+	row := q.db.QueryRow(ctx, setFlag, arg.Key, arg.Enabled)
+	var i SetFlagRow
+	err := row.Scan(&i.Key, &i.Enabled, &i.UpdatedAt)
+	return i, err
 }
 
 const updateArticle = `-- name: UpdateArticle :one

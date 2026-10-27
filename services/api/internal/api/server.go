@@ -35,6 +35,7 @@ type Server struct {
 	log     *slog.Logger
 	tiers   *subscription.Resolver
 	now     func() time.Time
+	gateway string // payment gateway name (mock, none, …): the flags screen won't switch payments on without a real one
 }
 
 // Option customises a Server.
@@ -42,6 +43,9 @@ type Option func(*Server)
 
 // WithLimiter sets the rate limiter for anonymous writes (default: none).
 func WithLimiter(l ratelimit.Limiter) Option { return func(s *Server) { s.limiter = l } }
+
+// WithGateway records the payment gateway's name (default: none).
+func WithGateway(name string) Option { return func(s *Server) { s.gateway = name } }
 
 // WithLogger sets the logger for handler events (default: slog.Default()).
 func WithLogger(l *slog.Logger) Option { return func(s *Server) { s.log = l } }

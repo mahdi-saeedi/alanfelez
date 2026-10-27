@@ -142,6 +142,7 @@ type Querier interface {
 	ListFaqCategories(ctx context.Context) ([]ListFaqCategoriesRow, error)
 	// Every item in display order; published_only = true for the public site.
 	ListFaqItems(ctx context.Context, publishedOnly bool) ([]ListFaqItemsRow, error)
+	ListFlags(ctx context.Context, keys []string) ([]ListFlagsRow, error)
 	// Active subscriptions that haven't ended, with the value paid for them (0 for manual grants).
 	ListHeldSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListHeldSubscriptionsRow, error)
 	// Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
@@ -200,6 +201,8 @@ type Querier interface {
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
 	// Re-activating re-arms the alert, so it fires on the next crossing.
 	SetAlertActive(ctx context.Context, arg SetAlertActiveParams) (int64, error)
+	// Upsert: a flag missing from an environment's seed is created on first switch.
+	SetFlag(ctx context.Context, arg SetFlagParams) (SetFlagRow, error)
 	SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) error
 	SetPaymentFailed(ctx context.Context, arg SetPaymentFailedParams) error
 	SetPaymentVerified(ctx context.Context, arg SetPaymentVerifiedParams) error

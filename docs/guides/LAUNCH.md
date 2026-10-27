@@ -38,7 +38,7 @@ file (the PR is the record). Environments and delivery: [DEPLOYMENT.md](DEPLOYME
 | ☐ | `web.cspFormOrigins` | the gateway's payment page origin (F13) |
 | ☐ | `api.paymentGateway` / `api.smsProvider` / `keycloak.otp.smsProvider` | the real providers (F13, F7) |
 | ☐ | `api.seedProfiles` | `reference` only (demo data is refused in production anyway) |
-| ☐ | Feature flags (`app.feature_flags`; **the admin has no flags screen yet**, build it before launch so nobody edits the production DB) | `payments.enabled` on after a real test payment; `locale.en` on after F4; `page.licenses` on when licences exist |
+| ☐ | Feature flags: admin → «قابلیت‌ها» (payments only switch on once the real gateway is configured) | `payments.enabled` on after a real test payment; `locale.en` on after F4; `page.licenses` on when licences exist |
 | ☐ | Keycloak realm: password policy `length(10) and notUsername and notEmail`, brute-force protection on | New realms get it from the realm file; **existing realms: set it once in the console** |
 | ☐ | Staff accounts created with the right roles; every staff member has TOTP set up | SECURITY T5 |
 | ☐ | SMS budget (`sms.daily_budget_rial`) set to what the client accepts | Alerts and reminders pause at the budget |
