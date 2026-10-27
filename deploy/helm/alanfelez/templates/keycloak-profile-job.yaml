@@ -46,6 +46,24 @@ spec:
                   $kcadm create "clients/$cid/protocol-mappers/models" -r alanfelez -f "$f" --config $cfg && echo "token mapper $name added"
                 done
               }
+              # The API's service account for deleting users (internal/identity): client alanfelez-api-admin, only
+              # realm-management's manage-users and view-users. Its secret comes from the sealed secret every time, so
+              # replacing that secret is enough to rotate it. Without the secret: nothing to do.
+              add_api_admin_client() {
+                local cid
+                [ -n "${API_ADMIN_SECRET:-}" ] || return 0
+                cid="$($kcadm get clients -r alanfelez -q clientId=alanfelez-api-admin --fields id --format csv --noquotes --config $cfg)"
+                if [ -z "$cid" ]; then
+                  cid="$($kcadm create clients -r alanfelez --config $cfg -i -s clientId=alanfelez-api-admin -s enabled=true \
+                    -s publicClient=false -s serviceAccountsEnabled=true -s standardFlowEnabled=false \
+                    -s directAccessGrantsEnabled=false -s 'description=Alan Felez API: deleting users (service account)')"
+                  echo "client alanfelez-api-admin created"
+                fi
+                printf '{"secret":"%s"}' "$API_ADMIN_SECRET" > /tmp/api-admin.json
+                $kcadm update "clients/$cid" -r alanfelez -f /tmp/api-admin.json --config $cfg; rm -f /tmp/api-admin.json
+                $kcadm add-roles -r alanfelez --uusername service-account-alanfelez-api-admin --cclientid realm-management \
+                  --rolename manage-users --rolename view-users --config $cfg
+              }
               # At most {{ .Values.keycloak.sessionLimit }} devices signed in per account; a new sign-in signs out the oldest
               # (Keycloak's User Session Count Limiter, after the first factor). Added once; later edits in the admin console stay.
               add_session_limit() {
@@ -75,6 +93,7 @@ spec:
                   fi
                   add_web_mappers || echo "WARNING: the web client's token mappers were not checked"
                   add_session_limit || echo "WARNING: the session limit was not checked"
+                  add_api_admin_client || echo "WARNING: the API's service-account client was not checked"
                   exit 0
                 fi
                 sleep 10
@@ -85,6 +104,8 @@ spec:
               valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: username } }
             - name: KC_ADMIN_PASSWORD
               valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: password } }
+            - name: API_ADMIN_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakApiAdmin }}, key: client-secret, optional: true } }
             - { name: JAVA_OPTS, value: "-XX:MaxRAMPercentage=70" }
           volumeMounts: [{ name: tmp, mountPath: /tmp }]
           resources: { requests: { cpu: 50m, memory: 128Mi }, limits: { memory: 384Mi } }

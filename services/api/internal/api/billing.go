@@ -40,6 +40,13 @@ func (s *Server) touchUser(ctx context.Context, p *auth.Principal) (dbq.UpsertUs
 		FirstName: textOf(p.GivenName), LastName: textOf(p.FamilyName), Email: textOf(p.Email),
 		Activity: textOf(p.Activity), Metals: nilIfEmpty(p.Metals), Province: textOf(p.Province),
 	})
+	if errors.Is(err, pgx.ErrNoRows) { // a deleted account whose last token hasn't expired: nothing is written back
+		g, err := s.q.GetUser(ctx, p.ID)
+		if err != nil {
+			return dbq.UpsertUserRow{}, fmt.Errorf("deleted user: %w", err)
+		}
+		return dbq.UpsertUserRow(g), nil
+	}
 	if err != nil {
 		return dbq.UpsertUserRow{}, fmt.Errorf("upsert user: %w", err)
 	}
@@ -287,7 +294,7 @@ func (s *Server) AdminListUsers(ctx context.Context, req AdminListUsersRequestOb
 			Id: uuid.UUID(r.ID.Bytes), Username: r.Username, Phone: textp(r.PhoneE164), FirstName: textp(r.FirstName),
 			LastName: textp(r.LastName), Email: textp(r.Email), CreatedAt: r.CreatedAt.Time.UTC(), LastSeenAt: r.LastSeenAt.Time.UTC(),
 			Blocked: r.BlockedAt.Valid, CurrentPlan: Tier(r.CurrentPlan), CurrentEndsAt: timep(r.CurrentEndsAt),
-			Activity: textp(r.Activity), Metals: slicep(r.Metals), Province: textp(r.Province),
+			Activity: textp(r.Activity), Metals: slicep(r.Metals), Province: textp(r.Province), DeletedAt: timep(r.DeletedAt),
 		})
 	}
 	return AdminListUsers200JSONResponse{Items: out}, nil

@@ -512,6 +512,23 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/users/{id}:
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Delete a user. Role, admin
+      description: |
+        Deletes the Keycloak account (signs the user out everywhere) and removes the personal details here: name, mobile,
+        email and sign-up answers, the SMS choice, price alerts and saved calculations. Orders, payments, subscriptions
+        and tickets stay, without a name, for the accounts. Audited. Not for staff accounts (CONFLICT: take the staff
+        roles away in Keycloak first) or your own; UPSTREAM_UNAVAILABLE when the API has no Keycloak service account.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/orders:
     get:
       operationId: adminListOrders
@@ -2521,6 +2538,7 @@ components:
           items: { type: string }
           description: Sign-up answer, metal slugs (aluminum, copper, brass, zinc, lead, iron, cast-iron).
         province: { type: string, description: Sign-up answer, the province as chosen (Persian name). }
+        deletedAt: { type: string, format: date-time, description: Set once the user was deleted (no personal details left). }
 
     AdminOrder:
       type: object

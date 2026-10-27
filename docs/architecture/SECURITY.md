@@ -67,6 +67,11 @@ Every limit is configurable. Defaults:
   callers; staff and the website server (trusted proxy without a forwarded client) are exempt; the SSE stream isn't counted.
   A history-range limit per request comes from the tier (chart.history_days).
 - No bulk export endpoints for users. Chart history is paginated by range.
+- **Deleting a user** (owner, 2026-10-27): admin role only, confirmed and audited (`user.delete`, no personal data in the
+  entry). The API calls Keycloak's Admin API as the service account `alanfelez-api-admin` (realm-management `manage-users`
+  and `view-users` only; secret `alanfelez-keycloak-api-admin`, sealed, only in the API pods and the profile job) to delete
+  the account and its sessions; then name, mobile, email, sign-up answers, SMS choice, alerts and saved calculations go.
+  Orders, payments, subscriptions and tickets stay without a name. Staff accounts and your own can't be deleted this way.
 - **Concurrent session limit** (owner, 2026-10-27): at most 2 devices signed in per account, for **every** account; signing in on a
   third signs out the oldest (Keycloak «User Session Count Limiter» in the browser flow, `keycloak.sessionLimit`). Paid-only would
   need a Java extension. Seeing and revoking devices on the account page is not built yet.

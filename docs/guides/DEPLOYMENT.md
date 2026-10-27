@@ -64,7 +64,7 @@ Everything below is declarative. A brand-new cluster reaches the same state with
    ```
 4. **Secrets:** Argo CD installs the Sealed Secrets controller (wave −3). Then create each secret with `kubeseal` and commit the
    encrypted files (see `deploy/environments/<env>/secrets/README.md`): `alanfelez-app`, `alanfelez-keycloak-admin`,
-   `alanfelez-keycloak-db`, `alanfelez-backup-s3`, `arvan-registry`. Plain secrets never go into git.
+   `alanfelez-keycloak-db`, `alanfelez-backup-s3`, `alanfelez-keycloak-api-admin`, `arvan-registry`. Plain secrets never go into git.
 5. **Root app (app-of-apps):**
    ```bash
    kubectl apply -f deploy/argocd/projects/alanfelez.yaml -f deploy/argocd/roots/root-<env>.yaml

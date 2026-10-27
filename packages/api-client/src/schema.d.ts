@@ -382,6 +382,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a user. Role, admin
+         * @description Deletes the Keycloak account (signs the user out everywhere) and removes the personal details here: name, mobile,
+         *     email and sign-up answers, the SMS choice, price alerts and saved calculations. Orders, payments, subscriptions
+         *     and tickets stay, without a name, for the accounts. Audited. Not for staff accounts (CONFLICT: take the staff
+         *     roles away in Keycloak first) or your own; UPSTREAM_UNAVAILABLE when the API has no Keycloak service account.
+         */
+        delete: operations["adminDeleteUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/orders": {
         parameters: {
             query?: never;
@@ -1832,6 +1855,11 @@ export interface components {
             metals?: string[];
             /** @description Sign-up answer */
             province?: string;
+            /**
+             * Format: date-time
+             * @description Set once the user was deleted (no personal details left).
+             */
+            deletedAt?: string;
         };
         AdminOrder: {
             /** Format: uuid */
@@ -2946,6 +2974,27 @@ export interface operations {
             };
             401: components["responses"]["Problem"];
             403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             default: components["responses"]["Problem"];
         };
     };
