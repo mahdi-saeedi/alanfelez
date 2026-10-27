@@ -36,6 +36,30 @@ func (q *Queries) ActiveSubscription(ctx context.Context, userID pgtype.UUID) (A
 	return i, err
 }
 
+const deleteOldVisitSalts = `-- name: DeleteOldVisitSalts :execrows
+DELETE FROM app.visit_salts WHERE day < $1::date
+`
+
+func (q *Queries) DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOldVisitSalts, before)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteOldVisits = `-- name: DeleteOldVisits :execrows
+DELETE FROM app.daily_visits WHERE day < $1::date
+`
+
+func (q *Queries) DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOldVisits, before)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const insertAudit = `-- name: InsertAudit :exec
 INSERT INTO app.audit_log (actor_id, actor_name, action, entity, entity_id, data, request_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -150,6 +174,136 @@ func (q *Queries) ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]
 			&i.Status,
 			&i.Origin,
 			&i.Note,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const recordVisit = `-- name: RecordVisit :exec
+INSERT INTO app.daily_visits (day, visitor, user_id) VALUES ($1::date, $2, $3)
+ON CONFLICT (day, visitor) DO UPDATE SET last_at = now(), pageviews = app.daily_visits.pageviews + 1
+`
+
+type RecordVisitParams struct {
+	Day     pgtype.Date
+	Visitor string
+	UserID  pgtype.UUID
+}
+
+func (q *Queries) RecordVisit(ctx context.Context, arg RecordVisitParams) error {
+	_, err := q.db.Exec(ctx, recordVisit, arg.Day, arg.Visitor, arg.UserID)
+	return err
+}
+
+const visitSalt = `-- name: VisitSalt :one
+WITH ins AS (
+  INSERT INTO app.visit_salts (day) VALUES ($1::date) ON CONFLICT (day) DO NOTHING RETURNING salt
+)
+SELECT salt FROM ins UNION ALL SELECT vs.salt FROM app.visit_salts vs WHERE vs.day = $1::date LIMIT 1
+`
+
+// The day's salt for anonymous visitor ids, made on first use.
+func (q *Queries) VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, visitSalt, day)
+	var salt pgtype.UUID
+	err := row.Scan(&salt)
+	return salt, err
+}
+
+const visitTotals = `-- name: VisitTotals :many
+SELECT v.day, count(*)::int AS visitors, count(v.user_id)::int AS signed_in, sum(v.pageviews)::int AS pageviews
+FROM app.daily_visits v
+WHERE v.day >= $1::date
+GROUP BY v.day
+ORDER BY v.day DESC
+`
+
+type VisitTotalsRow struct {
+	Day       pgtype.Date
+	Visitors  int32
+	SignedIn  int32
+	Pageviews int32
+}
+
+// Per day since from: unique visitors, signed-in visitors and page views.
+func (q *Queries) VisitTotals(ctx context.Context, since pgtype.Date) ([]VisitTotalsRow, error) {
+	rows, err := q.db.Query(ctx, visitTotals, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VisitTotalsRow{}
+	for rows.Next() {
+		var i VisitTotalsRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.Visitors,
+			&i.SignedIn,
+			&i.Pageviews,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const visitUsers = `-- name: VisitUsers :many
+SELECT v.user_id::uuid AS user_id, u.username, u.phone_e164, u.first_name, u.last_name, v.first_at, v.last_at, v.pageviews,
+       coalesce(cur.plan_code, 'free')::text AS current_plan
+FROM app.daily_visits v
+LEFT JOIN app.users u ON u.id = v.user_id
+LEFT JOIN LATERAL (
+  SELECT s.plan_code FROM app.subscriptions s JOIN app.plans p ON p.code = s.plan_code
+  WHERE s.user_id = v.user_id AND s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now()
+  ORDER BY p.rank DESC LIMIT 1
+) cur ON true
+WHERE v.day = $1::date AND v.user_id IS NOT NULL
+ORDER BY v.last_at DESC
+LIMIT 500
+`
+
+type VisitUsersRow struct {
+	UserID      pgtype.UUID
+	Username    pgtype.Text
+	PhoneE164   pgtype.Text
+	FirstName   pgtype.Text
+	LastName    pgtype.Text
+	FirstAt     pgtype.Timestamptz
+	LastAt      pgtype.Timestamptz
+	Pageviews   int32
+	CurrentPlan string
+}
+
+// The signed-in visitors of one day, with their name, mobile and the plan they hold now.
+func (q *Queries) VisitUsers(ctx context.Context, day pgtype.Date) ([]VisitUsersRow, error) {
+	rows, err := q.db.Query(ctx, visitUsers, day)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VisitUsersRow{}
+	for rows.Next() {
+		var i VisitUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.PhoneE164,
+			&i.FirstName,
+			&i.LastName,
+			&i.FirstAt,
+			&i.LastAt,
+			&i.Pageviews,
+			&i.CurrentPlan,
 		); err != nil {
 			return nil, err
 		}

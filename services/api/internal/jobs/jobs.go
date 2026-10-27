@@ -28,6 +28,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/notify"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/source"
+	"github.com/alanfelez/alanfelez/services/api/internal/visits"
 )
 
 // Schema is where River keeps its tables (created by migration 00002, filled by `alanfelez migrate`).
@@ -159,7 +160,7 @@ func latestFunc(q *dbq.Queries) func(context.Context) (map[string]int64, error) 
 	}
 }
 
-// CleanupArgs deletes old fetch history.
+// CleanupArgs deletes old fetch history, visit counts older than visits.Retention and the visit salts of past days.
 type CleanupArgs struct{}
 
 // Kind implements river.JobArgs.
@@ -182,6 +183,17 @@ func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) err
 		return fmt.Errorf("cleanup source runs: %w", err)
 	}
 	w.Log.InfoContext(ctx, "old source runs deleted", "rows", n)
+	q, today := dbq.New(w.Pool), visits.Day(time.Now())
+	nv, err := q.DeleteOldVisits(ctx, pgtype.Date{Time: today.Add(-visits.Retention), Valid: true})
+	if err != nil {
+		return fmt.Errorf("cleanup visits: %w", err)
+	}
+	// Yesterday's salt is kept for visits recorded around midnight; older ones go, so old ids can't be recomputed.
+	ns, err := q.DeleteOldVisitSalts(ctx, pgtype.Date{Time: today.AddDate(0, 0, -1), Valid: true})
+	if err != nil {
+		return fmt.Errorf("cleanup visit salts: %w", err)
+	}
+	w.Log.InfoContext(ctx, "old visits deleted", "rows", nv, "salts", ns)
 	return nil
 }
 

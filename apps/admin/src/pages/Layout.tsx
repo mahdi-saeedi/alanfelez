@@ -5,7 +5,7 @@ import { api, unwrap } from "../api";
 
 // Grouped menu. `badge` names a count from /v1/admin/support/summary.
 const NAV: { group: string; items: { to: string; key: string; badge?: "openTickets" | "newMessages" }[] }[] = [
-  { group: "nav.group.main", items: [{ to: "/", key: "nav.dashboard" }] },
+  { group: "nav.group.main", items: [{ to: "/", key: "nav.dashboard" }, { to: "/visits", key: "nav.visits" }] },
   {
     group: "nav.group.market",
     items: [

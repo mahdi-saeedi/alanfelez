@@ -61,6 +61,9 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Admin «آمار بازدید»: daily unique visitors, signed-in users and page views (30 days), and the signed-in
+  visitors of a day by name, mobile and plan. Cookieless: anonymous visitors are a one-way daily id (no IP stored),
+  robots ignored, 90-day retention in the nightly cleanup (migration 00012).
 - 2026-10-27 admin.alanfelez.ir no longer asks for the shared password; staff sign-in protects it. At launch: TOTP for
   every staff account (or an IP allowlist for the admin).
 - 2026-10-27 Content review (client): terms gain subscription/renewal/refund rules and lose the marketplace leftovers,

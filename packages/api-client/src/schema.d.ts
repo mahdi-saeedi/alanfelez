@@ -297,6 +297,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Daily visitor stats (last 30 days) and the signed-in visitors of one day (default today, Tehran) */
+        get: operations["adminVisits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/users": {
         parameters: {
             query?: never;
@@ -709,6 +726,26 @@ export interface paths {
         get: operations["getSite"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Count a page view for the daily visitor stats (sent by the website; cookieless, robots ignored)
+         * @description Signed-in callers are counted by their user id; anonymous ones by a one-way id of the day's salt, IP and user agent (the IP isn't stored). Always 204.
+         */
+        post: operations["recordVisit"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1838,6 +1875,37 @@ export interface components {
         ContactSubject: "general" | "support" | "billing" | "partnership" | "feedback" | "other";
         /** @enum {string} */
         ContactStatus: "new" | "handled" | "spam";
+        AdminVisits: {
+            /**
+             * Format: date
+             * @description The day the users list is for
+             */
+            day: string;
+            /** @description The last 30 days with visits, newest first */
+            days: {
+                /** Format: date */
+                day: string;
+                /** @description Unique visitors (signed in or not) */
+                visitors: number;
+                /** @description Unique signed-in visitors */
+                signedIn: number;
+                pageviews: number;
+            }[];
+            /** @description The day's signed-in visitors, most recent first */
+            users: {
+                /** Format: uuid */
+                userId: string;
+                /** @description Name or company (sign-up form) */
+                name?: string;
+                phone?: string;
+                plan: components["schemas"]["Tier"];
+                /** Format: date-time */
+                firstAt: string;
+                /** Format: date-time */
+                lastAt: string;
+                pageviews: number;
+            }[];
+        };
         ContactInput: {
             name: string;
             /** @description Persian digits are accepted */
@@ -2644,6 +2712,29 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    adminVisits: {
+        parameters: {
+            query?: {
+                day?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stats */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminVisits"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminListUsers: {
         parameters: {
             query?: {
@@ -3332,6 +3423,31 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SiteInfo"];
                 };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    recordVisit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    path: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Counted (or ignored) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Problem"];
         };

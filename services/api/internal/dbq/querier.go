@@ -60,6 +60,8 @@ type Querier interface {
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
+	DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error)
+	DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error)
 	ExpirePendingOrders(ctx context.Context) (int64, error)
 	// Notifications ---------------------------------------------------------------------------------------------
 	// Paid or granted plans ending in the window with nothing queued after them, and a phone to remind.
@@ -173,6 +175,7 @@ type Querier interface {
 	PutSetting(ctx context.Context, arg PutSettingParams) error
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
+	RecordVisit(ctx context.Context, arg RecordVisitParams) error
 	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
 	// Total SMS spend since a time (the daily budget circuit breaker, SECURITY §4).
@@ -211,6 +214,12 @@ type Querier interface {
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
+	// The day's salt for anonymous visitor ids, made on first use.
+	VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error)
+	// Per day since from: unique visitors, signed-in visitors and page views.
+	VisitTotals(ctx context.Context, since pgtype.Date) ([]VisitTotalsRow, error)
+	// The signed-in visitors of one day, with their name, mobile and the plan they hold now.
+	VisitUsers(ctx context.Context, day pgtype.Date) ([]VisitUsersRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
