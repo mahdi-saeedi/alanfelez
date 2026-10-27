@@ -15,8 +15,6 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] Client: check the four SMS on staging (reminder 491453, ended 892531, price alert 146260, price update 919549);
-      then `api.smsProvider: smsir` + the same `api.smsir.templates` for production.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
@@ -30,7 +28,6 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] **Per-metal price pages** («قیمت مس امروز», good for Google): the client isn't sure yet (2026-10-25). Suggest it
   again when they ask "what else can we do?".
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
-- [ ] Ask the client whether `alanfelez.ir` had **email or a website** before the DNS move (records not copied are gone).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
@@ -53,6 +50,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 The client: `alanfelez.ir` had no email or website before the DNS move (alanfelez.com is ours too).
+- 2026-10-27 Production sends the reminder and Gold price SMS through sms.ir (the client checked all four on staging).
 - 2026-10-27 **Delete a user** from the admin users list (admin only, confirm, audited): Keycloak account and sessions
   deleted through the API's service account `alanfelez-api-admin` (manage-users + view-users only, created by the
   keycloak-profile job from the sealed `alanfelez-keycloak-api-admin`); personal details and the user's own data removed,
