@@ -44,6 +44,9 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 - { name: PRICES_DEMO_ALLOWED, value: {{ .Values.api.demoPrices | quote }} }
 - { name: PAYMENTS_GATEWAY, value: {{ .Values.api.paymentGateway | quote }} }
 - { name: SMS_PROVIDER, value: {{ .Values.api.smsProvider | quote }} }
+- { name: SMSIR_TEMPLATES, value: {{ .Values.api.smsir.templates | quote }} }
+- name: SMSIR_API_KEY
+  valueFrom: { secretKeyRef: { name: {{ .Values.secrets.sms }}, key: SMSIR_API_KEY, optional: true } }
 - { name: PUBLIC_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
 - { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }

@@ -248,40 +248,66 @@ func TestAdminUsersAndGrants(t *testing.T) {
 type fakeSMS struct{ sent []string }
 
 func (f *fakeSMS) Name() string { return "fake" }
-func (f *fakeSMS) Send(_ context.Context, to, body string) (int, error) {
-	f.sent = append(f.sent, to+" "+body)
+func (f *fakeSMS) Send(_ context.Context, to string, m notify.Message) (int, error) {
+	f.sent = append(f.sent, to+" "+m.Template+" "+m.Body)
 	return 1200, nil
 }
 
 var _ notify.SMS = (*fakeSMS)(nil)
 
-func TestRenewalReminderOnce(t *testing.T) {
+func TestRenewalReminders(t *testing.T) {
 	e := setup(t)
-	e.call(http.MethodGet, "/v1/me", customer, nil)
-	if _, err := e.pool.Exec(t.Context(), `INSERT INTO app.site_settings (key, value) VALUES ('sms_templates',
-		'{"subscription_expiring":{"fa":"اشتراک {plan} شما {date} تمام است. {url}"}}')
-		ON CONFLICT (key) DO NOTHING`); err != nil {
-		t.Fatal(err)
+	for _, tok := range []string{"user", "silver", "gold"} {
+		e.call(http.MethodGet, "/v1/me", tok, nil) // account rows with their phones
 	}
-	// Ends in 2 days: due. Nothing queued after it.
-	if _, err := e.pool.Exec(t.Context(), `INSERT INTO app.subscriptions (user_id, plan_code, starts_at, ends_at)
-		VALUES ('00000000-0000-0000-0000-000000000001', 'gold', now() - interval '28 days', now() + interval '2 days')`); err != nil {
-		t.Fatal(err)
+	sub := func(user, ends string) {
+		t.Helper()
+		if _, err := e.pool.Exec(t.Context(), `INSERT INTO app.subscriptions (user_id, plan_code, starts_at, ends_at)
+			VALUES ($1, 'gold', now() - interval '25 days', now() + $2::interval)`, user, ends); err != nil {
+			t.Fatal(err)
+		}
 	}
+	sub("00000000-0000-0000-0000-000000000001", "6 days")   // the week reminder: «۶ روز دیگر»
+	sub("00000000-0000-0000-0000-000000000002", "60 hours") // bought late: only the 3-day reminder, «۳ روز دیگر»
+	sub("00000000-0000-0000-0000-000000000003", "-2 hours") // ended today
 	sms := &fakeSMS{}
 	n, err := e.billing.SendReminders(t.Context(), sms, "https://alanfelez.ir/plans")
-	if err != nil || n != 1 || !strings.Contains(sms.sent[0], "+989120000001") || !strings.Contains(sms.sent[0], "طلایی") {
+	if err != nil || n != 3 {
 		t.Fatalf("first run: %d %v %v", n, err, sms.sent)
+	}
+	all := strings.Join(sms.sent, "\n")
+	for _, want := range []string{
+		"+989120000001 subscription_expiring الان\u200cفلز: اشتراک طلایی شما ۶ روز دیگر",
+		"+989120000002 subscription_expiring الان\u200cفلز: اشتراک طلایی شما ۳ روز دیگر",
+		"+989120000003 subscription_ended الان\u200cفلز: اشتراک طلایی شما امروز به پایان رسید",
+	} {
+		if !strings.Contains(all, want) {
+			t.Fatalf("missing %q in:\n%s", want, all)
+		}
 	}
 	if n, _ := e.billing.SendReminders(t.Context(), sms, "https://alanfelez.ir/plans"); n != 0 {
 		t.Fatalf("second run sent %d, want 0", n)
 	}
+	// Two days later the first one is due for its 3-day reminder (same subscription, next stage).
+	if _, err := e.pool.Exec(t.Context(), `UPDATE app.subscriptions SET ends_at = now() + interval '50 hours' WHERE user_id = '00000000-0000-0000-0000-000000000001'`); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := e.billing.SendReminders(t.Context(), sms, "https://alanfelez.ir/plans"); n != 1 || !strings.Contains(sms.sent[3], "۳ روز دیگر") {
+		t.Fatalf("next stage: %d %v", n, sms.sent)
+	}
+	// A renewal queued after it: no more reminders for that plan.
+	if _, err := e.pool.Exec(t.Context(), `UPDATE app.subscriptions SET ends_at = now() + interval '20 hours' WHERE user_id = '00000000-0000-0000-0000-000000000001';
+		INSERT INTO app.subscriptions (user_id, plan_code, starts_at, ends_at) VALUES ('00000000-0000-0000-0000-000000000001', 'gold', now() + interval '20 hours', now() + interval '50 days')`); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := e.billing.SendReminders(t.Context(), sms, "https://alanfelez.ir/plans"); n != 0 {
+		t.Fatalf("renewed plan reminded: %v", sms.sent)
+	}
 	var cost int
-	_ = e.pool.QueryRow(t.Context(), `SELECT cost_rial FROM app.notifications`).Scan(&cost)
+	_ = e.pool.QueryRow(t.Context(), `SELECT cost_rial FROM app.notifications LIMIT 1`).Scan(&cost)
 	if cost != 1200 {
 		t.Fatalf("notification cost = %d", cost)
 	}
-
 }
 
 // A queued renewal can be refunded, and an upgrade can replace a queued lower plan (both used to hit the
