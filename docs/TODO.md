@@ -21,8 +21,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] Client: approve three sms.ir templates (reminder: PLAN DAYS DATE; ended: PLAN; price alert: PRODUCT PRICE
-      CHANGE) and send their ids → `api.smsProvider: smsir` + `api.smsir.templates` on staging, test, then production.
+- [ ] Client: check the four SMS on staging (reminder 491453, ended 892531, price alert 146260, price update 919549);
+      then `api.smsProvider: smsir` + the same `api.smsir.templates` for production.
 - [ ] Client: the phone number and address for the footer and the contact page, and the Instagram URL; entered in the
       admin's Settings (production), no code change.
 - [ ] Drop the unused IME offerings (`market.ime_offerings`, no longer shown since 2026-10-26)? Deleting data = owner's OK.
@@ -63,6 +63,9 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Gold price SMS (owner OK'd): the user picks a main metal (payment result page, account); «قیمت‌ها
+  به‌روزرسانی شد» per batch of domestic/IME changes (15 min quiet, ≤ 3/day, none 22–08) and an alert on ±10 % against
+  the previous day (once per product and day). The manual alerts UI is gone (their rows and API stay unused).
 - 2026-10-27 SMS from the API/worker through sms.ir (verify templates; same key as the OTP): renewal reminders 7, 3, 1 days
   before and on the day a plan ends (owner OK'd), price alerts as one template. Off until the template ids are set.
 - 2026-10-27 Admin «آمار بازدید»: daily unique visitors, signed-in users and page views (30 days), and the signed-in

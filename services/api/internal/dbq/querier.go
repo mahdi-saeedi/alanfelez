@@ -35,6 +35,8 @@ type Querier interface {
 	AlertCandidates(ctx context.Context) ([]AlertCandidatesRow, error)
 	// Price-alert SMS sent to a user since a time (the per-user daily cap).
 	AlertsSentSince(ctx context.Context, arg AlertsSentSinceParams) (int32, error)
+	// Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
+	BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMovesRow, error)
 	// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
 	CancelSubscription(ctx context.Context, id pgtype.UUID) error
 	// Which references of a new product or series exist (to answer 404 rather than 409).
@@ -85,12 +87,15 @@ type Querier interface {
 	GetSetting(ctx context.Context, key string) ([]byte, error)
 	GetSettings(ctx context.Context, keys []string) ([]GetSettingsRow, error)
 	GetSiteSetting(ctx context.Context, key string) ([]byte, error)
+	GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (GetSmsPrefsRow, error)
 	GetSourceBySlug(ctx context.Context, slug string) (GetSourceBySlugRow, error)
 	GetSubscriptionByOrder(ctx context.Context, orderID pgtype.UUID) (GetSubscriptionByOrderRow, error)
 	GetTicket(ctx context.Context, id pgtype.UUID) (GetTicketRow, error)
 	GetTicketForUpdate(ctx context.Context, id pgtype.UUID) (GetTicketForUpdateRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
 	ImeUpdatedAt(ctx context.Context, tradeDate pgtype.Date) (pgtype.Timestamptz, error)
+	// New metals start "announced up to now", so the first run never sends old changes.
+	InitPriceUpdateCursors(ctx context.Context) error
 	InsertAlert(ctx context.Context, arg InsertAlertParams) (InsertAlertRow, error)
 	InsertAuction(ctx context.Context, arg InsertAuctionParams) (pgtype.UUID, error)
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
@@ -166,7 +171,13 @@ type Querier interface {
 	LockUserBilling(ctx context.Context, userID pgtype.UUID) error
 	// armed = false after firing (above / below); triggered = true stamps last_triggered_at.
 	MarkAlert(ctx context.Context, arg MarkAlertParams) error
+	// Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
+	MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error)
+	// Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
+	MetalSmsSubscribers(ctx context.Context, metalID pgtype.Int2) ([]MetalSmsSubscribersRow, error)
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
+	// SMS of one template sent to a user since a time (daily caps).
+	NotificationsSentSince(ctx context.Context, arg NotificationsSentSinceParams) (int32, error)
 	// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
 	// (when there is none) the first one after it. No row = the series has no published price at all.
 	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
@@ -193,6 +204,7 @@ type Querier interface {
 	SetPaymentFailed(ctx context.Context, arg SetPaymentFailedParams) error
 	SetPaymentVerified(ctx context.Context, arg SetPaymentVerifiedParams) error
 	SetPointStatus(ctx context.Context, arg SetPointStatusParams) error
+	SetPriceUpdateCursor(ctx context.Context, arg SetPriceUpdateCursorParams) error
 	SetProductActive(ctx context.Context, arg SetProductActiveParams) (int64, error)
 	SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error)
 	// Also bumps last_message_at when a message was just added (touched = true).
@@ -211,6 +223,8 @@ type Querier interface {
 	// Optimistic lock: no row when someone saved a newer version in between.
 	UpdatePage(ctx context.Context, arg UpdatePageParams) (UpdatePageRow, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
+	// 0 rows: unknown metal slug.
+	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)

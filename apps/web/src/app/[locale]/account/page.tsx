@@ -6,14 +6,14 @@ import { getMe, getMyOrders, getMyTickets, type Order, type Ticket } from "@/lib
 import { keycloakAction, signInTo } from "@/lib/actions";
 import { TierBadge } from "@/components/Locked";
 import { TicketStatus } from "@/components/TicketStatus";
-import { AlertsSection } from "@/components/gold/AlertsSection";
-import { getMyAlerts } from "@/lib/gold";
-import { getEntitlements, getPrices } from "@/lib/prices";
+import { SmsSettingsForm } from "@/components/gold/SmsSettingsForm";
+import { getSmsSettings } from "@/lib/gold";
+import { getMetals } from "@/lib/content";
 import { createTicketAction, refundAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ ticket?: string; alert?: string }> };
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ ticket?: string; sms?: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: t("title"), robots: { index: false } };
 }
 
-/** Account (SCOPE §5 #15): profile, plan, billing history, support tickets. SMS price alerts (Gold). Saved calculations live on the calculator page. */
+/** Account (SCOPE §5 #15): profile, plan, billing history, support tickets. Gold price SMS settings. Saved calculations live on the calculator page. */
 export default async function AccountPage({ params, searchParams }: Params) {
   const { locale } = await params;
-  const { ticket: ticketError, alert: alertError } = await searchParams;
+  const { ticket: ticketError, sms: smsStatus } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations();
   const here = `${locale === "en" ? "/en" : ""}/account`;
@@ -39,16 +39,7 @@ export default async function AccountPage({ params, searchParams }: Params) {
       </section>
     );
   }
-  const ent = await getEntitlements();
-  const alertsAllowed = ent?.features["alerts.sms"] === true;
-  // The alert form lists what the caller can see (Gold: every series). Fetching it only for Gold keeps the
-  // refund rule honest: nobody below Gold "uses" paid prices by opening their account page.
-  const [orders, tickets, alerts, series] = await Promise.all([
-    getMyOrders(),
-    getMyTickets(),
-    getMyAlerts(locale),
-    alertsAllowed ? getPrices(locale) : null,
-  ]);
+  const [orders, tickets, sms, metals] = await Promise.all([getMyOrders(), getMyTickets(), getSmsSettings(), getMetals(locale)]);
   const name = [me.firstName, me.lastName].filter(Boolean).join(" ");
   const toman = (rial: string) => `${formatNumber(BigInt(rial) / 10n, locale)} ${locale === "fa" ? "تومان" : "Toman"}`;
 
@@ -130,7 +121,7 @@ export default async function AccountPage({ params, searchParams }: Params) {
         )}
       </section>
 
-      <AlertsSection alerts={alerts.items} max={alerts.max} series={series?.items ?? []} allowed={alertsAllowed} locale={locale} error={alertError} />
+      <SmsSettingsForm settings={sms} metals={metals} locale={locale} back="/account" status={smsStatus} />
 
       <Tickets tickets={tickets} locale={locale} t={t} invalid={ticketError === "invalid"} />
     </div>

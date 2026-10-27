@@ -336,3 +336,65 @@ func isNotNullViolation(err error) bool {
 	var pg interface{ SQLState() string }
 	return errors.As(err, &pg) && pg.SQLState() == "23502"
 }
+
+// --- price SMS settings (Gold, client 2026-10-27) -------------------------------------
+
+// GetMySmsSettings returns the user's main metal for the automatic price SMS (internal/alerts.Auto).
+func (s *Server) GetMySmsSettings(ctx context.Context, _ GetMySmsSettingsRequestObject) (GetMySmsSettingsResponseObject, error) {
+	p := auth.FromContext(ctx)
+	if p == nil {
+		return fail[GetMySmsSettingsdefaultApplicationProblemPlusJSONResponse](unauthenticated(ctx)), nil
+	}
+	out, err := s.smsSettings(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	return GetMySmsSettings200JSONResponse(out), nil
+}
+
+// SetMySmsSettings chooses the main metal and turns the price SMS on or off (Gold).
+func (s *Server) SetMySmsSettings(ctx context.Context, req SetMySmsSettingsRequestObject) (SetMySmsSettingsResponseObject, error) {
+	p := auth.FromContext(ctx)
+	if p == nil {
+		return fail[SetMySmsSettingsdefaultApplicationProblemPlusJSONResponse](unauthenticated(ctx)), nil
+	}
+	cur, err := s.tiers.Tier(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	if !access.Allowed(cur.Tier, access.AlertsSMS) {
+		return fail[SetMySmsSettingsdefaultApplicationProblemPlusJSONResponse](lockedProblem(ctx, access.AlertsSMS)), nil
+	}
+	if _, err := s.touchUser(ctx, p); err != nil { // the prefs row needs the account row
+		return nil, err
+	}
+	n, err := s.q.UpsertSmsPrefs(ctx, dbq.UpsertSmsPrefsParams{UserID: p.ID, MetalSlug: req.Body.Metal, Enabled: req.Body.Enabled})
+	if err != nil {
+		return nil, fmt.Errorf("save sms settings: %w", err)
+	}
+	if n == 0 {
+		return fail[SetMySmsSettingsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "unknown metal")), nil
+	}
+	out, err := s.smsSettings(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	return SetMySmsSettings200JSONResponse(out), nil
+}
+
+func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSettings, error) {
+	cur, err := s.tiers.Tier(ctx, p)
+	if err != nil {
+		return SmsSettings{}, err //nolint:wrapcheck // tier lookups say what failed
+	}
+	out := SmsSettings{Allowed: access.Allowed(cur.Tier, access.AlertsSMS), Enabled: true}
+	row, err := s.q.GetSmsPrefs(ctx, p.ID)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+	case err != nil:
+		return SmsSettings{}, fmt.Errorf("sms settings: %w", err)
+	default:
+		out.Metal, out.Enabled = textp(row.MetalSlug), row.Enabled
+	}
+	return out, nil
+}

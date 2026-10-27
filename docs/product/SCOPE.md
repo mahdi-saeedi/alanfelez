@@ -98,7 +98,7 @@ field) and SMS alerts for sharp moves.
 | Daily auctions / IME offerings | ✗ (teaser) | ✗ | ✓ |
 | Price calculator | ✗ (locked preview) | ✗ | ✓ |
 | SMS + price alerts (included in Gold, #19) | ✗ | ✗ | ✓ |
-| Daily SMS with the price of the user's product (not built yet) | ✗ | ✗ | ✓ |
+| SMS about the user's main metal: «prices updated» per batch (15 min after the last change, ≤ 3/day, none 22–08) and ±10 % day moves; domestic and IME prices only (2026-10-27). Manual alerts removed | ✗ | ✗ | ✓ |
 | Support | ticket | ticket | ticket (priority) |
 
 This lives in `services/api/internal/access` as config (exposed to the UIs via `/v1/me/entitlements`), so when the client corrects it, one file changes.

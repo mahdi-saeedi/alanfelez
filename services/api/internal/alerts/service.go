@@ -223,7 +223,7 @@ func (s *Service) overBudget(ctx context.Context, q *dbq.Queries, since time.Tim
 
 type localized = map[string]map[string]string
 
-func templates(ctx context.Context, q *dbq.Queries) (localized, error) {
+func templatesRaw(ctx context.Context, q *dbq.Queries) (localized, error) {
 	raw, err := q.GetSiteSetting(ctx, "sms_templates")
 	if err != nil {
 		return nil, fmt.Errorf("alerts: site setting sms_templates: %w", err)
@@ -231,6 +231,14 @@ func templates(ctx context.Context, q *dbq.Queries) (localized, error) {
 	var t localized
 	if err := json.Unmarshal(raw, &t); err != nil {
 		return nil, fmt.Errorf("alerts: site setting sms_templates: %w", err)
+	}
+	return t, nil
+}
+
+func templates(ctx context.Context, q *dbq.Queries) (localized, error) {
+	t, err := templatesRaw(ctx, q)
+	if err != nil {
+		return nil, err
 	}
 	for _, k := range []string{"price_alert_above", "price_alert_below", "price_alert_move"} {
 		if t[k]["fa"] == "" {
