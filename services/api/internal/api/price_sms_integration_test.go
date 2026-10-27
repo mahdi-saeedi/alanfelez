@@ -56,26 +56,32 @@ func TestGoldPriceSMS(t *testing.T) {
 		t.Fatal("sent during the night pause")
 	}
 
-	// Staff change two copper prices (one of them +12 % against yesterday) and the global copper price.
+	// Staff move one copper price +12 % against yesterday and change the global copper price: the move alert goes out,
+	// and no "prices updated" for the same change (the global price never counts).
 	src, _ := dbq.New(e.pool).GetSourceBySlug(t.Context(), "test")
 	now := time.Now().UTC().Truncate(time.Second)
 	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{
 		{Series: "copper-red-free", ObservedAt: now, Price: 7_168_000},
-		{Series: "copper-cable-free", ObservedAt: now, Price: 7_150_000},
 		{Series: "copper-lme", ObservedAt: now, Price: 1_200_000},
 	}, prices.IngestOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	n, err := svc.AutoAt(t.Context(), noon(1))
-	if err != nil || n != 2 {
+	all := strings.Join(sms.sent, "\n")
+	if err != nil || n != 1 || !strings.Contains(all, "+989120000003 price_alert") || !strings.Contains(all, "+۱۲٫۰۰٪") || strings.Contains(all, "+989120000002") {
+		t.Fatalf("move alert to Gold only, no update SMS: %d %v %s", n, err, all)
+	}
+
+	// Another copper product changes: "prices updated" counts only it.
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-cable-free", ObservedAt: now, Price: 7_150_000}}, prices.IngestOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if n, err = svc.AutoAt(t.Context(), noon(1)); err != nil || n != 1 {
 		t.Fatalf("batch: %d %v %v", n, err, sms.sent)
 	}
-	all := strings.Join(sms.sent, "\n")
-	if !strings.Contains(all, "+989120000003 price_update") || !strings.Contains(all, "فلز: مس") || !strings.Contains(all, "تعداد محصولات: ۲") {
-		t.Fatalf("update SMS (2 domestic products, not the global one): %s", all)
-	}
-	if !strings.Contains(all, "+989120000003 price_alert") || !strings.Contains(all, "+۱۲٫۰۰٪") || strings.Contains(all, "+989120000002") {
-		t.Fatalf("move alert to Gold only: %s", all)
+	all = strings.Join(sms.sent, "\n")
+	if !strings.Contains(all, "+989120000003 price_update") || !strings.Contains(all, "فلز: مس") || !strings.Contains(all, "تعداد محصولات: ۱") {
+		t.Fatalf("update SMS (1 product, not the one already alerted): %s", all)
 	}
 	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {
 		t.Fatalf("second run sent %d", n)
@@ -97,7 +103,7 @@ func TestGoldPriceSMS(t *testing.T) {
 	_, body, raw := e.call(http.MethodGet, "/v1/admin/notifications", "support", nil)
 	items := body["items"].([]any)
 	first := items[len(items)-1].(map[string]any)
-	if len(items) != len(sms.sent) || first["template"] != "price_update" || first["user"] != "Gol Test" || first["status"] != "sent" {
+	if len(items) != len(sms.sent) || first["template"] != "price_move" || first["user"] != "Gol Test" || first["status"] != "sent" {
 		t.Fatalf("SMS log: %s", raw)
 	}
 	if _, body, _ := e.call(http.MethodGet, "/v1/admin/notifications?status=failed", "support", nil); len(body["items"].([]any)) != 0 {

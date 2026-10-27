@@ -206,7 +206,9 @@
     "lockedRows": "{count, plural, one {# more row} other {# more rows}} (every product, domestic and global markets) with the {plan} plan",
     "info": "Prices are for information only.",
     "live": "Live",
-    "reconnecting": "Reconnecting…"
+    "reconnecting": "Reconnecting…",
+    "metalTitle": "{metal} price today",
+    "metalSubtitle": "Today's {metal} prices in Iran's markets, on the IME and worldwide, with the source and the time of the last update."
   },
   "chart": {
     "title": "Metal price chart",
@@ -619,7 +621,7 @@
     "enabled": "Send me price SMS",
     "rule": {
       "update": "Each time the day and IME prices of this metal are updated, one “prices updated” SMS (at most 3 a day).",
-      "move": "If a product of this metal moves 10% or more against the day before, up or down, an alert with the new price.",
+      "move": "If a product of this metal moves 10% or more against the day before, up or down, an alert with the new price — right away; that change isn't repeated in the \"prices updated\" SMS.",
       "night": "Nothing is sent from 22:00 to 08:00; overnight changes are announced in the morning."
     },
     "save": "Save",
