@@ -18,7 +18,7 @@ export async function LatestAuctions({ locale }: { locale: Locale }) {
         </div>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {list.items.map((a) => (
-            <li key={a.id}><AuctionCard a={a} locale={locale} locked={list.locked} /></li>
+            <li key={a.id}><AuctionCard a={a} locale={locale} locked={list.locked} compact /></li>
           ))}
         </ul>
       </div>

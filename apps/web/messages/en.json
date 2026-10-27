@@ -529,7 +529,9 @@
     "next": "Next page",
     "info": "For information only. Alan Felez doesn't run these auctions; check each auction's terms and deadline in the organiser's notice.",
     "latestTitle": "Latest auctions",
-    "latestAll": "All auctions →"
+    "latestAll": "All auctions →",
+    "upgrade": "Upgrade to see the details",
+    "details": "See the details"
   },
   "calculator": {
     "title": "Load value calculator",
