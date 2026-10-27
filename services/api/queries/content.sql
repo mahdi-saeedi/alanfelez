@@ -168,3 +168,12 @@ SELECT key, value FROM app.site_settings WHERE key = ANY (sqlc.arg(keys)::text[]
 -- name: PutSetting :exec
 INSERT INTO app.site_settings (key, value) VALUES ($1, $2)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+-- name: ListFlags :many
+SELECT key, enabled, updated_at FROM app.feature_flags WHERE key = ANY (sqlc.arg(keys)::text[]) ORDER BY key;
+
+-- name: SetFlag :one
+-- Upsert: a flag missing from an environment's seed is created on first switch.
+INSERT INTO app.feature_flags (key, enabled) VALUES ($1, $2)
+ON CONFLICT (key) DO UPDATE SET enabled = EXCLUDED.enabled
+RETURNING key, enabled, updated_at;

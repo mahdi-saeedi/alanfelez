@@ -45,6 +45,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: "openTicke
     group: "nav.group.settings",
     items: [
       { to: "/settings", key: "nav.settings" },
+      { to: "/flags", key: "nav.flags" },
       { to: "/markets", key: "nav.markets" },
       { to: "/plans", key: "nav.plans" },
     ],

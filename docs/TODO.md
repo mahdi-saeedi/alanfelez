@@ -4,32 +4,26 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-26 («ورود» opens the password page)
+Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature flags)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
-- [ ] Gold: **daily SMS with the price of the user's own product** (the client's plan table, 2026-10-26). Needs the
-      sign-up form's product answers in `app.users` (the item below), then a daily River job and an opt-out.
-- [ ] Show the sign-up answers (activity, metals, province) in the admin users list (token mappers → `app.users` →
-      API → admin).
-- [ ] Admin screen for **feature flags** (payments, English site, licences page are DB-only today; needed before launch).
-- [ ] **Limit on simultaneous devices** for paid accounts (SECURITY §5, the last open security item).
 - [ ] SEO: Lighthouse check (icons and the share image are done).
 - [ ] Windows without Ubuntu: `.gitattributes` (LF line endings) and test the setup on a real Windows machine.
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Sign-up answers in the admin users list** (activity, metals, province; client asked 2026-10-27): Keycloak token
+      mappers for the three attributes → `app.users` → API → admin. Keycloak change = owner's OK (asked 2026-10-27).
+- [ ] **Limit on simultaneous devices** (SECURITY §5; client asked 2026-10-27). Proposed: 2 per account, the oldest is
+      signed out, Keycloak's «User Session Count Limiter» (all accounts; paid-only needs a Java extension). Owner's OK.
 - [ ] Client: check the four SMS on staging (reminder 491453, ended 892531, price alert 146260, price update 919549);
       then `api.smsProvider: smsir` + the same `api.smsir.templates` for production.
 - [ ] Client: the phone number and address for the footer and the contact page, and the Instagram URL; entered in the
       admin's Settings (production), no code change.
 - [ ] Drop the unused IME offerings (`market.ime_offerings`, no longer shown since 2026-10-26)? Deleting data = owner's OK.
-- [ ] **New plan table from the client (2026-10-26, image in the chat):** free = global prices + global chart + IME prices;
-  silver adds domestic product prices and their charts/history; gold adds auctions, analysis/forecast, calculator,
-  daily SMS of the user's specialty product price (new) and SMS alerts on sharp moves. Discounts: 3 months −5 %,
-  1 year −15 % (today −10 % / −20 %). Tier matrix + prices = owner's OK; the daily specialty SMS needs the sign-up form.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
@@ -63,6 +57,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Admin «قابلیت‌ها» (feature flags): payments, English site, licences page; admin only, audited. Payments
+  can't be switched on while the test gateway is in use.
 - 2026-10-27 Gold price SMS (owner OK'd): the user picks a main metal (payment result page, account); «قیمت‌ها
   به‌روزرسانی شد» per batch of domestic/IME changes (15 min quiet, ≤ 3/day, none 22–08) and an alert on ±10 % against
   the previous day (once per product and day). The manual alerts UI is gone (their rows and API stay unused).

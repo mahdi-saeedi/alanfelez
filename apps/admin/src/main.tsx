@@ -23,6 +23,7 @@ import { ArticleCategoriesPage } from "./pages/Categories";
 import { FaqPage } from "./pages/Faq";
 import { PagesPage, PageEditPage } from "./pages/Pages";
 import { SettingsPage } from "./pages/Settings";
+import { FlagsPage } from "./pages/Flags";
 import { AuctionsPage } from "./pages/Auctions";
 import { ContactMessagesPage, TicketsPage, TicketPage } from "./pages/Support";
 import { LoginPage, CallbackPage, DeniedPage } from "./pages/AuthPages";
@@ -75,6 +76,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/support/tickets/:id" element={<TicketPage />} />
             <Route path="/support/messages" element={<ContactMessagesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/flags" element={<FlagsPage />} />
             <Route path="/auctions" element={<AuctionsPage />} />
             <Route path="/metals" element={<CatalogPage />} />
             <Route path="/catalog" element={<CatalogPage />} />

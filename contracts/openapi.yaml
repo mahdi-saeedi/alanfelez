@@ -405,6 +405,51 @@ paths:
         '503': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/flags:
+    get:
+      operationId: adminListFlags
+      tags: [admin]
+      summary: The feature flags staff may switch (payments, English site, licences page)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Flags
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminFlag' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/flags/{key}:
+    put:
+      operationId: adminSetFlag
+      tags: [admin]
+      summary: Switch a feature flag on or off. Role, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string, maxLength: 64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminFlag' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/visits:
     get:
       operationId: adminVisits
@@ -2588,6 +2633,17 @@ components:
     ContactStatus:
       type: string
       enum: [new, handled, spam]
+
+    AdminFlag:
+      type: object
+      required: [key, enabled, locked]
+      properties:
+        key: { type: string }
+        enabled: { type: boolean }
+        locked:
+          type: boolean
+          description: True when it can't be switched on here now (payments while the test gateway is in use)
+        updatedAt: { type: string, format: date-time }
 
     AdminVisits:
       type: object

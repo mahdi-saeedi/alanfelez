@@ -143,7 +143,7 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	}
 	bill := billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: cfg.PaymentCallbackURL(), Log: log})
 	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill,
-		api.WithLimiter(ratelimit.NewRedis(rdb)), api.WithLogger(log))
+		api.WithLimiter(ratelimit.NewRedis(rdb)), api.WithLogger(log), api.WithGateway(gw.Name()))
 	if mockGW != nil {
 		mockGW.Routes(router) // the fake gateway page (never in production: config refuses it)
 		log.Warn("payments use the MOCK gateway (no real money)", "page", cfg.PublicURL+mock.PathPrefix)
