@@ -21,6 +21,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] Client: the phone number and address for the footer and the contact page, and the Instagram URL; entered in the
+      admin's Settings (production), no code change.
 - [ ] Drop the unused IME offerings (`market.ime_offerings`, no longer shown since 2026-10-26)? Deleting data = owner's OK.
 - [ ] **New plan table from the client (2026-10-26, image in the chat):** free = global prices + global chart + IME prices;
   silver adds domestic product prices and their charts/history; gold adds auctions, analysis/forecast, calculator,
@@ -59,6 +61,9 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Footer in four columns: about + social icons, quick links, company links, contact (phone, e-mail, address,
+  hours from the admin's Settings, each only when set; the contact form always), the eNamad seal; bottom bar with the
+  Jalali year (automatic), terms, privacy and «صرفاً جهت اطلاع». Released v0.12.0 before it (metal auctions, closing CTA).
 - 2026-10-26 Home: closing call to action «بازار را قبل از معامله بشناسید» after the latest auctions (sign-up / plans).
 - 2026-10-26 Metal auctions («مزایدات», SCOPE §7) replace the IME offerings page: admin CRUD with status and a PDF notice
   (in Postgres, ADR-0027), site page with filters, Gold-only deadline/place/organiser/details/PDF, home «تازه‌ترین مزایدات».

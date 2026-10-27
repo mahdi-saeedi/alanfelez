@@ -141,7 +141,7 @@
     "notIncluded": "Not included"
   },
   "footer": {
-    "rights": "© 2026 Alan Felez — All rights reserved",
+    "rights": "© {year} Alan Felez. All rights reserved.",
     "enamad": "eNamad trust seal",
     "social": {
       "telegram": "Telegram",
@@ -149,7 +149,19 @@
       "linkedin": "LinkedIn",
       "bale": "Bale",
       "eitaa": "Eitaa"
-    }
+    },
+    "about": "Alan Felez brings the prices, charts, analysis and auctions of Iran's and the world's metals markets together in one place, with their sources, so you can trade with better information.",
+    "socialTitle": "Alan Felez on social media",
+    "quick": "Quick links",
+    "company": "Alan Felez",
+    "contactTitle": "Contact us",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "hours": "Hours",
+    "contactForm": "Contact form",
+    "disclaimer": "Prices and analysis are for information only and are not advice to buy or sell.",
+    "legal": "Terms and privacy"
   },
   "error": {
     "apiDown": "We can't load data right now. Please try again shortly.",
