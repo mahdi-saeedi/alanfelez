@@ -38,4 +38,4 @@ keycloak:
   otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}
 ingress:
   redirectHosts: [www.alanfelez.ir, alanfelez.com, www.alanfelez.com] # 301 → https://alanfelez.ir
-  basicAuth: {enabled: true, hosts: [admin]} # the website is public; the admin keeps a shared password
+  basicAuth: {enabled: false} # removed 2026-10-27 (owner): staff sign-in alone protects the admin

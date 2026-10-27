@@ -61,6 +61,8 @@ Last updated: 2026-10-26 («ورود» opens the password page)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 admin.alanfelez.ir no longer asks for the shared password; staff sign-in protects it. At launch: TOTP for
+  every staff account (or an IP allowlist for the admin).
 - 2026-10-27 Content review (client): terms gain subscription/renewal/refund rules and lose the marketplace leftovers,
   brand «الان‌فلز»; privacy covers the sign-up form, password login and the visitor count; about and FAQ follow the plan
   table and the metal auctions; new FAQ «بازگشت وجه». Migration 00011 (old text kept as page revisions).

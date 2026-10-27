@@ -151,7 +151,7 @@ with `deploy/server/bootstrap.sh` (REBUILD.md).
 |---|---|---|
 | Server | `188.121.120.201`, 4 CPU / 12 GB | `37.32.39.49`, 4 CPU / 8 GB (2 CPU / 4 GB was too small: k3s crash-looped) |
 | Names | `alanfelez.ir` + `api.`/`auth.`/`admin.`; `www.alanfelez.ir`, `alanfelez.com`, `www.alanfelez.com` → 301 | `staging.alanfelez.ir` + `api.`/`auth.`/`admin.staging` |
-| Shared password | admin panel only | none (pages are noindex) |
+| Shared password | none (removed 2026-10-27; staff sign-in protects the admin) | none (pages are noindex) |
 | Mode | test mode until launch (LAUNCH.md §3) | test mode (demo data, mock gateway) |
 | Updates | Publish to production (publish workflow) | every merge to `main` |
 
