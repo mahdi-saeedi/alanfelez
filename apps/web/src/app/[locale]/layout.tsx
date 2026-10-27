@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BottomTabs } from "@/components/MobileNav";
+import { VisitBeacon } from "@/components/VisitBeacon";
 import { LivePricesProvider } from "@/components/prices/LivePrices";
 import { PriceTicker } from "@/components/prices/PriceTicker";
 import { getBasePrices } from "@/lib/prices";
@@ -62,6 +63,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
             <main id="main" className="flex-1">{children}</main>
             <Footer />
             <BottomTabs />
+            <VisitBeacon />
           </LivePricesProvider>
         </NextIntlClientProvider>
       </body>

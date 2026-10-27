@@ -86,6 +86,15 @@ type AppContactMessage struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
+type AppDailyVisit struct {
+	Day       pgtype.Date
+	Visitor   string
+	UserID    pgtype.UUID
+	FirstAt   pgtype.Timestamptz
+	LastAt    pgtype.Timestamptz
+	Pageviews int32
+}
+
 type AppEntitlementUsage struct {
 	SubscriptionID pgtype.UUID
 	Feature        string
@@ -314,6 +323,12 @@ type AppUser struct {
 	CreatedAt  pgtype.Timestamptz
 	LastSeenAt pgtype.Timestamptz
 	UpdatedAt  pgtype.Timestamptz
+}
+
+type AppVisitSalt struct {
+	Day       pgtype.Date
+	Salt      pgtype.UUID
+	CreatedAt pgtype.Timestamptz
 }
 
 type MarketAuction struct {

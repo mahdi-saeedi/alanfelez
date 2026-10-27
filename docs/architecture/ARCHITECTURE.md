@@ -66,7 +66,7 @@
 | CI/CD | **GitHub Actions** (see §6). The deploy step goes over SSH, or a self-hosted runner on the Arvan server |
 | Observability | OpenTelemetry → **Prometheus / Grafana / Loki / Tempo** + **GlitchTip** errors + Uptime Kuma (ADR-0015, [OPERATIONS.md](../guides/OPERATIONS.md)) |
 | Feature flags | DB-backed, admin-editable, evaluated in Go (ADR-0016) |
-| Analytics | Self-hosted **Umami**, cookieless, + web-vitals RUM (ADR-0017) |
+| Analytics | Built-in cookieless daily visitor count (admin «آمار بازدید», 2026-10-27; replaces the Umami plan of ADR-0017 for now) |
 | Tooling | **mise** (pinned Go/Node/pnpm/Task), **Taskfile**, **lefthook**, Renovate, release-please (ADR-0018, [CONTRIBUTING.md](../../CONTRIBUTING.md)) |
 
 ## 3. Repository layout (polyglot monorepo)

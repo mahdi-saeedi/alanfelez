@@ -21,6 +21,8 @@ tags:
     description: CMS content (articles, FAQ, pages, site settings). Analysis and forecast bodies depend on the caller's tier
   - name: support
     description: Contact form and user tickets (SCOPE §12)
+  - name: site
+    description: Site-wide services (cookieless visitor count)
   - name: gold
     description: Gold features (SCOPE §7, §8, #19) — IME daily offerings, load calculator, SMS price alerts
   - name: admin
@@ -401,6 +403,22 @@ paths:
         '400': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
         '503': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/visits:
+    get:
+      operationId: adminVisits
+      tags: [admin]
+      summary: Daily visitor stats (last 30 days) and the signed-in visitors of one day (default today, Tehran)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: day, in: query, required: false, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Stats
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminVisits' }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/users:
@@ -995,6 +1013,27 @@ paths:
         default: { $ref: '#/components/responses/Problem' }
 
   # --- support (M4) --------------------------------------------------------------
+
+  /v1/visits:
+    post:
+      operationId: recordVisit
+      tags: [site]
+      summary: Count a page view for the daily visitor stats (sent by the website; cookieless, robots ignored)
+      description: >
+        Signed-in callers are counted by their user id; anonymous ones by a one-way id of the day's salt, IP and
+        user agent (the IP isn't stored). Always 204.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [path]
+              properties:
+                path: { type: string, maxLength: 300 }
+      responses:
+        '204': { description: Counted (or ignored) }
+        default: { $ref: '#/components/responses/Problem' }
 
   /v1/contact:
     post:
@@ -2513,6 +2552,37 @@ components:
     ContactStatus:
       type: string
       enum: [new, handled, spam]
+
+    AdminVisits:
+      type: object
+      required: [day, days, users]
+      properties:
+        day: { type: string, format: date, description: The day the users list is for }
+        days:
+          type: array
+          description: The last 30 days with visits, newest first
+          items:
+            type: object
+            required: [day, visitors, signedIn, pageviews]
+            properties:
+              day: { type: string, format: date }
+              visitors: { type: integer, description: Unique visitors (signed in or not) }
+              signedIn: { type: integer, description: Unique signed-in visitors }
+              pageviews: { type: integer }
+        users:
+          type: array
+          description: The day's signed-in visitors, most recent first
+          items:
+            type: object
+            required: [userId, firstAt, lastAt, pageviews, plan]
+            properties:
+              userId: { type: string, format: uuid }
+              name: { type: string, description: Name or company (sign-up form) }
+              phone: { type: string }
+              plan: { $ref: '#/components/schemas/Tier' }
+              firstAt: { type: string, format: date-time }
+              lastAt: { type: string, format: date-time }
+              pageviews: { type: integer }
 
     ContactInput:
       type: object

@@ -17,6 +17,7 @@ import { SourcesPage } from "./pages/Sources";
 import { SubscriptionsPage } from "./pages/Subscriptions";
 import { OrdersPage } from "./pages/Orders";
 import { UsersPage } from "./pages/Users";
+import { VisitsPage } from "./pages/Visits";
 import { ArticlesPage, ArticleEditPage } from "./pages/Articles";
 import { ArticleCategoriesPage } from "./pages/Categories";
 import { FaqPage } from "./pages/Faq";
@@ -63,6 +64,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/visits" element={<VisitsPage />} />
             <Route path="/content/articles" element={<ArticlesPage />} />
             <Route path="/content/articles/:id" element={<ArticleEditPage />} />
             <Route path="/content/categories" element={<ArticleCategoriesPage />} />

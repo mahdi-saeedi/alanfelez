@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetLocale, useTranslate } from "@refinedev/core";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
 import { api, unwrap } from "../api";
 import { Badge, Card, Input, Page, Td, Th } from "./ui";
@@ -10,7 +10,8 @@ import { Badge, Card, Input, Page, Td, Th } from "./ui";
 export function UsersPage() {
   const t = useTranslate();
   const locale = useGetLocale()() as Locale;
-  const [q, setQ] = useState("");
+  const [params] = useSearchParams();
+  const [q, setQ] = useState(params.get("q") ?? ""); // ?q= from the visitor stats
   const list = useQuery({
     queryKey: ["admin", "users", q],
     queryFn: async () => unwrap(await api.GET("/v1/admin/users", { params: { query: q ? { q } : {} } })).items,
