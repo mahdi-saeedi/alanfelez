@@ -10,6 +10,8 @@ import { JsonLd } from "@/components/JsonLd";
 import { PlanCards } from "@/components/PlanCards";
 import { WhyAlanFelez } from "@/components/WhyAlanFelez";
 import { LatestAuctions } from "@/components/auctions/LatestAuctions";
+import { LatestInsights } from "@/components/content/LatestInsights";
+import { getMetals } from "@/lib/content";
 import { FinalCta } from "@/components/FinalCta";
 import { api } from "@/lib/api";
 import { getMe } from "@/lib/account";
@@ -75,9 +77,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   ).filter((it) => it.points.length > 1);
 
   // Plans section after the global chart (client, 2026-10-26): the same cards as /plans.
-  const [plansRes, me] = await Promise.all([
+  const [plansRes, me, metals] = await Promise.all([
     api.GET("/v1/plans", { params: { header: { "Accept-Language": locale } }, next: { revalidate: 60 } }),
     getMe(),
+    getMetals(locale), // links to each metal's price page under the live prices (search engines follow them)
   ]);
   const plans = plansRes.data;
 
@@ -136,6 +139,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             <p className="mt-6 text-down">{t("error.apiDown")}</p>
           )}
           <p className="mt-4 text-xs text-text-3">{t("prices.info")}</p>
+          {metals.length > 0 && (
+            <nav aria-label={t("home.metalPages")} className="mt-4 flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-text-2">
+              {metals.map((m, i) => (
+                <span key={m.slug} className="flex items-center gap-1">
+                  {i > 0 && <span aria-hidden className="text-text-3">·</span>}
+                  <Link href={`/prices/${m.slug}`} className="hover:text-gold-dark hover:underline">{t("prices.metalTitle", { metal: m.name })}</Link>
+                </span>
+              ))}
+            </nav>
+          )}
         </div>
       </section>
 
@@ -167,6 +180,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
 
       <WhyAlanFelez locale={locale} signedIn={!!me} />
       <LatestAuctions locale={locale} />
+      <LatestInsights locale={locale} />
       <FinalCta locale={locale} signedIn={!!me} />
     </>
   );
