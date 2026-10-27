@@ -48,6 +48,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Four demo auctions in the `demo` seed (config/seed/demo/30-auctions.yaml, «(نمونه)» in the title) so the
+  home and /auctions show them on staging and test-mode production; the client deletes them in the admin.
 - 2026-10-27 Home: links «قیمت … امروز» to each metal's page under the live prices, and «تازه‌ترین تحلیل‌ها» (3 newest
   analyses/forecasts, same card as /analysis) after the auctions.
 - 2026-10-27 The client: `alanfelez.ir` had no email or website before the DNS move (alanfelez.com is ours too).

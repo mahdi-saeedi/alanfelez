@@ -1,0 +1,70 @@
+# Demo auctions for client demos on staging and on production while it's in test mode (client, 2026-10-27; they
+# delete them in the admin). Illustrative placeholders, not real auctions. A negative *_days_ago is in the future.
+version: 1
+datasets:
+  - name: auctions
+    rows:
+      - id: 00000000-0000-4000-a000-00000000a001
+        title_fa: "مزایده‌ی فروش ۵۰ تن ضایعات مس (نمونه)"
+        title_en: "Sale of 50 t of copper scrap (demo)"
+        metal: copper
+        category: scrap
+        quantity: 50
+        unit: ton
+        status: open
+        created_days_ago: 0.2
+        deadline_days_ago: -6
+        location_fa: "تهران، شهرک صنعتی عباس‌آباد"
+        location_en: "Tehran, Abbasabad industrial park"
+        organizer_fa: "شرکت نمونه‌ی صنایع مس"
+        organizer_en: "Demo Copper Industries"
+        details_fa: "ضایعات کابل و مفتول مس، قابل بازدید در روزهای کاری.\nسپرده‌ی شرکت: ۵٪ مبلغ پایه."
+        details_en: "Copper cable and wire scrap, open for viewing on working days.\nDeposit: 5% of the base price."
+      - id: 00000000-0000-4000-a000-00000000a002
+        title_fa: "مزایده‌ی فروش شمش آلومینیوم (نمونه)"
+        title_en: "Sale of aluminium ingots (demo)"
+        metal: aluminum
+        category: intermediate
+        quantity: 120
+        unit: ton
+        status: open
+        created_days_ago: 1
+        deadline_days_ago: -10
+        location_fa: "اراک"
+        location_en: "Arak"
+        organizer_fa: "شرکت نمونه‌ی آلومینیوم"
+        organizer_en: "Demo Aluminium Co."
+        details_fa: "شمش آلومینیوم با خلوص ۹۹٫۷٪ در بسته‌های یک‌تنی."
+        details_en: "99.7% aluminium ingots in one-ton bundles."
+      - id: 00000000-0000-4000-a000-00000000a003
+        title_fa: "مزایده‌ی فروش آهن‌آلات اسقاطی کارخانه (نمونه)"
+        title_en: "Sale of a factory's scrap iron (demo)"
+        metal: iron
+        category: scrap
+        quantity: 800
+        unit: ton
+        status: paused
+        created_days_ago: 2
+        deadline_days_ago: -3
+        location_fa: "اصفهان"
+        location_en: "Isfahan"
+        organizer_fa: "شرکت نمونه‌ی فولاد"
+        organizer_en: "Demo Steel Co."
+        details_fa: "آهن‌آلات اسقاطی خط تولید قدیمی؛ مزایده تا اطلاع بعدی متوقف شده است."
+        details_en: "Scrap iron from an old production line; the auction is paused until further notice."
+      - id: 00000000-0000-4000-a000-00000000a004
+        title_fa: "مزایده‌ی فروش کنسانتره‌ی روی (نمونه)"
+        title_en: "Sale of zinc concentrate (demo)"
+        metal: zinc
+        category: raw
+        quantity: 300
+        unit: ton
+        status: closed
+        created_days_ago: 6
+        deadline_days_ago: 1
+        location_fa: "زنجان"
+        location_en: "Zanjan"
+        organizer_fa: "شرکت نمونه‌ی معدنی روی"
+        organizer_en: "Demo Zinc Mining Co."
+        details_fa: "کنسانتره‌ی روی با عیار ۴۸٪."
+        details_en: "Zinc concentrate, 48% grade."
