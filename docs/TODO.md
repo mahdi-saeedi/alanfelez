@@ -53,6 +53,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Price SMS: a product whose ±10 % alert went out isn't counted again in «قیمت‌ها به‌روزرسانی شد»; no
+  other change = no second SMS (client chose option B). Released v0.14.0 (flags screen, Gold price SMS, SMS log, icons).
 - 2026-10-27 **Delete a user** from the admin users list (admin only, confirm, audited): Keycloak account and sessions
   deleted through the API's service account `alanfelez-api-admin` (manage-users + view-users only, created by the
   keycloak-profile job from the sealed `alanfelez-keycloak-api-admin`); personal details and the user's own data removed,
