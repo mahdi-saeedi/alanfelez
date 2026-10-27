@@ -27,8 +27,6 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] After the first production backup holds it: a migration that drops `archive.ime_offerings` (00015 moved it there).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
-- [ ] **Per-metal price pages** («قیمت مس امروز», good for Google): the client isn't sure yet (2026-10-25). Suggest it
-  again when they ask "what else can we do?".
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 - [ ] Ask the client whether `alanfelez.ir` had **email or a website** before the DNS move (records not copied are gone).
 
@@ -53,6 +51,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 A price page per metal for search engines: /prices/copper «قیمت مس امروز» (title, description, canonical,
+  breadcrumbs JSON-LD, in the sitemap); same look as /prices, whose metal tabs now link there (old ?metal= links redirect).
 - 2026-10-27 Price SMS: a product whose ±10 % alert went out isn't counted again in «قیمت‌ها به‌روزرسانی شد»; no
   other change = no second SMS (client chose option B). Released v0.14.0 (flags screen, Gold price SMS, SMS log, icons).
 - 2026-10-27 **Delete a user** from the admin users list (admin only, confirm, audited): Keycloak account and sessions

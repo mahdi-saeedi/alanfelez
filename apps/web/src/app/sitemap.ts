@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const PAGES = ["/", "/prices", "/chart", "/analysis", "/auctions", "/calculator", "/plans", "/faq", "/about", "/contact", "/terms", "/privacy"];
 
 /**
- * sitemap.xml (NFR SEO-2): every public page and published article, with the English alternate when the English
+ * sitemap.xml (NFR SEO-2): every public page, each metal's price page and published article, with the English alternate when the English
  * site is on. Locked analyses are listed too: their pages are public teasers (the body is never in the HTML).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -21,7 +21,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     articles.push(...(res?.items ?? []));
     if (!res || page * res.limit >= res.total) break;
   }
-  const paths = [...PAGES, ...(site?.licensesPage ? ["/licenses"] : [])];
+  const metals = await api.GET("/v1/metals", { next: { revalidate: 600 } }).then((r) => r.data?.items ?? [], () => []);
+  const paths = [...PAGES, ...metals.map((m) => `/prices/${m.slug}`), ...(site?.licensesPage ? ["/licenses"] : [])];
   const entry = (path: string, lastModified?: string): MetadataRoute.Sitemap[number] => {
     const clean = path === "/" ? "" : path;
     return {

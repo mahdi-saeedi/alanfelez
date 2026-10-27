@@ -206,7 +206,9 @@
     "lockedRows": "{count, plural, one {# more row} other {# more rows}} (every product, domestic and global markets) with the {plan} plan",
     "info": "Prices are for information only.",
     "live": "Live",
-    "reconnecting": "Reconnecting…"
+    "reconnecting": "Reconnecting…",
+    "metalTitle": "{metal} price today",
+    "metalSubtitle": "Today's {metal} prices in Iran's markets, on the IME and worldwide, with the source and the time of the last update."
   },
   "chart": {
     "title": "Metal price chart",
