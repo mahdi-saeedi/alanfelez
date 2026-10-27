@@ -13,10 +13,10 @@ global:
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "v0.14.0"}
-  web: {repository: web, tag: "v0.14.0"}
-  keycloak: {repository: keycloak, tag: "v0.14.0"}
-  admin: {repository: admin, tag: "v0.14.0"}
+  api: {repository: api, tag: "v0.15.0"}
+  web: {repository: web, tag: "v0.15.0"}
+  keycloak: {repository: keycloak, tag: "v0.15.0"}
+  admin: {repository: admin, tag: "v0.15.0"}
 api:
   replicas: 2
   seedProfiles: reference,demo # until launch; then: reference
