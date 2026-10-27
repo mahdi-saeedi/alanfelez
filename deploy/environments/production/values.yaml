@@ -22,7 +22,8 @@ api:
   seedProfiles: reference,demo # until launch; then: reference
   demoPrices: false # off since 2026-10-25 (owner OK): staff enter prices by hand in the admin (the demo history stays)
   paymentGateway: mock # until launch (F13); then the real gateway
-  smsProvider: console # until launch (F7); then the real provider
+  smsProvider: smsir # renewal reminders and Gold price SMS through sms.ir (client tested them on staging, owner OK, 2026-10-27)
+  smsir: {templates: "subscription_expiring=491453,subscription_ended=892531,price_alert=146260,price_update=919549"}
 web:
   replicas: 2
   autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 6, cpuPercent: 70}
