@@ -26,16 +26,17 @@ import (
 // Server implements the generated StrictServerInterface. Handlers stay thin:
 // parse → call a query/service → map to the API model.
 type Server struct {
-	pool    *pgxpool.Pool
-	q       dbq.Querier
-	prices  *prices.Service
-	billing *billing.Service
-	support *support.Service
-	limiter ratelimit.Limiter
-	log     *slog.Logger
-	tiers   *subscription.Resolver
-	now     func() time.Time
-	gateway string // payment gateway name (mock, none, …): the flags screen won't switch payments on without a real one
+	pool     *pgxpool.Pool
+	q        dbq.Querier
+	prices   *prices.Service
+	billing  *billing.Service
+	support  *support.Service
+	limiter  ratelimit.Limiter
+	log      *slog.Logger
+	tiers    *subscription.Resolver
+	now      func() time.Time
+	gateway  string   // payment gateway name (mock, none, …): the flags screen won't switch payments on without a real one
+	identity Identity // Keycloak Admin API for deleting users; nil = not set up here
 }
 
 // Option customises a Server.

@@ -77,7 +77,7 @@ erDiagram
   tickets ||--o{ ticket_messages : contains
   users ||--o{ notifications : receives
 
-  users { uuid id PK; text keycloak_sub UK; text phone_e164 UK; text first_name; text last_name; text email; text activity; text[] metals; text province; text locale; timestamptz blocked_at }
+  users { uuid id PK; text keycloak_sub UK; text phone_e164 UK; text first_name; text last_name; text email; text activity; text[] metals; text province; text locale; timestamptz blocked_at; timestamptz deleted_at }
   plans { text code PK "free|silver|gold"; text name_fa; text name_en; int rank; bool active }
   plan_prices { uuid id PK; text plan_code FK; text period "month|quarter|year"; bigint amount_rial; timestamptz valid_from; timestamptz valid_to }
   orders { uuid id PK; uuid user_id FK; uuid plan_price_id FK; bigint amount_rial; bigint credit_rial "proration"; text status; text idempotency_key UK }

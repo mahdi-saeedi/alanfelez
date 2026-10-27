@@ -47,6 +47,9 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 - { name: SMSIR_TEMPLATES, value: {{ .Values.api.smsir.templates | quote }} }
 - name: SMSIR_API_KEY
   valueFrom: { secretKeyRef: { name: {{ .Values.secrets.sms }}, key: SMSIR_API_KEY, optional: true } }
+- { name: KEYCLOAK_ADMIN_URL, value: "http://{{ .Release.Name }}-keycloak:8080" }
+- name: KEYCLOAK_ADMIN_CLIENT_SECRET
+  valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakApiAdmin }}, key: client-secret, optional: true } }
 - { name: PUBLIC_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
 - { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }

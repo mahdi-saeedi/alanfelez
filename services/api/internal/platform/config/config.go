@@ -40,9 +40,19 @@ type Config struct {
 	// PublicURL is the API as browsers reach it (the mock gateway page is served there).
 	PublicURL string `env:"PUBLIC_URL" envDefault:"http://localhost:8080"`
 	// WebURL is the public website (links in SMS, payment callback default).
-	WebURL      string `env:"WEB_URL" envDefault:"http://localhost:3000"`
-	SMSProvider string `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | smsir
-	SmsIr       SmsIr  `envPrefix:"SMSIR_"`
+	WebURL        string        `env:"WEB_URL" envDefault:"http://localhost:3000"`
+	SMSProvider   string        `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | smsir
+	SmsIr         SmsIr         `envPrefix:"SMSIR_"`
+	KeycloakAdmin KeycloakAdmin `envPrefix:"KEYCLOAK_ADMIN_"`
+}
+
+// KeycloakAdmin is the service account the API uses for Keycloak's Admin API (deleting users; internal/identity).
+// Without a secret the feature is off.
+type KeycloakAdmin struct {
+	URL          string `env:"URL" envDefault:"http://localhost:8081"` // Keycloak's base address (internal service in Kubernetes)
+	Realm        string `env:"REALM" envDefault:"alanfelez"`
+	ClientID     string `env:"CLIENT_ID" envDefault:"alanfelez-api-admin"`
+	ClientSecret string `env:"CLIENT_SECRET"` // secret alanfelez-keycloak-api-admin (client-secret)
 }
 
 // SmsIr configures the sms.ir sender (SMS_PROVIDER=smsir; internal/notify/smsir.go).

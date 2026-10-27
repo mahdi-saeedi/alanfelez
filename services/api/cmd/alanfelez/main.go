@@ -37,6 +37,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/api"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
+	"github.com/alanfelez/alanfelez/services/api/internal/identity"
 	"github.com/alanfelez/alanfelez/services/api/internal/jobs"
 	"github.com/alanfelez/alanfelez/services/api/internal/notify"
 	"github.com/alanfelez/alanfelez/services/api/internal/payment"
@@ -142,8 +143,14 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 		return err
 	}
 	bill := billing.NewService(billing.Config{Pool: pool, Gateway: gw, CallbackURL: cfg.PaymentCallbackURL(), Log: log})
-	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill,
-		api.WithLimiter(ratelimit.NewRedis(rdb)), api.WithLogger(log), api.WithGateway(gw.Name()))
+	opts := []api.Option{api.WithLimiter(ratelimit.NewRedis(rdb)), api.WithLogger(log), api.WithGateway(gw.Name())}
+	kc := cfg.KeycloakAdmin
+	if k := identity.NewKeycloak(kc.URL, kc.Realm, kc.ClientID, kc.ClientSecret); k != nil {
+		opts = append(opts, api.WithIdentity(k))
+	} else {
+		log.Info("user deletion is off: no KEYCLOAK_ADMIN_CLIENT_SECRET")
+	}
+	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill, opts...)
 	if mockGW != nil {
 		mockGW.Routes(router) // the fake gateway page (never in production: config refuses it)
 		log.Warn("payments use the MOCK gateway (no real money)", "page", cfg.PublicURL+mock.PathPrefix)

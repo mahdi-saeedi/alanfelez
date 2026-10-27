@@ -154,6 +154,22 @@ func (q *Queries) AdminListOrders(ctx context.Context, arg AdminListOrdersParams
 	return items, nil
 }
 
+const anonymizeUser = `-- name: AnonymizeUser :execrows
+UPDATE app.users u SET username = 'deleted', phone_e164 = NULL, first_name = NULL, last_name = NULL, email = NULL,
+  activity = NULL, metals = NULL, province = NULL, blocked_at = COALESCE(u.blocked_at, now()), deleted_at = now()
+WHERE u.id = $1 AND u.deleted_at IS NULL
+`
+
+// Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
+// profile (never used the API) or already deleted.
+func (q *Queries) AnonymizeUser(ctx context.Context, id pgtype.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, anonymizeUser, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const cancelSubscription = `-- name: CancelSubscription :exec
 UPDATE app.subscriptions SET status = 'cancelled',
   ends_at = CASE WHEN starts_at < now() THEN LEAST(ends_at, now()) ELSE ends_at END
@@ -218,6 +234,22 @@ func (q *Queries) DecideRefund(ctx context.Context, arg DecideRefundParams) erro
 		arg.Note,
 		arg.DecidedBy,
 	)
+	return err
+}
+
+const deleteUserPrivateData = `-- name: DeleteUserPrivateData :exec
+WITH prefs AS (DELETE FROM app.sms_prefs sp WHERE sp.user_id = $1),
+     alerts AS (DELETE FROM app.price_alerts pa WHERE pa.user_id = $1),
+     calcs AS (DELETE FROM app.calculations c WHERE c.user_id = $1),
+     sms AS (UPDATE app.notifications n SET recipient = '' WHERE n.user_id = $1)
+UPDATE app.contact_messages cm SET name = 'deleted', phone = '', email = NULL, ip = NULL, user_agent = NULL
+WHERE cm.user_id = $1
+`
+
+// What only the user had: SMS choice, price alerts, saved calculations; the SMS log keeps cost and status without the
+// number; contact-form messages they sent while signed in keep the text without name, number, email and address.
+func (q *Queries) DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserPrivateData, userID)
 	return err
 }
 
@@ -971,7 +1003,7 @@ func (q *Queries) ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) e
 
 const searchUsers = `-- name: SearchUsers :many
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
-       u.activity, u.metals, u.province,
+       u.activity, u.metals, u.province, u.deleted_at,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at
 FROM app.users u
 LEFT JOIN LATERAL (
@@ -1001,6 +1033,7 @@ type SearchUsersRow struct {
 	Activity      pgtype.Text
 	Metals        []string
 	Province      pgtype.Text
+	DeletedAt     pgtype.Timestamptz
 	CurrentPlan   string
 	CurrentEndsAt pgtype.Timestamptz
 }
@@ -1028,6 +1061,7 @@ func (q *Queries) SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow,
 			&i.Activity,
 			&i.Metals,
 			&i.Province,
+			&i.DeletedAt,
 			&i.CurrentPlan,
 			&i.CurrentEndsAt,
 		); err != nil {
@@ -1111,6 +1145,7 @@ ON CONFLICT (id) DO UPDATE SET
   first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email,
   activity = COALESCE(EXCLUDED.activity, app.users.activity), metals = COALESCE(EXCLUDED.metals, app.users.metals),
   province = COALESCE(EXCLUDED.province, app.users.province), last_seen_at = now()
+WHERE app.users.deleted_at IS NULL -- a deleted account's last token can't write its details back (no row returned)
 RETURNING id, username, phone_e164, first_name, last_name, email, locale, blocked_at, created_at
 `
 
@@ -1141,6 +1176,7 @@ type UpsertUserRow struct {
 // Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 // LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 // The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+// Returns no row for a deleted account.
 func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error) {
 	row := q.db.QueryRow(ctx, upsertUser,
 		arg.ID,
@@ -1166,4 +1202,15 @@ func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertU
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const userDeletedAt = `-- name: UserDeletedAt :one
+SELECT deleted_at FROM app.users WHERE id = $1
+`
+
+func (q *Queries) UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, userDeletedAt, id)
+	var deleted_at pgtype.Timestamptz
+	err := row.Scan(&deleted_at)
+	return deleted_at, err
 }

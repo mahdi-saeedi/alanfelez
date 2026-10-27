@@ -338,6 +338,7 @@ type AppUser struct {
 	Activity   pgtype.Text
 	Metals     []string
 	Province   pgtype.Text
+	DeletedAt  pgtype.Timestamptz
 }
 
 type AppVisitSalt struct {

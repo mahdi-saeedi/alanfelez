@@ -37,6 +37,9 @@ type Querier interface {
 	AlertCandidates(ctx context.Context) ([]AlertCandidatesRow, error)
 	// Price-alert SMS sent to a user since a time (the per-user daily cap).
 	AlertsSentSince(ctx context.Context, arg AlertsSentSinceParams) (int32, error)
+	// Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
+	// profile (never used the API) or already deleted.
+	AnonymizeUser(ctx context.Context, id pgtype.UUID) (int64, error)
 	// Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
 	BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMovesRow, error)
 	// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
@@ -66,6 +69,9 @@ type Querier interface {
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error)
+	// What only the user had: SMS choice, price alerts, saved calculations; the SMS log keeps cost and status without the
+	// number; contact-form messages they sent while signed in keep the text without name, number, email and address.
+	DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error
 	ExpirePendingOrders(ctx context.Context) (int64, error)
 	// Notifications ---------------------------------------------------------------------------------------------
 	// Paid or granted plans ending in the window with nothing queued after them, and a phone to remind.
@@ -232,7 +238,9 @@ type Querier interface {
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 	// The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+	// Returns no row for a deleted account.
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
+	UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
 	// The day's salt for anonymous visitor ids, made on first use.
 	VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error)
 	// Per day since from: unique visitors, signed-in visitors and page views.

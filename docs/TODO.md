@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-27 (sign-up answers in the admin, device limit, IME table archived, backups prepared)
+Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -53,6 +53,10 @@ Last updated: 2026-10-27 (sign-up answers in the admin, device limit, IME table 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 **Delete a user** from the admin users list (admin only, confirm, audited): Keycloak account and sessions
+  deleted through the API's service account `alanfelez-api-admin` (manage-users + view-users only, created by the
+  keycloak-profile job from the sealed `alanfelez-keycloak-api-admin`); personal details and the user's own data removed,
+  orders/payments/tickets kept without a name (00017). Staff and self refused.
 - 2026-10-27 Database backups on **staging**: ArvanCloud Object Storage bucket `alanfelez-backups` (owner), keys sealed
   with `seal-backup-keys.sh` for both clusters, WAL archiving + nightly backup on.
 - 2026-10-27 Sign-up answers (activity, metals, province) in the admin users list: web-client token mappers (added to running

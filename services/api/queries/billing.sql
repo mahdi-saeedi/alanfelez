@@ -3,6 +3,7 @@
 
 -- name: UpsertUser :one
 -- The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+-- Returns no row for a deleted account.
 INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, last_seen_at)
 VALUES (sqlc.arg(id), sqlc.arg(username), sqlc.narg(phone_e164), sqlc.narg(first_name), sqlc.narg(last_name), sqlc.narg(email),
         sqlc.narg(activity), sqlc.narg(metals)::text[], sqlc.narg(province), now())
@@ -11,6 +12,7 @@ ON CONFLICT (id) DO UPDATE SET
   first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email,
   activity = COALESCE(EXCLUDED.activity, app.users.activity), metals = COALESCE(EXCLUDED.metals, app.users.metals),
   province = COALESCE(EXCLUDED.province, app.users.province), last_seen_at = now()
+WHERE app.users.deleted_at IS NULL -- a deleted account's last token can't write its details back (no row returned)
 RETURNING id, username, phone_e164, first_name, last_name, email, locale, blocked_at, created_at;
 
 -- name: GetUser :one
@@ -19,7 +21,7 @@ SELECT id, username, phone_e164, first_name, last_name, email, locale, blocked_a
 -- name: SearchUsers :many
 -- Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
-       u.activity, u.metals, u.province,
+       u.activity, u.metals, u.province, u.deleted_at,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at
 FROM app.users u
 LEFT JOIN LATERAL (
@@ -201,3 +203,23 @@ LEFT JOIN app.users u ON u.id = n.user_id
 WHERE (sqlc.narg(status)::text IS NULL OR n.status = sqlc.narg(status)::text)
 ORDER BY n.created_at DESC
 LIMIT 200;
+
+-- name: AnonymizeUser :execrows
+-- Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
+-- profile (never used the API) or already deleted.
+UPDATE app.users u SET username = 'deleted', phone_e164 = NULL, first_name = NULL, last_name = NULL, email = NULL,
+  activity = NULL, metals = NULL, province = NULL, blocked_at = COALESCE(u.blocked_at, now()), deleted_at = now()
+WHERE u.id = $1 AND u.deleted_at IS NULL;
+
+-- name: DeleteUserPrivateData :exec
+-- What only the user had: SMS choice, price alerts, saved calculations; the SMS log keeps cost and status without the
+-- number; contact-form messages they sent while signed in keep the text without name, number, email and address.
+WITH prefs AS (DELETE FROM app.sms_prefs sp WHERE sp.user_id = $1),
+     alerts AS (DELETE FROM app.price_alerts pa WHERE pa.user_id = $1),
+     calcs AS (DELETE FROM app.calculations c WHERE c.user_id = $1),
+     sms AS (UPDATE app.notifications n SET recipient = '' WHERE n.user_id = $1)
+UPDATE app.contact_messages cm SET name = 'deleted', phone = '', email = NULL, ip = NULL, user_agent = NULL
+WHERE cm.user_id = $1;
+
+-- name: UserDeletedAt :one
+SELECT deleted_at FROM app.users WHERE id = $1;
