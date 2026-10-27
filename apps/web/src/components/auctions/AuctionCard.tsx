@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
+import { Link } from "@/i18n/navigation";
 import { LockIcon } from "@/components/Locked";
 import type { Auction } from "@/lib/gold";
 
@@ -12,13 +13,15 @@ const STATUS_STYLE = {
 /**
  * One metal auction («مزایدات»). Everyone sees the title, metal, category, quantity and status. The deadline, place,
  * organiser, details and PDF are only in `a` for Gold callers (the API leaves them out otherwise); `locked` shows the
- * 🔒 line in their place.
+ * 🔒 line in their place, with «ارتقا برای مشاهده‌ی جزئیات» (client, 2026-10-27, like the analysis cards). `compact` (home
+ * preview) leaves the details out for everyone and links Gold readers to the card on /auctions instead.
  */
-export async function AuctionCard({ a, locale, locked }: { a: Auction; locale: Locale; locked: boolean }) {
+export async function AuctionCard({ a, locale, locked, compact = false }: { a: Auction; locale: Locale; locked: boolean; compact?: boolean }) {
   const t = await getTranslations("auctions");
   const deadlinePassed = a.deadlineAt ? Date.parse(a.deadlineAt) < Date.now() : false;
+  const button = "shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold";
   return (
-    <article className="flex h-full flex-col rounded-card border border-border bg-surface p-5 shadow-soft">
+    <article id={`auction-${a.id}`} className={`flex h-full scroll-mt-24 flex-col rounded-card border bg-surface p-5 shadow-soft ${locked ? "border-gold/60" : "border-border"}`}>
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded-full px-2.5 py-0.5 font-bold ${STATUS_STYLE[a.status]}`}>{t(`status.${a.status}`)}</span>
         <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-text-2">{a.metal.name}</span>
@@ -29,7 +32,7 @@ export async function AuctionCard({ a, locale, locked }: { a: Auction; locale: L
         {t("quantity")}: <span className="font-bold text-text tabular-nums">{formatNumber(a.quantity, locale)} {t(`unit.${a.unit}`)}</span>
       </p>
 
-      {locked ? (
+      {compact ? null : locked ? (
         <p className="mt-auto flex items-center gap-2 border-t border-border pt-3 text-xs text-text-3">
           <LockIcon className="h-4 w-4 shrink-0 text-gold-dark" />
           {t("lockedLine")}
@@ -56,7 +59,14 @@ export async function AuctionCard({ a, locale, locked }: { a: Auction; locale: L
           )}
         </div>
       )}
-      <p className="mt-3 text-xs text-text-3">{t("published", { date: formatDate(a.publishedAt, locale) })}</p>
+      <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 ${compact ? "mt-auto border-t border-border pt-3" : ""}`}>
+        <p className="text-xs text-text-3">{t("published", { date: formatDate(a.publishedAt, locale) })}</p>
+        {locked ? (
+          <Link href="/plans" className={`${button} bg-gold text-graphite hover:bg-gold-light`}>{t("upgrade")}</Link>
+        ) : (
+          compact && <Link href={`/auctions#auction-${a.id}`} className={`${button} bg-graphite text-white hover:bg-graphite-2`}>{t("details")}</Link>
+        )}
+      </div>
     </article>
   );
 }
