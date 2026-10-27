@@ -197,6 +197,15 @@ func worker(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	switch cfg.SMSProvider {
 	case "console":
 		sms = notify.Console{Log: log}
+	case "smsir":
+		tmpl, err := notify.ParseTemplates(cfg.SmsIr.Templates)
+		if err != nil {
+			return err //nolint:wrapcheck // names the setting already
+		}
+		if cfg.SmsIr.APIKey == "" || len(tmpl) == 0 {
+			log.Warn("SMS_PROVIDER=smsir without SMSIR_API_KEY or SMSIR_TEMPLATES: messages will fail and be logged as failed")
+		}
+		sms = notify.SmsIr{HTTP: &http.Client{Timeout: 20 * time.Second}, BaseURL: cfg.SmsIr.BaseURL, APIKey: cfg.SmsIr.APIKey, Templates: tmpl}
 	case "none":
 		log.Warn("SMS_PROVIDER=none: renewal reminders are off")
 	default:

@@ -33,7 +33,11 @@ api:
   seedProfiles: reference          # "reference,demo" on staging; demo is refused in production
   demoPrices: false                # demo price generator (with the demo seed). Refused in production
   paymentGateway: none             # none (checkout unavailable) | mock (local/staging, refused in production) | <real, F13>
-  smsProvider: none                # none (no renewal SMS) | console (logs, refused in production) | <real, F7>
+  smsProvider: none                # none (no SMS) | console (logs, refused in production) | smsir
+  smsir:                           # sms.ir "verify" templates; the API key comes from secrets.sms (as for Keycloak)
+    # Approved template ids: "subscription_expiring=…,subscription_ended=…,price_alert=…" (params: PLAN DAYS DATE / PLAN /
+    # PRODUCT PRICE CHANGE). A message whose template has no id isn't sent and is logged as failed.
+    templates: ""
   redisUrl: ""                     # default: the alanfelez-data Redis service
   corsOrigins: []                  # defaults to the web origin
   # Who may set X-Forwarded-For (client IP for rate limits). Empty = the app default (private ranges: ingress, website, pods).

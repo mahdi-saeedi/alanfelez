@@ -19,12 +19,16 @@ datasets:
         value: { telegram: "", instagram: "", linkedin: "", bale: "", eitaa: "" }
       - key: sms
         value: { daily_budget_rial: 50000000, alert_at_percent: 80 }
-      # SMS texts (🛠 our draft, editable in the admin). Reminder placeholders: {plan}, {date}, {url}.
+      # SMS texts (🛠 our draft, editable in the admin). Reminder placeholders: {plan}, {days}, {date}, {url}.
       - key: sms_templates
         value:
           subscription_expiring:
-            fa: "الان‌فلز: اشتراک {plan} شما در تاریخ {date} به پایان می‌رسد. برای تمدید: {url}"
-            en: "Alan Felez: your {plan} plan ends on {date}. Renew at {url}"
+            fa: "الان‌فلز: اشتراک {plan} شما {days} روز دیگر ({date}) به پایان می‌رسد. برای تمدید: {url}"
+            en: "Alan Felez: your {plan} plan ends in {days} days ({date}). Renew at {url}"
+          # Sent on the day a plan ends (no renewal queued). Placeholders: {plan}, {url}.
+          subscription_ended:
+            fa: "الان‌فلز: اشتراک {plan} شما امروز به پایان رسید. برای تمدید: {url}"
+            en: "Alan Felez: your {plan} plan ended today. Renew at {url}"
           # SMS price alerts (Gold). Placeholders: {product}, {price}, {threshold}, {change}, {url}. Migration 00005 adds
           # these to environments seeded earlier.
           price_alert_above:

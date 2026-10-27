@@ -112,8 +112,9 @@ Billing rules 🛠 (built in M3, `services/api/internal/billing/rules.go`):
   credited in proportion to the time left. Manually granted plans give no credit.
 - **Downgrade** takes effect at the end of the current period (queued like a renewal).
 - If credit leaves less than 1,000 Toman to pay, the rest is waived (gateways refuse tiny payments).
-- No auto-renew (Iranian gateways don't support card-on-file). An SMS reminder goes out 3 days before expiry, once per plan,
-  unless the user has already renewed. Text: site setting `sms_templates` (editable).
+- No auto-renew (Iranian gateways don't support card-on-file). SMS reminders go out 7, 3 and 1 day before expiry and on the
+  day it ends (client, 2026-10-27), once each per plan, unless the user has already renewed. Text: site setting
+  `sms_templates` (editable); sent through sms.ir templates (`api.smsir.templates`).
 
 Refund policy 🛠 (#32): full refund within 7 days of purchase if no paid feature has been used. Once used, there's no refund, and the subscription runs until the end of its period.
 Built as: the user requests it on the account page; an admin approves or rejects it in the admin panel. Approving cancels that

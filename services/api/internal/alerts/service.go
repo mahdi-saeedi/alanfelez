@@ -157,7 +157,18 @@ func (s *Service) send(ctx context.Context, q *dbq.Queries, c dbq.AlertCandidate
 	} else if done {
 		return false, nil
 	}
-	cost, sendErr := s.sms.Send(ctx, c.PhoneE164.String, body)
+	// One sms.ir template serves the three kinds: PRODUCT, PRICE and CHANGE (the threshold crossed, or the move).
+	note := change
+	switch a.Kind {
+	case Above:
+		note = map[string]string{"fa": "بالاتر از ", "en": "above "}[lang] + FormatPrice(a.Threshold, c.Currency, c.Unit, lang)
+	case Below:
+		note = map[string]string{"fa": "پایین\u200cتر از ", "en": "below "}[lang] + FormatPrice(a.Threshold, c.Currency, c.Unit, lang)
+	}
+	msg := notify.Message{Template: "price_alert", Body: body, Params: []notify.Param{
+		{Name: "PRODUCT", Value: product}, {Name: "PRICE", Value: FormatPrice(c.PriceMinor, c.Currency, c.Unit, lang)}, {Name: "CHANGE", Value: note},
+	}}
+	cost, sendErr := s.sms.Send(ctx, c.PhoneE164.String, msg)
 	row := dbq.InsertNotificationParams{
 		UserID: c.UserID, Template: template, Recipient: c.PhoneE164.String, Body: body, Status: "sent",
 		Provider: s.sms.Name(), CostRial: int32(min(cost, 1_000_000)), DedupeKey: key, //nolint:gosec // bounded

@@ -41,7 +41,16 @@ type Config struct {
 	PublicURL string `env:"PUBLIC_URL" envDefault:"http://localhost:8080"`
 	// WebURL is the public website (links in SMS, payment callback default).
 	WebURL      string `env:"WEB_URL" envDefault:"http://localhost:3000"`
-	SMSProvider string `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | <real provider, F7>
+	SMSProvider string `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | smsir
+	SmsIr       SmsIr  `envPrefix:"SMSIR_"`
+}
+
+// SmsIr configures the sms.ir sender (SMS_PROVIDER=smsir; internal/notify/smsir.go).
+type SmsIr struct {
+	APIKey string `env:"API_KEY"` // secret (alanfelez-sms, the same key as the Keycloak OTP sender)
+	// Templates maps our message templates to approved sms.ir template ids: "subscription_expiring=…,subscription_ended=…,price_alert=…".
+	Templates string `env:"TEMPLATES"`
+	BaseURL   string `env:"BASE_URL" envDefault:"https://api.sms.ir/v1"`
 }
 
 // Payments configures checkout (internal/billing, internal/payment).
