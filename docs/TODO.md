@@ -54,6 +54,8 @@ Last updated: 2026-10-27 (sign-up answers in the admin, device limit, IME table 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Price SMS: a product whose ±10 % alert went out isn't counted again in «قیمت‌ها به‌روزرسانی شد»; no
+  other change = no second SMS (client chose option B). Released v0.14.0 (flags screen, Gold price SMS, SMS log, icons).
 - 2026-10-27 Sign-up answers (activity, metals, province) in the admin users list: web-client token mappers (added to running
   realms by the keycloak-profile job), `app.users` columns (00016), `AdminUser` fields. Device limit: 2 signed-in devices
   per account, the oldest is signed out (all accounts, owner OK). The unused IME offerings left the app (00015 moves the

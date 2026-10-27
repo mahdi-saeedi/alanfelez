@@ -217,6 +217,9 @@ type Querier interface {
 	SourceHealth(ctx context.Context) ([]SourceHealthRow, error)
 	SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UUID) (bool, error)
 	SupportCounts(ctx context.Context) (SupportCountsRow, error)
+	// How many of a metal's changed domestic prices (since its cursor) the user hasn't had a move alert for since that
+	// change: a product whose ±10 % alert already went out isn't announced again in "prices updated" (client, 2026-10-27).
+	UncoveredPriceChanges(ctx context.Context, arg UncoveredPriceChangesParams) (int32, error)
 	// Publishing for the first time stamps published_at (unless one is given, e.g. a scheduled time).
 	UpdateArticle(ctx context.Context, arg UpdateArticleParams) (pgtype.UUID, error)
 	UpdateArticleCategory(ctx context.Context, arg UpdateArticleCategoryParams) (UpdateArticleCategoryRow, error)
