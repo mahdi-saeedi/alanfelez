@@ -331,6 +331,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The latest 200 SMS sent or tried (reminders, price SMS), newest first */
+        get: operations["adminListNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/visits": {
         parameters: {
             query?: never;
@@ -1935,6 +1952,22 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        AdminNotification: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description subscription_expiring, subscription_ended, price_update, price_move, … */
+            template: string;
+            recipient: string;
+            /** @enum {string} */
+            status: "sent" | "failed";
+            /** @description smsir, or console when nothing is really sent */
+            provider: string;
+            error?: string;
+            /** @description Name */
+            user?: string;
+        };
         AdminVisits: {
             /**
              * Format: date
@@ -2128,6 +2161,8 @@ export interface components {
                 linkedin: string;
                 bale: string;
                 eitaa: string;
+                /** @description e.g. https://wa.me/989121234567 */
+                whatsapp?: string;
             };
             enamad?: components["schemas"]["Enamad"];
         };
@@ -2266,6 +2301,8 @@ export interface components {
             enabled: boolean;
             /** @description The user's plan includes price SMS (Gold) */
             allowed: boolean;
+            /** @description The mobile the SMS go to (E.164); absent when the account has none (no SMS can be sent) */
+            phone?: string;
         };
         PriceAlert: {
             /** Format: uuid */
@@ -2826,6 +2863,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminFlag"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListNotifications: {
+        parameters: {
+            query?: {
+                status?: "sent" | "failed";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SMS log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminNotification"][];
+                    };
                 };
             };
             default: components["responses"]["Problem"];

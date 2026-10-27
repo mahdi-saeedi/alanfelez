@@ -30,6 +30,13 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
         <form action={saveSmsSettingsAction} className="space-y-4 p-5">
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="back" value={back} />
+          {settings.phone ? (
+            <p className="text-xs text-text-2">
+              {t("phone")} <span dir="ltr" className="font-bold tabular-nums">{localPhone(settings.phone, locale)}</span>
+            </p>
+          ) : (
+            <p role="alert" className="rounded-lg bg-down/10 p-3 text-sm text-down">{t("noPhone")}</p>
+          )}
           <fieldset>
             <legend className="mb-2 text-sm font-bold">{t("metal")}</legend>
             <div className="flex flex-wrap gap-2">
@@ -59,4 +66,10 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
       )}
     </section>
   );
+}
+
+/** +98912… → 0912… (Persian digits in fa). */
+function localPhone(e164: string, locale: Locale) {
+  const local = e164.replace(/^\+98/, "0");
+  return locale === "fa" ? local.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹".charAt(Number(d))) : local;
 }

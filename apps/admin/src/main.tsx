@@ -24,6 +24,7 @@ import { FaqPage } from "./pages/Faq";
 import { PagesPage, PageEditPage } from "./pages/Pages";
 import { SettingsPage } from "./pages/Settings";
 import { FlagsPage } from "./pages/Flags";
+import { SmsLogPage } from "./pages/SmsLog";
 import { AuctionsPage } from "./pages/Auctions";
 import { ContactMessagesPage, TicketsPage, TicketPage } from "./pages/Support";
 import { LoginPage, CallbackPage, DeniedPage } from "./pages/AuthPages";
@@ -66,6 +67,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/visits" element={<VisitsPage />} />
+            <Route path="/sms" element={<SmsLogPage />} />
             <Route path="/content/articles" element={<ArticlesPage />} />
             <Route path="/content/articles/:id" element={<ArticleEditPage />} />
             <Route path="/content/categories" element={<ArticleCategoriesPage />} />

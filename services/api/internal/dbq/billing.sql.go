@@ -11,6 +11,61 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const adminListNotifications = `-- name: AdminListNotifications :many
+SELECT n.id, n.created_at, n.template, n.recipient, n.status, n.provider, n.error,
+       u.username, u.first_name, u.last_name
+FROM app.notifications n
+LEFT JOIN app.users u ON u.id = n.user_id
+WHERE ($1::text IS NULL OR n.status = $1::text)
+ORDER BY n.created_at DESC
+LIMIT 200
+`
+
+type AdminListNotificationsRow struct {
+	ID        pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+	Template  string
+	Recipient string
+	Status    string
+	Provider  string
+	Error     pgtype.Text
+	Username  pgtype.Text
+	FirstName pgtype.Text
+	LastName  pgtype.Text
+}
+
+// The latest SMS sent or tried (admin «پیامک‌ها»), newest first, with the user's name when known.
+func (q *Queries) AdminListNotifications(ctx context.Context, status pgtype.Text) ([]AdminListNotificationsRow, error) {
+	rows, err := q.db.Query(ctx, adminListNotifications, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListNotificationsRow{}
+	for rows.Next() {
+		var i AdminListNotificationsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.Template,
+			&i.Recipient,
+			&i.Status,
+			&i.Provider,
+			&i.Error,
+			&i.Username,
+			&i.FirstName,
+			&i.LastName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const adminListOrders = `-- name: AdminListOrders :many
 SELECT o.id, o.user_id, o.plan_price_id, o.plan_code, o.period, o.kind, o.price_rial, o.credit_rial, o.amount_rial, o.starts_at, o.status, o.idempotency_key, o.locale, o.expires_at, o.paid_at, o.created_at, o.updated_at, u.username, p.ref_id, coalesce(p.gateway, '')::text AS gateway, r.id AS refund_id, r.status AS refund_status, r.reason AS refund_reason
 FROM app.orders o

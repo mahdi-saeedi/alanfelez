@@ -7,7 +7,7 @@ import { Button, Card, Field, Input, Notice, Page } from "./ui";
 
 type Settings = Schemas["AdminSettings"];
 
-const NETWORKS: (keyof Settings["social"])[] = ["telegram", "instagram", "linkedin", "bale", "eitaa"];
+const NETWORKS: (keyof Settings["social"])[] = ["instagram", "telegram", "whatsapp", "bale", "eitaa", "linkedin"];
 
 /** Contact details, social links and the eNamad seal shown on the site (empty = hidden; client answer #30). Admin only. */
 export function SettingsPage() {
@@ -64,7 +64,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
           <div className="grid gap-4 md:grid-cols-2">
             {NETWORKS.map((k) => (
               <Field key={k} label={t(`settings.social.${k}`)}>
-                <Input dir="ltr" disabled={!writable} placeholder="https://" value={v.social[k]} onChange={(e) => setV({ ...v, social: { ...v.social, [k]: e.target.value } })} className="w-full" />
+                <Input dir="ltr" disabled={!writable} placeholder={k === "whatsapp" ? "https://wa.me/98912…" : "https://"} value={v.social[k] ?? ""} onChange={(e) => setV({ ...v, social: { ...v.social, [k]: e.target.value } })} className="w-full" />
               </Field>
             ))}
           </div>

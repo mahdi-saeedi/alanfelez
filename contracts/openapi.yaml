@@ -450,6 +450,28 @@ paths:
               schema: { $ref: '#/components/schemas/AdminFlag' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/notifications:
+    get:
+      operationId: adminListNotifications
+      tags: [admin]
+      summary: The latest 200 SMS sent or tried (reminders, price SMS), newest first
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [sent, failed] } }
+      responses:
+        '200':
+          description: SMS log
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminNotification' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/visits:
     get:
       operationId: adminVisits
@@ -2645,6 +2667,19 @@ components:
           description: True when it can't be switched on here now (payments while the test gateway is in use)
         updatedAt: { type: string, format: date-time }
 
+    AdminNotification:
+      type: object
+      required: [id, createdAt, template, recipient, status, provider]
+      properties:
+        id: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        template: { type: string, description: 'subscription_expiring, subscription_ended, price_update, price_move, …' }
+        recipient: { type: string }
+        status: { type: string, enum: [sent, failed] }
+        provider: { type: string, description: 'smsir, or console when nothing is really sent' }
+        error: { type: string }
+        user: { type: string, description: Name, else username }
+
     AdminVisits:
       type: object
       required: [day, days, users]
@@ -2866,6 +2901,7 @@ components:
             linkedin: { type: string, maxLength: 300 }
             bale: { type: string, maxLength: 300 }
             eitaa: { type: string, maxLength: 300 }
+            whatsapp: { type: string, maxLength: 300, description: 'e.g. https://wa.me/989121234567' }
         # Empty id and code = no badge. Left out of a save = unchanged.
         enamad: { $ref: '#/components/schemas/Enamad' }
 
@@ -3010,6 +3046,7 @@ components:
         metal: { type: string, description: The chosen main metal (slug); absent until chosen }
         enabled: { type: boolean }
         allowed: { type: boolean, description: The user's plan includes price SMS (Gold) }
+        phone: { type: string, description: 'The mobile the SMS go to (E.164); absent when the account has none (no SMS can be sent)' }
 
     PriceAlert:
       type: object

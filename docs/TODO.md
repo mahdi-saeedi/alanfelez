@@ -21,8 +21,8 @@ Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature f
       signed out, Keycloak's «User Session Count Limiter» (all accounts; paid-only needs a Java extension). Owner's OK.
 - [ ] Client: check the four SMS on staging (reminder 491453, ended 892531, price alert 146260, price update 919549);
       then `api.smsProvider: smsir` + the same `api.smsir.templates` for production.
-- [ ] Client: the phone number and address for the footer and the contact page, and the Instagram URL; entered in the
-      admin's Settings (production), no code change.
+- [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
+      entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Drop the unused IME offerings (`market.ime_offerings`, no longer shown since 2026-10-26)? Deleting data = owner's OK.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
@@ -57,6 +57,9 @@ Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature f
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Admin «پیامک‌های ارسال‌شده» (SMS log: sent/failed and sms.ir's reason); the SMS settings show the number
+  SMS go to, or warn that the account has none. Footer icons: Instagram, Telegram, WhatsApp (new setting), Bale, Eitaa,
+  LinkedIn and email; each shows once its link is set in the admin.
 - 2026-10-27 Admin «قابلیت‌ها» (feature flags): payments, English site, licences page; admin only, audited. Payments
   can't be switched on while the test gateway is in use.
 - 2026-10-27 Gold price SMS (owner OK'd): the user picks a main metal (payment result page, account); «قیمت‌ها

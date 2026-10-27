@@ -32,8 +32,8 @@ var iranMobile = regexp.MustCompile(`^09\d{9}$`)
 // touchUser refreshes the local profile from the token (Keycloak stays the owner of identities).
 func (s *Server) touchUser(ctx context.Context, p *auth.Principal) (dbq.UpsertUserRow, error) {
 	var phone pgtype.Text
-	if iranMobile.MatchString(p.Username) {
-		phone = pgtype.Text{String: "+98" + p.Username[1:], Valid: true}
+	if e164 := phoneOf(p.Username); e164 != "" {
+		phone = pgtype.Text{String: e164, Valid: true}
 	}
 	u, err := s.q.UpsertUser(ctx, dbq.UpsertUserParams{
 		ID: p.ID, Username: p.Username, PhoneE164: phone,
@@ -43,6 +43,15 @@ func (s *Server) touchUser(ctx context.Context, p *auth.Principal) (dbq.UpsertUs
 		return dbq.UpsertUserRow{}, fmt.Errorf("upsert user: %w", err)
 	}
 	return u, nil
+}
+
+// phoneOf is the account's mobile in E.164: the username is the mobile (09…) for everyone who signed up on the site.
+// Other usernames (staff, old test accounts) have none, so no SMS can reach them.
+func phoneOf(username string) string {
+	if iranMobile.MatchString(username) {
+		return "+98" + username[1:]
+	}
+	return ""
 }
 
 func unauthenticated(ctx context.Context) Problem {

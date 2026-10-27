@@ -628,7 +628,7 @@ func adminPageOf(p dbq.UpdatePageRow) AdminPage {
 
 // --- settings -------------------------------------------------------------------------
 
-var socialNetworks = []string{"telegram", "instagram", "linkedin", "bale", "eitaa"}
+var socialNetworks = []string{"telegram", "instagram", "linkedin", "bale", "eitaa", "whatsapp"}
 
 // AdminGetSettings returns contact details and social links.
 func (s *Server) AdminGetSettings(ctx context.Context, _ AdminGetSettingsRequestObject) (AdminGetSettingsResponseObject, error) {
@@ -671,7 +671,7 @@ func (s *Server) AdminUpdateSettings(ctx context.Context, req AdminUpdateSetting
 	}
 	social := socialSettings{
 		"telegram": in.Social.Telegram, "instagram": in.Social.Instagram, "linkedin": in.Social.Linkedin,
-		"bale": in.Social.Bale, "eitaa": in.Social.Eitaa,
+		"bale": in.Social.Bale, "eitaa": in.Social.Eitaa, "whatsapp": deref(in.Social.Whatsapp),
 	}
 	for _, k := range socialNetworks {
 		social[k] = strings.TrimSpace(social[k])
@@ -716,6 +716,9 @@ func settingsOf(c contactSettings, social socialSettings, e enamadSettings) Admi
 	out.Contact.AddressFa, out.Contact.AddressEn, out.Contact.HoursFa, out.Contact.HoursEn = c.AddressFa, c.AddressEn, c.HoursFa, c.HoursEn
 	out.Social.Telegram, out.Social.Instagram, out.Social.Linkedin = social["telegram"], social["instagram"], social["linkedin"]
 	out.Social.Bale, out.Social.Eitaa = social["bale"], social["eitaa"]
+	if w := social["whatsapp"]; w != "" {
+		out.Social.Whatsapp = &w
+	}
 	out.Enamad = &Enamad{Id: e.ID, Code: e.Code}
 	return out
 }

@@ -186,3 +186,13 @@ SELECT value FROM app.site_settings WHERE key = $1;
 -- name: DBNow :one
 -- Billing uses the database clock, so "starts now" and "is active now" (now() in SQL) can never disagree.
 SELECT now()::timestamptz;
+
+-- name: AdminListNotifications :many
+-- The latest SMS sent or tried (admin «پیامک‌ها»), newest first, with the user's name when known.
+SELECT n.id, n.created_at, n.template, n.recipient, n.status, n.provider, n.error,
+       u.username, u.first_name, u.last_name
+FROM app.notifications n
+LEFT JOIN app.users u ON u.id = n.user_id
+WHERE (sqlc.narg(status)::text IS NULL OR n.status = sqlc.narg(status)::text)
+ORDER BY n.created_at DESC
+LIMIT 200;

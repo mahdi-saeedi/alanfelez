@@ -20,6 +20,8 @@ type Querier interface {
 	AdminListMarkets(ctx context.Context) ([]AdminListMarketsRow, error)
 	// Catalog (admin): metals, products, series ------------------------------------------------------------------
 	AdminListMetals(ctx context.Context) ([]AdminListMetalsRow, error)
+	// The latest SMS sent or tried (admin «پیامک‌ها»), newest first, with the user's name when known.
+	AdminListNotifications(ctx context.Context, status pgtype.Text) ([]AdminListNotificationsRow, error)
 	AdminListOrders(ctx context.Context, arg AdminListOrdersParams) ([]AdminListOrdersRow, error)
 	AdminListProducts(ctx context.Context) ([]AdminListProductsRow, error)
 	// The support queue: open tickets first (high priority, then oldest waiting), then the rest by activity.

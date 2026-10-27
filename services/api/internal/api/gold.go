@@ -388,6 +388,9 @@ func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSetting
 		return SmsSettings{}, err //nolint:wrapcheck // tier lookups say what failed
 	}
 	out := SmsSettings{Allowed: access.Allowed(cur.Tier, access.AlertsSMS), Enabled: true}
+	if ph := phoneOf(p.Username); ph != "" {
+		out.Phone = &ph
+	}
 	row, err := s.q.GetSmsPrefs(ctx, p.ID)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):

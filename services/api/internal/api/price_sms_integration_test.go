@@ -30,7 +30,7 @@ func TestGoldPriceSMS(t *testing.T) {
 	if st, _, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metal": "gold-bar", "enabled": true}); st != 400 {
 		t.Fatalf("unknown metal: %d", st)
 	}
-	if st, body, raw := e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metal": "copper", "enabled": true}); st != 200 || body["metal"] != "copper" || body["allowed"] != true {
+	if st, body, raw := e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metal": "copper", "enabled": true}); st != 200 || body["metal"] != "copper" || body["allowed"] != true || body["phone"] != "+989120000003" {
 		t.Fatalf("save: %d %s", st, raw)
 	}
 	if _, body, _ := e.call(http.MethodGet, "/v1/me/sms-settings", "user", nil); body["allowed"] != false || body["metal"] != nil {
@@ -88,5 +88,19 @@ func TestGoldPriceSMS(t *testing.T) {
 	}
 	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {
 		t.Fatalf("sent while off: %v", sms.sent)
+	}
+
+	// The admin's SMS log shows them, with the user's name; the failed filter has none.
+	if st, _, _ := e.call(http.MethodGet, "/v1/admin/notifications", "user", nil); st != 403 {
+		t.Fatalf("SMS log for a user: %d", st)
+	}
+	_, body, raw := e.call(http.MethodGet, "/v1/admin/notifications", "support", nil)
+	items := body["items"].([]any)
+	first := items[len(items)-1].(map[string]any)
+	if len(items) != len(sms.sent) || first["template"] != "price_update" || first["user"] != "Gol Test" || first["status"] != "sent" {
+		t.Fatalf("SMS log: %s", raw)
+	}
+	if _, body, _ := e.call(http.MethodGet, "/v1/admin/notifications?status=failed", "support", nil); len(body["items"].([]any)) != 0 {
+		t.Fatal("failed filter")
 	}
 }

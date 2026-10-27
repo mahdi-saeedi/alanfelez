@@ -1,0 +1,8 @@
+# Gitleaks (CI security job): the default rules, plus files that can't hold secrets.
+# api.gen.go embeds the OpenAPI spec as gzipped base64, which the generic-api-key rule sometimes mistakes for a key.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated code"
+paths = ['''services/api/internal/api/api\.gen\.go''']
