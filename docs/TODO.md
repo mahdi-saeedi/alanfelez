@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature flags)
+Last updated: 2026-10-27 (sign-up answers in the admin, device limit, IME table archived, backups prepared)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -15,20 +15,17 @@ Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature f
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Sign-up answers in the admin users list** (activity, metals, province; client asked 2026-10-27): Keycloak token
-      mappers for the three attributes → `app.users` → API → admin. Keycloak change = owner's OK (asked 2026-10-27).
-- [ ] **Limit on simultaneous devices** (SECURITY §5; client asked 2026-10-27). Proposed: 2 per account, the oldest is
-      signed out, Keycloak's «User Session Count Limiter» (all accounts; paid-only needs a Java extension). Owner's OK.
 - [ ] Client: check the four SMS on staging (reminder 491453, ended 892531, price alert 146260, price update 919549);
       then `api.smsProvider: smsir` + the same `api.smsir.templates` for production.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
-- [ ] Drop the unused IME offerings (`market.ime_offerings`, no longer shown since 2026-10-26)? Deleting data = owner's OK.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
-- [ ] **ArvanCloud Object Storage bucket** + `alanfelez-backup-s3` secret → database backups on for production and
-      staging. Until then a lost server loses user data.
+- [ ] **ArvanCloud Object Storage bucket** `alanfelez-backups` (private, versioning on) and an access key; then the owner
+      runs `bash deploy/server/seal-backup-keys.sh` (keys typed hidden, never in a chat) and Claude commits the two sealed
+      files and sets `postgres.backup.enabled: true` on staging, then production. Until then a lost server loses user data.
+- [ ] After the first production backup holds it: a migration that drops `archive.ime_offerings` (00015 moved it there).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
 - [ ] **Per-metal price pages** («قیمت مس امروز», good for Google): the client isn't sure yet (2026-10-25). Suggest it
@@ -57,6 +54,10 @@ Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature f
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Sign-up answers (activity, metals, province) in the admin users list: web-client token mappers (added to running
+  realms by the keycloak-profile job), `app.users` columns (00016), `AdminUser` fields. Device limit: 2 signed-in devices
+  per account, the oldest is signed out (all accounts, owner OK). The unused IME offerings left the app (00015 moves the
+  table and its rows to the `archive` schema). Backups: `deploy/server/seal-backup-keys.sh` for the bucket keys.
 - 2026-10-27 Admin «پیامک‌های ارسال‌شده» (SMS log: sent/failed and sms.ir's reason); the SMS settings show the number
   SMS go to, or warn that the account has none. Footer icons: Instagram, Telegram, WhatsApp (new setting), Bale, Eitaa,
   LinkedIn and email; each shows once its link is set in the admin.

@@ -971,6 +971,7 @@ func (q *Queries) ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) e
 
 const searchUsers = `-- name: SearchUsers :many
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
+       u.activity, u.metals, u.province,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at
 FROM app.users u
 LEFT JOIN LATERAL (
@@ -997,6 +998,9 @@ type SearchUsersRow struct {
 	CreatedAt     pgtype.Timestamptz
 	LastSeenAt    pgtype.Timestamptz
 	BlockedAt     pgtype.Timestamptz
+	Activity      pgtype.Text
+	Metals        []string
+	Province      pgtype.Text
 	CurrentPlan   string
 	CurrentEndsAt pgtype.Timestamptz
 }
@@ -1021,6 +1025,9 @@ func (q *Queries) SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow,
 			&i.CreatedAt,
 			&i.LastSeenAt,
 			&i.BlockedAt,
+			&i.Activity,
+			&i.Metals,
+			&i.Province,
 			&i.CurrentPlan,
 			&i.CurrentEndsAt,
 		); err != nil {
@@ -1096,11 +1103,14 @@ func (q *Queries) SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UU
 
 const upsertUser = `-- name: UpsertUser :one
 
-INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, last_seen_at)
-VALUES ($1, $2, $3, $4, $5, $6, now())
+INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, last_seen_at)
+VALUES ($1, $2, $3, $4, $5, $6,
+        $7, $8::text[], $9, now())
 ON CONFLICT (id) DO UPDATE SET
   username = EXCLUDED.username, phone_e164 = COALESCE(EXCLUDED.phone_e164, app.users.phone_e164),
-  first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email, last_seen_at = now()
+  first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email,
+  activity = COALESCE(EXCLUDED.activity, app.users.activity), metals = COALESCE(EXCLUDED.metals, app.users.metals),
+  province = COALESCE(EXCLUDED.province, app.users.province), last_seen_at = now()
 RETURNING id, username, phone_e164, first_name, last_name, email, locale, blocked_at, created_at
 `
 
@@ -1111,6 +1121,9 @@ type UpsertUserParams struct {
 	FirstName pgtype.Text
 	LastName  pgtype.Text
 	Email     pgtype.Text
+	Activity  pgtype.Text
+	Metals    []string
+	Province  pgtype.Text
 }
 
 type UpsertUserRow struct {
@@ -1127,6 +1140,7 @@ type UpsertUserRow struct {
 
 // Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 // LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
+// The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
 func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error) {
 	row := q.db.QueryRow(ctx, upsertUser,
 		arg.ID,
@@ -1135,6 +1149,9 @@ func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertU
 		arg.FirstName,
 		arg.LastName,
 		arg.Email,
+		arg.Activity,
+		arg.Metals,
+		arg.Province,
 	)
 	var i UpsertUserRow
 	err := row.Scan(

@@ -303,17 +303,6 @@ func (q *Queries) GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (GetSmsPr
 	return i, err
 }
 
-const imeUpdatedAt = `-- name: ImeUpdatedAt :one
-SELECT max(updated_at)::timestamptz FROM market.ime_offerings WHERE trade_date = $1
-`
-
-func (q *Queries) ImeUpdatedAt(ctx context.Context, tradeDate pgtype.Date) (pgtype.Timestamptz, error) {
-	row := q.db.QueryRow(ctx, imeUpdatedAt, tradeDate)
-	var column_1 pgtype.Timestamptz
-	err := row.Scan(&column_1)
-	return column_1, err
-}
-
 const initPriceUpdateCursors = `-- name: InitPriceUpdateCursors :exec
 INSERT INTO app.price_update_cursor (metal_id, notified_through) SELECT m.id, now() FROM market.metals m
 ON CONFLICT (metal_id) DO NOTHING

@@ -67,7 +67,9 @@ Every limit is configurable. Defaults:
   callers; staff and the website server (trusted proxy without a forwarded client) are exempt; the SSE stream isn't counted.
   A history-range limit per request comes from the tier (chart.history_days).
 - No bulk export endpoints for users. Chart history is paginated by range.
-- **Concurrent session limit** for paid tiers (e.g. 2 active devices, configurable) to deter account sharing. Users can see and revoke devices on the account page.
+- **Concurrent session limit** (owner, 2026-10-27): at most 2 devices signed in per account, for **every** account; signing in on a
+  third signs out the oldest (Keycloak «User Session Count Limiter» in the browser flow, `keycloak.sessionLimit`). Paid-only would
+  need a Java extension. Seeing and revoking devices on the account page is not built yet.
 - `robots` rules and `noindex` for anything behind a lock. Watermark PDF exports (Gold) with the user ID.
 
 ## 6. Price integrity (T3)

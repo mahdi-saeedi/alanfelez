@@ -1826,6 +1826,12 @@ export interface components {
             currentPlan: components["schemas"]["Tier"];
             /** Format: date-time */
             currentEndsAt?: string;
+            /** @description Sign-up answer, one of trader, producer, industrial-consumer, distributor, recycler, investor, other. */
+            activity?: string;
+            /** @description Sign-up answer, metal slugs (aluminum, copper, brass, zinc, lead, iron, cast-iron). */
+            metals?: string[];
+            /** @description Sign-up answer */
+            province?: string;
         };
         AdminOrder: {
             /** Format: uuid */

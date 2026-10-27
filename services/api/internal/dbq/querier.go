@@ -95,7 +95,6 @@ type Querier interface {
 	GetTicket(ctx context.Context, id pgtype.UUID) (GetTicketRow, error)
 	GetTicketForUpdate(ctx context.Context, id pgtype.UUID) (GetTicketForUpdateRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
-	ImeUpdatedAt(ctx context.Context, tradeDate pgtype.Date) (pgtype.Timestamptz, error)
 	// New metals start "announced up to now", so the first run never sends old changes.
 	InitPriceUpdateCursors(ctx context.Context) error
 	InsertAlert(ctx context.Context, arg InsertAlertParams) (InsertAlertRow, error)
@@ -232,6 +231,7 @@ type Querier interface {
 	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
+	// The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
 	// The day's salt for anonymous visitor ids, made on first use.
 	VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error)

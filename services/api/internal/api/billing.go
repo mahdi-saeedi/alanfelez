@@ -38,6 +38,7 @@ func (s *Server) touchUser(ctx context.Context, p *auth.Principal) (dbq.UpsertUs
 	u, err := s.q.UpsertUser(ctx, dbq.UpsertUserParams{
 		ID: p.ID, Username: p.Username, PhoneE164: phone,
 		FirstName: textOf(p.GivenName), LastName: textOf(p.FamilyName), Email: textOf(p.Email),
+		Activity: textOf(p.Activity), Metals: nilIfEmpty(p.Metals), Province: textOf(p.Province),
 	})
 	if err != nil {
 		return dbq.UpsertUserRow{}, fmt.Errorf("upsert user: %w", err)
@@ -286,6 +287,7 @@ func (s *Server) AdminListUsers(ctx context.Context, req AdminListUsersRequestOb
 			Id: uuid.UUID(r.ID.Bytes), Username: r.Username, Phone: textp(r.PhoneE164), FirstName: textp(r.FirstName),
 			LastName: textp(r.LastName), Email: textp(r.Email), CreatedAt: r.CreatedAt.Time.UTC(), LastSeenAt: r.LastSeenAt.Time.UTC(),
 			Blocked: r.BlockedAt.Valid, CurrentPlan: Tier(r.CurrentPlan), CurrentEndsAt: timep(r.CurrentEndsAt),
+			Activity: textp(r.Activity), Metals: slicep(r.Metals), Province: textp(r.Province),
 		})
 	}
 	return AdminListUsers200JSONResponse{Items: out}, nil
@@ -408,6 +410,14 @@ func rial(v int64) Money { return Money{Amount: i64s(v), Currency: IRR} }
 func textOf(s string) pgtype.Text {
 	s = strings.TrimSpace(s)
 	return pgtype.Text{String: s, Valid: s != ""}
+}
+
+// nilIfEmpty is nil (SQL NULL: keep what's stored) for an empty list.
+func nilIfEmpty(xs []string) []string {
+	if len(xs) == 0 {
+		return nil
+	}
+	return xs
 }
 
 // normalizeSearch turns Persian digits into ASCII and "+98…" into "09…", so staff can paste a number as they see it.

@@ -86,6 +86,14 @@ func textp(t pgtype.Text) *string {
 	return &t.String
 }
 
+// slicep is nil for an empty list, so the field is left out of the JSON.
+func slicep(xs []string) *[]string {
+	if len(xs) == 0 {
+		return nil
+	}
+	return &xs
+}
+
 func timep(t pgtype.Timestamptz) *time.Time {
 	if !t.Valid {
 		return nil

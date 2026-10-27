@@ -77,7 +77,7 @@ erDiagram
   tickets ||--o{ ticket_messages : contains
   users ||--o{ notifications : receives
 
-  users { uuid id PK; text keycloak_sub UK; text phone_e164 UK; text first_name; text last_name; text email; text locale; timestamptz blocked_at }
+  users { uuid id PK; text keycloak_sub UK; text phone_e164 UK; text first_name; text last_name; text email; text activity; text[] metals; text province; text locale; timestamptz blocked_at }
   plans { text code PK "free|silver|gold"; text name_fa; text name_en; int rank; bool active }
   plan_prices { uuid id PK; text plan_code FK; text period "month|quarter|year"; bigint amount_rial; timestamptz valid_from; timestamptz valid_to }
   orders { uuid id PK; uuid user_id FK; uuid plan_price_id FK; bigint amount_rial; bigint credit_rial "proration"; text status; text idempotency_key UK }
@@ -120,7 +120,7 @@ Key decisions:
 | `app.daily_visits`, `app.visit_salts` | Visitor stats (2026-10-27): one row per Tehran day and visitor (`u:<user id>` or `a:<sha256(day salt, IP, UA)>`), first/last time, page views. Salts older than yesterday are deleted, rows after 90 days (nightly cleanup). No IP stored |
 | `market.auctions` | Metal auctions (SCOPE §7, 2026-10-26): `title_fa/en`, metal, `category` intermediate/scrap/raw, `quantity` + `unit` ton/kg/piece, `status` open/paused/closed (staff), `deadline_at`, `location_*`, `organizer_*`, `details_*` (plain text). Public: title, metal, category, quantity, status; the rest Gold |
 | `market.auction_files` | The auction's PDF notice (ADR-0027): one per auction, `bytea` ≤ 10 MB, deleted with the auction |
-| `market.ime_offerings` | **No longer shown (2026-10-26)**; rows kept until the owner decides. IME session rows (SCOPE §7): `trade_date` (Tehran day), metal, product, producer, `offered_kg`, `base_price_rial` (Rial/kg), `demand_kg`, `traded_kg`, `clearing_price_rial` (null until traded), `source` manual / demo / api. Natural key (day, product, producer) = re-entry corrects |
+| `archive.ime_offerings` | **Removed from the app (2026-10-27, migration 00015)**: moved out of `market` with its rows, dropped by a later migration once a database backup holds them. IME session rows (SCOPE §7): `trade_date` (Tehran day), metal, product, producer, `offered_kg`, `base_price_rial` (Rial/kg), `demand_kg`, `traded_kg`, `clearing_price_rial` (null until traded), `source` manual / demo / api. Natural key (day, product, producer) = re-entry corrects |
 | `calculations` | Saved calculator runs (Gold, max 50 per user): name, series, `input` and `result` JSON frozen at save time |
 | `price_alerts` | SMS alerts (Gold, max 20): series, `kind` above / below / move, `threshold_minor` or `move_bp`, `active`, `armed` (edge trigger), `last_triggered_at`. Sent SMS go to `notifications` (template `price_alert_*`, dedupe key per firing) |
 | `audit_log` | `actor_id`, `actor_role`, `action`, `entity`, `entity_id`, `before jsonb`, `after jsonb`, `ip`, `user_agent`, `at`. **Append-only**: the app DB role has no UPDATE/DELETE on it |
@@ -136,7 +136,7 @@ Key decisions:
 ## 5. Retention
 | Data | Retention |
 |---|---|
-| `price_points`, `ime_offerings` | Forever (this is the product) |
+| `price_points` | Forever (this is the product) |
 | `auctions`, `auction_files` | Until staff delete them |
 | `calculations`, `price_alerts` | Until the user deletes them or the account is deleted (cascade) |
 | `source_runs` | 90 days |

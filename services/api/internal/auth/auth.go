@@ -32,6 +32,10 @@ type Principal struct {
 	FamilyName string
 	Email      string
 	Roles      []string // effective realm roles (Keycloak expands composites)
+	// The sign-up form's answers (web tokens only; empty for staff and accounts made before the form).
+	Activity string
+	Metals   []string
+	Province string
 }
 
 // HasRole reports whether the caller has role r.
@@ -83,11 +87,14 @@ func NewOIDCVerifier(ctx context.Context, issuer, jwksURL, audience string) *OID
 }
 
 type claims struct {
-	Sub         string `json:"sub"`
-	Username    string `json:"preferred_username"`
-	GivenName   string `json:"given_name"`
-	FamilyName  string `json:"family_name"`
-	Email       string `json:"email"`
+	Sub         string   `json:"sub"`
+	Username    string   `json:"preferred_username"`
+	GivenName   string   `json:"given_name"`
+	FamilyName  string   `json:"family_name"`
+	Email       string   `json:"email"`
+	Activity    string   `json:"activity"`
+	Metals      []string `json:"metals"`
+	Province    string   `json:"province"`
 	RealmAccess struct {
 		Roles []string `json:"roles"`
 	} `json:"realm_access"`
@@ -111,7 +118,8 @@ func (o *OIDCVerifier) Verify(ctx context.Context, raw string) (*Principal, erro
 	}
 	return &Principal{
 		ID: id, Username: c.Username, GivenName: c.GivenName, FamilyName: c.FamilyName, Email: c.Email,
-		Roles: mergeRoles(c.RealmAccess.Roles, c.Roles),
+		Roles:    mergeRoles(c.RealmAccess.Roles, c.Roles),
+		Activity: c.Activity, Metals: c.Metals, Province: c.Province,
 	}, nil
 }
 
