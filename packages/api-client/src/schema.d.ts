@@ -1259,6 +1259,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/sms-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's main metal for price SMS and whether they're on (sent to Gold only) */
+        get: operations["getMySmsSettings"];
+        /** Choose the main metal and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED */
+        put: operations["setMySmsSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/alerts": {
         parameters: {
             query?: never;
@@ -2199,6 +2217,13 @@ export interface components {
             threshold?: string;
             /** @description move: daily change in basis points (50–5000) */
             moveBp?: number;
+        };
+        SmsSettings: {
+            /** @description The chosen main metal (slug); absent until chosen */
+            metal?: string;
+            enabled: boolean;
+            /** @description The user's plan includes price SMS (Gold) */
+            allowed: boolean;
         };
         PriceAlert: {
             /** Format: uuid */
@@ -4390,6 +4415,56 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMySmsSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmsSettings"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setMySmsSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Metal slug */
+                    metal: string;
+                    enabled: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmsSettings"];
+                };
             };
             default: components["responses"]["Problem"];
         };

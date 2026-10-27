@@ -608,5 +608,21 @@
     "help": "If it keeps happening:",
     "contact": "Contact support",
     "code": "Error code"
+  },
+  "sms": {
+    "title": "Main metal price SMS",
+    "subtitle": "Pick one metal as your main metal and we'll text you about its price changes.",
+    "locked": "Main metal price SMS are for {plan} subscribers.",
+    "metal": "Main metal",
+    "enabled": "Send me price SMS",
+    "rule": {
+      "update": "Each time the day and IME prices of this metal are updated, one “prices updated” SMS (at most 3 a day).",
+      "move": "If a product of this metal moves 10% or more against the day before, up or down, an alert with the new price.",
+      "night": "Nothing is sent from 22:00 to 08:00; overnight changes are announced in the morning."
+    },
+    "save": "Save",
+    "saved": "SMS settings saved.",
+    "failed": "Couldn't save. Please try again.",
+    "choosePrompt": "Pick your main metal to start receiving price SMS."
   }
 }

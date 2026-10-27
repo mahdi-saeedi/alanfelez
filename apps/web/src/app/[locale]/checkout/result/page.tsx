@@ -3,10 +3,13 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { getMe, getMyOrder } from "@/lib/account";
+import { getSmsSettings } from "@/lib/gold";
+import { getMetals } from "@/lib/content";
+import { SmsSettingsForm } from "@/components/gold/SmsSettingsForm";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ order?: string; status?: string }> };
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ order?: string; status?: string; sms?: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -31,6 +34,9 @@ export default async function ResultPage({ params, searchParams }: Params) {
   const retry = status === "retry" || status === "pending";
   const planName = order ? t(`lock.plan.${order.plan}`) : "";
   const queued = me?.next && order && me.next.plan === order.plan ? me.next : null;
+  // A new Gold subscriber picks their main metal for the price SMS right here (client, 2026-10-27).
+  const [sms, metals] = paid && order?.plan === "gold" ? await Promise.all([getSmsSettings(), getMetals(locale)]) : [null, []];
+  const askMetal = sms?.allowed && (!sms.metal || q.sms);
 
   return (
     <section className="mx-auto max-w-md px-4 py-16 text-center">
@@ -65,6 +71,12 @@ export default async function ResultPage({ params, searchParams }: Params) {
           </Link>
         )}
       </div>
+      {askMetal && order && (
+        <div className="mt-10 text-start">
+          {!sms.metal && <p className="mb-3 text-sm font-bold text-gold-dark">{t("sms.choosePrompt")}</p>}
+          <SmsSettingsForm settings={sms} metals={metals} locale={locale} back={`/checkout/result?order=${order.id}`} status={q.sms} />
+        </div>
+      )}
     </section>
   );
 }

@@ -135,3 +135,56 @@ WHERE l.series_id = $1;
 
 -- name: ImeUpdatedAt :one
 SELECT max(updated_at)::timestamptz FROM market.ime_offerings WHERE trade_date = $1;
+
+-- name: GetSmsPrefs :one
+SELECT m.slug AS metal_slug, p.enabled FROM app.sms_prefs p LEFT JOIN market.metals m ON m.id = p.metal_id WHERE p.user_id = $1;
+
+-- name: UpsertSmsPrefs :execrows
+-- 0 rows: unknown metal slug.
+INSERT INTO app.sms_prefs (user_id, metal_id, enabled)
+SELECT sqlc.arg(user_id), mm.id, sqlc.arg(enabled) FROM market.metals mm WHERE mm.slug = sqlc.arg(metal_slug)::text
+ON CONFLICT (user_id) DO UPDATE SET metal_id = EXCLUDED.metal_id, enabled = EXCLUDED.enabled, updated_at = now();
+
+-- name: InitPriceUpdateCursors :exec
+-- New metals start "announced up to now", so the first run never sends old changes.
+INSERT INTO app.price_update_cursor (metal_id, notified_through) SELECT m.id, now() FROM market.metals m
+ON CONFLICT (metal_id) DO NOTHING;
+
+-- name: MetalPriceChanges :many
+-- Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
+SELECT m.id AS metal_id, m.name_fa AS metal_fa, m.name_en AS metal_en,
+       max(l.updated_at)::timestamptz AS last_change, count(*)::int AS changed
+FROM market.price_latest l
+JOIN market.price_series s ON s.id = l.series_id AND s.active
+JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
+JOIN market.products p ON p.id = s.product_id
+JOIN market.metals m ON m.id = p.metal_id
+JOIN app.price_update_cursor c ON c.metal_id = m.id
+WHERE l.updated_at > c.notified_through
+GROUP BY m.id, m.name_fa, m.name_en;
+
+-- name: SetPriceUpdateCursor :exec
+UPDATE app.price_update_cursor SET notified_through = sqlc.arg(through) WHERE metal_id = sqlc.arg(metal_id);
+
+-- name: MetalSmsSubscribers :many
+-- Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
+SELECT u.id AS user_id, u.phone_e164, u.locale, p.metal_id
+FROM app.sms_prefs p
+JOIN app.users u ON u.id = p.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL
+WHERE p.enabled AND p.metal_id IS NOT NULL AND (sqlc.narg(metal_id)::smallint IS NULL OR p.metal_id = sqlc.narg(metal_id)::smallint);
+
+-- name: BigDailyMoves :many
+-- Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
+SELECT s.id AS series_id, s.slug AS series_slug, s.currency, s.unit, pr.metal_id, pr.name_fa AS product_fa, pr.name_en AS product_en,
+       l.price_minor, l.prev_close_minor::bigint AS prev_close_minor
+FROM market.price_latest l
+JOIN market.price_series s ON s.id = l.series_id AND s.active
+JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
+JOIN market.products pr ON pr.id = s.product_id
+WHERE l.prev_close_minor IS NOT NULL AND l.prev_close_minor > 0
+  AND abs(l.price_minor - l.prev_close_minor) * 10000 >= sqlc.arg(min_bp)::bigint * l.prev_close_minor;
+
+-- name: NotificationsSentSince :one
+-- SMS of one template sent to a user since a time (daily caps).
+SELECT count(*)::int FROM app.notifications
+WHERE user_id = $1 AND template = sqlc.arg(template) AND status = 'sent' AND created_at >= sqlc.arg(since);

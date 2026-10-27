@@ -244,6 +244,11 @@ type AppPriceAlert struct {
 	UpdatedAt       pgtype.Timestamptz
 }
 
+type AppPriceUpdateCursor struct {
+	MetalID         int16
+	NotifiedThrough pgtype.Timestamptz
+}
+
 type AppRefund struct {
 	ID         pgtype.UUID
 	OrderID    pgtype.UUID
@@ -269,6 +274,13 @@ type AppSiteSetting struct {
 	Key       string
 	Value     []byte
 	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type AppSmsPref struct {
+	UserID    pgtype.UUID
+	MetalID   pgtype.Int2
+	Enabled   bool
 	UpdatedAt pgtype.Timestamptz
 }
 

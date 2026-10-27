@@ -1763,6 +1763,42 @@ paths:
         '204': { description: Deleted }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/me/sms-settings:
+    get:
+      operationId: getMySmsSettings
+      tags: [gold]
+      summary: The user's main metal for price SMS and whether they're on (sent to Gold only)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SmsSettings' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: setMySmsSettings
+      tags: [gold]
+      summary: Choose the main metal and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [metal, enabled]
+              properties:
+                metal: { type: string, maxLength: 60, description: Metal slug }
+                enabled: { type: boolean }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SmsSettings' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/me/alerts:
     get:
       operationId: listMyAlerts
@@ -2910,6 +2946,14 @@ components:
         kind: { $ref: '#/components/schemas/PriceAlertKind' }
         threshold: { type: string, description: 'above / below: price in the series minor unit (IRR: Rial per kg, USD: cents per ton)' }
         moveBp: { type: integer, description: 'move: daily change in basis points (50–5000)' }
+
+    SmsSettings:
+      type: object
+      required: [enabled, allowed]
+      properties:
+        metal: { type: string, description: The chosen main metal (slug); absent until chosen }
+        enabled: { type: boolean }
+        allowed: { type: boolean, description: The user's plan includes price SMS (Gold) }
 
     PriceAlert:
       type: object

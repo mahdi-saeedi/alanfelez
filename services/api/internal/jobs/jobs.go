@@ -249,7 +249,8 @@ func (w *RemindWorker) Work(ctx context.Context, _ *river.Job[RemindArgs]) error
 	return nil
 }
 
-// AlertsArgs checks SMS price alerts.
+// AlertsArgs sends the automatic Gold price SMS (alerts.Service.Auto: "prices updated" and 10 % moves). The manual
+// alerts users set themselves (alerts.Service.Check) are no longer checked (client, 2026-10-27: they confused).
 type AlertsArgs struct{}
 
 // Kind implements river.JobArgs.
@@ -264,12 +265,12 @@ type AlertsWorker struct {
 
 // Work implements river.Worker.
 func (w *AlertsWorker) Work(ctx context.Context, _ *river.Job[AlertsArgs]) error {
-	n, err := w.Alerts.Check(ctx)
+	n, err := w.Alerts.Auto(ctx)
 	if err != nil {
-		return err
+		return err //nolint:wrapcheck // alerts errors say where they come from
 	}
 	if n > 0 {
-		w.Log.InfoContext(ctx, "price alerts sent", "sms", n)
+		w.Log.InfoContext(ctx, "price SMS sent", "sms", n)
 	}
 	return nil
 }
