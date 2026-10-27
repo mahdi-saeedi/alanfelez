@@ -57,6 +57,8 @@ Last updated: 2026-10-27 (admin «قابلیت‌ها» screen for the feature f
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-27 Price SMS: a product whose ±10 % alert went out isn't counted again in «قیمت‌ها به‌روزرسانی شد»; no
+  other change = no second SMS (client chose option B). Released v0.14.0 (flags screen, Gold price SMS, SMS log, icons).
 - 2026-10-27 Admin «پیامک‌های ارسال‌شده» (SMS log: sent/failed and sms.ir's reason); the SMS settings show the number
   SMS go to, or warn that the account has none. Footer icons: Instagram, Telegram, WhatsApp (new setting), Bale, Eitaa,
   LinkedIn and email; each shows once its link is set in the admin.

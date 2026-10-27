@@ -843,6 +843,35 @@ func (q *Queries) SetPriceUpdateCursor(ctx context.Context, arg SetPriceUpdateCu
 	return err
 }
 
+const uncoveredPriceChanges = `-- name: UncoveredPriceChanges :one
+SELECT count(*)::int
+FROM market.price_latest l
+JOIN market.price_series s ON s.id = l.series_id AND s.active
+JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
+JOIN market.products p ON p.id = s.product_id AND p.metal_id = $1
+JOIN app.price_update_cursor c ON c.metal_id = p.metal_id
+WHERE l.updated_at > c.notified_through
+  AND NOT EXISTS (
+    SELECT 1 FROM app.notifications n
+    WHERE n.user_id = $2 AND n.template = 'price_move' AND n.status = 'sent'
+      AND n.dedupe_key LIKE 'price_move:' || $2::text || ':' || s.id || ':%'
+      AND n.created_at >= l.updated_at)
+`
+
+type UncoveredPriceChangesParams struct {
+	MetalID int16
+	UserID  pgtype.UUID
+}
+
+// How many of a metal's changed domestic prices (since its cursor) the user hasn't had a move alert for since that
+// change: a product whose ±10 % alert already went out isn't announced again in "prices updated" (client, 2026-10-27).
+func (q *Queries) UncoveredPriceChanges(ctx context.Context, arg UncoveredPriceChangesParams) (int32, error) {
+	row := q.db.QueryRow(ctx, uncoveredPriceChanges, arg.MetalID, arg.UserID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const updateAuction = `-- name: UpdateAuction :execrows
 UPDATE market.auctions a SET
   title_fa = $1, title_en = $2,

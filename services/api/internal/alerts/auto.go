@@ -86,70 +86,17 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 		return v, err
 	}
 
-	// 1. "Prices updated", one per metal batch.
-	changes, err := q.MetalPriceChanges(ctx)
-	if err != nil {
-		return sent, fmt.Errorf("alerts: price changes: %w", err)
-	}
-	for _, c := range changes {
-		if !BatchReady(c.LastChange.Time, now) {
-			continue
-		}
-		subs, err := q.MetalSmsSubscribers(ctx, pgtype.Int2{Int16: c.MetalID, Valid: true})
-		if err != nil {
-			return sent, fmt.Errorf("alerts: subscribers: %w", err)
-		}
-		for _, u := range subs {
-			if ok, err := isGold(u.UserID); err != nil || !ok {
-				if err != nil {
-					return sent, err
-				}
-				continue
-			}
-			n, err := q.NotificationsSentSince(ctx, dbq.NotificationsSentSinceParams{UserID: u.UserID, Template: tmplUpdate, Since: pgtype.Timestamptz{Time: dayStart, Valid: true}})
-			if err != nil {
-				return sent, fmt.Errorf("alerts: daily count: %w", err)
-			}
-			if n >= UpdatesPerDay {
-				continue
-			}
-			lang := langOf(u.Locale)
-			metal := c.MetalFa
-			if lang == "en" && c.MetalEn.Valid && c.MetalEn.String != "" {
-				metal = c.MetalEn.String
-			}
-			count := fmt.Sprint(c.Changed)
-			if lang == "fa" {
-				count = jalali.Digits(count)
-			}
-			body := strings.NewReplacer("{metal}", metal, "{count}", count).Replace(texts[tmplUpdate][lang])
-			key := fmt.Sprintf("%s:%s:%d:%d", tmplUpdate, uuid.UUID(u.UserID.Bytes), c.MetalID, c.LastChange.Time.UnixMicro())
-			ok, err := s.deliver(ctx, q, u.UserID, u.PhoneE164.String, key, tmplUpdate, notify.Message{
-				Template: tmplUpdate, Body: body, Params: []notify.Param{{Name: "METAL", Value: metal}, {Name: "COUNT", Value: count}},
-			})
-			if err != nil {
-				return sent, err
-			}
-			if ok {
-				sent++
-			}
-		}
-		if err := q.SetPriceUpdateCursor(ctx, dbq.SetPriceUpdateCursorParams{MetalID: c.MetalID, Through: c.LastChange}); err != nil {
-			return sent, fmt.Errorf("alerts: cursor: %w", err)
-		}
-	}
-
-	// 2. Moves of 10 % or more against the previous day, once per product and day.
+	// 1. Moves of 10 % or more against the previous day, once per product and day. First, so that a batch due in the
+	// same run (after the night pause) already knows which products had their alert.
 	moves, err := q.BigDailyMoves(ctx, BigMoveBp)
 	if err != nil {
 		return sent, fmt.Errorf("alerts: moves: %w", err)
 	}
-	if len(moves) == 0 {
-		return sent, nil
-	}
-	subs, err := q.MetalSmsSubscribers(ctx, pgtype.Int2{})
-	if err != nil {
-		return sent, fmt.Errorf("alerts: subscribers: %w", err)
+	var subs []dbq.MetalSmsSubscribersRow
+	if len(moves) > 0 {
+		if subs, err = q.MetalSmsSubscribers(ctx, pgtype.Int2{}); err != nil {
+			return sent, fmt.Errorf("alerts: subscribers: %w", err)
+		}
 	}
 	day := now.In(prices.Tehran).Format(time.DateOnly)
 	for _, m := range moves {
@@ -184,6 +131,68 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 			}
 		}
 	}
+
+	// 2. "Prices updated", one per metal batch, counting only the products the user hasn't just had a move alert for;
+	// none left = no SMS (client, 2026-10-27: no second SMS for the same change).
+	changes, err := q.MetalPriceChanges(ctx)
+	if err != nil {
+		return sent, fmt.Errorf("alerts: price changes: %w", err)
+	}
+	for _, c := range changes {
+		if !BatchReady(c.LastChange.Time, now) {
+			continue
+		}
+		subs, err := q.MetalSmsSubscribers(ctx, pgtype.Int2{Int16: c.MetalID, Valid: true})
+		if err != nil {
+			return sent, fmt.Errorf("alerts: subscribers: %w", err)
+		}
+		for _, u := range subs {
+			if ok, err := isGold(u.UserID); err != nil || !ok {
+				if err != nil {
+					return sent, err
+				}
+				continue
+			}
+			n, err := q.NotificationsSentSince(ctx, dbq.NotificationsSentSinceParams{UserID: u.UserID, Template: tmplUpdate, Since: pgtype.Timestamptz{Time: dayStart, Valid: true}})
+			if err != nil {
+				return sent, fmt.Errorf("alerts: daily count: %w", err)
+			}
+			if n >= UpdatesPerDay {
+				continue
+			}
+			changed, err := q.UncoveredPriceChanges(ctx, dbq.UncoveredPriceChangesParams{MetalID: c.MetalID, UserID: u.UserID})
+			if err != nil {
+				return sent, fmt.Errorf("alerts: uncovered changes: %w", err)
+			}
+			if changed == 0 {
+				continue
+			}
+			lang := langOf(u.Locale)
+			metal := c.MetalFa
+			if lang == "en" && c.MetalEn.Valid && c.MetalEn.String != "" {
+				metal = c.MetalEn.String
+			}
+			count := fmt.Sprint(changed)
+			if lang == "fa" {
+				count = jalali.Digits(count)
+			}
+			body := strings.NewReplacer("{metal}", metal, "{count}", count).Replace(texts[tmplUpdate][lang])
+			key := fmt.Sprintf("%s:%s:%d:%d", tmplUpdate, uuid.UUID(u.UserID.Bytes), c.MetalID, c.LastChange.Time.UnixMicro())
+			ok, err := s.deliver(ctx, q, u.UserID, u.PhoneE164.String, key, tmplUpdate, notify.Message{
+				Template: tmplUpdate, Body: body, Params: []notify.Param{{Name: "METAL", Value: metal}, {Name: "COUNT", Value: count}},
+			})
+			if err != nil {
+				return sent, err
+			}
+			if ok {
+				sent++
+			}
+		}
+		if err := q.SetPriceUpdateCursor(ctx, dbq.SetPriceUpdateCursorParams{MetalID: c.MetalID, Through: c.LastChange}); err != nil {
+			return sent, fmt.Errorf("alerts: cursor: %w", err)
+		}
+	}
+
 	return sent, nil
 }
 
