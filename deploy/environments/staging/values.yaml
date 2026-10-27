@@ -19,8 +19,8 @@ api:
   demoPrices: false # off since 2026-10-23: staff enter prices by hand to try the price admin (the demo history stays)
   paymentGateway: mock # fake gateway page, no real money
   smsProvider: smsir # renewal reminders and price alerts through sms.ir (2026-10-27)
-  # Approved sms.ir templates (client, 2026-10-27). price_alert waits for its approval; until then alerts fail and are logged.
-  smsir: {templates: "subscription_expiring=491453,subscription_ended=892531"}
+  # Approved sms.ir templates (client, 2026-10-27): reminder, plan ended, price alert (PRODUCT, PRICE, CHANGE).
+  smsir: {templates: "subscription_expiring=491453,subscription_ended=892531,price_alert=146260"}
 keycloak:
   # Sign-in codes go out by real SMS through sms.ir (line 500037506946788; key in secrets/alanfelez-sms, restricted to the
   # servers' IPs). Template 972517 is the client's approved verify template with parameter CODE.
