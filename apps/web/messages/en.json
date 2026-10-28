@@ -33,7 +33,9 @@
     "login": "Log in",
     "signup": "Sign up",
     "logout": "Log out",
-    "account": "Account"
+    "account": "Account",
+    "expired": "Your sign-in has ended, or this account signed in on another device. Until you sign in again, the site shows what guests see.",
+    "loginAgain": "Sign in again"
   },
   "locale": {
     "switch": "فارسی",
