@@ -271,6 +271,8 @@
       "usd-ton": "USD / ton"
     },
     "compareTitle": "Compare charts",
+    "compareShow": "Show comparison charts",
+    "compareHide": "Hide comparison charts",
     "compareHint": "Pick up to 4 charts to compare them one under another.",
     "compareSlot": "Chart {n, number}",
     "compareNone": "— none —",

@@ -18,3 +18,6 @@ export const MORE_NAV = [
   ["about", "/about"],
   ["contact", "/contact"],
 ] as const;
+
+/** Whether `href` is the page the visitor is on (or a page under it, like /prices/copper under /prices). */
+export const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
