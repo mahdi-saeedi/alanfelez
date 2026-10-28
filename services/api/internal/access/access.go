@@ -35,8 +35,8 @@ type Feature string
 const (
 	PricesBase      Feature = "prices.base"      // 7 base metals (ticker, home cards)
 	PricesFull      Feature = "prices.full"      // every product, market and source
-	ChartBasic      Feature = "chart.basic"      // chart with limited history
-	ChartFull       Feature = "chart.full"       // full history + compare
+	ChartBasic      Feature = "chart.basic"      // charts of world prices with limited history
+	ChartFull       Feature = "chart.full"       // full history, and the history of IME and market prices
 	NewsRead        Feature = "news.read"        // public news
 	AnalysisRead    Feature = "analysis.read"    // expert market analysis
 	ForecastRead    Feature = "forecast.read"    // price forecast scenarios

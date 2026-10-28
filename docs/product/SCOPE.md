@@ -91,7 +91,7 @@ field) and SMS alerts for sharp moves.
 |---|---|---|---|
 | Main prices: 7 base metals (ticker, home cards) | ✓ | ✓ | ✓ |
 | Full price table (all products, all markets, domestic + global) | partial (**global and IME prices only**; domestic day prices are paid, 2026-10-26) | ✓ | ✓ |
-| Price chart | last 1 month | full history + compare | full history + compare |
+| Price chart | world prices only, last 1 month (IME and market history are paid: client, 2026-10-28, owner OK) | full history + compare | full history + compare |
 | News | ✓ | ✓ | ✓ |
 | Expert market analysis | ✗ (locked, blurred teaser) | ✗ | ✓ |
 | Price forecast scenarios | ✗ | ✗ | ✓ |
@@ -210,7 +210,7 @@ If a source is stale beyond its threshold, the admin dashboard shows it and staf
   Market) and «قیمت جهانی» (global, LME included).
 - Domestic prices: **Toman/kg** by default, with switches for **Rial** and **ton**. Global (LME) prices: **USD/ton** (standard), with an optional
   "convert to Toman" using the day's USD rate (the rate source is shown).
-- Ranges: 1D · 1W · 1M · 3M · 6M · 1Y · 3Y · MAX, where MAX = all stored history. Free is limited to 1M.
+- Ranges: 1D · 1W · 1M · 3M · 6M · 1Y · 3Y · MAX, where MAX = all stored history. Free is limited to 1M, and to world prices (no IME or market history, 2026-10-28).
 - Compare up to 4 series, with the same unit enforced.
 
 ## 15. Payments and trust (client answers #12, #29)

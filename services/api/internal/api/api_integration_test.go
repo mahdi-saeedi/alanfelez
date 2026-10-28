@@ -210,16 +210,19 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		}
 	}
 
-	// Non-base history is locked for free, as is a range beyond 30 days.
+	// Non-base history is locked for free; so is IME history (client, 2026-10-28: the free plan charts world prices
+	// only), and a range beyond 30 days.
 	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-cable-free/points", "user", nil); st != 403 || body["code"] != "FEATURE_LOCKED" || body["feature"] != "prices.full" || body["requiredPlan"] != "silver" {
 		t.Fatalf("free non-base history: %d %v", st, body)
 	}
-	if st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=3M", "", nil); st != 403 || body["feature"] != "chart.full" {
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=1M", "", nil); st != 403 || body["feature"] != "chart.full" || body["requiredPlan"] != "silver" {
+		t.Fatalf("free IME history: %d %v", st, body)
+	}
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-lme/points?range=3M", "", nil); st != 403 || body["feature"] != "chart.full" {
 		t.Fatalf("free 3M: %d %v", st, body)
 	}
-	st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=1M", "", nil)
-	if st != 200 || len(body["points"].([]any)) != 2 {
-		t.Fatalf("free 1M: %d %v", st, body)
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-lme/points?range=1M", "", nil); st != 200 || body["series"].(map[string]any)["slug"] != "copper-lme" {
+		t.Fatalf("free world 1M: %d %v", st, body)
 	}
 }
 
@@ -233,6 +236,10 @@ func TestPaidTierAfterManualGrant(t *testing.T) {
 	}
 	if st, body, _ := e.call(http.MethodPost, "/v1/admin/subscriptions", "admin", grant); st != 201 || body["plan"] != "silver" {
 		t.Fatalf("grant: %d %v", st, body)
+	}
+
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=1M", "silver", nil); st != 200 || body["series"] == nil {
+		t.Fatalf("silver IME history: %d %v", st, body)
 	}
 
 	st, body, _ := e.call(http.MethodGet, "/v1/me/entitlements", "silver", nil)

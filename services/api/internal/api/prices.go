@@ -73,6 +73,11 @@ func (s *Server) ListSeriesPoints(ctx context.Context, req ListSeriesPointsReque
 	if !sr.IsBase && !access.Allowed(cur.Tier, access.PricesFull) {
 		return ListSeriesPoints403ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(lockedProblem(ctx, access.PricesFull))}, nil
 	}
+	// History of IME and market prices is paid (client, 2026-10-28, owner OK): with it a free user could rebuild
+	// the day-by-day prices. The free plan keeps the charts of world prices only.
+	if sr.MarketScope != "global" && !access.Allowed(cur.Tier, access.ChartFull) {
+		return ListSeriesPoints403ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(lockedProblem(ctx, access.ChartFull))}, nil
+	}
 	rng := Range1M
 	if req.Params.Range != nil {
 		rng = *req.Params.Range

@@ -48,6 +48,9 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Free plan charts world prices only (client chose option B, owner OK'd): IME and market history need Silver
+  (`chart.full`, ListSeriesPoints), so free users can't rebuild day-by-day domestic prices. The chart page opens on a
+  world price for them, marks the rest «ویژه‌ی نقره‌ای» and says the history (not the price) is locked.
 - 2026-10-28 An ended sign-in (Keycloak session over, e.g. another device took its place under the 2-device limit)
   kept the user's name in the header while every page showed guest data (a Gold user saw locked history). The header
   now offers «ورود دوباره» with a notice. Checked the API tier matrix for free/silver/gold: all correct.
