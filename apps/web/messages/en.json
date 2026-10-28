@@ -71,7 +71,7 @@
         },
         "floor": {
           "title": "Market floor prices, updated continuously",
-          "text": "Day prices of the free market and the Iran Iron Market for each product."
+          "text": "Day prices of the market for each product."
         },
         "history": {
           "title": "Price history",

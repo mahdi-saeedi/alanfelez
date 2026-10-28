@@ -18,8 +18,7 @@ datasets:
 
   - name: markets
     rows:
-      - { slug: ime,  name_fa: بورس کالای ایران,   name_en: Iran Mercantile Exchange, scope: domestic, sort: 1 }
-      - { slug: iron, name_fa: تالار آهن ایران,     name_en: Iran Iron Market,         scope: domestic, sort: 2 }
-      - { slug: free, name_fa: بازار آزاد,          name_en: Free market,              scope: domestic, sort: 3 }
-      - { slug: lme,  name_fa: بورس فلزات لندن (LME), name_en: London Metal Exchange,  scope: global,   sort: 4 }
-      - { slug: global, name_fa: بازار جهانی,        name_en: Global market,          scope: global,   sort: 5 }
+      # Three sources (client, 2026-10-28; migration 00018 merged LME into «قیمت جهانی» and the iron market into «بازار»).
+      - { slug: ime,    name_fa: بورس کالای ایران, name_en: Iran Mercantile Exchange, scope: domestic, sort: 1 }
+      - { slug: free,   name_fa: بازار,            name_en: Market,                   scope: domestic, sort: 2 }
+      - { slug: global, name_fa: قیمت جهانی,       name_en: World price,              scope: global,   sort: 3 }
