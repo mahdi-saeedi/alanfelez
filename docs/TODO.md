@@ -48,6 +48,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 The price source shown everywhere is the market (one of the three), never the feed name such as the demo
+  «داده‌ی نمایشی»; «منابع داده» on /prices lists all three, «قیمت جهانی» included.
 - 2026-10-28 Three price sources (client; owner OK'd by phone): «بورس کالای ایران», «بازار», «قیمت جهانی».
   Migration 00018 moves LME series into «قیمت جهانی» and Iran Iron Market series into «بازار» (history stays with the
   series; slugs unchanged) and removes the two empty markets; the reference seed matches.

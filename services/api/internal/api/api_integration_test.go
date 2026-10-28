@@ -204,7 +204,8 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		if ch := alu["change"].(map[string]any); ch["amount"] != "21000" || ch["bp"].(float64) != 100 {
 			t.Fatalf("%q: change = %v, want +21000 / 100 bp", tok, ch)
 		}
-		if alu["source"] != "آزمایشی" {
+		// The source is the market, not the feed behind it (client, 2026-10-28).
+		if alu["source"] != "بورس کالای ایران" {
 			t.Fatalf("%q: source = %v", tok, alu["source"])
 		}
 	}

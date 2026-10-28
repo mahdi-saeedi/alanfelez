@@ -234,11 +234,9 @@ func priceRow(lang string, r dbq.ListLatestPricesRow) PriceRow {
 	if ch, ok := prices.ChangeFrom(prev, r.PriceMinor.Int64); ok {
 		row.Change = &PriceChange{Amount: i64s(ch.Amount), Bp: int(ch.Bp)}
 	}
-	// Manual entries show the market as their source; the internal "manual" flag isn't public (SECURITY §6).
+	// The source shown is the market, one of the three the client names («بورس کالای ایران», «بازار», «قیمت جهانی»;
+	// 2026-10-28), never the feed or "manual entry" behind it (SECURITY §6).
 	src := localized(lang, r.MarketFa, r.MarketEn)
-	if r.SourceProvider.Valid && r.SourceProvider.String != "manual" {
-		src = localized(lang, r.SourceFa.String, r.SourceEn)
-	}
 	row.Source = &src
 	return row
 }

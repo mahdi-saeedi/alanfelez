@@ -127,8 +127,8 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
           <section className="rounded-card border border-border bg-surface p-4 shadow-soft">
             <h2 className="mb-2 text-sm font-bold">{t("sources")}</h2>
             <ul className="space-y-1.5 text-sm text-text-2">
+              {/* The three sources (client, 2026-10-28): «بورس کالای ایران», «بازار», «قیمت جهانی». */}
               {markets.data?.items
-                .filter((m) => m.scope === "domestic")
                 .map((m) => (
                   <li key={m.slug} className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-up" aria-hidden />
