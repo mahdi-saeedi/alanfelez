@@ -25,8 +25,8 @@ file (the PR is the record). Environments and delivery: [DEPLOYMENT.md](DEPLOYME
 | ☐ | TLS on every host (Arvan edge + cluster ingress), HTTP → HTTPS | HSTS is sent automatically when the site URL is https |
 | ☐ | `api.trustedProxies` includes the **Arvan CDN edge ranges** | Otherwise every visitor shares one IP for rate limits (DEPLOYMENT §6) |
 | ☐ | CDN: cache `/_next/static/*` long; **don't cache HTML** (pages carry a per-request CSP nonce and may be personal) | §4 explains the capacity without HTML caching |
-| ☐ | Backups: WAL archiving + nightly base backup to Object Storage; **one restore drill done** | NFR DR-1..4, OPERATIONS §5 |
-| ☐ | Object Storage bucket + `alanfelez-backup-s3` secret, then `postgres.backup.enabled: true` again on staging | Staging runs **without backups** until then (data-values.yaml) |
+| ☑ | Backups: WAL archiving + nightly base backup to Object Storage; **one restore drill done** (2026-10-28, staging) | NFR DR-1..4, OPERATIONS §5 |
+| ☑ | Object Storage bucket + `alanfelez-backup-s3` secret, then `postgres.backup.enabled: true` on staging and production | Done 2026-10-27/28 |
 | ☐ | Monitoring and alerts live (uptime, 5xx rate, p95, SSE connections, source staleness, SMS spend) | NFR, OPERATIONS |
 | ☐ | Secrets sealed for production (AUTH_SECRET, Keycloak client secrets, DB, gateway, SMS) | No secret in git |
 

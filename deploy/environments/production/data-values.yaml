@@ -1,6 +1,6 @@
 # Until launch these match the data already on the production server (one instance, 10 GiB, local-path storage,
-# which can't grow in place). Before launch (LAUNCH.md §2): the Object Storage bucket + alanfelez-backup-s3 secret,
-# then backup.enabled true; a second instance and more storage need a planned migration.
+# which can't grow in place). Backups on since 2026-10-28 (bucket alanfelez-backups, secret alanfelez-backup-s3);
+# a second instance and more storage need a planned migration.
 postgres:
   instances: 1
   storage: { size: 10Gi }
@@ -8,6 +8,6 @@ postgres:
     requests: { cpu: 500m, memory: 1Gi }
     limits: { memory: 2Gi }
   backup:
-    enabled: false                 # until the bucket exists: archiving with nowhere to send WAL fills the disk
+    enabled: true                  # WAL archiving + nightly; if the keys stop working WAL fills the disk (runbook R6)
     destinationPath: s3://alanfelez-backups/production/postgres
     endpointURL: https://s3.ir-thr-at1.arvanstorage.ir
