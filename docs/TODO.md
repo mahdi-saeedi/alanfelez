@@ -48,6 +48,10 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Header shows the page you're on (client): bold, white, gold underline in the desktop menu (the phone menu
+  and bottom bar already did). Chart page on phones (client): metal and category side by side, high/low/average under
+  the chart so it starts higher, range buttons 40 px tall, the four compare cards behind «نمایش نمودارهای مقایسه»
+  (remembered for the tab). Desktop unchanged.
 - 2026-10-28 Free plan charts world prices only (client chose option B, owner OK'd): IME and market history need Silver
   (`chart.full`, ListSeriesPoints), so free users can't rebuild day-by-day domestic prices. The chart page opens on a
   world price for them, marks the rest «ویژه‌ی نقره‌ای» and says the history (not the price) is locked.

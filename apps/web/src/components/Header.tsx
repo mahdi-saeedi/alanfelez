@@ -6,10 +6,9 @@ import { readSession } from "@/lib/session-refresh";
 import { Link } from "@/i18n/navigation";
 import { auth, signIn, signOut } from "@/auth";
 import { LocaleSwitch } from "./LocaleSwitch";
-import { MAIN_NAV } from "@/lib/nav";
 import { getSite } from "@/lib/content";
 import { accessToken } from "@/lib/api";
-import { MobileMenu } from "./MobileNav";
+import { DesktopNav, MobileMenu } from "./MobileNav";
 
 
 export async function Header() {
@@ -54,13 +53,7 @@ export async function Header() {
           {/* The logo already shows the name; on phones the text would push the header wider than the screen. */}
           <span className="sr-only sm:not-sr-only">{t("brand.name")}</span>
         </Link>
-        <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
-          {MAIN_NAV.map(([key, href]) => (
-            <Link key={key} href={href} className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white">
-              {t(`nav.${key}`)}
-            </Link>
-          ))}
-        </nav>
+        <DesktopNav />
         <div className="ms-auto flex items-center gap-2 lg:ms-0">
           {(site?.englishSite || locale === "en") && <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />}
           {signedIn && session?.user ? (

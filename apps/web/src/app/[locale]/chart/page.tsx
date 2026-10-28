@@ -14,6 +14,7 @@ import { AutoSubmitSelect } from "@/components/AutoSubmitSelect";
 import { Locked, LockIcon } from "@/components/Locked";
 import { InsightCard } from "@/components/content/InsightCard";
 import { getArticles } from "@/lib/content";
+import { PhoneFold } from "@/components/PhoneFold";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,15 @@ export default async function ChartPage({ params, searchParams }: Params) {
   const historyOnly = "locked" in history && history.locked ? history.locked.feature === "chart.full" : false;
   const related = (await getArticles(locale, { type: ["analysis", "forecast"], metal: row.series.metal.slug, limit: 3 }))?.items ?? [];
 
+  // High, low and average over the range: beside the price from sm up, under the chart on phones (the chart comes first).
+  const rangeStats = stats && (
+    <>
+      <Stat label={t("high")} value={fmt(stats.high)} />
+      <Stat label={t("low")} value={fmt(stats.low)} />
+      <Stat label={t("avg")} value={fmt(stats.avg)} />
+    </>
+  );
+
   const rangeNav = (
     <nav className="flex gap-1 overflow-x-auto whitespace-nowrap px-5 pt-4 [scrollbar-width:none] sm:flex-wrap" aria-label="range">
       {RANGES.map((r) =>
@@ -131,12 +141,12 @@ export default async function ChartPage({ params, searchParams }: Params) {
             key={r}
             href={chartHref({ range: r })}
             aria-current={r === range ? "page" : undefined}
-            className={`shrink-0 rounded-md px-3 py-1 text-xs font-bold ${r === range ? "bg-graphite text-white" : "text-text-2 hover:bg-surface-2"}`}
+            className={`flex min-h-10 shrink-0 items-center rounded-md px-3.5 py-1 text-xs font-bold sm:min-h-0 sm:px-3 ${r === range ? "bg-graphite text-white" : "text-text-2 hover:bg-surface-2"}`}
           >
             {t(`ranges.${r}`)}
           </Link>
         ) : (
-          <Link key={r} href="/plans" title={t("lockedRange", { plan: tl("plan.silver") })} className="flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs text-text-3 hover:bg-surface-2">
+          <Link key={r} href="/plans" title={t("lockedRange", { plan: tl("plan.silver") })} className="flex min-h-10 shrink-0 items-center gap-1 rounded-md px-3.5 py-1 text-xs text-text-3 hover:bg-surface-2 sm:min-h-0 sm:px-3">
             <LockIcon className="h-3.5 w-3.5" />
             {t(`ranges.${r}`)}
           </Link>
@@ -146,8 +156,8 @@ export default async function ChartPage({ params, searchParams }: Params) {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <header className="mb-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
+      <header className="mb-4 sm:mb-6">
         <h1 className="text-2xl font-extrabold sm:text-3xl">{t("title")}</h1>
         <p className="mt-2 text-text-2">{t("subtitle")}</p>
       </header>
@@ -222,7 +232,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
             </section>
           ) : (
           <>
-          <form action={locale === "en" ? "/en/chart" : "/chart"} className="flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface p-4 shadow-soft">
+          <form action={locale === "en" ? "/en/chart" : "/chart"} className="grid grid-cols-2 items-end gap-3 rounded-card border border-border bg-surface p-4 shadow-soft sm:flex sm:flex-wrap [&>label:nth-of-type(n+3)]:col-span-2">
             <input type="hidden" name="range" value={range} />
             {SLOTS.map((k, i) => <input key={k} type="hidden" name={k} value={picked[i]} />)}
             <AutoSubmitSelect name="metal" value={metal} label={t("metal")}>
@@ -261,14 +271,8 @@ export default async function ChartPage({ params, searchParams }: Params) {
                   <span className="ms-2 text-xs font-normal text-text-3" dir="ltr">{priceUnitLabel(row.series, locale, display)}</span>
                 </div>
               </div>
-              {stats && (
-                <>
-                  <Stat label={t("change", { range: t(`ranges.${range}`) })} value={formatBp(stats.changeBp, locale)} tone={stats.changeBp >= 0 ? "text-up" : "text-down"} ltr />
-                  <Stat label={t("high")} value={fmt(stats.high)} />
-                  <Stat label={t("low")} value={fmt(stats.low)} />
-                  <Stat label={t("avg")} value={fmt(stats.avg)} />
-                </>
-              )}
+              {stats && <Stat label={t("change", { range: t(`ranges.${range}`) })} value={formatBp(stats.changeBp, locale)} tone={stats.changeBp >= 0 ? "text-up" : "text-down"} ltr />}
+              {stats && <div className="hidden sm:contents">{rangeStats}</div>}
             </div>
 
             {rangeNav}
@@ -286,6 +290,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
                 <LiveUpdated slug={row.series.slug} fallback={row.observedAt} />
               </p>
             </div>
+            {stats && <div className="grid grid-cols-3 gap-3 border-t border-border p-5 sm:hidden">{rangeStats}</div>}
           </section>
           </>
           )}
@@ -310,6 +315,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
         </div>
 
         <aside className="min-w-0">
+          <PhoneFold label={t("compareShow")} hideLabel={t("compareHide")}>
           <h2 className="mb-1 text-sm font-bold">{t("compareTitle")}</h2>
           <p className="mb-3 text-xs text-text-3">{t("compareHint")}</p>
           <form action={locale === "en" ? "/en/chart" : "/chart"} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
@@ -349,6 +355,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
               <button className="rounded-control bg-graphite px-4 py-2 text-sm text-white">OK</button>
             </noscript>
           </form>
+          </PhoneFold>
         </aside>
       </div>
     </div>

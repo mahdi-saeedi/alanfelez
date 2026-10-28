@@ -3,14 +3,38 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import { MAIN_NAV, MORE_NAV } from "@/lib/nav";
-
-const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
+import { MAIN_NAV, MORE_NAV, isActive } from "@/lib/nav";
 
 /**
  * Phone menu (below lg): a button that opens a drawer with every page. Closes on navigation, Escape and outside
  * click; focus moves into the drawer and back to the button, so it works with a keyboard and screen readers.
  */
+/**
+ * Desktop header nav (lg and up). Client only to read the current path: the page you're on is bold, white and
+ * underlined in gold, so it's clear where you are.
+ */
+export function DesktopNav() {
+  const t = useTranslations("nav");
+  const pathname = usePathname();
+  return (
+    <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
+      {MAIN_NAV.map(([key, href]) => {
+        const on = isActive(pathname, href);
+        return (
+          <Link
+            key={key}
+            href={href}
+            aria-current={on ? "page" : undefined}
+            className={`whitespace-nowrap rounded-lg border-b-2 px-3 py-2 text-sm ${on ? "border-gold bg-graphite-2 font-bold text-white" : "border-transparent text-silver-light hover:bg-graphite-2 hover:text-white"}`}
+          >
+            {t(key)}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function MobileMenu() {
   const t = useTranslations("nav");
   const pathname = usePathname();
