@@ -48,6 +48,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Chart compare: comparing world and IME prices is free; the other products are offered too, marked
+  «ویژه‌ی نقره‌ای», and show as 🔒 (no line, link to /plans), with a line under the chart saying so (client).
 - 2026-10-28 Chart page «مقایسه‌ی کالاها» (client): the side panel's four products on one chart as % change over the
   range (?view=compare), colored chips with each one's change, remove (×) and «+ افزودن کالا», a crosshair with every
   product's change. The four small charts on the side stay and drive the same selection.

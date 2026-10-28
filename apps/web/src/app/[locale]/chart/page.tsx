@@ -78,7 +78,9 @@ export default async function ChartPage({ params, searchParams }: Params) {
 
   // Compare panel: up to 4 charts of any series the caller may see, one under another. Defaults: the global prices,
   // else the first base series. "" in a slot = empty.
-  const bySlug = new Map(rows.map((r) => [r.series.slug, r]));
+  // Compare slots accept every product, the locked ones too: they show as 🔒 (client, 2026-10-28: comparing global and
+  // IME prices is free, the rest needs a plan).
+  const bySlug = new Map(all.map((r) => [r.series.slug, r]));
   const global = rows.filter((r) => r.series.isBase && r.series.market.scope === "global");
   const defaults = (global.length ? global : rows.filter((r) => r.series.isBase)).slice(0, 4).map((r) => r.series.slug);
   const anySlot = SLOTS.some((k) => q[k] !== undefined);
@@ -94,7 +96,9 @@ export default async function ChartPage({ params, searchParams }: Params) {
     }),
   );
   const catLabel = (c: Cat) => t(`categories.${c}`);
-  const groups = groupByMetalAndCategory(rows, catLabel);
+  const groups = groupByMetalAndCategory(all, catLabel);
+  const optionName = (r: PriceRow) =>
+    `${r.series.product.name} — ${r.series.market.name}${lockedSlugs.has(r.series.slug) ? ` (${t("lockedOption", { plan: lockedPlanName })})` : ""}`;
   const slotQuery = Object.fromEntries(SLOTS.map((k, i) => [k, picked[i]!]));
   // «مقایسه‌ی کالاها» (client, 2026-10-28): the side panel's products on one chart, as % change over the range.
   const compareView = q.view === "compare";
@@ -164,7 +168,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
                       <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: COMPARE_COLORS[i] }} />
                       {c.row.series.product.name}
                       {c.locked ? (
-                        <span className="flex items-center gap-1 text-xs text-gold-dark"><LockIcon className="h-3.5 w-3.5" />{tl(`plan.${c.locked}`)}</span>
+                        <Link href="/plans" className="flex items-center gap-1 text-xs font-bold text-gold-dark hover:underline"><LockIcon className="h-3.5 w-3.5" />{tl(`plan.${c.locked}`)}</Link>
                       ) : bp !== null && (
                         <b className={`text-xs tabular-nums ${bp >= 0 ? "text-up" : "text-down"}`} dir="ltr">{formatBp(bp, locale)}</b>
                       )}
@@ -175,11 +179,11 @@ export default async function ChartPage({ params, searchParams }: Params) {
                 {firstEmpty && (
                   <form action={locale === "en" ? "/en/chart" : "/chart"} className="inline-flex">
                     {Object.entries(chartHref({}).query).filter(([key]) => key !== firstEmpty).map(([key, v]) => <input key={key} type="hidden" name={key} value={String(v)} />)}
-                    <AutoSubmitSelect name={firstEmpty} value="" label={t("compareAdd")}>
+                    <AutoSubmitSelect name={firstEmpty} value="" label={t("compareAdd")} hideLabel>
                       <option value="">{t("compareAdd")}</option>
                       {groups.map(([group, list]) => (
                         <optgroup key={group} label={group}>
-                          {list.filter((r) => !picked.includes(r.series.slug)).map((r) => <option key={r.series.slug} value={r.series.slug}>{r.series.product.name} — {r.series.market.name}</option>)}
+                          {list.filter((r) => !picked.includes(r.series.slug)).map((r) => <option key={r.series.slug} value={r.series.slug}>{optionName(r)}</option>)}
                         </optgroup>
                       ))}
                     </AutoSubmitSelect>
@@ -195,6 +199,13 @@ export default async function ChartPage({ params, searchParams }: Params) {
                   <p className="py-16 text-center text-text-2">{t("compareEmpty")}</p>
                 )}
                 <p className="mt-3 text-xs text-text-3">{t("compareNote")}</p>
+                {lockedPlanName && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-text-2">
+                    <LockIcon className="h-4 w-4 shrink-0" />
+                    {t("compareFree", { plan: lockedPlanName })}
+                    <Link href="/plans" className="font-bold text-gold-dark hover:underline">{tl("upgrade", { plan: lockedPlanName })}</Link>
+                  </p>
+                )}
               </div>
             </section>
           ) : (
@@ -304,7 +315,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
                     <option value="">{t("compareNone")}</option>
                     {groups.map(([group, list]) => (
                       <optgroup key={group} label={group}>
-                        {list.map((r) => <option key={r.series.slug} value={r.series.slug}>{r.series.product.name} — {r.series.market.name}</option>)}
+                        {list.map((r) => <option key={r.series.slug} value={r.series.slug}>{optionName(r)}</option>)}
                       </optgroup>
                     ))}
                   </AutoSubmitSelect>
