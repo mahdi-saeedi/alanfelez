@@ -69,7 +69,7 @@ export async function refreshSession(req: NextRequest): Promise<{ request: NextR
 
   const fresh = await refreshTokens(token.refreshToken as string).catch(() => null);
   // A failed refresh (Keycloak session over, token revoked) keeps the user signed in to the site but anonymous for
-  // the API: the error flag stops further attempts and the header offers "login" again.
+  // the API: the error flag stops further attempts and the header says so and offers «ورود دوباره» (Header.tsx).
   const next: JWT = fresh ? { ...token, ...fresh, error: undefined } : { ...token, accessToken: undefined, error: "RefreshFailed" };
   const value = await encode({ token: next, secret: process.env.AUTH_SECRET as string, salt: sessionCookie, maxAge: SESSION_MAX_AGE });
 

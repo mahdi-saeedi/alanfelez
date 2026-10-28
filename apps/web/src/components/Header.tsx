@@ -8,13 +8,19 @@ import { auth, signIn, signOut } from "@/auth";
 import { LocaleSwitch } from "./LocaleSwitch";
 import { MAIN_NAV } from "@/lib/nav";
 import { getSite } from "@/lib/content";
+import { accessToken } from "@/lib/api";
 import { MobileMenu } from "./MobileNav";
 
 
 export async function Header() {
   const t = await getTranslations();
   const locale = await getLocale();
-  const [session, site] = await Promise.all([auth(), getSite(locale as "fa" | "en")]);
+  const [session, site, token] = await Promise.all([auth(), getSite(locale as "fa" | "en"), accessToken()]);
+  // Signed in to the website but without a working API token: the Keycloak session ended (another device took this
+  // one's place under the device limit, or it expired). Every page then shows guest data, so say so and offer to sign in
+  // again, instead of showing the user's name over a free-plan view.
+  const expired = !!session?.user && !token;
+  const signedIn = !!session?.user && !expired;
 
   // «ورود»: username + password first; «ثبت‌نام»: mobile number + SMS code (see PASSWORD_FIRST).
   async function login() {
@@ -57,7 +63,7 @@ export async function Header() {
         </nav>
         <div className="ms-auto flex items-center gap-2 lg:ms-0">
           {(site?.englishSite || locale === "en") && <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />}
-          {session?.user ? (
+          {signedIn && session?.user ? (
             <form action={logout} className="flex items-center gap-2">
               <Link href="/account" className="hidden rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white sm:inline">
                 {session.user.name || t("auth.account")}
@@ -75,6 +81,14 @@ export async function Header() {
           )}
         </div>
       </div>
+      {expired && (
+        <div role="status" className="border-t border-graphite-3 bg-gold/15">
+          <form action={login} className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm text-white">
+            <span>{t("auth.expired")}</span>
+            <button className="rounded-lg bg-gold px-4 py-1.5 text-sm font-bold text-graphite hover:bg-gold-light">{t("auth.loginAgain")}</button>
+          </form>
+        </div>
+      )}
     </header>
   );
 }

@@ -48,6 +48,9 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 An ended sign-in (Keycloak session over, e.g. another device took its place under the 2-device limit)
+  kept the user's name in the header while every page showed guest data (a Gold user saw locked history). The header
+  now offers «ورود دوباره» with a notice. Checked the API tier matrix for free/silver/gold: all correct.
 - 2026-10-28 Chart compare: comparing world and IME prices is free; the other products are offered too, marked
   «ویژه‌ی نقره‌ای», and show as 🔒 (no line, link to /plans), with a line under the chart saying so (client).
 - 2026-10-28 Chart page «مقایسه‌ی کالاها» (client): the side panel's four products on one chart as % change over the
