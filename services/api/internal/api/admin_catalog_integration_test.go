@@ -118,7 +118,7 @@ func TestCatalogAdmin(t *testing.T) {
 	}
 	metal := map[string]any{"slug": "nickel", "nameFa": "نیکل", "nameEn": "Nickel"}
 	product := map[string]any{"slug": "nickel-cathode", "metal": "nickel", "category": "raw", "nameFa": "کاتد نیکل"}
-	series := map[string]any{"slug": "nickel-cathode-lme", "product": "nickel-cathode", "market": "lme", "currency": "USD", "unit": "ton"}
+	series := map[string]any{"slug": "nickel-cathode-lme", "product": "nickel-cathode", "market": "global", "currency": "USD", "unit": "ton"}
 	steps := []struct {
 		method, path, token string
 		body                any
@@ -138,7 +138,7 @@ func TestCatalogAdmin(t *testing.T) {
 		{http.MethodPost, "/v1/admin/series", "support", series, 403},
 		{http.MethodPost, "/v1/admin/series", "editor", series, 201},
 		// same product × market × currency × unit under another slug
-		{http.MethodPost, "/v1/admin/series", "editor", map[string]any{"slug": "nickel-2", "product": "nickel-cathode", "market": "lme", "currency": "USD", "unit": "ton"}, 409},
+		{http.MethodPost, "/v1/admin/series", "editor", map[string]any{"slug": "nickel-2", "product": "nickel-cathode", "market": "global", "currency": "USD", "unit": "ton"}, 409},
 		{http.MethodPost, "/v1/admin/prices", "editor", map[string]any{"series": "nickel-cathode-lme", "amount": "1650000"}, 201},
 		{http.MethodPost, "/v1/admin/series", "editor", map[string]any{"slug": "nickel-cathode-free", "product": "nickel-cathode", "market": "free", "currency": "IRR", "unit": "kg"}, 201},
 		{http.MethodPost, "/v1/admin/catalog/active", "support", map[string]any{"kind": "product", "slug": "copper-red", "active": false}, 403},

@@ -83,7 +83,7 @@ we used −10% / −20%. Prices are versioned (migration 00009 closed the old ro
 ### Feature matrix ✅ the client's plan table (2026-10-26, OK'd by the owner; closes F2)
 
 Free: global metal prices, global charts, IME (بورس کالا) prices. Silver adds «قیمت روز کالا» (the domestic day prices of
-the free market and the Iran iron market) and «نمودار و تاریخچه کالا». Gold adds daily auctions, forecasts and analysis,
+the market «بازار») and «نمودار و تاریخچه کالا». Gold adds daily auctions, forecasts and analysis,
 the calculator, a daily SMS with the price of the user's own product (**not built yet**: needs the sign-up form's product
 field) and SMS alerts for sharp moves.
 
@@ -206,6 +206,8 @@ If a source is stale beyond its threshold, the admin dashboard shows it and staf
 
 ## 14. Charts and units — 🛠 (client answer #23)
 
+- Price sources (client, 2026-10-28; migration 00018): «بورس کالای ایران», «بازار» (the former free market and Iran Iron
+  Market) and «قیمت جهانی» (global, LME included).
 - Domestic prices: **Toman/kg** by default, with switches for **Rial** and **ton**. Global (LME) prices: **USD/ton** (standard), with an optional
   "convert to Toman" using the day's USD rate (the rate source is shown).
 - Ranges: 1D · 1W · 1M · 3M · 6M · 1Y · 3Y · MAX, where MAX = all stored history. Free is limited to 1M.

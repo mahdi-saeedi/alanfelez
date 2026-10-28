@@ -48,6 +48,9 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Three price sources (client; owner OK'd by phone): «بورس کالای ایران», «بازار», «قیمت جهانی».
+  Migration 00018 moves LME series into «قیمت جهانی» and Iran Iron Market series into «بازار» (history stays with the
+  series; slugs unchanged) and removes the two empty markets; the reference seed matches.
 - 2026-10-28 Prices page review (client approved all): the unit column says the full unit («تومان/کیلوگرم», «دلار/تن»)
   instead of a fixed «تومان/kg» header; a market filter; the products a plan doesn't include are listed as 🔒 rows (name,
   market, unit; `PriceList.lockedSeries`, never a price; at most 10, the line below counts all); a Toman/Rial and

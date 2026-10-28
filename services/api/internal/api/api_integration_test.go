@@ -317,7 +317,7 @@ func TestManualEntryGateAndAudit(t *testing.T) {
 		m := it.(map[string]any)
 		if m["series"].(map[string]any)["slug"] == "copper-red-free" {
 			// Manual points show the market as the source, never "manual entry".
-			if m["price"].(map[string]any)["amount"] != "8000000" || m["source"] != "بازار آزاد" {
+			if m["price"].(map[string]any)["amount"] != "8000000" || m["source"] != "بازار" {
 				t.Fatalf("latest after manual entry: %v", m)
 			}
 		}
