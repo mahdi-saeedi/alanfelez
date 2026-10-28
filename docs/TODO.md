@@ -4,12 +4,14 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
+Last updated: 2026-10-28 (database backups on production)
 
 ## Now (in progress)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
+- [ ] **Backups on the Barman Cloud Plugin** before CloudNativePG 1.31 (runs 1.30.1): 1.31 removes the built-in
+      `barmanObjectStore` backups the data chart uses (warning seen 2026-10-28). Don't upgrade CNPG until then.
 - [ ] SEO: Lighthouse check (icons and the share image are done).
 - [ ] Windows without Ubuntu: `.gitattributes` (LF line endings) and test the setup on a real Windows machine.
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
@@ -20,8 +22,6 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
-- [ ] **Database backups on production**: `postgres.backup.enabled: true` in production `data-values.yaml` once staging
-      shows a completed backup (bucket and sealed keys exist since 2026-10-27). Then one restore drill (LAUNCH.md).
 - [ ] After the first production backup holds it: a migration that drops `archive.ime_offerings` (00015 moved it there).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
@@ -44,7 +44,7 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] First staff accounts on production (with TOTP); disable the Keycloak bootstrap admin. **First** give the
       keycloak-profile job its own service account (it logs in with the bootstrap admin today), or sign-up field
       changes silently stop reaching Keycloak.
-- [ ] Monitoring and alerts; restore drill; a penetration test by someone else.
+- [ ] Monitoring and alerts; a penetration test by someone else.
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
@@ -70,6 +70,8 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
   line each, the units switch moves under the list; first price at 431 px instead of 596 on a 375 px phone); "last
   updated" says «دیروز ۱۲:۱۷» or the date when a price isn't today's; rows and phone cards open the chart (chart icon);
   product search (ی/ي and ک/ك match) and a sort by daily change (dropdown, and the column header on desktop).
+- 2026-10-28 Database backups on **production**. Restore drill on staging passed: last night's backup restored into a
+  temporary cluster, row counts identical (users, orders, subscriptions, 377,492 price points, audit log, Keycloak users).
 - 2026-10-28 The price source shown everywhere is the market (one of the three), never the feed name such as the demo
   «داده‌ی نمایشی»; «منابع داده» on /prices lists all three, «قیمت جهانی» included.
 - 2026-10-28 Three price sources (client; owner OK'd by phone): «بورس کالای ایران», «بازار», «قیمت جهانی».
