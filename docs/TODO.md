@@ -48,6 +48,9 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Chart page: the «تحلیل پیشرفته بازار» box promised technical analysis and AI that don't exist; it is
+  replaced by «تحلیل‌های {metal}» (the 3 newest analyses of that metal, hidden when none). The product picker lists the
+  products a plan doesn't include («ویژه‌ی نقره‌ای»), and picking one shows it locked instead of another product.
 - 2026-10-28 Prices page, second pass (client approved all five): phone layout (filters are one sideways-scrolling
   line each, the units switch moves under the list; first price at 431 px instead of 596 on a 375 px phone); "last
   updated" says «دیروز ۱۲:۱۷» or the date when a price isn't today's; rows and phone cards open the chart (chart icon);
