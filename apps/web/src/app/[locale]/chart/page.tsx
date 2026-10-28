@@ -312,7 +312,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
         <aside className="min-w-0">
           <h2 className="mb-1 text-sm font-bold">{t("compareTitle")}</h2>
           <p className="mb-3 text-xs text-text-3">{t("compareHint")}</p>
-          <form action={locale === "en" ? "/en/chart" : "/chart"} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <form action={locale === "en" ? "/en/chart" : "/chart"} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <input type="hidden" name="series" value={row.series.slug} />
             <input type="hidden" name="metal" value={metal} />
             <input type="hidden" name="cat" value={cat} />
@@ -322,7 +322,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
             {SLOTS.map((k, i) => {
               const c = compare[i];
               return (
-                <div key={k} className={`rounded-card border bg-surface p-3 shadow-soft ${c && c.row.series.slug === row.series.slug ? "border-gold" : "border-border"}`}>
+                <div key={k} className={`min-w-0 rounded-card border bg-surface p-3 shadow-soft ${c && c.row.series.slug === row.series.slug ? "border-gold" : "border-border"}`}>
                   <AutoSubmitSelect name={k} value={picked[i]!} label={t("compareSlot", { n: i + 1 })}>
                     <option value="">{t("compareNone")}</option>
                     {groups.map(([group, list]) => (
