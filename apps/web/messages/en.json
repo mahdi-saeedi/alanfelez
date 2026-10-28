@@ -293,7 +293,8 @@
     "compareRemove": "Remove {name} from the comparison",
     "compareEmpty": "To compare, pick products from «+ Add a product» or the boxes beside the chart.",
     "compareNote": "Every product starts at 0% at the start of the range; a higher line rose more over it. Point at the chart to see each product's change on that day.",
-    "compareFree": "Comparing world and IME prices is free; the other prices need the {plan} plan."
+    "compareFree": "Comparing world prices is free; the other prices need the {plan} plan.",
+    "lockedHistory": "The chart and history of this price come with the {plan} plan"
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",

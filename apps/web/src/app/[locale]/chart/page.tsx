@@ -54,7 +54,10 @@ export default async function ChartPage({ params, searchParams }: Params) {
   // The picker narrows step by step (client, 2026-10-25): metal → category (global price, intermediate, scrap, raw)
   // → product. Each select submits the form; a choice that no longer fits the earlier ones falls back to the first.
   const metals = uniqueBy(all.map((r) => r.series.metal), (m) => m.slug);
-  const asked = all.find((r) => r.series.slug === q.series) ?? rows.find((r) => r.series.slug === "copper-red-free") ?? rows[0]!;
+  // Free plans chart world prices only (client, 2026-10-28), so their default is a world price.
+  const chartsAll = ent?.features["chart.full"] === true;
+  const fallback = chartsAll ? rows.find((r) => r.series.slug === "copper-red-free") : rows.find((r) => r.series.market.scope === "global");
+  const asked = all.find((r) => r.series.slug === q.series) ?? fallback ?? rows[0]!;
   const metal = metals.find((m) => m.slug === q.metal)?.slug ?? asked.series.metal.slug;
   const inMetal = all.filter((r) => r.series.metal.slug === metal);
   const cats = CATS.filter((c) => inMetal.some((r) => catOf(r) === c));
@@ -92,13 +95,19 @@ export default async function ChartPage({ params, searchParams }: Params) {
       if (!r) return null;
       const h = await getHistory(locale, slug, compareRange);
       const pts = "data" in h && h.data ? h.data.points.map((p) => ({ t: p.t, v: Number(p.amount) })) : [];
-      return { row: r, values: pts.map((p) => p.v), points: pts, locked: "locked" in h && h.locked ? h.locked.plan : null };
+      return {
+        row: r, values: pts.map((p) => p.v), points: pts,
+        locked: "locked" in h && h.locked ? h.locked.plan : null,
+        lockedHistory: "locked" in h && h.locked ? h.locked.feature === "chart.full" : false,
+      };
     }),
   );
   const catLabel = (c: Cat) => t(`categories.${c}`);
   const groups = groupByMetalAndCategory(all, catLabel);
+  // «ویژه‌ی نقره‌ای» on products whose price is locked, and (free plans) on non-world products, whose chart is locked.
+  const chartLocked = (r: PriceRow) => lockedSlugs.has(r.series.slug) || (!chartsAll && r.series.market.scope !== "global");
   const optionName = (r: PriceRow) =>
-    `${r.series.product.name} — ${r.series.market.name}${lockedSlugs.has(r.series.slug) ? ` (${t("lockedOption", { plan: lockedPlanName })})` : ""}`;
+    `${r.series.product.name} — ${r.series.market.name}${chartLocked(r) ? ` (${t("lockedOption", { plan: lockedPlanName || tl("plan.silver") })})` : ""}`;
   const slotQuery = Object.fromEntries(SLOTS.map((k, i) => [k, picked[i]!]));
   // «مقایسه‌ی کالاها» (client, 2026-10-28): the side panel's products on one chart, as % change over the range.
   const compareView = q.view === "compare";
@@ -109,6 +118,9 @@ export default async function ChartPage({ params, searchParams }: Params) {
   const firstEmpty = SLOTS.find((_, i) => !picked[i]);
   const openHref = (r: PriceRow) => chartHref({ series: r.series.slug, metal: r.series.metal.slug, cat: catOf(r) });
   const lockedPlan = "locked" in history && history.locked ? history.locked.plan : null;
+  // chart.full: the price is visible but its history is paid; prices.full: the price itself is.
+  const lockedText = (plan: string, historyOnly: boolean) => t(historyOnly ? "lockedHistory" : "lockedSeries", { plan: tl(`plan.${plan}`) });
+  const historyOnly = "locked" in history && history.locked ? history.locked.feature === "chart.full" : false;
   const related = (await getArticles(locale, { type: ["analysis", "forecast"], metal: row.series.metal.slug, limit: 3 }))?.items ?? [];
 
   const rangeNav = (
@@ -223,7 +235,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
               {products.map((r) => (
                 <option key={r.series.slug} value={r.series.slug}>
                   {r.series.product.name} — {r.series.market.name}
-                  {lockedSlugs.has(r.series.slug) ? ` (${t("lockedOption", { plan: lockedPlanName })})` : ""}
+                  {chartLocked(r) ? ` (${t("lockedOption", { plan: lockedPlanName || tl("plan.silver") })})` : ""}
                 </option>
               ))}
             </AutoSubmitSelect>
@@ -263,7 +275,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
 
             <div className="p-5">
               {lockedPlan ? (
-                <Locked plan={lockedPlan} title={`${row.series.product.name} — ${row.series.market.name}`}>{t("lockedSeries", { plan: tl(`plan.${lockedPlan}`) })}</Locked>
+                <Locked plan={lockedPlan} title={`${row.series.product.name} — ${row.series.market.name}`}>{lockedText(lockedPlan, historyOnly)}</Locked>
               ) : points.length > 1 ? (
                 <AreaChart points={points} locale={locale} intraday={range === "1D" || range === "1W"} format={usd ? "usd" : "int"} />
               ) : (
@@ -327,7 +339,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
                           {c.row.price ? (c.row.series.currency === "USD" ? "$" : "") + formatPriceValue(c.row.price, locale) : "—"}
                         </span>
                       </div>
-                      {c.locked ? <p className="mt-2 text-xs text-text-3">{t("lockedSeries", { plan: tl(`plan.${c.locked}`) })}</p> : <Sparkline values={c.values} className="mt-1 h-14 w-full" />}
+                      {c.locked ? <p className="mt-2 text-xs text-text-3">{lockedText(c.locked, c.lockedHistory)}</p> : <Sparkline values={c.values} className="mt-1 h-14 w-full" />}
                     </Link>
                   )}
                 </div>
