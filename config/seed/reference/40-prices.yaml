@@ -35,13 +35,13 @@ datasets:
       - { slug: brass-scrap-free,        product: brass-scrap,         market: free, currency: IRR, unit: kg,  is_base: false, sort: 31 }
       - { slug: zinc-ingot-ime,          product: zinc-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 40 }
       - { slug: lead-ingot-ime,          product: lead-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 50 }
-      - { slug: rebar-16-iron,           product: rebar-16,            market: iron, currency: IRR, unit: kg,  is_base: false, sort: 60 }
-      - { slug: steel-sheet-4-iron,      product: steel-sheet-4,       market: iron, currency: IRR, unit: kg,  is_base: false, sort: 61 }
+      - { slug: rebar-16-iron,           product: rebar-16,            market: free, currency: IRR, unit: kg,  is_base: false, sort: 60 }
+      - { slug: steel-sheet-4-iron,      product: steel-sheet-4,       market: free, currency: IRR, unit: kg,  is_base: false, sort: 61 }
       - { slug: cast-iron-scrap-free,    product: cast-iron-scrap,     market: free, currency: IRR, unit: kg,  is_base: false, sort: 70 }
-      - { slug: aluminum-lme,            product: aluminum-ingot,      market: lme,  currency: USD, unit: ton, is_base: true,  sort: 110 }
-      - { slug: copper-lme,              product: copper-cathode,      market: lme,  currency: USD, unit: ton, is_base: true,  sort: 120 }
-      - { slug: zinc-lme,                product: zinc-ingot,          market: lme,  currency: USD, unit: ton, is_base: true,  sort: 140 }
-      - { slug: lead-lme,                product: lead-ingot,          market: lme,  currency: USD, unit: ton, is_base: true,  sort: 150 }
+      - { slug: aluminum-lme,            product: aluminum-ingot,      market: global, currency: USD, unit: ton, is_base: true,  sort: 110 }
+      - { slug: copper-lme,              product: copper-cathode,      market: global, currency: USD, unit: ton, is_base: true,  sort: 120 }
+      - { slug: zinc-lme,                product: zinc-ingot,          market: global, currency: USD, unit: ton, is_base: true,  sort: 140 }
+      - { slug: lead-lme,                product: lead-ingot,          market: global, currency: USD, unit: ton, is_base: true,  sort: 150 }
       # LME doesn't trade these: «بازار جهانی» (migration 00008), prices entered by hand until a source exists.
       - { slug: brass-yellow-global,     product: brass-yellow,        market: global, currency: USD, unit: ton, is_base: true, sort: 130 }
       - { slug: rebar-16-global,         product: rebar-16,            market: global, currency: USD, unit: ton, is_base: true, sort: 160 }

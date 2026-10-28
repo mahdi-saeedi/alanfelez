@@ -1538,6 +1538,8 @@ export interface components {
             items: components["schemas"]["PriceRow"][];
             /** @description Series hidden by the caller's tier (matching the filters) */
             lockedCount: number;
+            /** @description The hidden series by name (product, metal, market, unit) so the page can list them as 🔒 rows. Never their prices: those stay out of the response. */
+            lockedSeries: components["schemas"]["SeriesRef"][];
             lockedFeature?: components["schemas"]["FeatureLock"];
         };
         FeatureLock: {

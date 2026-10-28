@@ -71,7 +71,7 @@
         },
         "floor": {
           "title": "Market floor prices, updated continuously",
-          "text": "Day prices of the free market and the Iran Iron Market for each product."
+          "text": "Day prices of the market for each product."
         },
         "history": {
           "title": "Price history",
@@ -188,7 +188,8 @@
       "change": "Daily change",
       "changePct": "Change %",
       "updated": "Last update",
-      "source": "Source"
+      "source": "Source",
+      "priceOnly": "Price"
     },
     "units": {
       "kg": "kg",
@@ -209,7 +210,18 @@
     "live": "Live",
     "reconnecting": "Reconnecting…",
     "metalTitle": "{metal} price today",
-    "metalSubtitle": "Today's {metal} prices in Iran's markets, on the IME and worldwide, with the source and the time of the last update."
+    "metalSubtitle": "Today's {metal} prices in Iran's markets, on the IME and worldwide, with the source and the time of the last update.",
+    "unitLabel": {
+      "toman": "Toman",
+      "rial": "Rial",
+      "usd": "USD/ton"
+    },
+    "market": "Market",
+    "allMarkets": "All markets",
+    "showIn": "Show Iran prices in:",
+    "perKg": "per kg",
+    "perTon": "per ton",
+    "showInNote": "(world prices are always USD/ton)"
   },
   "chart": {
     "title": "Metal price chart",

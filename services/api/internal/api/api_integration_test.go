@@ -167,9 +167,16 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		if st != http.StatusOK {
 			t.Fatalf("%q: status %d", tok, st)
 		}
-		// Domestic day prices (free market, Iran iron market) are Silver and Gold since 2026-10-26.
-		if strings.Contains(raw, "copper-cable-free") || strings.Contains(raw, "7100000") || strings.Contains(raw, "copper-red-free") || strings.Contains(raw, "6464000") {
+		// Domestic day prices (free market, Iran iron market) are Silver and Gold since 2026-10-26: listed by name in
+		// lockedSeries for the 🔒 rows, never among the items and never with their prices.
+		itemsJSON, _ := json.Marshal(body["items"])
+		if strings.Contains(string(itemsJSON), "copper-cable-free") || strings.Contains(string(itemsJSON), "copper-red-free") ||
+			strings.Contains(raw, "7100000") || strings.Contains(raw, "6464000") {
 			t.Fatalf("%q: locked series leaked: %s", tok, raw)
+		}
+		lockedJSON, _ := json.Marshal(body["lockedSeries"])
+		if !strings.Contains(string(lockedJSON), `"slug":"copper-red-free"`) || len(body["lockedSeries"].([]any)) != int(body["lockedCount"].(float64)) {
+			t.Fatalf("%q: lockedSeries: %s", tok, lockedJSON)
 		}
 		// Global (LME) prices are free for everyone (client, 2026-10-25).
 		if !strings.Contains(raw, `"slug":"copper-lme"`) || !strings.Contains(raw, "980000") {
@@ -310,7 +317,7 @@ func TestManualEntryGateAndAudit(t *testing.T) {
 		m := it.(map[string]any)
 		if m["series"].(map[string]any)["slug"] == "copper-red-free" {
 			// Manual points show the market as the source, never "manual entry".
-			if m["price"].(map[string]any)["amount"] != "8000000" || m["source"] != "بازار آزاد" {
+			if m["price"].(map[string]any)["amount"] != "8000000" || m["source"] != "بازار" {
 				t.Fatalf("latest after manual entry: %v", m)
 			}
 		}

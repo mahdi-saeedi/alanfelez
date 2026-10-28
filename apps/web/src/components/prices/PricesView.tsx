@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { formatDate, type Locale } from "@alanfelez/ui/format";
+import { formatDate, formatNumber, type Locale, type PriceDisplay } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/lib/api";
 import { getPrices } from "@/lib/prices";
@@ -10,16 +10,26 @@ import { LockIcon } from "@/components/Locked";
 
 /**
  * Metal prices (SCOPE §5 #2, design 07-metal-prices): /prices (every metal) and /prices/<metal> (one metal, its own
- * address and title for search engines, client 2026-10-27; same look). Filters are links, so it works without JS.
+ * address and title for search engines, client 2026-10-27; same look). Filters are links, so it works without JS:
+ * metal (path), category, market, and how domestic prices are shown (?cur=rial, ?per=ton; SCOPE §14).
  */
-export async function PricesView({ locale, metal, category, title, subtitle }: { locale: Locale; metal?: string; category?: string; title: string; subtitle: string }) {
+export type PricesQuery = { category?: string; market?: string; cur?: string; per?: string };
+
+// The 🔒 rows shown at most; the line under the table counts all of them.
+const LOCKED_ROWS = 10;
+
+export async function PricesView({ locale, metal, query, title, subtitle }: { locale: Locale; metal?: string; query: PricesQuery; title: string; subtitle: string }) {
+  const { category, market } = query;
+  const cur = query.cur === "rial" ? "rial" : undefined;
+  const per = query.per === "ton" ? "ton" : undefined;
+  const display: PriceDisplay = { rial: !!cur, perTon: !!per };
   const t = await getTranslations("prices");
   const tl = await getTranslations("lock");
 
   const lang = { params: { header: { "Accept-Language": locale } }, next: { revalidate: 300 } } as const;
   const [all, filtered, markets, cats] = await Promise.all([
     getPrices(locale),
-    getPrices(locale, metal, category),
+    getPrices(locale, metal, category, market),
     api.GET("/v1/markets", lang),
     api.GET("/v1/categories", lang),
   ]);
@@ -32,10 +42,14 @@ export async function PricesView({ locale, metal, category, title, subtitle }: {
   const categories: Tab[] = cats.data?.items ?? unique(all.items.map((r) => r.series.category));
   const rows = filtered.items;
   const latest = rows.map((r) => r.observedAt).filter(Boolean).sort().at(-1);
-  // A metal is part of the path (/prices/copper); the category stays a query parameter.
-  const href = (q: { metal?: string; category?: string }) => {
+  const marketTabs: Tab[] = (markets.data?.items ?? []).map((m) => ({ slug: m.slug, name: m.name }));
+  // ?? []: during a rollout the website can be newer than the API.
+  const lockedSeries = filtered.lockedSeries ?? [];
+  const plan = filtered.lockedFeature ? tl(`plan.${filtered.lockedFeature.requiredPlan}`) : "";
+  // A metal is part of the path (/prices/copper); the rest stay query parameters.
+  const href = (q: { metal?: string } & PricesQuery) => {
     const m = "metal" in q ? q.metal : metal;
-    return { pathname: m ? `/prices/${m}` : "/prices", query: clean({ category, ...q, metal: undefined }) };
+    return { pathname: m ? `/prices/${m}` : "/prices", query: clean({ category, market, cur, per, ...q, metal: undefined }) };
   };
 
   return (
@@ -61,10 +75,26 @@ export async function PricesView({ locale, metal, category, title, subtitle }: {
               active={category}
               link={(slug) => href({ category: slug })}
             />
+            <Tabs
+              label={t("market")}
+              items={[{ slug: undefined, name: t("allMarkets") }, ...marketTabs]}
+              active={market}
+              link={(slug) => href({ market: slug })}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-text-2">
+            <span>{t("showIn")}</span>
+            <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("unitLabel.toman") }, { slug: "rial", name: t("unitLabel.rial") }]} active={cur} link={(v) => href({ cur: v })} />
+            <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("perKg") }, { slug: "ton", name: t("perTon") }]} active={per} link={(v) => href({ per: v })} />
+            <span className="text-text-3">{t("showInNote")}</span>
           </div>
 
           <div className="overflow-hidden rounded-card border border-border bg-surface shadow-soft">
-            {rows.length ? <PriceTable rows={rows} /> : <p className="p-8 text-center text-text-2">{t("empty")}</p>}
+            {rows.length || lockedSeries.length ? (
+              <PriceTable rows={rows} locked={lockedSeries.slice(0, LOCKED_ROWS)} plan={plan} display={display} />
+            ) : (
+              <p className="p-8 text-center text-text-2">{t("empty")}</p>
+            )}
             {filtered.lockedCount > 0 && filtered.lockedFeature && (
               <Link href="/plans" className="flex items-center gap-3 border-t border-border bg-gold/5 px-4 py-3 text-sm hover:bg-gold/10">
                 <LockIcon className="h-5 w-5 shrink-0" />
@@ -75,7 +105,7 @@ export async function PricesView({ locale, metal, category, title, subtitle }: {
               </Link>
             )}
             <div className="flex flex-wrap justify-between gap-2 border-t border-border px-4 py-3 text-xs text-text-3">
-              <span>{t("showing", { shown: rows.length, total: rows.length + filtered.lockedCount })}</span>
+              <span>{t("showing", { shown: formatNumber(rows.length, locale), total: formatNumber(rows.length + filtered.lockedCount, locale) })}</span>
               {latest && <span>{t("lastUpdate", { time: formatDate(latest, locale, true) })}</span>}
             </div>
           </div>
@@ -115,9 +145,9 @@ export async function PricesView({ locale, metal, category, title, subtitle }: {
 
 type Tab = { slug?: string; name: string };
 
-function Tabs({ items, active, link }: { items: Tab[]; active?: string; link: (slug?: string) => { pathname: string; query: Record<string, string> } }) {
+function Tabs({ items, active, link, label, small = false }: { items: Tab[]; active?: string; link: (slug?: string) => { pathname: string; query: Record<string, string> }; label?: string; small?: boolean }) {
   return (
-    <nav className="flex flex-wrap gap-1 rounded-control border border-border bg-surface p-1">
+    <nav aria-label={label} className="flex flex-wrap gap-1 rounded-control border border-border bg-surface p-1">
       {items.map((it) => {
         const on = it.slug === active;
         return (
@@ -125,7 +155,7 @@ function Tabs({ items, active, link }: { items: Tab[]; active?: string; link: (s
             key={it.slug ?? "all"}
             href={link(it.slug)}
             aria-current={on ? "page" : undefined}
-            className={`rounded-lg px-3 py-1.5 text-sm ${on ? "bg-graphite font-bold text-white" : "text-text-2 hover:bg-surface-2"}`}
+            className={`rounded-lg ${small ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm"} ${on ? "bg-graphite font-bold text-white" : "text-text-2 hover:bg-surface-2"}`}
           >
             {it.name}
           </Link>

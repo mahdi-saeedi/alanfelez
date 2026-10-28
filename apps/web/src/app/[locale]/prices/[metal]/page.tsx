@@ -5,11 +5,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { getMetals } from "@/lib/content";
 import { SITE_URL } from "@/lib/site";
-import { PricesView } from "@/components/prices/PricesView";
+import { PricesView, type PricesQuery } from "@/components/prices/PricesView";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ locale: Locale; metal: string }>; searchParams: Promise<{ category?: string }> };
+type Params = { params: Promise<{ locale: Locale; metal: string }>; searchParams: Promise<PricesQuery> };
 
 async function metalOf(locale: Locale, slug: string) {
   return (await getMetals(locale)).find((m) => m.slug === slug);
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  */
 export default async function MetalPricesPage({ params, searchParams }: Params) {
   const { locale, metal } = await params;
-  const { category } = await searchParams;
+  const query = await searchParams;
   setRequestLocale(locale);
   const m = await metalOf(locale, metal);
   if (!m) notFound();
@@ -49,7 +49,7 @@ export default async function MetalPricesPage({ params, searchParams }: Params) 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs).replace(/</g, "\\u003c") }} />
-      <PricesView locale={locale} metal={m.slug} category={category} title={t("metalTitle", { metal: m.name })} subtitle={t("metalSubtitle", { metal: m.name })} />
+      <PricesView locale={locale} metal={m.slug} query={query} title={t("metalTitle", { metal: m.name })} subtitle={t("metalSubtitle", { metal: m.name })} />
     </>
   );
 }

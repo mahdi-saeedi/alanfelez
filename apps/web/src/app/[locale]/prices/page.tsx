@@ -3,11 +3,11 @@ import { permanentRedirect } from "next/navigation";
 import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
-import { PricesView } from "@/components/prices/PricesView";
+import { PricesView, type PricesQuery } from "@/components/prices/PricesView";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ metal?: string; category?: string }> };
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ metal?: string } & PricesQuery> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -18,12 +18,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 /** Every metal's prices. The old ?metal= links move to the metal's own page (/prices/copper). */
 export default async function PricesPage({ params, searchParams }: Params) {
   const { locale } = await params;
-  const { metal, category } = await searchParams;
+  const { metal, ...query } = await searchParams;
   if (metal && /^[a-z0-9-]{1,40}$/.test(metal)) {
-    const q = category ? `?category=${encodeURIComponent(category)}` : "";
+    const rest = new URLSearchParams(Object.entries(query).filter((e): e is [string, string] => typeof e[1] === "string")).toString();
+    const q = rest ? `?${rest}` : "";
     permanentRedirect(`${locale === "en" ? "/en" : ""}/prices/${metal}${q}`);
   }
   setRequestLocale(locale);
   const t = await getTranslations("prices");
-  return <PricesView locale={locale} category={category} title={t("title")} subtitle={t("subtitle")} />;
+  return <PricesView locale={locale} query={query} title={t("title")} subtitle={t("subtitle")} />;
 }
