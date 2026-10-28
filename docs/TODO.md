@@ -48,6 +48,10 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Prices page, second pass (client approved all five): phone layout (filters are one sideways-scrolling
+  line each, the units switch moves under the list; first price at 431 px instead of 596 on a 375 px phone); "last
+  updated" says «دیروز ۱۲:۱۷» or the date when a price isn't today's; rows and phone cards open the chart (chart icon);
+  product search (ی/ي and ک/ك match) and a sort by daily change (dropdown, and the column header on desktop).
 - 2026-10-28 The price source shown everywhere is the market (one of the three), never the feed name such as the demo
   «داده‌ی نمایشی»; «منابع داده» on /prices lists all three, «قیمت جهانی» included.
 - 2026-10-28 Three price sources (client; owner OK'd by phone): «بورس کالای ایران», «بازار», «قیمت جهانی».

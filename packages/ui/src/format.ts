@@ -88,6 +88,12 @@ export function formatDate(iso: string, locale: Locale, withTime = false): strin
   }).format(new Date(iso));
 }
 
+/** Whole Tehran calendar days between `iso` and `now` (0 = today, 1 = yesterday), for "last updated" labels. */
+export function tehranDaysAgo(iso: string, now: Date = new Date()): number {
+  const day = (d: Date) => Date.parse(new Intl.DateTimeFormat("en-CA", { timeZone: TEHRAN }).format(d)); // YYYY-MM-DD at UTC midnight
+  return Math.round((day(now) - day(new Date(iso))) / 86_400_000);
+}
+
 /** A weight given in kg, shown in tonnes with at most one decimal ("۲٬۵۰۰٫۵ تن" / "2,500.5 t"). */
 export function formatTons(kg: number, locale: Locale): string {
   const t = new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US", { maximumFractionDigits: 1 }).format(kg / 1000);

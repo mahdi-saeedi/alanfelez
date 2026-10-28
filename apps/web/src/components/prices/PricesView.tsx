@@ -52,19 +52,30 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
     return { pathname: m ? `/prices/${m}` : "/prices", query: clean({ category, market, cur, per, ...q, metal: undefined }) };
   };
 
+  // Toman/Rial and per kg/ton: above the table on larger screens, under it on phones (the prices come first there).
+  const units = (
+    <div className="flex items-center gap-2 text-xs text-text-2">
+      <span className="shrink-0"><span className="sm:hidden">{t("showInShort")}</span><span className="hidden sm:inline">{t("showIn")}</span></span>
+      <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("unitLabel.toman") }, { slug: "rial", name: t("unitLabel.rial") }]} active={cur} link={(v) => href({ cur: v })} />
+      <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("perKg") }, { slug: "ton", name: t("perTon") }]} active={per} link={(v) => href({ per: v })} />
+      <span className="hidden text-text-3 sm:inline">{t("showInNote")}</span>
+    </div>
+  );
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <header className="mb-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
+      <header className="mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-extrabold sm:text-3xl">{title}</h1>
           <LiveDot withLabel />
         </div>
-        <p className="mt-2 text-text-2">{subtitle}</p>
+        <p className="mt-2 text-sm text-text-2 sm:text-base">{subtitle}</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="min-w-0 space-y-4">
-          <div className="flex flex-wrap gap-3">
+          {/* On phones each filter is one line that scrolls sideways, so the prices start near the top. */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
             <Tabs
               items={[{ slug: undefined, name: t("all") }, ...metals]}
               active={metal}
@@ -82,12 +93,7 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
               link={(slug) => href({ market: slug })}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-text-2">
-            <span>{t("showIn")}</span>
-            <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("unitLabel.toman") }, { slug: "rial", name: t("unitLabel.rial") }]} active={cur} link={(v) => href({ cur: v })} />
-            <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("perKg") }, { slug: "ton", name: t("perTon") }]} active={per} link={(v) => href({ per: v })} />
-            <span className="text-text-3">{t("showInNote")}</span>
-          </div>
+          <div className="hidden sm:block">{units}</div>
 
           <div className="overflow-hidden rounded-card border border-border bg-surface shadow-soft">
             {rows.length || lockedSeries.length ? (
@@ -109,6 +115,7 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
               {latest && <span>{t("lastUpdate", { time: formatDate(latest, locale, true) })}</span>}
             </div>
           </div>
+          <div className="sm:hidden">{units}</div>
           <p className="text-xs text-text-3">{t("info")}</p>
 
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-border bg-surface p-5 shadow-soft">
@@ -147,7 +154,7 @@ type Tab = { slug?: string; name: string };
 
 function Tabs({ items, active, link, label, small = false }: { items: Tab[]; active?: string; link: (slug?: string) => { pathname: string; query: Record<string, string> }; label?: string; small?: boolean }) {
   return (
-    <nav aria-label={label} className="flex flex-wrap gap-1 rounded-control border border-border bg-surface p-1">
+    <nav aria-label={label} className={`flex gap-1 rounded-control border border-border bg-surface ${small ? "shrink-0 p-1" : "overflow-x-auto whitespace-nowrap p-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:p-1"}`}>
       {items.map((it) => {
         const on = it.slug === active;
         return (
@@ -155,7 +162,7 @@ function Tabs({ items, active, link, label, small = false }: { items: Tab[]; act
             key={it.slug ?? "all"}
             href={link(it.slug)}
             aria-current={on ? "page" : undefined}
-            className={`rounded-lg ${small ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm"} ${on ? "bg-graphite font-bold text-white" : "text-text-2 hover:bg-surface-2"}`}
+            className={`shrink-0 rounded-lg ${small ? "px-2.5 py-1 text-xs" : "px-3 py-1 text-sm sm:py-1.5"} ${on ? "bg-graphite font-bold text-white" : "text-text-2 hover:bg-surface-2"}`}
           >
             {it.name}
           </Link>

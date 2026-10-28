@@ -221,7 +221,19 @@
     "showIn": "Show Iran prices in:",
     "perKg": "per kg",
     "perTon": "per ton",
-    "showInNote": "(world prices are always USD/ton)"
+    "showInNote": "(world prices are always USD/ton)",
+    "yesterday": "yesterday {time}",
+    "openChart": "Open the chart",
+    "search": "Search products",
+    "searchPlaceholder": "Search: copper, rebar, IME…",
+    "sortBy": "Sort",
+    "sort": {
+      "default": "Default",
+      "up": "Biggest rise",
+      "down": "Biggest fall"
+    },
+    "noMatch": "No product matches.",
+    "showInShort": "Show:"
   },
   "chart": {
     "title": "Metal price chart",
