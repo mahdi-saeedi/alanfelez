@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { displayAmount, formatBp, formatChangeValue, formatDate, formatPriceValue, formatTime, formatToman, formatTons, parseDecimal, priceUnitLabel } from "./format.ts";
+import { displayAmount, formatBp, formatChangeValue, formatDate, formatPriceValue, formatTime, formatToman, formatTons, parseDecimal, priceUnitLabel, tehranDaysAgo } from "./format.ts";
 
 const copper = { amount: "6400000", currency: "IRR", unit: "kg" } as const; // 6,400,000 Rial/kg
 const lme = { amount: "980012", currency: "USD", unit: "ton" } as const; // $9,800.12/ton
@@ -56,4 +56,12 @@ test("numbers typed with Persian digits and separators parse", () => {
   assert.equal(parseDecimal(""), undefined);
   assert.equal(parseDecimal("abc"), undefined);
   assert.equal(parseDecimal("1.2.3"), undefined);
+});
+
+test("tehranDaysAgo counts Tehran calendar days, not 24-hour spans", () => {
+  const now = new Date("2026-10-28T06:00:00Z"); // 09:30 in Tehran
+  assert.equal(tehranDaysAgo("2026-10-28T05:00:00Z", now), 0);
+  assert.equal(tehranDaysAgo("2026-10-27T21:00:00Z", now), 0); // 00:30 Tehran, same day
+  assert.equal(tehranDaysAgo("2026-10-27T20:00:00Z", now), 1); // 23:30 Tehran the day before
+  assert.equal(tehranDaysAgo("2026-10-23T12:00:00Z", now), 5);
 });
