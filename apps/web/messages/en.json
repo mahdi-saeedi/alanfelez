@@ -282,7 +282,15 @@
     },
     "lockedOption": "{plan} plan",
     "relatedTitle": "{metal} analysis",
-    "relatedAll": "All {metal} analysis →"
+    "relatedAll": "All {metal} analysis →",
+    "viewLabel": "View",
+    "viewSingle": "One product",
+    "viewCompare": "Compare products",
+    "comparing": "Comparing:",
+    "compareAdd": "+ Add a product",
+    "compareRemove": "Remove {name} from the comparison",
+    "compareEmpty": "To compare, pick products from «+ Add a product» or the boxes beside the chart.",
+    "compareNote": "Every product starts at 0% at the start of the range; a higher line rose more over it. Point at the chart to see each product's change on that day."
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",
