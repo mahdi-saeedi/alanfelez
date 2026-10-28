@@ -14,7 +14,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 )
 
-// ListPrices returns the latest price per visible series. Locked series are counted, never returned.
+// ListPrices returns the latest price per visible series. Locked series are counted and named, their prices never returned.
 func (s *Server) ListPrices(ctx context.Context, req ListPricesRequestObject) (ListPricesResponseObject, error) {
 	cur, err := s.tiers.Tier(ctx, auth.FromContext(ctx))
 	if err != nil {
@@ -28,7 +28,7 @@ func (s *Server) ListPrices(ctx context.Context, req ListPricesRequestObject) (L
 	lang := langOf((*string)(req.Params.AcceptLanguage))
 	p := req.Params
 	baseOnly := p.Base != nil && *p.Base
-	out := PriceList{Items: make([]PriceRow, 0, len(rows))}
+	out := PriceList{Items: make([]PriceRow, 0, len(rows)), LockedSeries: []SeriesRef{}}
 	for _, r := range rows {
 		if (p.Metal != nil && *p.Metal != r.MetalSlug) || (p.Category != nil && *p.Category != r.CategorySlug) ||
 			(p.Market != nil && *p.Market != r.MarketSlug) || (baseOnly && !r.IsBase) {
@@ -36,6 +36,8 @@ func (s *Server) ListPrices(ctx context.Context, req ListPricesRequestObject) (L
 		}
 		if !seeAll && !r.IsBase {
 			out.LockedCount++
+			// Names only, for the 🔒 rows; the price is never in the response.
+			out.LockedSeries = append(out.LockedSeries, priceRow(lang, r).Series)
 			continue
 		}
 		out.Items = append(out.Items, priceRow(lang, r))
