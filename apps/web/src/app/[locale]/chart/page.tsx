@@ -7,6 +7,8 @@ import { Link } from "@/i18n/navigation";
 import { getEntitlements, getHistory, getPrices, type PriceRow } from "@/lib/prices";
 import { AreaChart } from "@/components/prices/AreaChart";
 import { Sparkline } from "@/components/prices/Sparkline";
+import { CompareChart, type CompareLine } from "@/components/prices/CompareChart";
+import { COMPARE_COLORS } from "@/components/prices/compare-colors";
 import { LivePrice, LiveUpdated } from "@/components/prices/LivePrice";
 import { AutoSubmitSelect } from "@/components/AutoSubmitSelect";
 import { Locked, LockIcon } from "@/components/Locked";
@@ -23,7 +25,7 @@ type UnitOpt = (typeof UNITS)[number] | "usd-ton";
 
 const SLOTS = ["c1", "c2", "c3", "c4"] as const; // the side panel compares up to 4 charts (client, 2026-10-25)
 type Slot = (typeof SLOTS)[number];
-type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ series?: string; metal?: string; cat?: string; range?: string; unit?: string } & Partial<Record<Slot, string>>> };
+type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ series?: string; metal?: string; cat?: string; range?: string; unit?: string; view?: string } & Partial<Record<Slot, string>>> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -87,16 +89,45 @@ export default async function ChartPage({ params, searchParams }: Params) {
       const r = slug ? bySlug.get(slug) : undefined;
       if (!r) return null;
       const h = await getHistory(locale, slug, compareRange);
-      return { row: r, values: "data" in h && h.data ? h.data.points.map((p) => Number(p.amount)) : [], locked: "locked" in h && h.locked ? h.locked.plan : null };
+      const pts = "data" in h && h.data ? h.data.points.map((p) => ({ t: p.t, v: Number(p.amount) })) : [];
+      return { row: r, values: pts.map((p) => p.v), points: pts, locked: "locked" in h && h.locked ? h.locked.plan : null };
     }),
   );
   const catLabel = (c: Cat) => t(`categories.${c}`);
   const groups = groupByMetalAndCategory(rows, catLabel);
   const slotQuery = Object.fromEntries(SLOTS.map((k, i) => [k, picked[i]!]));
-  const chartHref = (qq: Record<string, string>) => ({ pathname: "/chart", query: { series: row.series.slug, range, unit, ...slotQuery, ...qq } });
+  // «مقایسه‌ی کالاها» (client, 2026-10-28): the side panel's products on one chart, as % change over the range.
+  const compareView = q.view === "compare";
+  const chartHref = (qq: Record<string, string>) => ({ pathname: "/chart", query: { series: row.series.slug, range, unit, ...slotQuery, ...(compareView ? { view: "compare" } : {}), ...qq } });
+  const compareLines: CompareLine[] = compare.flatMap((c, i) =>
+    c && !c.locked && c.points.length > 1 ? [{ key: SLOTS[i]!, name: c.row.series.product.name, color: COMPARE_COLORS[i]!, points: c.points }] : [],
+  );
+  const firstEmpty = SLOTS.find((_, i) => !picked[i]);
   const openHref = (r: PriceRow) => chartHref({ series: r.series.slug, metal: r.series.metal.slug, cat: catOf(r) });
   const lockedPlan = "locked" in history && history.locked ? history.locked.plan : null;
   const related = (await getArticles(locale, { type: ["analysis", "forecast"], metal: row.series.metal.slug, limit: 3 }))?.items ?? [];
+
+  const rangeNav = (
+    <nav className="flex gap-1 overflow-x-auto whitespace-nowrap px-5 pt-4 [scrollbar-width:none] sm:flex-wrap" aria-label="range">
+      {RANGES.map((r) =>
+        rangeAllowed(r) ? (
+          <Link
+            key={r}
+            href={chartHref({ range: r })}
+            aria-current={r === range ? "page" : undefined}
+            className={`shrink-0 rounded-md px-3 py-1 text-xs font-bold ${r === range ? "bg-graphite text-white" : "text-text-2 hover:bg-surface-2"}`}
+          >
+            {t(`ranges.${r}`)}
+          </Link>
+        ) : (
+          <Link key={r} href="/plans" title={t("lockedRange", { plan: tl("plan.silver") })} className="flex shrink-0 items-center gap-1 rounded-md px-3 py-1 text-xs text-text-3 hover:bg-surface-2">
+            <LockIcon className="h-3.5 w-3.5" />
+            {t(`ranges.${r}`)}
+          </Link>
+        ),
+      )}
+    </nav>
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
@@ -105,8 +136,69 @@ export default async function ChartPage({ params, searchParams }: Params) {
         <p className="mt-2 text-text-2">{t("subtitle")}</p>
       </header>
 
+      <nav aria-label={t("viewLabel")} className="mb-4 flex gap-1">
+        {([["", t("viewSingle")], ["compare", t("viewCompare")]] as const).map(([v, name]) => {
+          const on = (v === "compare") === compareView;
+          return (
+            <Link key={v || "single"} href={v ? chartHref({ view: v }) : { pathname: "/chart", query: Object.fromEntries(Object.entries(chartHref({}).query).filter(([key]) => key !== "view")) }} aria-current={on ? "page" : undefined}
+              className={`rounded-lg border px-4 py-1.5 text-sm ${on ? "border-graphite bg-graphite font-bold text-white" : "border-border bg-surface text-text-2 hover:border-gold"}`}>
+              {name}
+            </Link>
+          );
+        })}
+      </nav>
+
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="min-w-0 space-y-4">
+          {compareView ? (
+            <section className="rounded-card border border-border bg-surface shadow-soft">
+              <div className="flex flex-wrap items-center gap-2 border-b border-border p-4">
+                <span className="text-sm text-text-2">{t("comparing")}</span>
+                {SLOTS.map((k, i) => {
+                  const c = compare[i];
+                  if (!c) return null;
+                  const pts = c.points;
+                  const bp = pts.length > 1 && pts[0]!.v ? Math.trunc(((pts[pts.length - 1]!.v - pts[0]!.v) * 10_000) / pts[0]!.v) : null;
+                  return (
+                    <span key={k} className="inline-flex items-center gap-1.5 rounded-full border-2 bg-surface px-2.5 py-1 text-sm" style={{ borderColor: COMPARE_COLORS[i] }}>
+                      <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: COMPARE_COLORS[i] }} />
+                      {c.row.series.product.name}
+                      {c.locked ? (
+                        <span className="flex items-center gap-1 text-xs text-gold-dark"><LockIcon className="h-3.5 w-3.5" />{tl(`plan.${c.locked}`)}</span>
+                      ) : bp !== null && (
+                        <b className={`text-xs tabular-nums ${bp >= 0 ? "text-up" : "text-down"}`} dir="ltr">{formatBp(bp, locale)}</b>
+                      )}
+                      <Link href={chartHref({ [k]: "" })} aria-label={t("compareRemove", { name: c.row.series.product.name })} className="ms-0.5 px-1 text-text-3 hover:text-down">×</Link>
+                    </span>
+                  );
+                })}
+                {firstEmpty && (
+                  <form action={locale === "en" ? "/en/chart" : "/chart"} className="inline-flex">
+                    {Object.entries(chartHref({}).query).filter(([key]) => key !== firstEmpty).map(([key, v]) => <input key={key} type="hidden" name={key} value={String(v)} />)}
+                    <AutoSubmitSelect name={firstEmpty} value="" label={t("compareAdd")}>
+                      <option value="">{t("compareAdd")}</option>
+                      {groups.map(([group, list]) => (
+                        <optgroup key={group} label={group}>
+                          {list.filter((r) => !picked.includes(r.series.slug)).map((r) => <option key={r.series.slug} value={r.series.slug}>{r.series.product.name} — {r.series.market.name}</option>)}
+                        </optgroup>
+                      ))}
+                    </AutoSubmitSelect>
+                    <noscript><button className="ms-2 rounded-control bg-graphite px-3 py-1 text-sm text-white">OK</button></noscript>
+                  </form>
+                )}
+              </div>
+              {rangeNav}
+              <div className="p-5">
+                {compareLines.length ? (
+                  <CompareChart lines={compareLines} locale={locale} intraday={compareRange === "1D" || compareRange === "1W"} />
+                ) : (
+                  <p className="py-16 text-center text-text-2">{t("compareEmpty")}</p>
+                )}
+                <p className="mt-3 text-xs text-text-3">{t("compareNote")}</p>
+              </div>
+            </section>
+          ) : (
+          <>
           <form action={locale === "en" ? "/en/chart" : "/chart"} className="flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface p-4 shadow-soft">
             <input type="hidden" name="range" value={range} />
             {SLOTS.map((k, i) => <input key={k} type="hidden" name={k} value={picked[i]} />)}
@@ -156,25 +248,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
               )}
             </div>
 
-            <nav className="flex flex-wrap gap-1 px-5 pt-4" aria-label="range">
-              {RANGES.map((r) =>
-                rangeAllowed(r) ? (
-                  <Link
-                    key={r}
-                    href={chartHref({ range: r })}
-                    aria-current={r === range ? "page" : undefined}
-                    className={`rounded-md px-3 py-1 text-xs font-bold ${r === range ? "bg-graphite text-white" : "text-text-2 hover:bg-surface-2"}`}
-                  >
-                    {t(`ranges.${r}`)}
-                  </Link>
-                ) : (
-                  <Link key={r} href="/plans" title={t("lockedRange", { plan: tl("plan.silver") })} className="flex items-center gap-1 rounded-md px-3 py-1 text-xs text-text-3 hover:bg-surface-2">
-                    <LockIcon className="h-3.5 w-3.5" />
-                    {t(`ranges.${r}`)}
-                  </Link>
-                ),
-              )}
-            </nav>
+            {rangeNav}
 
             <div className="p-5">
               {lockedPlan ? (
@@ -190,6 +264,8 @@ export default async function ChartPage({ params, searchParams }: Params) {
               </p>
             </div>
           </section>
+          </>
+          )}
 
           {/* The analyses about this metal (client, 2026-10-28): titles and summaries for everyone, the text stays Gold.
               Nothing when there are none; the full list lives under «پیش‌بینی و تحلیل». */}
@@ -219,6 +295,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
             <input type="hidden" name="cat" value={cat} />
             <input type="hidden" name="range" value={range} />
             <input type="hidden" name="unit" value={unit} />
+            {compareView && <input type="hidden" name="view" value="compare" />}
             {SLOTS.map((k, i) => {
               const c = compare[i];
               return (

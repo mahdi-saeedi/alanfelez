@@ -48,6 +48,9 @@ Last updated: 2026-10-27 (deleting users from the admin, backups on staging)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Chart page «مقایسه‌ی کالاها» (client): the side panel's four products on one chart as % change over the
+  range (?view=compare), colored chips with each one's change, remove (×) and «+ افزودن کالا», a crosshair with every
+  product's change. The four small charts on the side stay and drive the same selection.
 - 2026-10-28 Chart page: the «تحلیل پیشرفته بازار» box promised technical analysis and AI that don't exist; it is
   replaced by «تحلیل‌های {metal}» (the 3 newest analyses of that metal, hidden when none). The product picker lists the
   products a plan doesn't include («ویژه‌ی نقره‌ای»), and picking one shows it locked instead of another product.
