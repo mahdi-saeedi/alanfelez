@@ -26,7 +26,6 @@ erDiagram
   price_series ||--|| price_latest : "latest"
   sources ||--o{ source_runs : health
   sources ||--o{ price_points : produced
-  products ||--o{ ime_offerings : "offered as"
 
   metals { smallint id PK; text slug; text name_fa; text name_en; int sort }
   product_categories { smallint id PK; text slug "raw|intermediate|scrap"; text name_fa; text name_en }
@@ -37,7 +36,6 @@ erDiagram
   price_points { bigint id PK; int series_id FK; timestamptz observed_at; bigint price_minor; bool is_manual; uuid entered_by; smallint source_id FK }
   price_latest { int series_id PK; bigint price_minor; timestamptz observed_at; bigint prev_close_minor; timestamptz updated_at }
   source_runs { bigint id PK; smallint source_id FK; timestamptz started_at; text status; int points; text error }
-  ime_offerings { bigint id PK; date session_date; int product_id FK; text offerer; bigint volume_kg; bigint base_price_minor; bigint demand_kg; bigint traded_kg; bigint clearing_price_minor }
 ```
 
 Key decisions:
@@ -120,7 +118,7 @@ Key decisions:
 | `app.daily_visits`, `app.visit_salts` | Visitor stats (2026-10-27): one row per Tehran day and visitor (`u:<user id>` or `a:<sha256(day salt, IP, UA)>`), first/last time, page views. Salts older than yesterday are deleted, rows after 90 days (nightly cleanup). No IP stored |
 | `market.auctions` | Metal auctions (SCOPE §7, 2026-10-26): `title_fa/en`, metal, `category` intermediate/scrap/raw, `quantity` + `unit` ton/kg/piece, `status` open/paused/closed (staff), `deadline_at`, `location_*`, `organizer_*`, `details_*` (plain text). Public: title, metal, category, quantity, status; the rest Gold |
 | `market.auction_files` | The auction's PDF notice (ADR-0027): one per auction, `bytea` ≤ 10 MB, deleted with the auction |
-| `archive.ime_offerings` | **Removed from the app (2026-10-27, migration 00015)**: moved out of `market` with its rows, dropped by a later migration once a database backup holds them. IME session rows (SCOPE §7): `trade_date` (Tehran day), metal, product, producer, `offered_kg`, `base_price_rial` (Rial/kg), `demand_kg`, `traded_kg`, `clearing_price_rial` (null until traded), `source` manual / demo / api. Natural key (day, product, producer) = re-entry corrects |
+| ~~`market.ime_offerings`~~ | **Removed**: no longer shown from 2026-10-26, moved to `archive` (00015), dropped after the first production backup held it (00019, 2026-10-28). |
 | `calculations` | Saved calculator runs (Gold, max 50 per user): name, series, `input` and `result` JSON frozen at save time |
 | `price_alerts` | SMS alerts (Gold, max 20): series, `kind` above / below / move, `threshold_minor` or `move_bp`, `active`, `armed` (edge trigger), `last_triggered_at`. Sent SMS go to `notifications` (template `price_alert_*`, dedupe key per firing) |
 | `audit_log` | `actor_id`, `actor_role`, `action`, `entity`, `entity_id`, `before jsonb`, `after jsonb`, `ip`, `user_agent`, `at`. **Append-only**: the app DB role has no UPDATE/DELETE on it |

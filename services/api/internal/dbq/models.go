@@ -347,25 +347,6 @@ type AppVisitSalt struct {
 	CreatedAt pgtype.Timestamptz
 }
 
-type ArchiveImeOffering struct {
-	ID                pgtype.UUID
-	TradeDate         pgtype.Date
-	MetalID           int16
-	ProductFa         string
-	ProductEn         pgtype.Text
-	ProducerFa        string
-	ProducerEn        pgtype.Text
-	OfferedKg         int64
-	BasePriceRial     int64
-	DemandKg          pgtype.Int8
-	TradedKg          pgtype.Int8
-	ClearingPriceRial pgtype.Int8
-	Source            string
-	EnteredBy         pgtype.UUID
-	CreatedAt         pgtype.Timestamptz
-	UpdatedAt         pgtype.Timestamptz
-}
-
 type MarketAuction struct {
 	ID          pgtype.UUID
 	TitleFa     string

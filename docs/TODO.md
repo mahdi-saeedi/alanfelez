@@ -23,7 +23,6 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
-- [ ] After the first production backup holds it: a migration that drops `archive.ime_offerings` (00015 moved it there).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
@@ -52,6 +51,7 @@ Last updated: 2026-10-28 (database backups on production)
 - 2026-10-28 Header (client): stays at the top while scrolling and slims down; the plan badge (رایگان/نقره‌ای/طلایی)
   next to the user's name, «ارتقا» for free users; a magnifier opening `/search` (products, metals, analyses, FAQ
   questions, pages; read anonymously, noindex). Articles: the newest 50 only, since `/v1/articles` has no text search.
+- 2026-10-28 The archived IME offerings are dropped (00019), after production's first backup (15:12 UTC) held them.
 - 2026-10-28 Header shows the page you're on (client): bold, white, gold underline in the desktop menu (the phone menu
   and bottom bar already did). Chart page on phones (client): metal and category side by side, high/low/average under
   the chart so it starts higher, range buttons 40 px tall, the four compare cards behind «نمایش نمودارهای مقایسه»
