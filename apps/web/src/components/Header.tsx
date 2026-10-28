@@ -9,6 +9,20 @@ import { LocaleSwitch } from "./LocaleSwitch";
 import { getSite } from "@/lib/content";
 import { accessToken } from "@/lib/api";
 import { DesktopNav, MobileMenu } from "./MobileNav";
+import { StickyHeader } from "./StickyHeader";
+import { getEntitlements } from "@/lib/prices";
+
+/** Plan badge colors (CLAUDE.md: رایگان gray, نقره‌ای blue-gray, طلایی gold). */
+const PLAN_BADGE = { free: "bg-graphite-3 text-silver-light", silver: "bg-silver-light text-graphite", gold: "bg-gold text-graphite" } as const;
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
 
 
 export async function Header() {
@@ -20,6 +34,7 @@ export async function Header() {
   // again, instead of showing the user's name over a free-plan view.
   const expired = !!session?.user && !token;
   const signedIn = !!session?.user && !expired;
+  const tier = (signedIn && (await getEntitlements())?.tier) || "free";
 
   // «ورود»: username + password first; «ثبت‌نام»: mobile number + SMS code (see PASSWORD_FIRST).
   async function login() {
@@ -44,30 +59,40 @@ export async function Header() {
   }
 
   return (
-    <header className="bg-graphite text-white">
+    <StickyHeader>
       {/* Phone widths (360 px) are tight: logo, language switch, log in and sign up must fit on one row. */}
-      <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-3 lg:gap-6">
+      <div className="mx-auto flex max-w-7xl items-center gap-1.5 px-4 py-3 transition-[padding] group-data-[compact]:py-1.5 sm:gap-3 lg:gap-6">
         <MobileMenu />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
-          <img src="/logo.png" alt="" width={84} height={84} className="h-14 w-14 rounded-lg sm:h-16 sm:w-16 lg:h-21 lg:w-21" />
+          <img src="/logo.png" alt="" width={84} height={84} className="h-14 w-14 rounded-lg transition-[width,height] group-data-[compact]:h-10 group-data-[compact]:w-10 sm:h-16 sm:w-16 lg:h-21 lg:w-21 lg:group-data-[compact]:h-12 lg:group-data-[compact]:w-12" />
           {/* The logo already shows the name; on phones the text would push the header wider than the screen. */}
           <span className="sr-only sm:not-sr-only">{t("brand.name")}</span>
         </Link>
         <DesktopNav />
-        <div className="ms-auto flex items-center gap-2 lg:ms-0">
+        <div className="ms-auto flex items-center gap-1.5 sm:gap-2 lg:ms-0">
+          <Link href="/search" aria-label={t("search.open")} title={t("search.open")} className="grid h-9 w-8 shrink-0 sm:w-9 place-items-center rounded-lg text-silver-light hover:bg-graphite-2 hover:text-white">
+            <SearchIcon />
+          </Link>
           {(site?.englishSite || locale === "en") && <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />}
           {signedIn && session?.user ? (
             <form action={logout} className="flex items-center gap-2">
-              <Link href="/account" className="hidden rounded-lg px-3 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white sm:inline">
-                {session.user.name || t("auth.account")}
+              {/* The plan next to the name (client, 2026-10-28); on phones the badge alone. Free users get «ارتقا». */}
+              <Link href="/account" className="flex items-center gap-2 rounded-lg px-1.5 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white sm:px-3" aria-label={`${session.user.name || t("auth.account")} · ${t(`lock.plan.${tier}`)}`}>
+                <span className="hidden sm:inline">{session.user.name || t("auth.account")}</span>
+                <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold ${PLAN_BADGE[tier]}`}>{t(`lock.plan.${tier}`)}</span>
               </Link>
+              {tier === "free" && (
+                <Link href="/plans" className="hidden whitespace-nowrap rounded-lg border border-gold px-3 py-1.5 text-sm font-bold text-gold-light hover:bg-gold hover:text-graphite sm:inline">
+                  {t("auth.upgrade")}
+                </Link>
+              )}
               <button className="rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.logout")}</button>
             </form>
           ) : (
             <form action={login} className="flex items-center gap-2">
-              <button className="whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.login")}</button>
+              <button className="whitespace-nowrap rounded-lg px-2 py-2 text-sm hover:bg-graphite-2 sm:px-3">{t("auth.login")}</button>
               {/* Sign-up is the phone + code page: a new number creates the account, then the sign-up form. */}
-              <button formAction={signup} className="whitespace-nowrap rounded-lg bg-gold px-4 py-2 text-sm font-bold text-graphite hover:bg-gold-light">
+              <button formAction={signup} className="whitespace-nowrap rounded-lg bg-gold px-3 py-2 text-sm font-bold sm:px-4 text-graphite hover:bg-gold-light">
                 {t("auth.signup")}
               </button>
             </form>
@@ -82,6 +107,6 @@ export async function Header() {
           </form>
         </div>
       )}
-    </header>
+    </StickyHeader>
   );
 }

@@ -10,6 +10,7 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
+- [ ] Search: a `q` parameter on `/v1/articles` (and FAQ) so `/search` finds older articles too (today: newest 50).
 - [ ] **Backups on the Barman Cloud Plugin** before CloudNativePG 1.31 (runs 1.30.1): 1.31 removes the built-in
       `barmanObjectStore` backups the data chart uses (warning seen 2026-10-28). Don't upgrade CNPG until then.
 - [ ] SEO: Lighthouse check (icons and the share image are done).
@@ -48,6 +49,9 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-28 Header (client): stays at the top while scrolling and slims down; the plan badge (رایگان/نقره‌ای/طلایی)
+  next to the user's name, «ارتقا» for free users; a magnifier opening `/search` (products, metals, analyses, FAQ
+  questions, pages; read anonymously, noindex). Articles: the newest 50 only, since `/v1/articles` has no text search.
 - 2026-10-28 Header shows the page you're on (client): bold, white, gold underline in the desktop menu (the phone menu
   and bottom bar already did). Chart page on phones (client): metal and category side by side, high/low/average under
   the chart so it starts higher, range buttons 40 px tall, the four compare cards behind «نمایش نمودارهای مقایسه»
