@@ -10,6 +10,8 @@ import { Sparkline } from "@/components/prices/Sparkline";
 import { LivePrice, LiveUpdated } from "@/components/prices/LivePrice";
 import { AutoSubmitSelect } from "@/components/AutoSubmitSelect";
 import { Locked, LockIcon } from "@/components/Locked";
+import { InsightCard } from "@/components/content/InsightCard";
+import { getArticles } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
@@ -42,16 +44,21 @@ export default async function ChartPage({ params, searchParams }: Params) {
   if (rows.length === 0) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
   }
+  // The picker also lists the products the caller's plan doesn't include (names only, from lockedSeries), marked
+  // «ویژه‌ی نقره‌ای»: picking one shows that product locked instead of quietly swapping in another (client, 2026-10-28).
+  const lockedSlugs = new Set((prices?.lockedSeries ?? []).map((s) => s.slug));
+  const all: PriceRow[] = [...rows, ...(prices?.lockedSeries ?? []).map((series) => ({ series }) as PriceRow)];
+  const lockedPlanName = prices?.lockedFeature ? tl(`plan.${prices.lockedFeature.requiredPlan}`) : "";
   // The picker narrows step by step (client, 2026-10-25): metal → category (global price, intermediate, scrap, raw)
   // → product. Each select submits the form; a choice that no longer fits the earlier ones falls back to the first.
-  const metals = uniqueBy(rows.map((r) => r.series.metal), (m) => m.slug);
-  const asked = rows.find((r) => r.series.slug === q.series) ?? rows.find((r) => r.series.slug === "copper-red-free") ?? rows[0]!;
+  const metals = uniqueBy(all.map((r) => r.series.metal), (m) => m.slug);
+  const asked = all.find((r) => r.series.slug === q.series) ?? rows.find((r) => r.series.slug === "copper-red-free") ?? rows[0]!;
   const metal = metals.find((m) => m.slug === q.metal)?.slug ?? asked.series.metal.slug;
-  const inMetal = rows.filter((r) => r.series.metal.slug === metal);
+  const inMetal = all.filter((r) => r.series.metal.slug === metal);
   const cats = CATS.filter((c) => inMetal.some((r) => catOf(r) === c));
   const cat = cats.find((c) => c === q.cat) ?? (asked.series.metal.slug === metal ? catOf(asked) : cats[0]!);
   const products = inMetal.filter((r) => catOf(r) === cat);
-  const row = products.find((r) => r.series.slug === q.series) ?? products[0]!;
+  const row = products.find((r) => r.series.slug === q.series) ?? products.find((r) => !lockedSlugs.has(r.series.slug)) ?? products[0]!;
   const range: Range = RANGES.includes(q.range as Range) ? (q.range as Range) : "1M";
   const usd = row.series.currency === "USD";
   const unit: UnitOpt = usd ? "usd-ton" : UNITS.includes(q.unit as (typeof UNITS)[number]) ? (q.unit as UnitOpt) : "toman-kg";
@@ -89,7 +96,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
   const chartHref = (qq: Record<string, string>) => ({ pathname: "/chart", query: { series: row.series.slug, range, unit, ...slotQuery, ...qq } });
   const openHref = (r: PriceRow) => chartHref({ series: r.series.slug, metal: r.series.metal.slug, cat: catOf(r) });
   const lockedPlan = "locked" in history && history.locked ? history.locked.plan : null;
-  const analysisAllowed = ent?.features["analysis.read"] === true;
+  const related = (await getArticles(locale, { type: ["analysis", "forecast"], metal: row.series.metal.slug, limit: 3 }))?.items ?? [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
@@ -113,6 +120,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
               {products.map((r) => (
                 <option key={r.series.slug} value={r.series.slug}>
                   {r.series.product.name} — {r.series.market.name}
+                  {lockedSlugs.has(r.series.slug) ? ` (${t("lockedOption", { plan: lockedPlanName })})` : ""}
                 </option>
               ))}
             </AutoSubmitSelect>
@@ -170,7 +178,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
 
             <div className="p-5">
               {lockedPlan ? (
-                <Locked plan={lockedPlan}>{t("lockedSeries", { plan: tl(`plan.${lockedPlan}`) })}</Locked>
+                <Locked plan={lockedPlan} title={`${row.series.product.name} — ${row.series.market.name}`}>{t("lockedSeries", { plan: tl(`plan.${lockedPlan}`) })}</Locked>
               ) : points.length > 1 ? (
                 <AreaChart points={points} locale={locale} intraday={range === "1D" || range === "1W"} format={usd ? "usd" : "int"} />
               ) : (
@@ -183,8 +191,22 @@ export default async function ChartPage({ params, searchParams }: Params) {
             </div>
           </section>
 
-          {!analysisAllowed && (
-            <Locked plan="gold" title={t("advancedTitle")}>{t("advancedBody")}</Locked>
+          {/* The analyses about this metal (client, 2026-10-28): titles and summaries for everyone, the text stays Gold.
+              Nothing when there are none; the full list lives under «پیش‌بینی و تحلیل». */}
+          {related.length > 0 && (
+            <section>
+              <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                <h2 className="font-bold">{t("relatedTitle", { metal: row.series.metal.name })}</h2>
+                <Link href={{ pathname: "/analysis", query: { metal: row.series.metal.slug } }} className="text-sm font-bold text-gold-dark hover:text-gold">
+                  {t("relatedAll", { metal: row.series.metal.name })}
+                </Link>
+              </div>
+              <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {related.map((a) => (
+                  <li key={a.slug} className="flex"><div className="flex w-full flex-col [&>article]:flex-1"><InsightCard a={a} locale={locale} /></div></li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
 

@@ -258,8 +258,6 @@
       "MAX": "MAX"
     },
     "source": "Source: {source} | Last update: {time}",
-    "advancedTitle": "Advanced market analysis",
-    "advancedBody": "Technical analysis, support/resistance levels, trend forecasts and market AI",
     "lockedRange": "This range unlocks with the {plan} plan",
     "lockedSeries": "This price is available with the {plan} plan",
     "noHistory": "No history for this price yet.",
@@ -281,7 +279,10 @@
       "intermediate": "Intermediate products",
       "scrap": "Scrap",
       "raw": "Raw materials (domestic)"
-    }
+    },
+    "lockedOption": "{plan} plan",
+    "relatedTitle": "{metal} analysis",
+    "relatedAll": "All {metal} analysis →"
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",
