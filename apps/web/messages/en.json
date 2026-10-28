@@ -35,7 +35,24 @@
     "logout": "Log out",
     "account": "Account",
     "expired": "Your sign-in has ended, or this account signed in on another device. Until you sign in again, the site shows what guests see.",
+    "upgrade": "Upgrade",
     "loginAgain": "Sign in again"
+  },
+  "search": {
+    "open": "Search the site",
+    "title": "Search",
+    "label": "Search terms",
+    "placeholder": "Product, metal, analysis or question…",
+    "submit": "Search",
+    "count": "{count, plural, one {# result} other {# results}} for “{q}”",
+    "none": "Nothing found for “{q}”.",
+    "tryOther": "Try other words, or have a look at:",
+    "products": "Products",
+    "metals": "Metals",
+    "metalPrices": "{metal} prices",
+    "articles": "Analysis & forecasts",
+    "faq": "FAQ",
+    "pages": "Pages"
   },
   "locale": {
     "switch": "فارسی",
