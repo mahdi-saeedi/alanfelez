@@ -21,7 +21,7 @@ Argo CD (staging) syncs automatically, in order (sync waves):
   1. PreSync hook Job `alanfelez bootstrap` (migrations + seed)                          ← from-scratch safe, idempotent
   2. Keycloak, admin: rolling update · api, web: Argo Rollouts canary
        setWeight 50 (completes only when the new pods are Ready) → analysis (api) → pause 30 s → 100 %
-  3. New pods never Ready → abort at the progress deadline (180 s). Analysis fails → abort immediately.
+  3. New pods never Ready → abort at the progress deadline (180 s; 600 s on staging, where an image pull can hit a brief DNS failure and needs its retries). Analysis fails → abort immediately.
      Either way the stable version keeps serving and nothing reaches git
       ▼
 publish/production branch (Claude, after the stakeholder's OK) or Actions → Publish to production ──► publish.yml:

@@ -29,3 +29,8 @@ web:
   replicas: 1 # small staging server (2 CPU / 4 GB)
 ingress:
   basicAuth: {enabled: false} # no shared password: anyone with the address can open staging (pages stay noindex)
+# Image pulls on staging have failed on a brief DNS hiccup («lookup registry… Try again», 2026-10-28): the pull is
+# retried with backoff, but 180 s ran out first and the rollout aborted. 10 min leaves room for the retries; a pod
+# that really never gets Ready still aborts, just later. Production keeps 180 s (owner's call).
+rollout:
+  progressDeadlineSeconds: 600

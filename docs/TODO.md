@@ -49,6 +49,8 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-29 Staging rollouts wait 10 min (was 3) for new pods: a brief DNS failure while pulling the image aborted
+  one (2026-10-28; the owner retried it). If it happens again: `kubectl argo rollouts -n alanfelez retry rollout alanfelez-web`.
 - 2026-10-28 Header (client): stays at the top while scrolling and slims down; the plan badge (رایگان/نقره‌ای/طلایی)
   next to the user's name, «ارتقا» for free users; a magnifier opening `/search` (products, metals, analyses, FAQ
   questions, pages; read anonymously, noindex). Articles: the newest 50 only, since `/v1/articles` has no text search.
