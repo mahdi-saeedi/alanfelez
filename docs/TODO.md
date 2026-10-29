@@ -48,6 +48,8 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-29 Staging rollouts wait 10 min (was 3) for new pods: a brief DNS failure while pulling the image aborted
+  one (2026-10-28; the owner retried it). If it happens again: `kubectl argo rollouts -n alanfelez retry rollout alanfelez-web`.
 - 2026-10-29 Header (client): the name and plan badge open an account menu (account, plan & renewal, tickets, log out);
   a reminder under the header when a paid plan ends within 7 days with no renewal queued, × hides it until the next
   sign-in (session cookie the login and logout actions delete). Search: suggestions while typing (`/api/search`), the
