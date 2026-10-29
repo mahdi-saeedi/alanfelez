@@ -11,7 +11,8 @@ the go-live checklist is `docs/guides/LAUNCH.md`. Keep those docs in step with t
 | `helm/alanfelez-data/` | Postgres + Redis for the cluster |
 | `environments/<local\|staging\|production>/values.yaml` | **What runs in each environment.** Image tags here are written by the release workflow |
 | `environments/<env>/secrets/` | SealedSecrets only (encrypted). Never a plain secret |
-| `argocd/` | Argo CD install values, the project, and one root app per environment |
+| `argocd/` | Argo CD install values, the project, and one root app per environment (the project is synced from `envs/<env>/00-project.yaml`) |
+| `observability/` | Monitoring (ADR-0015): shared chart values, alert rules, scrape targets, Bale alerts, Grafana dashboards (`manifests/`). Guide: OPERATIONS §1 |
 | `local/` | Local k3d cluster (`task k8s:*`), local Keycloak users, the smoke test script |
 | `loadtest/public.js` | k6 load test (`task loadtest`) |
 

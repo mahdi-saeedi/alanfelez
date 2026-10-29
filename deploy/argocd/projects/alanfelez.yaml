@@ -1,4 +1,6 @@
 # Restricts what the alanfelez applications may deploy and where.
+# Applied by hand once (DEPLOYMENT.md §3); after that the root app keeps it in step from
+# deploy/argocd/envs/<env>/00-project.yaml, which must stay identical to this file (apart from the sync-wave).
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
@@ -15,5 +17,6 @@ spec:
     - { server: https://kubernetes.default.svc, namespace: cert-manager }
     - { server: https://kubernetes.default.svc, namespace: kube-system }
     - { server: https://kubernetes.default.svc, namespace: argocd }
+    - { server: https://kubernetes.default.svc, namespace: monitoring }    # Prometheus, Grafana, Loki (deploy/observability)
   clusterResourceWhitelist:
     - { group: "*", kind: "*" }             # operators install CRDs and cluster roles

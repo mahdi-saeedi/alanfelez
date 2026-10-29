@@ -1,0 +1,55 @@
+# What Prometheus scrapes besides the chart's own targets (node, kubelet, kube-state-metrics, Grafana, Loki, Alloy).
+# Kept here, not in the app charts, so a missing monitoring CRD can never block a deploy of the site.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: traefik                        # every request to the site: count, status code, time (by service)
+  namespace: kube-system
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: traefik } }
+  podMetricsEndpoints: [{ port: metrics }]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: postgres                       # CloudNativePG: connections, size, WAL archiving, backups
+  namespace: alanfelez
+spec:
+  selector: { matchLabels: { cnpg.io/podRole: instance } }
+  podMetricsEndpoints: [{ port: metrics }]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: keycloak                       # sign-ins, sessions, JVM memory
+  namespace: alanfelez
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: keycloak } }
+  podMetricsEndpoints: [{ port: management, path: /metrics }]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: argo-rollouts                  # canary steps, aborted rollouts
+  namespace: argo-rollouts
+spec:
+  selector: { matchLabels: { app.kubernetes.io/component: rollouts-controller } }
+  podMetricsEndpoints: [{ port: metrics }]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cert-manager                   # certificate expiry and renewal errors
+  namespace: cert-manager
+spec:
+  selector: { matchLabels: { app.kubernetes.io/component: controller, app.kubernetes.io/name: cert-manager } }
+  podMetricsEndpoints: [{ port: http-metrics }]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: argocd                         # apps out of sync with git, failed syncs
+  namespace: argocd
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: argocd-application-controller } }
+  podMetricsEndpoints: [{ port: metrics }]

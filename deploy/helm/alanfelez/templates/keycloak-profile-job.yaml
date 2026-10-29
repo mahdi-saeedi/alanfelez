@@ -64,6 +64,26 @@ spec:
                 $kcadm add-roles -r alanfelez --uusername service-account-alanfelez-api-admin --cclientid realm-management \
                   --rolename manage-users --rolename view-users --config $cfg
               }
+              # Grafana's sign-in (<admin host>/grafana, deploy/observability): client alanfelez-grafana, with a realm-roles
+              # mapper so Grafana sees `roles` (admin → Grafana Admin, other staff → Viewer, everyone else refused).
+              add_grafana_client() {
+                local cid redirect="https://{{ .Values.global.hosts.admin }}/grafana/login/generic_oauth"
+                [ -n "${GRAFANA_SECRET:-}" ] || return 0
+                cid="$($kcadm get clients -r alanfelez -q clientId=alanfelez-grafana --fields id --format csv --noquotes --config $cfg)"
+                if [ -z "$cid" ]; then
+                  cid="$($kcadm create clients -r alanfelez --config $cfg -i -s clientId=alanfelez-grafana -s name=Grafana \
+                    -s enabled=true -s publicClient=false -s standardFlowEnabled=true -s directAccessGrantsEnabled=false \
+                    -s "redirectUris=[\"$redirect\"]" -s 'webOrigins=["+"]' \
+                    -s 'description=Grafana (monitoring): staff sign-in')"
+                  $kcadm create "clients/$cid/protocol-mappers/models" -r alanfelez --config $cfg \
+                    -s name=realm-roles -s protocol=openid-connect -s protocolMapper=oidc-usermodel-realm-role-mapper \
+                    -s 'config."claim.name"=roles' -s 'config."multivalued"=true' -s 'config."jsonType.label"=String' \
+                    -s 'config."id.token.claim"=true' -s 'config."access.token.claim"=true' -s 'config."userinfo.token.claim"=true' >/dev/null
+                  echo "client alanfelez-grafana created"
+                fi
+                printf '{"secret":"%s"}' "$GRAFANA_SECRET" > /tmp/grafana.json
+                $kcadm update "clients/$cid" -r alanfelez -f /tmp/grafana.json --config $cfg; rm -f /tmp/grafana.json
+              }
               # At most {{ .Values.keycloak.sessionLimit }} devices signed in per account; a new sign-in signs out the oldest
               # (Keycloak's User Session Count Limiter, after the first factor). Added once; later edits in the admin console stay.
               add_session_limit() {
@@ -94,6 +114,7 @@ spec:
                   add_web_mappers || echo "WARNING: the web client's token mappers were not checked"
                   add_session_limit || echo "WARNING: the session limit was not checked"
                   add_api_admin_client || echo "WARNING: the API's service-account client was not checked"
+                  add_grafana_client || echo "WARNING: Grafana's sign-in client was not checked"
                   exit 0
                 fi
                 sleep 10
@@ -104,6 +125,8 @@ spec:
               valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: username } }
             - name: KC_ADMIN_PASSWORD
               valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakAdmin }}, key: password } }
+            - name: GRAFANA_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.secrets.grafanaOAuth }}, key: client-secret, optional: true } }
             - name: API_ADMIN_SECRET
               valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakApiAdmin }}, key: client-secret, optional: true } }
             - { name: JAVA_OPTS, value: "-XX:MaxRAMPercentage=70" }

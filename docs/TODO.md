@@ -10,6 +10,9 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
+- [ ] Monitoring, part 2: `/metrics` in the Go API (per route; prices freshness, SMS, payments, sign-ups) with alerts
+      (SourceStale, PaymentFailures, SmsBudget), user events (sign-up, checkout, payment, feature use) and a business
+      dashboard; then GlitchTip, an outside uptime check, traces.
 - [ ] Search: a `q` parameter on `/v1/articles` (and FAQ) so `/search` finds older articles too (today: newest 50).
 - [ ] **Backups on the Barman Cloud Plugin** before CloudNativePG 1.31 (runs 1.30.1): 1.31 removes the built-in
       `barmanObjectStore` backups the data chart uses (warning seen 2026-10-28). Don't upgrade CNPG until then.
@@ -44,7 +47,7 @@ Last updated: 2026-10-28 (database backups on production)
 - [ ] First staff accounts on production (with TOTP); disable the Keycloak bootstrap admin. **First** give the
       keycloak-profile job its own service account (it logs in with the bootstrap admin today), or sign-up field
       changes silently stop reaching Keycloak.
-- [ ] Monitoring and alerts; a penetration test by someone else.
+- [ ] A penetration test by someone else.
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
@@ -52,6 +55,9 @@ Last updated: 2026-10-28 (database backups on production)
   a reminder under the header when a paid plan ends within 7 days with no renewal queued, × hides it until the next
   sign-in (session cookie the login and logout actions delete). Search: suggestions while typing (`/api/search`), the
   search button kept, and when nothing matches exactly the closest names are shown as «شاید منظورتان…» (typos).
+- 2026-10-29 **Monitoring** (ADR-0015) on staging and production: Grafana at `<admin host>/grafana` with Keycloak sign-in,
+  dashboard «Alan Felez» (site, traffic/errors, deploys, server, database/backups, logs/events), Prometheus (30 d), Loki +
+  Alloy (pod logs and Kubernetes events, 30 d), blackbox checks, alert rules → Bale (OPERATIONS §1).
 - 2026-10-28 Header (client): stays at the top while scrolling and slims down; the plan badge (رایگان/نقره‌ای/طلایی)
   next to the user's name, «ارتقا» for free users; a magnifier opening `/search` (products, metals, analyses, FAQ
   questions, pages; read anonymously, noindex). Articles: the newest 50 only, since `/v1/articles` has no text search.

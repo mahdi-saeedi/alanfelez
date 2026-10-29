@@ -1,0 +1,23 @@
+# Blackbox exporter (deploy/vendor/charts) for staging and production: every 30 s it opens the public addresses the
+# way a browser would (DNS, TLS, status code, time) and Prometheus alerts when one fails (SiteDown) or a certificate
+# is about to expire. The targets are per environment in the Argo CD app (deploy/argocd/envs/<env>/33-blackbox.yaml).
+# It runs on the same server, so "the whole server is down" needs a check from outside (OPERATIONS §1, Uptime).
+fullnameOverride: blackbox
+resources:
+  requests: { cpu: 10m, memory: 24Mi }
+  limits: { memory: 96Mi }
+config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 10s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: ip4
+serviceMonitor:
+  enabled: true
+  defaults:
+    interval: 30s
+    scrapeTimeout: 15s
+    module: http_2xx

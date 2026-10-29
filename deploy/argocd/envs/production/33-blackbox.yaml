@@ -1,0 +1,39 @@
+# Generated layout: see deploy/argocd/README.md
+# Monitoring (blackbox exporter: checks the public addresses). Shared values: deploy/observability/blackbox-exporter.yaml; below only what differs per environment.
+# Wave 11: after the site, so nothing here can hold up a deploy of the app.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: blackbox
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: alanfelez
+  source:
+    # Chart prometheus-blackbox-exporter 11.20.2 (https://prometheus-community.github.io/helm-charts), vendored (deploy/vendor/charts/README.md)
+    repoURL: ssh://git@188.121.120.201/home/git/alanfelez.git
+    targetRevision: main
+    path: deploy/vendor/charts/prometheus-blackbox-exporter
+    helm:
+      releaseName: blackbox
+      valueFiles: [../../../observability/blackbox-exporter.yaml]
+      valuesObject:
+        serviceMonitor:
+          defaults:
+            labels: { env: production }
+          targets:
+            - { name: web, url: "https://alanfelez.ir/" }
+            - { name: api, url: "https://api.alanfelez.ir/healthz" }
+            - { name: auth, url: "https://auth.alanfelez.ir/realms/alanfelez/.well-known/openid-configuration" }
+            - { name: admin, url: "https://admin.alanfelez.ir/" }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true, ServerSideApply=true, SkipDryRunOnMissingResource=true]
+    retry:
+      limit: 10
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }

@@ -1,6 +1,6 @@
 # ADR-0015: Self-hosted observability: OpenTelemetry, Prometheus, Grafana, Loki, Tempo, GlitchTip
 
-- **Status:** Accepted
+- **Status:** Accepted. Built 2026-10-29: Prometheus, Alertmanager (→ Bale), Grafana (Keycloak sign-in), Loki + Alloy, blackbox exporter (kube-prometheus-stack, per cluster; `deploy/observability/`, OPERATIONS §1). OTel/Tempo, GlitchTip and Uptime Kuma still to come.
 - **Date:** 2026-09-28
 
 ## Context

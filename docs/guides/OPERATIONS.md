@@ -1,19 +1,30 @@
 # Operations: Observability, Backups, Runbooks
 
-> Status: **Proposed**. Stack decision: ADR-0015. Targets: [NFR.md](../architecture/NFR.md).
+> Status: **built 2026-10-29** for metrics, logs, dashboards and alerts (staging and production); traces, GlitchTip and the
+> outside uptime check are next. Stack decision: ADR-0015. Targets: [NFR.md](../architecture/NFR.md).
 
-## 1. Observability stack (self-hosted on ArvanCloud)
-| Signal | Tool | Notes |
+## 1. Observability stack (self-hosted, one per cluster: `deploy/observability/`)
+| Signal | Tool | Status |
 |---|---|---|
-| Metrics | **Prometheus** (scrapes `/metrics` on api, worker, Caddy, Postgres exporter, Redis exporter, node exporter) | 30-day retention |
-| Dashboards | **Grafana** | Dashboards are kept as JSON in `deploy/observability/grafana/` |
-| Logs | **Loki** + Promtail (Docker log driver) | JSON logs (Go `slog`, Next.js pino). 30-day retention. **No PII** |
-| Traces | **OpenTelemetry** SDK (Go + Next.js) → OTel Collector → **Tempo** | Phase 2+. Start with 10 % sampling, 100 % on errors |
-| Errors | **GlitchTip** (Sentry-compatible) | Go + web + admin SDKs, with release tagging from CI |
-| Uptime | Uptime Kuma (on a *separate* small server) + an external check | Alerts even if the main server is down |
-| Product analytics | **Umami** (self-hosted, cookieless) | Page views, funnels (sign-up → subscribe), web-vitals |
+| Dashboards | **Grafana** at `https://admin.alanfelez.ir/grafana` (staging: `admin.staging…`). Sign in with the staff Keycloak account: `admin` → Grafana Admin, other staff → Viewer, customers refused | ✅ |
+| Metrics | **Prometheus**: the server (node exporter), every pod (kubelet, kube-state-metrics), Traefik (every request: service, status, time), Postgres (CloudNativePG: backups, WAL archiving, connections), Keycloak, Argo CD, Argo Rollouts, cert-manager. 30 days (staging 7) | ✅ |
+| Site checks | **Blackbox exporter**: site, API, sign-in and admin opened like a browser every 30 s (status, time, certificate) | ✅ |
+| Logs | **Loki** + **Alloy**: every pod's log lines and the Kubernetes events (image pulls, crashes, failed probes), 30 days (staging 7). JSON lines keep `request_id`; no personal data | ✅ |
+| Alerts | Prometheus rules (`manifests/base/rules.yaml` + the chart's Kubernetes/node rules) → **Alertmanager** → the team's **Bale** group (`seal-bale-bot.sh`) | ✅ (needs the bot, below) |
+| App metrics | `/metrics` of the Go API (per route, business counters) | ⏳ next |
+| Traces | OpenTelemetry → Tempo | ⏳ phase 2+ |
+| Errors (browser) | **GlitchTip** (Sentry-compatible) | ⏳ |
+| Uptime from outside | A check outside our servers (the blackbox exporter runs on the same server) | ⏳ |
+| Product analytics | Built-in daily visitors (admin «آمار بازدید»); user events next | ⏳ |
 
-Every log line and span carries `request_id`, `trace_id`, `user_id` (hashed) and `release`.
+**When something is wrong:** Grafana → dashboard **«Alan Felez»** (top to bottom: is the site up → errors → deploys → server
+→ database → logs). In «Errors» click a line and «Same request» to see the whole request; in «Kubernetes warnings» you see
+why a pod didn't start. «search» at the top finds any text in every log (a request_id from a user's screenshot, for
+example). The chart's own dashboards (Kubernetes / Node exporter / Alertmanager) go deeper.
+
+**Alerts to Bale (one time):** create a bot with @botfather in Bale, make a group with the owner and the developer, add
+the bot and mention it in a message, then run `bash deploy/server/seal-bale-bot.sh` and commit what it writes. Every
+alert says what is wrong and where to look; ✅ when it is resolved.
 
 ## 2. Key metrics (the "golden signals" + business)
 | Metric | Why |
@@ -70,7 +81,7 @@ Keep each runbook short: symptoms → check → fix → verify → follow-up. St
 
 | Date | Duration | Result | Notes |
 |---|---|---|---|
-| — | — | — | first drill before launch |
+| 2026-10-28 | ~10 min | ✅ | Staging: last night's backup (Object Storage) restored into a temporary CloudNativePG cluster; row counts identical (users, orders, subscriptions, 377,492 price points, audit log, Keycloak users). Then deleted |
 
 ### 5.3 Full-site recovery (server lost)
 New Arvan server → install Docker → clone the infra → write `.env` from GitHub Environments → restore Postgres (PITR) + Keycloak → `docker compose up -d` → point DNS/CDN → run the smoke tests → post-mortem.

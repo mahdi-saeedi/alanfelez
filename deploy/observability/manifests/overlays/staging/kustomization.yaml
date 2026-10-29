@@ -1,0 +1,13 @@
+# staging: the shared monitoring objects (../../base) plus this cluster's sealed secrets and the Bale group's chat id.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - alanfelez-grafana-oauth.sealed.yaml   # Keycloak client secret for Grafana's sign-in (same value as in alanfelez)
+patches:
+  # The Bale group that receives the alerts (written by deploy/server/seal-bale-bot.sh; 0 = not set up yet).
+  - target: { kind: AlertmanagerConfig, name: bale }
+    patch: |-
+      - op: replace
+        path: /spec/receivers/0/telegramConfigs/0/chatID
+        value: 0

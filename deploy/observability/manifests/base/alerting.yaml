@@ -1,0 +1,36 @@
+# Where alerts go: the team's Bale group, through Bale's bot API (the same API as Telegram's, at tapi.bale.ai; Telegram
+# itself is often unreachable from servers in Iran). The bot token is the sealed secret alanfelez-bale (key bot-token)
+# and the group's chat id is set per environment (overlays/<env>/kustomization.yaml), both written by
+# deploy/server/seal-bale-bot.sh. Until the secret exists the operator skips this config and alerts only show in Grafana.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: bale
+  namespace: monitoring
+spec:
+  route:
+    receiver: bale
+    groupBy: [alertname, env, instance, service, name, pod]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 6h                # a problem that stays is repeated every 6 hours
+    matchers:
+      - { name: severity, matchType: "=~", value: "warning|critical" }
+  # A critical alert mutes the warnings about the same address (SiteSlow while SiteDown).
+  inhibitRules:
+    - sourceMatch: [{ name: severity, value: critical }]
+      targetMatch: [{ name: severity, value: warning }]
+      equal: [instance]
+  receivers:
+    - name: bale
+      telegramConfigs:
+        - apiURL: https://tapi.bale.ai
+          botToken: { name: alanfelez-bale, key: bot-token }
+          chatID: 0                     # per environment
+          sendResolved: true
+          # Plain text: no characters that HTML parsing could trip on.
+          message: |-
+            {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}🔴{{ else }}🟠{{ end }}{{ else }}✅ رفع شد:{{ end }} [{{ .CommonLabels.env }}] {{ .CommonLabels.alertname }}
+            {{ range .Alerts }}• {{ .Annotations.summary }}
+            {{ if and (eq $.Status "firing") .Annotations.description }}  {{ .Annotations.description }}
+            {{ end }}{{ end }}
