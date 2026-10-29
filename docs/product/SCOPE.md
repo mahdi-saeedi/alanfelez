@@ -135,7 +135,7 @@ Information only: there's no bidding on the site, and Alan Felez isn't the organ
   «چرا الان‌فلز؟».
 - No contact numbers on the site (the seller-contact feature was removed, §4); contact details are in the organiser's PDF.
 - Replaces the IME daily offerings page (option B of client answer #5): the client removed it on 2026-10-26. The IME data
-  already entered was moved to `archive.ime_offerings` (2026-10-27, owner OK) and is dropped once a backup holds it.
+  already entered was dropped on 2026-10-28 (owner OK) after the database backups held it.
 
 ## 8. Price calculator — 🛠 logic for client answer #15
 
