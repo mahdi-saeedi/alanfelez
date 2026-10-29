@@ -66,7 +66,7 @@ export default async function AccountPage({ params, searchParams }: Params) {
           <p className="mt-2 text-xs text-text-3">{t("account.passwordHint")}</p>
         </section>
 
-        <section className="rounded-card border border-border bg-surface p-5 shadow-soft">
+        <section id="plan" className="scroll-mt-24 rounded-card border border-border bg-surface p-5 shadow-soft">
           <h2 className="font-bold">{t("account.plan")}</h2>
           {me.current ? (
             <div className="mt-4 space-y-2">
