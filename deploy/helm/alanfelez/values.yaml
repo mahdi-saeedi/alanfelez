@@ -26,6 +26,8 @@ secrets:
   keycloakAdmin: alanfelez-keycloak-admin   # keys: username, password (bootstrap admin, first start only)
   keycloakDb: alanfelez-keycloak-db         # keys: username, password (also used by the data chart)
   sms: alanfelez-sms               # key: SMSIR_API_KEY (sms.ir). Optional: without it the smsir sender refuses to send
+  grafanaOAuth: alanfelez-grafana-oauth  # key: client-secret. Optional: Grafana's Keycloak client (staff sign-in to
+                                   # <admin host>/grafana); the profile job creates the client with this secret
   keycloakApiAdmin: alanfelez-keycloak-api-admin  # key: client-secret. Optional: the API's Keycloak service account
                                    # (deleting users); the profile job creates the client with this secret
 

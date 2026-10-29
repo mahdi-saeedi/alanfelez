@@ -1,0 +1,127 @@
+# Alan Felez alerts (Prometheus). Each one says in plain words what is wrong and where to look; they reach Bale
+# through alerting.yaml. Runbooks: docs/guides/OPERATIONS.md §4. The chart adds the standard Kubernetes and node alerts
+# (pods crash-looping, PVC filling up, node memory, …). severity: critical = act now, warning = today.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: alanfelez
+  namespace: monitoring
+spec:
+  groups:
+    - name: alanfelez.site
+      rules:
+        - alert: SiteDown
+          expr: probe_success == 0
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            summary: "{{ $labels.instance }} does not answer (2 min)"
+            description: "Grafana → «Alan Felez» → Site. Then the pods and the latest events in «Logs»."
+            runbook_url: https://github.com/mahdi-saeedi/alanfelez/blob/main/docs/guides/OPERATIONS.md#4-runbooks
+        - alert: SiteSlow
+          expr: avg_over_time(probe_duration_seconds[10m]) > 5
+          for: 10m
+          labels: { severity: warning }
+          annotations:
+            summary: "{{ $labels.instance }} takes {{ $value | humanizeDuration }} to answer (10 min average)"
+        - alert: CertificateExpiresSoon
+          expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+          for: 1h
+          labels: { severity: warning }
+          annotations:
+            summary: "The TLS certificate of {{ $labels.instance }} expires in {{ $value | humanize }} days"
+            description: "cert-manager should renew it 30 days before: check «kubectl -n alanfelez get certificate» and its events."
+        - alert: HighErrorRate
+          expr: |
+            sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[5m]))
+              / sum by (service) (rate(traefik_service_requests_total[5m])) > 0.05
+            and sum by (service) (rate(traefik_service_requests_total[5m])) > 0.05
+          for: 5m
+          labels: { severity: critical }
+          annotations:
+            summary: "{{ $labels.service }}: {{ $value | humanizePercentage }} of requests fail with 5xx"
+            description: "Grafana → «Alan Felez» → Errors (log lines with level ERROR; open one, follow its request_id)."
+
+    - name: alanfelez.deploy
+      rules:
+        - alert: DeployStuck
+          expr: max by (namespace, name) (rollout_info{phase=~"Degraded|Error"}) == 1
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            summary: "Rollout {{ $labels.name }} stopped: the new version did not become ready, the old one still serves"
+            description: >-
+              Grafana → «Alan Felez» → Events shows why (image pull, crash, failed probe). After fixing the cause:
+              kubectl argo rollouts -n {{ $labels.namespace }} retry rollout {{ $labels.name }}
+        - alert: DeployPaused
+          expr: max by (namespace, name) (rollout_info{phase="Paused"}) == 1
+          for: 30m
+          labels: { severity: warning }
+          annotations:
+            summary: "Rollout {{ $labels.name }} has been paused for 30 min (canary waiting)"
+        - alert: ArgoAppOutOfSync
+          expr: max by (name) (argocd_app_info{sync_status!="Synced"}) == 1
+          for: 30m
+          labels: { severity: warning }
+          annotations:
+            summary: "Argo CD app {{ $labels.name }} has not matched git for 30 min"
+
+    - name: alanfelez.data
+      rules:
+        - alert: BackupMissing
+          expr: time() - cnpg_collector_last_available_backup_timestamp > 26 * 3600
+          for: 30m
+          labels: { severity: critical }
+          annotations:
+            summary: "No database backup for {{ $value | humanizeDuration }} (nightly at 02:00 UTC)"
+            description: "kubectl -n alanfelez get backup; runbook R6 (Object Storage keys, quota)."
+        - alert: BackupFailed
+          expr: cnpg_collector_last_failed_backup_timestamp > cnpg_collector_last_available_backup_timestamp
+          for: 5m
+          labels: { severity: critical }
+          annotations:
+            summary: "The last database backup failed"
+            description: "kubectl -n alanfelez get backup; the Backup's status.error says why. Runbook R6."
+        - alert: WalArchivingFailing
+          expr: cnpg_pg_stat_archiver_last_failed_time > cnpg_pg_stat_archiver_last_archived_time
+          for: 15m
+          labels: { severity: critical }
+          annotations:
+            summary: "Postgres can't send WAL to Object Storage: point-in-time restore is falling behind and WAL fills the disk"
+            description: "Runbook R6: check the alanfelez-backup-s3 keys and the bucket."
+        - alert: DatabaseConnectionsHigh
+          expr: sum(cnpg_backends_total) / max(cnpg_pg_settings_setting{name="max_connections"}) > 0.8
+          for: 10m
+          labels: { severity: warning }
+          annotations:
+            summary: "Postgres uses {{ $value | humanizePercentage }} of its connections"
+
+    - name: alanfelez.server
+      rules:
+        - alert: DiskAlmostFull
+          expr: |
+            (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) < 0.15
+          for: 10m
+          labels: { severity: warning }
+          annotations:
+            summary: "Only {{ $value | humanizePercentage }} of the server's disk is free"
+            description: "Old images: «k3s crictl rmi --prune» on the server. Then Prometheus/Loki retention (deploy/argocd/envs)."
+        - alert: DiskFull
+          expr: |
+            (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}) < 0.05
+          for: 5m
+          labels: { severity: critical }
+          annotations:
+            summary: "The server's disk is almost full ({{ $value | humanizePercentage }} free): the database stops when it is"
+        - alert: MemoryLow
+          expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.10
+          for: 15m
+          labels: { severity: warning }
+          annotations:
+            summary: "Only {{ $value | humanizePercentage }} of the server's memory is free"
+        - alert: AppPodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="alanfelez"}[30m]) > 2
+          labels: { severity: warning }
+          annotations:
+            summary: "{{ $labels.pod }} ({{ $labels.container }}) restarted {{ $value | humanize }} times in 30 min"
+            description: "Grafana → «Alan Felez» → Logs, filter the pod; «kubectl describe pod» shows OOMKilled or a failed probe."

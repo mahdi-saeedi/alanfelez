@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: alanfelez-grafana-oauth
+  namespace: monitoring
+spec:
+  encryptedData:
+    client-secret: AgAtgJvC36hYNBAXiCI2asXBOX4WhcjxlheWblOfhN2qv9AyVDAqH7RvnitRCjOi1ryUvjXAV+2PAzBJsH2ZoWAthn8Ox+e7bNVQBsRoZ73/SRq7fvj9MjpLTrYhB6hWrAjQONl6OMGqzshLPBt/baqP7SS2+hchLLmVXG+6fk29lNOz9csG4pxqgi+0RSdhQkl/5aji69ico1xIvWhIF5ZWi9aQxWGOuCw4PTclzKwidXiClK6HBV9u+TwM5i72FbbeXrtmw2ndWCPQGd9yLmAGIZ2BEr4vgOj2laPQJRGEOI4ptwY4qXusvMtcq5OxDJJue+XQvnE3sTloO8ICVN4U15NyMsLecl+4xYKYYTe7W1tGn/K+D1wjOsuBAymMizspzFkdslM1fvKP5c4BAn5cm0r++pfS3DKNDKEhL7+E3l/2adBNetPJSLO8ogOqEDOFtVYFXVsCUlMQ/ANF1RuQE0+BCHYiN+++9YRVwkGx5NhBuZJuBMExczKRkVebH0AqmGw4mMzcLnGXc1kt825nNG+4oWR5dXvmTT+u4kzZj7RRbrnBx3v4G1Ns7ZLIELLU0jRoxvgRb72ZJ/+WtOSfNu38moJ6xRZetooIgnRMEuyEu2bzdpLt0mEyRO7Mt+uuToqW8rKc4irSSk5DSdY0N5Cj3w7XznJ3ft772aG8PCle2JljCXC7Ol1t6gleeKo5yEUU/rtQVr/MQQyafRksJ4zaae1hGU3JbnnCG/gsakUgXPFxqZpl7/eWPISow3HTOYwngI8B+dYA0cnAygCy
+  template:
+    metadata:
+      name: alanfelez-grafana-oauth
+      namespace: monitoring
+    type: Opaque

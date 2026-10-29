@@ -1,0 +1,34 @@
+# Generated layout: see deploy/argocd/README.md
+# Monitoring (Alloy: collects pod logs and events into Loki). Shared values: deploy/observability/alloy.yaml; below only what differs per environment.
+# Wave 11: after the site, so nothing here can hold up a deploy of the app.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: alanfelez
+  source:
+    # Chart alloy 1.14.4 (https://grafana.github.io/helm-charts), vendored (deploy/vendor/charts/README.md)
+    repoURL: ssh://git@37.32.39.49/home/git/alanfelez.git
+    targetRevision: main
+    path: deploy/vendor/charts/alloy
+    helm:
+      releaseName: alloy
+      valueFiles: [../../../observability/alloy.yaml]
+      valuesObject:
+        alloy:
+          extraEnv:
+            - { name: ENV, value: staging }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true, ServerSideApply=true]
+    retry:
+      limit: 10
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }

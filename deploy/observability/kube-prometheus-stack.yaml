@@ -1,0 +1,148 @@
+# kube-prometheus-stack (deploy/vendor/charts) for staging and production: Prometheus (metrics + alert rules),
+# Alertmanager (alerts → Bale, AlertmanagerConfig in deploy/observability/manifests), Grafana (dashboards, Keycloak
+# sign-in) and the exporters. Settings that differ per environment (hosts, retention, sizes) are in the Argo CD app
+# (deploy/argocd/envs/<env>/30-monitoring.yaml). Guide: docs/guides/OPERATIONS.md §1. ADR-0015.
+fullnameOverride: kps
+
+# k3s runs the control plane inside one process, so these have no separate targets (their alerts would always fire).
+kubeControllerManager: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeProxy: { enabled: false }
+kubeEtcd: { enabled: false }
+defaultRules:
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeProxy: false
+  disabled:
+    # One small node: requests are deliberately higher than the node could give twice over.
+    KubeCPUOvercommit: true
+    KubeMemoryOvercommit: true
+
+prometheusOperator:
+  # The mirror copies one platform, which changes the digest; pin by tag so pulls come from the ArvanCloud mirror.
+  prometheusConfigReloader:
+    image: { tag: v0.94.2, sha: "" }
+  resources:
+    requests: { cpu: 20m, memory: 64Mi }
+    limits: { memory: 256Mi }
+
+kube-state-metrics:
+  # registry.k8s.io is not mirrored on the nodes (registries.yaml): use the copy in the ArvanCloud registry directly.
+  image:
+    registry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir
+    repository: alanfelez/mirror/registry.k8s.io/kube-state-metrics/kube-state-metrics
+  resources:
+    requests: { cpu: 10m, memory: 48Mi }
+    limits: { memory: 192Mi }
+
+prometheus-node-exporter:
+  resources:
+    requests: { cpu: 10m, memory: 24Mi }
+    limits: { memory: 96Mi }
+
+prometheus:
+  prometheusSpec:
+    # Pick up every ServiceMonitor, PodMonitor, Probe and PrometheusRule in the cluster, not only this chart's.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    retention: 30d                   # per environment in the Argo CD app
+    retentionSize: 15GB
+    walCompression: true
+    resources:
+      requests: { cpu: 100m, memory: 512Mi }
+      limits: { memory: 1536Mi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources: { requests: { storage: 20Gi } }
+
+alertmanager:
+  alertmanagerSpec:
+    # Routes come from AlertmanagerConfig objects (manifests/alerting.yaml) and apply to alerts of every namespace.
+    alertmanagerConfigMatcherStrategy: { type: None }
+    resources:
+      requests: { cpu: 10m, memory: 32Mi }
+      limits: { memory: 128Mi }
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources: { requests: { storage: 1Gi } }
+
+grafana:
+  # Grafana lives at https://<admin host>/grafana (no extra DNS name). Staff sign in with their Keycloak account
+  # (client alanfelez-grafana, created by the keycloak-profile job): admin → Grafana Admin, other staff → Viewer.
+  # There is no password form; the built-in admin's random password is only for the API (secret kps-grafana).
+  defaultDashboardsTimezone: Asia/Tehran
+  persistence:
+    enabled: true
+    size: 1Gi
+  resources:
+    requests: { cpu: 20m, memory: 128Mi }
+    limits: { memory: 384Mi }
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+    path: /grafana
+    pathType: Prefix
+    # hosts and tls: per environment
+  envValueFrom:
+    GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+      secretKeyRef: { name: alanfelez-grafana-oauth, key: client-secret }
+  grafana.ini:
+    server:
+      serve_from_sub_path: true
+      # root_url: per environment (https://<admin host>/grafana)
+    analytics: { reporting_enabled: false, check_for_updates: false, check_for_plugin_updates: false }
+    news: { news_feed_enabled: false }
+    users: { default_theme: light }
+    date_formats: { default_timezone: Asia/Tehran }
+    auth: { disable_login_form: true, oauth_auto_login: true }
+    auth.anonymous: { enabled: false }
+    auth.generic_oauth:
+      enabled: true
+      name: Alan Felez
+      client_id: alanfelez-grafana
+      scopes: openid profile email
+      use_pkce: true
+      login_attribute_path: preferred_username
+      name_attribute_path: name
+      email_attribute_path: email
+      # The client's realm-roles mapper adds `roles`. Anyone without a staff role is refused.
+      role_attribute_path: "contains(roles[*], 'admin') && 'Admin' || contains(roles[*], 'staff') && 'Viewer'"
+      role_attribute_strict: true
+      allow_assign_grafana_admin: true
+      allow_sign_up: true
+      # auth_url (public), token_url and api_url (in-cluster Keycloak): per environment
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider: { foldersFromFilesStructure: true }
+    datasources:
+      enabled: true
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      url: http://loki.monitoring:3100
+      jsonData:
+        maxLines: 2000
+        # A request_id in a log line links to every other line of the same request.
+        derivedFields:
+          - name: request_id
+            matcherRegex: '"request_id":"([^"]+)"'
+            url: '{namespace="alanfelez"} |= "$${__value.raw}"'
+            datasourceUid: loki
+            urlDisplayLabel: Same request

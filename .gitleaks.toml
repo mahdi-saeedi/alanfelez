@@ -1,8 +1,10 @@
 # Gitleaks (CI security job): the default rules, plus files that can't hold secrets.
 # api.gen.go embeds the OpenAPI spec as gzipped base64, which the generic-api-key rule sometimes mistakes for a key.
+# *.sealed.yaml hold SealedSecrets: encrypted for the clusters' key, safe to commit by design (deploy/CLAUDE.md), but
+# their ciphertext under a key named like "client-secret" looks like one.
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Generated code"
-paths = ['''services/api/internal/api/api\.gen\.go''']
+description = "Generated code and encrypted SealedSecrets"
+paths = ['''services/api/internal/api/api\.gen\.go''', '''\.sealed\.yaml$''']
