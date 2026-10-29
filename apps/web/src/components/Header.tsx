@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { keycloak, PASSWORD_FIRST } from "@/lib/keycloak";
@@ -11,6 +11,14 @@ import { accessToken } from "@/lib/api";
 import { DesktopNav, MobileMenu } from "./MobileNav";
 import { StickyHeader } from "./StickyHeader";
 import { getEntitlements } from "@/lib/prices";
+import { getMe } from "@/lib/account";
+import { formatNumber } from "@alanfelez/ui/format";
+import { AccountMenu } from "./AccountMenu";
+import { RenewBanner } from "./RenewBanner";
+import { RENEW_HIDE_COOKIE } from "./renew-cookie";
+
+/** The renewal reminder shows when a paid plan ends within this many days (client, 2026-10-29). */
+const RENEW_DAYS = 7;
 
 /** Plan badge colors (CLAUDE.md: رایگان gray, نقره‌ای blue-gray, طلایی gold). */
 const PLAN_BADGE = { free: "bg-graphite-3 text-silver-light", silver: "bg-silver-light text-graphite", gold: "bg-gold text-graphite" } as const;
@@ -34,15 +42,19 @@ export async function Header() {
   // again, instead of showing the user's name over a free-plan view.
   const expired = !!session?.user && !token;
   const signedIn = !!session?.user && !expired;
-  const tier = (signedIn && (await getEntitlements())?.tier) || "free";
+  const ent = signedIn ? await getEntitlements() : null;
+  const tier = ent?.tier ?? "free";
+  const renew = await renewReminder(ent?.tier, ent?.tierEndsAt);
 
   // «ورود»: username + password first; «ثبت‌نام»: mobile number + SMS code (see PASSWORD_FIRST).
   async function login() {
     "use server";
+    (await cookies()).delete(RENEW_HIDE_COOKIE);
     await signIn("keycloak", undefined, { ...PASSWORD_FIRST, ui_locales: locale });
   }
   async function signup() {
     "use server";
+    (await cookies()).delete(RENEW_HIDE_COOKIE);
     await signIn("keycloak", undefined, { ui_locales: locale });
   }
   // Ends the website session AND the Keycloak session (otherwise "login" would silently sign the same person back
@@ -50,6 +62,7 @@ export async function Header() {
   async function logout() {
     "use server";
     const session = await readSession(await headers()).catch(() => null);
+    (await cookies()).delete(RENEW_HIDE_COOKIE);
     await signOut({ redirect: false });
     const url = new URL(`${keycloak.issuer}/protocol/openid-connect/logout`);
     url.searchParams.set("client_id", keycloak.clientId);
@@ -75,19 +88,21 @@ export async function Header() {
           </Link>
           {(site?.englishSite || locale === "en") && <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />}
           {signedIn && session?.user ? (
-            <form action={logout} className="flex items-center gap-2">
-              {/* The plan next to the name (client, 2026-10-28); on phones the badge alone. Free users get «ارتقا». */}
-              <Link href="/account" className="flex items-center gap-2 rounded-lg px-1.5 py-2 text-sm text-silver-light hover:bg-graphite-2 hover:text-white sm:px-3" aria-label={`${session.user.name || t("auth.account")} · ${t(`lock.plan.${tier}`)}`}>
-                <span className="hidden sm:inline">{session.user.name || t("auth.account")}</span>
-                <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold ${PLAN_BADGE[tier]}`}>{t(`lock.plan.${tier}`)}</span>
-              </Link>
+            <div className="flex items-center gap-2">
+              {/* Name and plan badge open the account menu (client, 2026-10-29); on phones the badge alone. */}
+              <AccountMenu
+                name={session.user.name || t("auth.account")}
+                tier={t(`lock.plan.${tier}`)}
+                badgeClass={PLAN_BADGE[tier]}
+                logout={logout}
+                labels={{ menu: t("auth.menu"), account: t("auth.myAccount"), plan: t("auth.myPlan"), tickets: t("auth.myTickets"), logout: t("auth.logout") }}
+              />
               {tier === "free" && (
                 <Link href="/plans" className="hidden whitespace-nowrap rounded-lg border border-gold px-3 py-1.5 text-sm font-bold text-gold-light hover:bg-gold hover:text-graphite sm:inline">
                   {t("auth.upgrade")}
                 </Link>
               )}
-              <button className="rounded-lg px-3 py-2 text-sm hover:bg-graphite-2">{t("auth.logout")}</button>
-            </form>
+            </div>
           ) : (
             <form action={login} className="flex items-center gap-2">
               <button className="whitespace-nowrap rounded-lg px-2 py-2 text-sm hover:bg-graphite-2 sm:px-3">{t("auth.login")}</button>
@@ -99,6 +114,14 @@ export async function Header() {
           )}
         </div>
       </div>
+      {renew && (
+        <RenewBanner
+          text={renew.days <= 0 ? t("auth.renewToday", { plan: t(`lock.plan.${renew.plan}`) }) : t("auth.renewSoon", { plan: t(`lock.plan.${renew.plan}`), days: formatNumber(renew.days, locale as "fa" | "en") })}
+          renew={t("auth.renewNow")}
+          hide={t("auth.renewHide")}
+          href={{ pathname: "/checkout", query: { plan: renew.plan, period: "month" } }}
+        />
+      )}
       {expired && (
         <div role="status" className="border-t border-graphite-3 bg-gold/15">
           <form action={login} className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm text-white">
@@ -109,4 +132,18 @@ export async function Header() {
       )}
     </StickyHeader>
   );
+}
+
+/**
+ * The renewal reminder's plan and days left, or null: a paid plan ending within RENEW_DAYS, with no renewal already
+ * queued, and not hidden with × since the user signed in. Asks for the subscription details only when it's close.
+ */
+async function renewReminder(tier: string | undefined, endsAt: string | undefined) {
+  if (!tier || tier === "free" || !endsAt) return null;
+  const days = Math.ceil((Date.parse(endsAt) - Date.now()) / 86_400_000);
+  if (days > RENEW_DAYS) return null;
+  if ((await cookies()).get(RENEW_HIDE_COOKIE)) return null;
+  const me = await getMe();
+  if (!me?.current || me.next) return null;
+  return { plan: me.current.plan, days };
 }
