@@ -53,7 +53,7 @@ func TestTypeFeature(t *testing.T) {
 		t.Error("unknown type must not map to a feature")
 	}
 	// The matrix (SCOPE §6): news is free, analysis and forecasts are Gold.
-	if !access.Allowed(access.Free, access.NewsRead) || access.Allowed(access.Silver, access.AnalysisRead) || !access.Allowed(access.Gold, access.ForecastRead) {
+	if access.Allowed(access.Free, access.NewsRead) || !access.Allowed(access.Silver, access.NewsRead) || access.Allowed(access.Silver, access.AnalysisRead) || !access.Allowed(access.Gold, access.ForecastRead) {
 		t.Error("article features don't match the tier matrix")
 	}
 }

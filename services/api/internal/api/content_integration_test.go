@@ -56,15 +56,16 @@ func TestArticlesLockedBodiesNeverSent(t *testing.T) {
 		t.Fatalf("bad slug: %d", st)
 	}
 
-	// Anonymous: both published articles listed, the analysis as a locked teaser; the draft is invisible.
+	// Anonymous: both published articles listed as locked teasers (news needs Silver since 2026-10-30, the analysis
+	// Gold); the draft is invisible.
 	st, body, raw := e.call(http.MethodGet, "/v1/articles", "", nil)
 	if st != 200 || body["total"].(float64) != 2 || strings.Contains(raw, "copper-draft") || strings.Contains(raw, `"body"`) {
 		t.Fatalf("list: %d %s", st, raw)
 	}
 	for _, it := range body["items"].([]any) {
 		a := it.(map[string]any)
-		wantLocked := a["type"] == "analysis"
-		if a["locked"] != wantLocked || (wantLocked && a["requiredPlan"] != "gold") {
+		wantPlan := map[any]string{"news": "silver", "analysis": "gold"}[a["type"]]
+		if a["locked"] != true || a["requiredPlan"] != wantPlan {
 			t.Fatalf("lock of %v: %v %v", a["slug"], a["locked"], a["requiredPlan"])
 		}
 		if a["summary"] == "" { // derived from the body when left empty
@@ -75,10 +76,9 @@ func TestArticlesLockedBodiesNeverSent(t *testing.T) {
 		t.Fatalf("filtered list: %d %v", st, body)
 	}
 
-	// News bodies are public and sanitized.
-	st, body, _ = e.call(http.MethodGet, "/v1/articles/copper-news", "", nil)
-	if b, _ := body["body"].(string); st != 200 || strings.Contains(b, "script") || strings.Contains(b, "onclick") || !strings.Contains(b, "<strong>مس</strong>") {
-		t.Fatalf("news body: %d %q", st, b)
+	// A news body is locked for anonymous visitors (title and summary only).
+	if st, body, _ := e.call(http.MethodGet, "/v1/articles/copper-news", "", nil); st != 200 || body["locked"] != true || body["body"] != nil || body["requiredPlan"] != "silver" {
+		t.Fatalf("anonymous news: %d %v", st, body)
 	}
 	// Locked for anonymous and Silver; delivered (and counted as used) for Gold.
 	for _, tok := range []string{"", "silver"} {
@@ -93,6 +93,11 @@ func TestArticlesLockedBodiesNeverSent(t *testing.T) {
 	}
 	if n := e.count(`SELECT count(*) FROM app.entitlement_usage WHERE feature = 'analysis.read'`); n != 1 {
 		t.Fatalf("usage rows = %d", n)
+	}
+	// A paid plan reads news; the body is sanitized.
+	st, body, _ = e.call(http.MethodGet, "/v1/articles/copper-news", "gold", nil)
+	if b, _ := body["body"].(string); st != 200 || strings.Contains(b, "script") || strings.Contains(b, "onclick") || !strings.Contains(b, "<strong>مس</strong>") {
+		t.Fatalf("news body: %d %q", st, b)
 	}
 	if st, _, _ := e.callH(http.MethodGet, "/v1/articles/copper-analysis", "gold", nil, map[string]string{"Accept-Language": "en"}); st != 200 {
 		t.Fatalf("en: %d", st)

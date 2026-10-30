@@ -338,8 +338,8 @@
     "prices_full": "Day prices of products",
     "chart_basic": "Global metal charts",
     "chart_full": "Product charts and history",
-    "news_read": "Market news",
-    "analysis_read": "Forecasts and analysis",
+    "news_read": "Fundamental news",
+    "analysis_read": "Technical analysis",
     "forecast_read": "Price forecast scenarios",
     "auctions_read": "Daily auctions",
     "calculator_use": "Calculator",
@@ -487,7 +487,9 @@
     "copyLink": "Copy link",
     "copied": "Copied ✓",
     "shareMore": "Other apps",
-    "related": "More about {topic}"
+    "related": "More about {topic}",
+    "lockedNews": "For {plan} members",
+    "lockedBodyNews": "The full fundamental news is shown to {plan} and Gold members."
   },
   "faq": {
     "title": "Frequently asked questions",

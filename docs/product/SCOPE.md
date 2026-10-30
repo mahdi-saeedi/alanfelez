@@ -48,7 +48,7 @@ Remove these from the design and the content, even where the Figma design or the
 | 1 | صفحه اصلی / Home | public | Hero, live price cards, services, subscription banner, stats, CTAs |
 | 2 | قیمت فلزات / Metal Prices | public, depth by tier | Table + filters + gainers/losers + sources |
 | 3 | نمودار قیمت / Price Chart | public, history depth by tier | Chart, compare, ranges |
-| 4 | پیش‌بینی و تحلیل / Forecast & Analysis | news public; analysis + forecasts Gold | Written by the client's experts in the CMS (#22) |
+| 4 | پیش‌بینی و تحلیل / Forecast & Analysis | fundamental news Silver; technical analysis + forecasts Gold (2026-10-30) | Written by the client's experts in the CMS (#22) |
 | 5 | مزایدات / Metal auctions | title, metal, category, quantity, status public; the rest Gold | ✅ See §7 (client 2026-10-26) |
 | 6 | ماشین حساب / Calculator | Gold (locked preview for others) | 🛠 Logic in §8 |
 | 7 | اشتراک‌ها / Plans | public | 3 tiers, §6 |
@@ -92,7 +92,7 @@ field) and SMS alerts for sharp moves.
 | Main prices: 7 base metals (ticker, home cards) | ✓ | ✓ | ✓ |
 | Full price table (all products, all markets, domestic + global) | partial (**global and IME prices only**; domestic day prices are paid, 2026-10-26) | ✓ | ✓ |
 | Price chart | world prices only, last 1 month (IME and market history are paid: client, 2026-10-28, owner OK) | full history + compare | full history + compare |
-| News | ✓ | ✓ | ✓ |
+| Fundamental news (2026-10-30: titles only for Free) | — | ✓ | ✓ |
 | Expert market analysis | ✗ (locked, blurred teaser) | ✗ | ✓ |
 | Price forecast scenarios | ✗ | ✗ | ✓ |
 | Daily auctions / IME offerings | ✗ (teaser) | ✗ | ✓ |
@@ -220,7 +220,7 @@ The provider will be set when the client confirms which gateway he got. The eNam
 
 ## 16. Content and support — 🛠 decisions built in M4
 
-**Analysis page (#4).** Three article types: **news** (everyone reads it), **market analysis** and **price forecast** (the full
+**Analysis page (#4).** Three article types: **news** (fundamental; Silver and Gold read it, Free sees titles only: client + owner, 2026-10-30), **market analysis** and **price forecast** (the full
 text is Gold; title, summary and cover are public teasers, and the API never sends a locked body). The type is the lock, so
 editors can't publish paid text by mistake. Each article can have a metal and/or a topic category (tabs: the 7 metals + اقتصاد ·
 بازار جهانی · ضایعات), an optional **analyst view** (صعودی / نزولی / خنثی, labeled «دیدگاه کارشناس», never a promise), a featured flag

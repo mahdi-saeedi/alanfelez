@@ -54,6 +54,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-30 Fundamental news is Silver (client + owner): `news.read` → Silver in the tier matrix; Free sees news and
+  analysis titles only (no summary or outlook on locked cards and pages, nor in search); plan table row «اخبار فاندامنتال»,
+  «تحلیل تکنیکال» for Gold.
 - 2026-10-30 «پیش‌بینی و تحلیل» (client): tabs «همه / تحلیل‌های تکنیکال / اخبار فاندامنتال», analyses before news,
   «تحلیل توسط تحلیل‌گران الان‌فلز» on analyses, filters only for metals/topics with articles (one scrolling line on
   phones), no empty cover, market indicators with their own market and unit and locked for free users, phone sidebar

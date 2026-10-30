@@ -243,8 +243,8 @@ async function FeaturedCard({ a, locale }: { a: ArticleSummary; locale: Locale }
       <div className="space-y-2 p-5">
         {!a.coverUrl && <TopicChip a={a} />}
         <h2 className="text-lg font-extrabold group-hover:text-gold-dark sm:text-xl">{a.title}</h2>
-        <p className="line-clamp-2 text-sm text-text-2">{a.summary}</p>
-        <Meta a={a} locale={locale} />
+        {a.locked ? <LockedNote plan={a.requiredPlan} /> : <p className="line-clamp-2 text-sm text-text-2">{a.summary}</p>}
+        <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
       </div>
     </Link>
   );
@@ -255,12 +255,23 @@ async function NewsCard({ a, locale }: { a: ArticleSummary; locale: Locale }) {
     <Link href={`/analysis/${a.slug}`} className="group flex flex-col gap-2 rounded-card border border-border bg-surface p-4 shadow-soft hover:border-gold/60">
       <TopicChip a={a} />
       <h3 className="font-bold leading-7 group-hover:text-gold-dark">{a.title}</h3>
-      <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>
-      <Meta a={a} locale={locale} />
+      {a.locked ? <span className="flex-1"><LockedNote plan={a.requiredPlan} /></span> : <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>}
+      <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
     </Link>
   );
 }
 
+
+/** On a locked news card instead of the summary (client, 2026-10-30): titles are free, the text is for subscribers. */
+async function LockedNote({ plan }: { plan?: string }) {
+  const t = await getTranslations();
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gold-dark">
+      <LockIcon className="h-4 w-4" />
+      {t("analysis.lockedNews", { plan: t(`lock.plan.${plan ?? "silver"}`) })}
+    </span>
+  );
+}
 
 async function Pager({ page, pages, query, locale }: { page: number; pages: number; query: { metal?: string; category?: string; type?: string }; locale: Locale }) {
   const t = await getTranslations("analysis");

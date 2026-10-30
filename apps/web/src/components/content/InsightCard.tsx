@@ -17,9 +17,10 @@ export async function InsightCard({ a, locale }: { a: ArticleSummary; locale: Lo
       <h3 className="font-bold leading-7">{a.title}</h3>
       {/* Written by the Alan Felez team (client, 2026-10-30); members' own analyses will carry their name instead. */}
       <p className="text-xs font-bold text-gold-dark">{t("byTeam")}</p>
-      <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>
+      {/* Locked: the title only (client, 2026-10-30), so the teaser doesn't give the analysis away. */}
+      {a.locked ? <span className="flex-1" /> : <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Meta a={a} locale={locale} />
+        <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
         {a.locked ? (
           <Link href="/plans" className="rounded-lg bg-gold px-3 py-2 text-xs font-bold text-graphite hover:bg-gold-light">{t("readToUnlock")}</Link>
         ) : (
