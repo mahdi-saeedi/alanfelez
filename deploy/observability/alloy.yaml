@@ -1,4 +1,4 @@
-# Grafana Alloy (deploy/vendor/charts) for staging and production: sends every pod's logs and the cluster's events
+# Grafana Alloy (deploy/vendor/charts) for production (staging has none): sends every pod's logs and the cluster's events
 # (image pull failures, crashes, failed probes — kept 30 days instead of Kubernetes' 1 hour) to Loki. Reads through
 # the Kubernetes API, so it needs no host mounts. Labels: namespace, app, pod, container, level, env.
 fullnameOverride: alloy

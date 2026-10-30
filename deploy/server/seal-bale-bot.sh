@@ -8,8 +8,8 @@
 #
 #   bash deploy/server/seal-bale-bot.sh
 #
-# It checks the token, finds the group's chat id, writes the encrypted token and the chat id for staging and production
-# (deploy/observability/manifests/overlays/<env>/), and sends a test message to the group. Commit the result (Claude can).
+# It checks the token, finds the group's chat id, writes the encrypted token and the chat id for production
+# (deploy/observability/manifests/overlays/production/), and sends a test message to the group. Commit the result (Claude can).
 set -euo pipefail
 
 SERVER="${SERVER:-root@37.32.39.49}"
@@ -58,7 +58,7 @@ sealed="$(printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: alanfelez-bal
       'KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubeseal --controller-namespace kube-system -o yaml')"
 grep -q 'kind: SealedSecret' <<< "$sealed" || { echo "Sealing failed." >&2; exit 1; }
 
-for env in staging production; do
+for env in production; do
   dir="$ROOT/deploy/observability/manifests/overlays/$env"
   printf '%s\n' "$sealed" > "$dir/alanfelez-bale.sealed.yaml"
   python3 - "$dir/kustomization.yaml" "$chat_id" <<'PY'
@@ -76,4 +76,4 @@ curl -fsS -m 20 -o /dev/null "$API/bot$token/sendMessage" --data-urlencode "chat
   --data-urlencode "text=✅ هشدارهای مانیتورینگ الان‌فلز به این گروه وصل شد. (پیام آزمایشی)" \
   && echo "Test message sent to «$title»." || echo "Warning: the test message could not be sent." >&2
 unset token
-echo "Done: alanfelez-bale.sealed.yaml and the chat id are written for staging and production. Tell Claude to commit them."
+echo "Done: alanfelez-bale.sealed.yaml and the chat id are written for production. Tell Claude to commit them."

@@ -1,4 +1,4 @@
-# Monitoring objects shared by staging and production (overlays/<env> add the sealed secrets and the Bale chat id).
+# Monitoring objects for production (overlays/production adds the sealed secrets and the Bale chat id).
 # Argo CD app: deploy/argocd/envs/<env>/34-observability.yaml.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

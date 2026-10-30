@@ -1,4 +1,4 @@
-# kube-prometheus-stack (deploy/vendor/charts) for staging and production: Prometheus (metrics + alert rules),
+# kube-prometheus-stack (deploy/vendor/charts) for production (staging has none): Prometheus (metrics + alert rules),
 # Alertmanager (alerts → Bale, AlertmanagerConfig in deploy/observability/manifests), Grafana (dashboards, Keycloak
 # sign-in) and the exporters. Settings that differ per environment (hosts, retention, sizes) are in the Argo CD app
 # (deploy/argocd/envs/<env>/30-monitoring.yaml). Guide: docs/guides/OPERATIONS.md §1. ADR-0015.
