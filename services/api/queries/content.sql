@@ -178,3 +178,66 @@ SELECT key, enabled, updated_at FROM app.feature_flags WHERE key = ANY (sqlc.arg
 INSERT INTO app.feature_flags (key, enabled) VALUES ($1, $2)
 ON CONFLICT (key) DO UPDATE SET enabled = EXCLUDED.enabled
 RETURNING key, enabled, updated_at;
+
+-- Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
+
+-- name: ListCommunityPosts :many
+SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at,
+       m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+FROM app.community_posts p
+LEFT JOIN market.metals m ON m.id = p.metal_id
+WHERE p.status = 'published'
+  AND (sqlc.narg(metal)::text IS NULL OR m.slug = sqlc.narg(metal)::text)
+ORDER BY p.created_at DESC, p.id
+LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
+
+-- name: CountCommunityPosts :one
+SELECT count(*) FROM app.community_posts p
+LEFT JOIN market.metals m ON m.id = p.metal_id
+WHERE p.status = 'published' AND (sqlc.narg(metal)::text IS NULL OR m.slug = sqlc.narg(metal)::text);
+
+-- name: CountUserCommunityPostsSince :one
+-- Deleted posts don't come back here, so the daily limit counts what's left; hidden ones still count.
+SELECT count(*) FROM app.community_posts WHERE user_id = $1 AND created_at > $2;
+
+-- name: CreateCommunityPost :one
+INSERT INTO app.community_posts (user_id, author_name, metal_id, outlook, title, body)
+VALUES (sqlc.arg(user_id), sqlc.arg(author_name),
+        (SELECT mm.id FROM market.metals mm WHERE mm.slug = sqlc.narg(metal_slug)::text),
+        sqlc.narg(outlook), sqlc.arg(title), sqlc.arg(body))
+RETURNING id, created_at;
+
+-- name: GetCommunityPostOwner :one
+SELECT user_id, status FROM app.community_posts WHERE id = $1;
+
+-- name: DeleteCommunityPost :execrows
+DELETE FROM app.community_posts WHERE id = $1 AND user_id = $2;
+
+-- name: PutCommunityPostImage :exec
+INSERT INTO app.community_post_images (post_id, width, height, size_bytes, content)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (post_id) DO UPDATE SET width = EXCLUDED.width, height = EXCLUDED.height,
+  size_bytes = EXCLUDED.size_bytes, content = EXCLUDED.content;
+
+-- name: GetCommunityPostImage :one
+SELECT i.content FROM app.community_post_images i
+JOIN app.community_posts p ON p.id = i.post_id
+WHERE i.post_id = $1 AND p.status = 'published';
+
+-- name: AdminListCommunityPosts :many
+SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.status, p.hidden_at, p.created_at,
+       m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+FROM app.community_posts p
+LEFT JOIN market.metals m ON m.id = p.metal_id
+WHERE (sqlc.narg(status)::text IS NULL OR p.status = sqlc.narg(status)::text)
+  AND (sqlc.arg(q)::text = '' OR p.title ILIKE '%' || sqlc.arg(q)::text || '%' OR p.author_name ILIKE '%' || sqlc.arg(q)::text || '%')
+ORDER BY p.created_at DESC
+LIMIT 200;
+
+-- name: SetCommunityPostStatus :execrows
+UPDATE app.community_posts SET status = sqlc.arg(status),
+  hidden_by = CASE WHEN sqlc.arg(status)::text = 'hidden' THEN sqlc.narg(actor)::uuid END,
+  hidden_at = CASE WHEN sqlc.arg(status)::text = 'hidden' THEN now() END
+WHERE id = sqlc.arg(id);

@@ -25,6 +25,8 @@ tags:
     description: Site-wide services (cookieless visitor count)
   - name: gold
     description: Gold features (SCOPE §7, §8, #19) — IME daily offerings, load calculator, SMS price alerts
+  - name: community
+    description: Members' analyses («تحلیل کاربران»), read and posted by Silver and Gold
   - name: admin
     description: Staff only (realm role `staff`; writes need `editor` or `admin`). Every write is audit-logged
 
@@ -1244,6 +1246,130 @@ paths:
         default: { $ref: '#/components/responses/Problem' }
 
   # --- admin: content (roles editor, admin) --------------------------------------------
+
+  /v1/community/posts:
+    get:
+      operationId: listCommunityPosts
+      tags: [community]
+      summary: Members' analyses, newest first. Needs community.read (Silver); others get the count only (locked, no items)
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - { name: metal, in: query, required: false, schema: { type: string, maxLength: 60 } }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 1000, default: 1 } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 50, default: 12 } }
+      responses:
+        '200':
+          description: One page of posts (empty and locked when the caller's plan doesn't include them)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommunityPostList' }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: createCommunityPost
+      tags: [community]
+      summary: Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+      description: Plain text only. Promises of profit or "certain" prices are refused (400). Add the chart image after with PUT …/image.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CommunityPostInput' }
+      responses:
+        '201':
+          description: Published
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommunityPost' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/community/posts/{id}:
+    delete:
+      operationId: deleteCommunityPost
+      tags: [community]
+      summary: The author deletes their own post (with its image)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/community/posts/{id}/image:
+    get:
+      operationId: getCommunityPostImage
+      tags: [community]
+      summary: A post's chart image (JPEG). Needs community.read (Silver) or a staff role → 403 FEATURE_LOCKED; anonymous → 401
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The image
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: putCommunityPostImage
+      tags: [community]
+      summary: The author adds the chart image to their post (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/community/posts:
+    get:
+      operationId: adminListCommunityPosts
+      tags: [admin]
+      summary: Members' analyses for moderation, newest first (hidden ones included). Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [published, hidden] } }
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200':
+          description: Posts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCommunityPost' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/community/posts/{id}/status:
+    put:
+      operationId: adminSetCommunityPostStatus
+      tags: [admin]
+      summary: Hide a member's analysis (or show it again). Roles editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [published, hidden] }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/articles:
     get:
@@ -2763,6 +2889,54 @@ components:
       type: string
       enum: [open, answered, closed]
       description: open = waiting for support, answered = waiting for the user
+
+    CommunityPostInput:
+      type: object
+      required: [title, body]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 150 }
+        body: { type: string, minLength: 10, maxLength: 3000, description: Plain text; line breaks are kept }
+        metal: { type: string, maxLength: 60, description: Metal slug }
+        outlook: { $ref: '#/components/schemas/Outlook' }
+
+    CommunityPost:
+      type: object
+      required: [id, title, body, authorName, hasImage, mine, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        body: { type: string, description: Plain text }
+        metal: { $ref: '#/components/schemas/Localized' }
+        outlook: { $ref: '#/components/schemas/Outlook' }
+        authorName: { type: string, description: The sign-up name (full name or company) }
+        hasImage: { type: boolean }
+        mine: { type: boolean, description: The caller wrote it (may delete it) }
+        createdAt: { type: string, format: date-time }
+
+    CommunityPostList:
+      type: object
+      required: [items, total, page, limit, locked]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CommunityPost' }
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+        locked: { type: boolean, description: The caller's plan doesn't include members' analyses; items is empty, total is the count }
+        requiredPlan: { $ref: '#/components/schemas/Tier' }
+        canPost: { type: boolean, description: The caller may post (community.post) }
+        postsLeftToday: { type: integer, description: How many more the caller may post today }
+
+    AdminCommunityPost:
+      allOf:
+        - $ref: '#/components/schemas/CommunityPost'
+        - type: object
+          required: [status, userId]
+          properties:
+            status: { type: string, enum: [published, hidden] }
+            userId: { type: string, format: uuid }
+            hiddenAt: { type: string, format: date-time }
 
     Ticket:
       type: object

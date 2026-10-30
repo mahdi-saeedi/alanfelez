@@ -11,8 +11,6 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
-- [ ] Members' analyses (client, 2026-10-30): Silver and Gold users post their own analysis with an optional chart
-      image, shown as «تحلیل توسط <name>». Plan and open questions to the client first (moderation, who reads, images).
 - [ ] Monitoring, part 2: `/metrics` in the Go API (per route; prices freshness, SMS, payments, sign-ups) with alerts
       (SourceStale, PaymentFailures, SmsBudget), user events (sign-up, checkout, payment, feature use) and a business
       dashboard; then GlitchTip, an outside uptime check, traces.
@@ -24,6 +22,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Members' analyses** (branch `feat/community-analyses`, ADR-0028): OK the tier matrix change (`community.read`,
+      `community.post` = Silver) and images in Postgres; then ship it to staging. Client's choices: published at once,
+      Silver and Gold read and post, newest first with the team's, 3 a day, 5 MB image, sign-up name.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their

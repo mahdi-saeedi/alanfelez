@@ -21,6 +21,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: "openTicke
     group: "nav.group.content",
     items: [
       { to: "/content/articles", key: "nav.articles" },
+      { to: "/content/community", key: "nav.community" },
       { to: "/content/categories", key: "nav.categories" },
       { to: "/content/faq", key: "nav.faq" },
       { to: "/content/pages", key: "nav.pages" },

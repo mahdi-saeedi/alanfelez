@@ -24,6 +24,24 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AdminCommunityPostStatus.
+const (
+	AdminCommunityPostStatusHidden    AdminCommunityPostStatus = "hidden"
+	AdminCommunityPostStatusPublished AdminCommunityPostStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the AdminCommunityPostStatus enum.
+func (e AdminCommunityPostStatus) Valid() bool {
+	switch e {
+	case AdminCommunityPostStatusHidden:
+		return true
+	case AdminCommunityPostStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AdminNotificationStatus.
 const (
 	AdminNotificationStatusFailed AdminNotificationStatus = "failed"
@@ -783,6 +801,42 @@ func (e AdminSetCatalogActiveJSONBodyKind) Valid() bool {
 	}
 }
 
+// Defines values for AdminListCommunityPostsParamsStatus.
+const (
+	AdminListCommunityPostsParamsStatusHidden    AdminListCommunityPostsParamsStatus = "hidden"
+	AdminListCommunityPostsParamsStatusPublished AdminListCommunityPostsParamsStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the AdminListCommunityPostsParamsStatus enum.
+func (e AdminListCommunityPostsParamsStatus) Valid() bool {
+	switch e {
+	case AdminListCommunityPostsParamsStatusHidden:
+		return true
+	case AdminListCommunityPostsParamsStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AdminSetCommunityPostStatusJSONBodyStatus.
+const (
+	AdminSetCommunityPostStatusJSONBodyStatusHidden    AdminSetCommunityPostStatusJSONBodyStatus = "hidden"
+	AdminSetCommunityPostStatusJSONBodyStatusPublished AdminSetCommunityPostStatusJSONBodyStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the AdminSetCommunityPostStatusJSONBodyStatus enum.
+func (e AdminSetCommunityPostStatusJSONBodyStatus) Valid() bool {
+	switch e {
+	case AdminSetCommunityPostStatusJSONBodyStatusHidden:
+		return true
+	case AdminSetCommunityPostStatusJSONBodyStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AdminListNotificationsParamsStatus.
 const (
 	AdminListNotificationsParamsStatusFailed AdminListNotificationsParamsStatus = "failed"
@@ -939,6 +993,42 @@ func (e StartCheckoutParamsAcceptLanguage) Valid() bool {
 	case StartCheckoutParamsAcceptLanguageEn:
 		return true
 	case StartCheckoutParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListCommunityPostsParamsAcceptLanguage.
+const (
+	ListCommunityPostsParamsAcceptLanguageEn ListCommunityPostsParamsAcceptLanguage = "en"
+	ListCommunityPostsParamsAcceptLanguageFa ListCommunityPostsParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the ListCommunityPostsParamsAcceptLanguage enum.
+func (e ListCommunityPostsParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case ListCommunityPostsParamsAcceptLanguageEn:
+		return true
+	case ListCommunityPostsParamsAcceptLanguageFa:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateCommunityPostParamsAcceptLanguage.
+const (
+	CreateCommunityPostParamsAcceptLanguageEn CreateCommunityPostParamsAcceptLanguage = "en"
+	CreateCommunityPostParamsAcceptLanguageFa CreateCommunityPostParamsAcceptLanguage = "fa"
+)
+
+// Valid indicates whether the value is a known member of the CreateCommunityPostParamsAcceptLanguage enum.
+func (e CreateCommunityPostParamsAcceptLanguage) Valid() bool {
+	switch e {
+	case CreateCommunityPostParamsAcceptLanguageEn:
+		return true
+	case CreateCommunityPostParamsAcceptLanguageFa:
 		return true
 	default:
 		return false
@@ -1275,6 +1365,32 @@ type AdminCategory struct {
 	Slug   string  `json:"slug"`
 	Sort   int     `json:"sort"`
 }
+
+// AdminCommunityPost defines model for AdminCommunityPost.
+type AdminCommunityPost struct {
+	// AuthorName The sign-up name (full name or company)
+	AuthorName string `json:"authorName"`
+
+	// Body Plain text
+	Body      string             `json:"body"`
+	CreatedAt time.Time          `json:"createdAt"`
+	HasImage  bool               `json:"hasImage"`
+	HiddenAt  *time.Time         `json:"hiddenAt,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+	Metal     *Localized         `json:"metal,omitempty"`
+
+	// Mine The caller wrote it (may delete it)
+	Mine bool `json:"mine"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook *Outlook                 `json:"outlook,omitempty"`
+	Status  AdminCommunityPostStatus `json:"status"`
+	Title   string                   `json:"title"`
+	UserId  openapi_types.UUID       `json:"userId"`
+}
+
+// AdminCommunityPostStatus defines model for AdminCommunityPost.Status.
+type AdminCommunityPostStatus string
 
 // AdminContactMessage defines model for AdminContactMessage.
 type AdminContactMessage struct {
@@ -1842,6 +1958,58 @@ type CheckoutResult struct {
 	RedirectUrl *string `json:"redirectUrl,omitempty"`
 }
 
+// CommunityPost defines model for CommunityPost.
+type CommunityPost struct {
+	// AuthorName The sign-up name (full name or company)
+	AuthorName string `json:"authorName"`
+
+	// Body Plain text
+	Body      string             `json:"body"`
+	CreatedAt time.Time          `json:"createdAt"`
+	HasImage  bool               `json:"hasImage"`
+	Id        openapi_types.UUID `json:"id"`
+	Metal     *Localized         `json:"metal,omitempty"`
+
+	// Mine The caller wrote it (may delete it)
+	Mine bool `json:"mine"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook *Outlook `json:"outlook,omitempty"`
+	Title   string   `json:"title"`
+}
+
+// CommunityPostInput defines model for CommunityPostInput.
+type CommunityPostInput struct {
+	// Body Plain text; line breaks are kept
+	Body string `json:"body"`
+
+	// Metal Metal slug
+	Metal *string `json:"metal,omitempty"`
+
+	// Outlook The author's view of the price direction (an estimate, never a promise)
+	Outlook *Outlook `json:"outlook,omitempty"`
+	Title   string   `json:"title"`
+}
+
+// CommunityPostList defines model for CommunityPostList.
+type CommunityPostList struct {
+	// CanPost The caller may post (community.post)
+	CanPost *bool           `json:"canPost,omitempty"`
+	Items   []CommunityPost `json:"items"`
+	Limit   int             `json:"limit"`
+
+	// Locked The caller's plan doesn't include members' analyses; items is empty
+	Locked bool `json:"locked"`
+	Page   int  `json:"page"`
+
+	// PostsLeftToday How many more the caller may post today
+	PostsLeftToday *int `json:"postsLeftToday,omitempty"`
+
+	// RequiredPlan Subscription tier (plan code)
+	RequiredPlan *Tier `json:"requiredPlan,omitempty"`
+	Total        int   `json:"total"`
+}
+
 // ContactInfo Empty fields are omitted (client answer #30: filled in later in the admin)
 type ContactInfo struct {
 	Address *string `json:"address,omitempty"`
@@ -2369,6 +2537,23 @@ type AdminSetCatalogActiveJSONBody struct {
 // AdminSetCatalogActiveJSONBodyKind defines parameters for AdminSetCatalogActive.
 type AdminSetCatalogActiveJSONBodyKind string
 
+// AdminListCommunityPostsParams defines parameters for AdminListCommunityPosts.
+type AdminListCommunityPostsParams struct {
+	Status *AdminListCommunityPostsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+	Q      *string                              `form:"q,omitempty" json:"q,omitempty"`
+}
+
+// AdminListCommunityPostsParamsStatus defines parameters for AdminListCommunityPosts.
+type AdminListCommunityPostsParamsStatus string
+
+// AdminSetCommunityPostStatusJSONBody defines parameters for AdminSetCommunityPostStatus.
+type AdminSetCommunityPostStatusJSONBody struct {
+	Status AdminSetCommunityPostStatusJSONBodyStatus `json:"status"`
+}
+
+// AdminSetCommunityPostStatusJSONBodyStatus defines parameters for AdminSetCommunityPostStatus.
+type AdminSetCommunityPostStatusJSONBodyStatus string
+
 // AdminListContactMessagesParams defines parameters for AdminListContactMessages.
 type AdminListContactMessagesParams struct {
 	Status *ContactStatus `form:"status,omitempty" json:"status,omitempty"`
@@ -2534,6 +2719,25 @@ type StartCheckoutParams struct {
 // StartCheckoutParamsAcceptLanguage defines parameters for StartCheckout.
 type StartCheckoutParamsAcceptLanguage string
 
+// ListCommunityPostsParams defines parameters for ListCommunityPosts.
+type ListCommunityPostsParams struct {
+	Metal          *string                                 `form:"metal,omitempty" json:"metal,omitempty"`
+	Page           *int                                    `form:"page,omitempty" json:"page,omitempty"`
+	Limit          *int                                    `form:"limit,omitempty" json:"limit,omitempty"`
+	AcceptLanguage *ListCommunityPostsParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// ListCommunityPostsParamsAcceptLanguage defines parameters for ListCommunityPosts.
+type ListCommunityPostsParamsAcceptLanguage string
+
+// CreateCommunityPostParams defines parameters for CreateCommunityPost.
+type CreateCommunityPostParams struct {
+	AcceptLanguage *CreateCommunityPostParamsAcceptLanguage `json:"Accept-Language,omitempty"`
+}
+
+// CreateCommunityPostParamsAcceptLanguage defines parameters for CreateCommunityPost.
+type CreateCommunityPostParamsAcceptLanguage string
+
 // GetFaqParams defines parameters for GetFaq.
 type GetFaqParams struct {
 	AcceptLanguage *GetFaqParamsAcceptLanguage `json:"Accept-Language,omitempty"`
@@ -2690,6 +2894,9 @@ type AdminUpdateAuctionJSONRequestBody = AdminAuctionInput
 // AdminSetCatalogActiveJSONRequestBody defines body for AdminSetCatalogActive for application/json ContentType.
 type AdminSetCatalogActiveJSONRequestBody AdminSetCatalogActiveJSONBody
 
+// AdminSetCommunityPostStatusJSONRequestBody defines body for AdminSetCommunityPostStatus for application/json ContentType.
+type AdminSetCommunityPostStatusJSONRequestBody AdminSetCommunityPostStatusJSONBody
+
 // AdminUpdateContactMessageJSONRequestBody defines body for AdminUpdateContactMessage for application/json ContentType.
 type AdminUpdateContactMessageJSONRequestBody AdminUpdateContactMessageJSONBody
 
@@ -2755,6 +2962,9 @@ type StartCheckoutJSONRequestBody = CheckoutInput
 
 // QuoteCheckoutJSONRequestBody defines body for QuoteCheckout for application/json ContentType.
 type QuoteCheckoutJSONRequestBody = CheckoutInput
+
+// CreateCommunityPostJSONRequestBody defines body for CreateCommunityPost for application/json ContentType.
+type CreateCommunityPostJSONRequestBody = CommunityPostInput
 
 // SendContactMessageJSONRequestBody defines body for SendContactMessage for application/json ContentType.
 type SendContactMessageJSONRequestBody = ContactInput
@@ -2836,6 +3046,12 @@ type ServerInterface interface {
 	// AdminSetCatalogActive Deactivate or reactivate a product or a price series (nothing is deleted). Roles, editor, admin
 	// (POST /v1/admin/catalog/active)
 	AdminSetCatalogActive(w http.ResponseWriter, r *http.Request)
+	// AdminListCommunityPosts Members' analyses for moderation, newest first (hidden ones included). Roles staff
+	// (GET /v1/admin/community/posts)
+	AdminListCommunityPosts(w http.ResponseWriter, r *http.Request, params AdminListCommunityPostsParams)
+	// AdminSetCommunityPostStatus Hide a member's analysis (or show it again). Roles editor, admin; audited
+	// (PUT /v1/admin/community/posts/{id}/status)
+	AdminSetCommunityPostStatus(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// AdminListContactMessages Contact form messages, newest first (max 200)
 	// (GET /v1/admin/contact-messages)
 	AdminListContactMessages(w http.ResponseWriter, r *http.Request, params AdminListContactMessagesParams)
@@ -2983,6 +3199,21 @@ type ServerInterface interface {
 	// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
 	// (POST /v1/checkout/quote)
 	QuoteCheckout(w http.ResponseWriter, r *http.Request)
+	// ListCommunityPosts Members' analyses, newest first. Needs community.read (Silver); others get the count only (locked, no items)
+	// (GET /v1/community/posts)
+	ListCommunityPosts(w http.ResponseWriter, r *http.Request, params ListCommunityPostsParams)
+	// CreateCommunityPost Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+	// (POST /v1/community/posts)
+	CreateCommunityPost(w http.ResponseWriter, r *http.Request, params CreateCommunityPostParams)
+	// DeleteCommunityPost The author deletes their own post (with its image)
+	// (DELETE /v1/community/posts/{id})
+	DeleteCommunityPost(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// GetCommunityPostImage A post's chart image (JPEG). Needs community.read (Silver) or a staff role → 403 FEATURE_LOCKED; anonymous → 401
+	// (GET /v1/community/posts/{id}/image)
+	GetCommunityPostImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// PutCommunityPostImage The author adds the chart image to their post (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px)
+	// (PUT /v1/community/posts/{id}/image)
+	PutCommunityPostImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
 	// SendContactMessage Contact form (anonymous allowed; rate-limited per IP → 429 RATE_LIMITED)
 	// (POST /v1/contact)
 	SendContactMessage(w http.ResponseWriter, r *http.Request)
@@ -3175,6 +3406,18 @@ func (_ Unimplemented) AdminCatalog(w http.ResponseWriter, r *http.Request) {
 // AdminSetCatalogActive Deactivate or reactivate a product or a price series (nothing is deleted). Roles, editor, admin
 // (POST /v1/admin/catalog/active)
 func (_ Unimplemented) AdminSetCatalogActive(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminListCommunityPosts Members' analyses for moderation, newest first (hidden ones included). Roles staff
+// (GET /v1/admin/community/posts)
+func (_ Unimplemented) AdminListCommunityPosts(w http.ResponseWriter, r *http.Request, params AdminListCommunityPostsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminSetCommunityPostStatus Hide a member's analysis (or show it again). Roles editor, admin; audited
+// (PUT /v1/admin/community/posts/{id}/status)
+func (_ Unimplemented) AdminSetCommunityPostStatus(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -3469,6 +3712,36 @@ func (_ Unimplemented) StartCheckout(w http.ResponseWriter, r *http.Request, par
 // QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
 // (POST /v1/checkout/quote)
 func (_ Unimplemented) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListCommunityPosts Members' analyses, newest first. Needs community.read (Silver); others get the count only (locked, no items)
+// (GET /v1/community/posts)
+func (_ Unimplemented) ListCommunityPosts(w http.ResponseWriter, r *http.Request, params ListCommunityPostsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateCommunityPost Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+// (POST /v1/community/posts)
+func (_ Unimplemented) CreateCommunityPost(w http.ResponseWriter, r *http.Request, params CreateCommunityPostParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteCommunityPost The author deletes their own post (with its image)
+// (DELETE /v1/community/posts/{id})
+func (_ Unimplemented) DeleteCommunityPost(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetCommunityPostImage A post's chart image (JPEG). Needs community.read (Silver) or a staff role → 403 FEATURE_LOCKED; anonymous → 401
+// (GET /v1/community/posts/{id}/image)
+func (_ Unimplemented) GetCommunityPostImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// PutCommunityPostImage The author adds the chart image to their post (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px)
+// (PUT /v1/community/posts/{id}/image)
+func (_ Unimplemented) PutCommunityPostImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -4084,6 +4357,78 @@ func (siw *ServerInterfaceWrapper) AdminSetCatalogActive(w http.ResponseWriter, 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminSetCatalogActive(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListCommunityPosts operation middleware
+func (siw *ServerInterfaceWrapper) AdminListCommunityPosts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AdminListCommunityPostsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "q", r.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListCommunityPosts(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminSetCommunityPostStatus operation middleware
+func (siw *ServerInterfaceWrapper) AdminSetCommunityPostStatus(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminSetCommunityPostStatus(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -5502,6 +5847,205 @@ func (siw *ServerInterfaceWrapper) QuoteCheckout(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// ListCommunityPosts operation middleware
+func (siw *ServerInterfaceWrapper) ListCommunityPosts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCommunityPostsParams
+
+	// ------------- Optional query parameter "metal" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "metal", r.URL.Query(), &params.Metal, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "metal"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "metal", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "page", r.URL.Query(), &params.Page, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "page"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage ListCommunityPostsParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCommunityPosts(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCommunityPost operation middleware
+func (siw *ServerInterfaceWrapper) CreateCommunityPost(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateCommunityPostParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "Accept-Language" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Accept-Language")]; found {
+		var AcceptLanguage CreateCommunityPostParamsAcceptLanguage
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Accept-Language", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Accept-Language", valueList[0], &AcceptLanguage, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Accept-Language", Err: err})
+			return
+		}
+
+		params.AcceptLanguage = &AcceptLanguage
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCommunityPost(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteCommunityPost operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCommunityPost(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteCommunityPost(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCommunityPostImage operation middleware
+func (siw *ServerInterfaceWrapper) GetCommunityPostImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCommunityPostImage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutCommunityPostImage operation middleware
+func (siw *ServerInterfaceWrapper) PutCommunityPostImage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutCommunityPostImage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // SendContactMessage operation middleware
 func (siw *ServerInterfaceWrapper) SendContactMessage(w http.ResponseWriter, r *http.Request) {
 
@@ -6686,6 +7230,27 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1/me/tickets/{id}/close", wrapper.CloseMyTicket)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/community/posts", wrapper.ListCommunityPosts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/community/posts", wrapper.CreateCommunityPost)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/community/posts/{id}", wrapper.DeleteCommunityPost)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/community/posts/{id}/image", wrapper.GetCommunityPostImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/community/posts/{id}/image", wrapper.PutCommunityPostImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/community/posts", wrapper.AdminListCommunityPosts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/community/posts/{id}/status", wrapper.AdminSetCommunityPostStatus)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/admin/articles", wrapper.AdminListArticles)
 	})
 	r.Group(func(r chi.Router) {
@@ -7437,6 +8002,81 @@ type AdminSetCatalogActivedefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response AdminSetCatalogActivedefaultApplicationProblemPlusJSONResponse) VisitAdminSetCatalogActiveResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListCommunityPostsRequestObject struct {
+	Params AdminListCommunityPostsParams
+}
+
+type AdminListCommunityPostsResponseObject interface {
+	VisitAdminListCommunityPostsResponse(w http.ResponseWriter) error
+}
+
+type AdminListCommunityPosts200JSONResponse struct {
+	Items []AdminCommunityPost `json:"items"`
+}
+
+func (response AdminListCommunityPosts200JSONResponse) VisitAdminListCommunityPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListCommunityPostsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminListCommunityPostsdefaultApplicationProblemPlusJSONResponse) VisitAdminListCommunityPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminSetCommunityPostStatusRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *AdminSetCommunityPostStatusJSONRequestBody
+}
+
+type AdminSetCommunityPostStatusResponseObject interface {
+	VisitAdminSetCommunityPostStatusResponse(w http.ResponseWriter) error
+}
+
+type AdminSetCommunityPostStatus204Response struct {
+}
+
+func (response AdminSetCommunityPostStatus204Response) VisitAdminSetCommunityPostStatusResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AdminSetCommunityPostStatusdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AdminSetCommunityPostStatusdefaultApplicationProblemPlusJSONResponse) VisitAdminSetCommunityPostStatusResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -10005,6 +10645,197 @@ func (response QuoteCheckoutdefaultApplicationProblemPlusJSONResponse) VisitQuot
 	return err
 }
 
+type ListCommunityPostsRequestObject struct {
+	Params ListCommunityPostsParams
+}
+
+type ListCommunityPostsResponseObject interface {
+	VisitListCommunityPostsResponse(w http.ResponseWriter) error
+}
+
+type ListCommunityPosts200JSONResponse CommunityPostList
+
+func (response ListCommunityPosts200JSONResponse) VisitListCommunityPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCommunityPostsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListCommunityPostsdefaultApplicationProblemPlusJSONResponse) VisitListCommunityPostsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCommunityPostRequestObject struct {
+	Params CreateCommunityPostParams
+	Body   *CreateCommunityPostJSONRequestBody
+}
+
+type CreateCommunityPostResponseObject interface {
+	VisitCreateCommunityPostResponse(w http.ResponseWriter) error
+}
+
+type CreateCommunityPost201JSONResponse CommunityPost
+
+func (response CreateCommunityPost201JSONResponse) VisitCreateCommunityPostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCommunityPostdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateCommunityPostdefaultApplicationProblemPlusJSONResponse) VisitCreateCommunityPostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCommunityPostRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type DeleteCommunityPostResponseObject interface {
+	VisitDeleteCommunityPostResponse(w http.ResponseWriter) error
+}
+
+type DeleteCommunityPost204Response struct {
+}
+
+func (response DeleteCommunityPost204Response) VisitDeleteCommunityPostResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteCommunityPostdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteCommunityPostdefaultApplicationProblemPlusJSONResponse) VisitDeleteCommunityPostResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCommunityPostImageRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type GetCommunityPostImageResponseObject interface {
+	VisitGetCommunityPostImageResponse(w http.ResponseWriter) error
+}
+
+type GetCommunityPostImage200ImagejpegResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCommunityPostImage200ImagejpegResponse) VisitGetCommunityPostImageResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetCommunityPostImagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetCommunityPostImagedefaultApplicationProblemPlusJSONResponse) VisitGetCommunityPostImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutCommunityPostImageRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body io.Reader
+}
+
+type PutCommunityPostImageResponseObject interface {
+	VisitPutCommunityPostImageResponse(w http.ResponseWriter) error
+}
+
+type PutCommunityPostImage204Response struct {
+}
+
+func (response PutCommunityPostImage204Response) VisitPutCommunityPostImageResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type PutCommunityPostImagedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response PutCommunityPostImagedefaultApplicationProblemPlusJSONResponse) VisitPutCommunityPostImageResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SendContactMessageRequestObject struct {
 	Body *SendContactMessageJSONRequestBody
 }
@@ -11499,6 +12330,12 @@ type StrictServerInterface interface {
 	// AdminSetCatalogActive Deactivate or reactivate a product or a price series (nothing is deleted). Roles, editor, admin
 	// (POST /v1/admin/catalog/active)
 	AdminSetCatalogActive(ctx context.Context, request AdminSetCatalogActiveRequestObject) (AdminSetCatalogActiveResponseObject, error)
+	// AdminListCommunityPosts Members' analyses for moderation, newest first (hidden ones included). Roles staff
+	// (GET /v1/admin/community/posts)
+	AdminListCommunityPosts(ctx context.Context, request AdminListCommunityPostsRequestObject) (AdminListCommunityPostsResponseObject, error)
+	// AdminSetCommunityPostStatus Hide a member's analysis (or show it again). Roles editor, admin; audited
+	// (PUT /v1/admin/community/posts/{id}/status)
+	AdminSetCommunityPostStatus(ctx context.Context, request AdminSetCommunityPostStatusRequestObject) (AdminSetCommunityPostStatusResponseObject, error)
 	// AdminListContactMessages Contact form messages, newest first (max 200)
 	// (GET /v1/admin/contact-messages)
 	AdminListContactMessages(ctx context.Context, request AdminListContactMessagesRequestObject) (AdminListContactMessagesResponseObject, error)
@@ -11646,6 +12483,21 @@ type StrictServerInterface interface {
 	// QuoteCheckout Price a purchase for the user (credit for an upgrade, start date for a renewal) without creating anything
 	// (POST /v1/checkout/quote)
 	QuoteCheckout(ctx context.Context, request QuoteCheckoutRequestObject) (QuoteCheckoutResponseObject, error)
+	// ListCommunityPosts Members' analyses, newest first. Needs community.read (Silver); others get the count only (locked, no items)
+	// (GET /v1/community/posts)
+	ListCommunityPosts(ctx context.Context, request ListCommunityPostsRequestObject) (ListCommunityPostsResponseObject, error)
+	// CreateCommunityPost Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+	// (POST /v1/community/posts)
+	CreateCommunityPost(ctx context.Context, request CreateCommunityPostRequestObject) (CreateCommunityPostResponseObject, error)
+	// DeleteCommunityPost The author deletes their own post (with its image)
+	// (DELETE /v1/community/posts/{id})
+	DeleteCommunityPost(ctx context.Context, request DeleteCommunityPostRequestObject) (DeleteCommunityPostResponseObject, error)
+	// GetCommunityPostImage A post's chart image (JPEG). Needs community.read (Silver) or a staff role → 403 FEATURE_LOCKED; anonymous → 401
+	// (GET /v1/community/posts/{id}/image)
+	GetCommunityPostImage(ctx context.Context, request GetCommunityPostImageRequestObject) (GetCommunityPostImageResponseObject, error)
+	// PutCommunityPostImage The author adds the chart image to their post (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px)
+	// (PUT /v1/community/posts/{id}/image)
+	PutCommunityPostImage(ctx context.Context, request PutCommunityPostImageRequestObject) (PutCommunityPostImageResponseObject, error)
 	// SendContactMessage Contact form (anonymous allowed; rate-limited per IP → 429 RATE_LIMITED)
 	// (POST /v1/contact)
 	SendContactMessage(ctx context.Context, request SendContactMessageRequestObject) (SendContactMessageResponseObject, error)
@@ -12229,6 +13081,65 @@ func (sh *strictHandler) AdminSetCatalogActive(w http.ResponseWriter, r *http.Re
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(AdminSetCatalogActiveResponseObject); ok {
 		if err := validResponse.VisitAdminSetCatalogActiveResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListCommunityPosts operation middleware
+func (sh *strictHandler) AdminListCommunityPosts(w http.ResponseWriter, r *http.Request, params AdminListCommunityPostsParams) {
+	var request AdminListCommunityPostsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListCommunityPosts(ctx, request.(AdminListCommunityPostsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListCommunityPosts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListCommunityPostsResponseObject); ok {
+		if err := validResponse.VisitAdminListCommunityPostsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminSetCommunityPostStatus operation middleware
+func (sh *strictHandler) AdminSetCommunityPostStatus(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request AdminSetCommunityPostStatusRequestObject
+
+	request.Id = id
+
+	var body AdminSetCommunityPostStatusJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminSetCommunityPostStatus(ctx, request.(AdminSetCommunityPostStatusRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminSetCommunityPostStatus")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminSetCommunityPostStatusResponseObject); ok {
+		if err := validResponse.VisitAdminSetCommunityPostStatusResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -13631,6 +14542,145 @@ func (sh *strictHandler) QuoteCheckout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListCommunityPosts operation middleware
+func (sh *strictHandler) ListCommunityPosts(w http.ResponseWriter, r *http.Request, params ListCommunityPostsParams) {
+	var request ListCommunityPostsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCommunityPosts(ctx, request.(ListCommunityPostsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCommunityPosts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCommunityPostsResponseObject); ok {
+		if err := validResponse.VisitListCommunityPostsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCommunityPost operation middleware
+func (sh *strictHandler) CreateCommunityPost(w http.ResponseWriter, r *http.Request, params CreateCommunityPostParams) {
+	var request CreateCommunityPostRequestObject
+
+	request.Params = params
+
+	var body CreateCommunityPostJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCommunityPost(ctx, request.(CreateCommunityPostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCommunityPost")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCommunityPostResponseObject); ok {
+		if err := validResponse.VisitCreateCommunityPostResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteCommunityPost operation middleware
+func (sh *strictHandler) DeleteCommunityPost(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request DeleteCommunityPostRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCommunityPost(ctx, request.(DeleteCommunityPostRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCommunityPost")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteCommunityPostResponseObject); ok {
+		if err := validResponse.VisitDeleteCommunityPostResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCommunityPostImage operation middleware
+func (sh *strictHandler) GetCommunityPostImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request GetCommunityPostImageRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCommunityPostImage(ctx, request.(GetCommunityPostImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCommunityPostImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCommunityPostImageResponseObject); ok {
+		if err := validResponse.VisitGetCommunityPostImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutCommunityPostImage operation middleware
+func (sh *strictHandler) PutCommunityPostImage(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request PutCommunityPostImageRequestObject
+
+	request.Id = id
+
+	request.Body = r.Body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutCommunityPostImage(ctx, request.(PutCommunityPostImageRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutCommunityPostImage")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutCommunityPostImageResponseObject); ok {
+		if err := validResponse.VisitPutCommunityPostImageResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // SendContactMessage operation middleware
 func (sh *strictHandler) SendContactMessage(w http.ResponseWriter, r *http.Request) {
 	var request SendContactMessageRequestObject
@@ -14493,253 +15543,270 @@ func (sh *strictHandler) RecordVisit(w http.ResponseWriter, r *http.Request) {
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"3sf3H//vAA==",
+	"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",
+	"DwA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -17,14 +17,15 @@ import (
 // The generated server doesn't enforce the OpenAPI maxLength/maxItems, so this is the backstop.
 const MaxBodyBytes = 2 << 20
 
-// MaxUploadBytes is the cap for file uploads (PUT …/pdf: an auction's PDF notice of at most 10 MB, plus room).
+// MaxUploadBytes is the cap for file uploads (PUT …/pdf: an auction's PDF notice of at most 10 MB, plus room;
+// PUT …/image: a member's chart image of at most 5 MB).
 const MaxUploadBytes = 11 << 20
 
 // requestSize caps request bodies: MaxUploadBytes for the upload routes, MaxBodyBytes for everything else.
 func requestSize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		limit := int64(MaxBodyBytes)
-		if r.Method == http.MethodPut && strings.HasSuffix(r.URL.Path, "/pdf") {
+		if r.Method == http.MethodPut && (strings.HasSuffix(r.URL.Path, "/pdf") || strings.HasSuffix(r.URL.Path, "/image")) {
 			limit = MaxUploadBytes
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, limit)

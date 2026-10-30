@@ -912,6 +912,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/community/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members' analyses, newest first. Needs community.read (Silver); others get the count only (locked, no items) */
+        get: operations["listCommunityPosts"];
+        put?: never;
+        /**
+         * Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+         * @description Plain text only. Promises of profit or "certain" prices are refused (400). Add the chart image after with PUT …/image.
+         */
+        post: operations["createCommunityPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/community/posts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** The author deletes their own post (with its image) */
+        delete: operations["deleteCommunityPost"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/community/posts/{id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A post's chart image (JPEG). Needs community.read (Silver) or a staff role → 403 FEATURE_LOCKED; anonymous → 401 */
+        get: operations["getCommunityPostImage"];
+        /** The author adds the chart image to their post (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px) */
+        put: operations["putCommunityPostImage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/community/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members' analyses for moderation, newest first (hidden ones included). Roles staff */
+        get: operations["adminListCommunityPosts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/community/posts/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Hide a member's analysis (or show it again). Roles editor, admin; audited */
+        put: operations["adminSetCommunityPostStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/articles": {
         parameters: {
             query?: never;
@@ -2052,6 +2142,51 @@ export interface components {
          * @enum {string}
          */
         TicketStatus: "open" | "answered" | "closed";
+        CommunityPostInput: {
+            title: string;
+            /** @description Plain text; line breaks are kept */
+            body: string;
+            /** @description Metal slug */
+            metal?: string;
+            outlook?: components["schemas"]["Outlook"];
+        };
+        CommunityPost: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** @description Plain text */
+            body: string;
+            metal?: components["schemas"]["Localized"];
+            outlook?: components["schemas"]["Outlook"];
+            /** @description The sign-up name (full name or company) */
+            authorName: string;
+            hasImage: boolean;
+            /** @description The caller wrote it (may delete it) */
+            mine: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CommunityPostList: {
+            items: components["schemas"]["CommunityPost"][];
+            total: number;
+            page: number;
+            limit: number;
+            /** @description The caller's plan doesn't include members' analyses; items is empty */
+            locked: boolean;
+            requiredPlan?: components["schemas"]["Tier"];
+            /** @description The caller may post (community.post) */
+            canPost?: boolean;
+            /** @description How many more the caller may post today */
+            postsLeftToday?: number;
+        };
+        AdminCommunityPost: components["schemas"]["CommunityPost"] & {
+            /** @enum {string} */
+            status: "published" | "hidden";
+            /** Format: uuid */
+            userId: string;
+            /** Format: date-time */
+            hiddenAt?: string;
+        };
         Ticket: {
             /** Format: uuid */
             id: string;
@@ -3854,6 +3989,183 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Ticket"];
                 };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listCommunityPosts: {
+        parameters: {
+            query?: {
+                metal?: string;
+                page?: number;
+                limit?: number;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of posts (empty and locked when the caller's plan doesn't include them) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityPostList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createCommunityPost: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunityPostInput"];
+            };
+        };
+        responses: {
+            /** @description Published */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunityPost"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteCommunityPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getCommunityPostImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    putCommunityPostImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListCommunityPosts: {
+        parameters: {
+            query?: {
+                status?: "published" | "hidden";
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Posts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminCommunityPost"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetCommunityPostStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "published" | "hidden";
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Problem"];
         };
