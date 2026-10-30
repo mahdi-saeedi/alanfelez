@@ -31,4 +31,4 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0025](0025-rich-text-sanitized-html.md) | CMS rich text is stored as sanitized HTML (TipTap in the admin, bluemonday on write) | Accepted |
 | [0026](0026-ship-and-publish-from-the-chat.md) | Ship and publish from the chat: `ship/*`, `publish/production`, `rollback/*` branches; production promotes staging's images | Accepted |
 | [0027](0027-auction-pdfs-in-postgres.md) | Auction PDF notices are stored in Postgres (`bytea`, Gold-only download through the API) until Object Storage exists | Accepted |
-| [0028](0028-community-posts.md) | Members' analyses: Silver and Gold post and read, published at once (staff hide, 3 a day), chart images re-encoded and kept in Postgres | Proposed |
+| [0028](0028-community-posts.md) | Members' analyses: Silver and Gold post and read, published at once (staff hide, 3 a day), chart images re-encoded and kept in Postgres | Accepted |

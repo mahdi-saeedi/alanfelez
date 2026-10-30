@@ -22,9 +22,6 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Members' analyses** (branch `feat/community-analyses`, ADR-0028): OK the tier matrix change (`community.read`,
-      `community.post` = Silver) and images in Postgres; then ship it to staging. Client's choices: published at once,
-      Silver and Gold read and post, newest first with the team's, 3 a day, 5 MB image, sign-up name.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
@@ -55,6 +52,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-30 Members' analyses («تحلیل کاربران», client + owner, ADR-0028): Silver and Gold post and read them (title,
+  text, metal, view, one chart image re-encoded into Postgres), with the team's analyses newest first, blue «تحلیل توسط
+  <name>» vs gold for the team; 3 a day, promises refused, staff hide in the admin (audited), disclaimers on the page.
 - 2026-10-30 Article keywords (client): a «کلمات کلیدی» field in the admin (migration 00020, `keywords` in the API),
   shown as #tags under a locked title instead of the summary (metal, category and type when empty); locked news says
   «ویژه‌ی مشترکان نقره‌ای و طلایی». Demo articles now follow their seed file (upsert) and carry keywords.

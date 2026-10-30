@@ -1,6 +1,6 @@
 # ADR-0028: Members' analyses, published at once, images in Postgres
 
-- **Status:** Proposed (built on a branch; waiting for the owner's OK on the tier matrix)
+- **Status:** Accepted (owner OK'd 2026-10-30)
 - **Date:** 2026-10-30
 
 ## Context
