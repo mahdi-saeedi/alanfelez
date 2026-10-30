@@ -6,8 +6,11 @@ import { Link } from "@/i18n/navigation";
 import { getArticleCategories, getArticles, getMetals, type ArticleSummary } from "@/lib/content";
 import { getBasePrices, getEntitlements, type PriceRow } from "@/lib/prices";
 import { Cover, KeywordChips, Meta, TopicChip, metalTone } from "@/components/content/parts";
-import { LockIcon, TierBadge } from "@/components/Locked";
+import { LockIcon } from "@/components/Locked";
 import { InsightCard } from "@/components/content/InsightCard";
+import { getCommunityPosts, type CommunityPost } from "@/lib/community";
+import { CommunityCard } from "@/components/community/CommunityCard";
+import { PostAnalysisForm } from "@/components/community/PostAnalysisForm";
 import { ChangePill } from "@/components/prices/ChangePill";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +25,11 @@ const INSIGHTS_PAGE = 8; // the analyses tab
 const INSIGHTS_ALL = 4; // analyses shown first on the «همه» tab
 /** How many recent articles decide which metal and category filters are offered (a filter with nothing is hidden). */
 const FILTER_SCAN = 50;
+/** The posting form's texts (messages analysis.community.form.*). */
+const FORM_KEYS = [
+  "open", "title", "titlePh", "body", "bodyPh", "metal", "noMetal", "outlook", "noOutlook", "up", "down", "neutral", "image", "imageHint",
+  "submit", "sending", "cancel", "left", "none", "disclaimer", "posted", "imageFailed", "imageTooBig", "invalid", "claim", "limited", "locked", "failed",
+] as const;
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -38,12 +46,13 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
   const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("analysis");
-  const tl = await getTranslations("lock");
   const view: View = sp.type === "insights" || sp.type === "news" ? sp.type : "all";
   const page = Math.max(1, Math.min(1000, Number(sp.page) || 1));
   const filter = { metal: sp.metal, category: sp.category };
 
-  const [news, insights, recent, top, metals, categories, base, ent] = await Promise.all([
+  // Members' analyses (client, 2026-10-30) sit with the team's, newest first. They have a metal but no category.
+  const withCommunity = view !== "news" && !sp.category;
+  const [news, insights, recent, top, metals, categories, base, ent, members] = await Promise.all([
     view !== "insights" ? getArticles(locale, { type: ["news"], ...filter, page: view === "news" ? page : 1, limit: PAGE_SIZE }) : null,
     view !== "news" ? getArticles(locale, { type: ["analysis", "forecast"], ...filter, page: view === "insights" ? page : 1, limit: view === "insights" ? INSIGHTS_PAGE : INSIGHTS_ALL }) : null,
     getArticles(locale, { limit: FILTER_SCAN }),
@@ -52,6 +61,7 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
     getArticleCategories(locale),
     getBasePrices(locale),
     getEntitlements(),
+    withCommunity ? getCommunityPosts(locale, { metal: sp.metal, page: view === "insights" ? page : 1, limit: view === "insights" ? INSIGHTS_PAGE : INSIGHTS_ALL }) : null,
   ]);
   if (!recent) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
@@ -68,13 +78,24 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
   const newsItems = news?.items ?? [];
   const [featured, ...rest] = view === "news" && page > 1 ? [undefined, ...newsItems] : newsItems;
   const insightItems = insights?.items ?? [];
-  const nothing = newsItems.length === 0 && insightItems.length === 0;
+  const memberItems = members?.items ?? [];
+  // One list, newest first, whoever wrote it (client, 2026-10-30).
+  const feed = [
+    ...insightItems.map((a) => ({ at: a.publishedAt, team: a, member: undefined as CommunityPost | undefined })),
+    ...memberItems.map((p) => ({ at: p.createdAt, team: undefined, member: p })),
+  ].sort((x, y) => Date.parse(y.at) - Date.parse(x.at)).slice(0, view === "insights" ? INSIGHTS_PAGE * 2 : INSIGHTS_ALL + 2);
+  const lockedMembers = members?.locked && members.total > 0 ? members.total : 0;
+  const insightPages = Math.max(Math.ceil((insights?.total ?? 0) / INSIGHTS_PAGE), Math.ceil(((members && !members.locked && members.total) || 0) / INSIGHTS_PAGE));
+  const moreInsights = (insights?.total ?? 0) + (members && !members.locked ? members.total : 0) > feed.length;
+  const nothing = newsItems.length === 0 && feed.length === 0 && !lockedMembers && !members?.canPost;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
       <header className="mb-5">
         <h1 className="text-2xl font-extrabold sm:text-3xl">{t("title")}</h1>
         <p className="mt-2 text-text-2">{t("subtitle")}</p>
+        {/* Whose responsibility a decision is (client, 2026-10-30): on the page, on every member card and the form. */}
+        <p className="mt-3 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs leading-6 text-text-2">{t("community.disclaimer")}</p>
       </header>
 
       {/* Tabs: everything / technical analyses / fundamental news (client, 2026-10-30). */}
@@ -117,30 +138,44 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
         <div className="min-w-0 space-y-8">
           {nothing && <p className="rounded-card border border-border bg-surface p-8 text-center text-text-2">{t("empty")}</p>}
 
-          {/* Technical analyses first: they're what the page is named for (client, 2026-10-30). */}
-          {insightItems.length > 0 && (
+          {/* Technical analyses first: they're what the page is named for (client, 2026-10-30). The team's and members'
+              in one list, newest first; the byline's color tells them apart. */}
+          {view !== "news" && (feed.length > 0 || lockedMembers > 0 || members?.canPost) && (
             <section>
-              <div className="mb-1 flex flex-wrap items-center gap-3">
-                <h2 className="text-xl font-extrabold">{t("insights")}</h2>
-                <TierBadge plan="gold" label={tl("plan.gold")} />
-              </div>
+              <h2 className="mb-1 text-xl font-extrabold">{t("insights")}</h2>
               <p className="mb-4 text-sm text-text-2">{t("insightsSub")}</p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {insightItems.map((a) => (
-                  <InsightCard key={a.slug} a={a} locale={locale} />
-                ))}
+              {members?.canPost && (
+                <div className="mb-4">
+                  <PostAnalysisForm
+                    metals={metals.map((m) => ({ slug: m.slug, name: m.name }))}
+                    left={members.postsLeftToday ?? 0}
+                    labels={Object.fromEntries(FORM_KEYS.map((k) => [k, k === "left" ? t("community.form.left", { n: "{n}" }) : t(`community.form.${k}`)])) as Record<(typeof FORM_KEYS)[number], string>}
+                  />
+                </div>
+              )}
+              {lockedMembers > 0 && (
+                <Link href="/plans" className="mb-4 flex items-center gap-3 rounded-card border border-info/30 bg-info-bg/50 p-4 text-sm hover:border-info">
+                  <LockIcon className="h-5 w-5 shrink-0" />
+                  <span className="flex-1">{t("community.lockedCount", { n: formatNumber(lockedMembers, locale) })}</span>
+                  <span className="shrink-0 font-bold text-info">{t("community.lockedCta")}</span>
+                </Link>
+              )}
+              <div className="grid items-start gap-4 sm:grid-cols-2">
+                {feed.map((f) =>
+                  f.team ? <InsightCard key={f.team.slug} a={f.team} locale={locale} /> : f.member && <CommunityCard key={f.member.id} p={f.member} locale={locale} />,
+                )}
               </div>
-              {view === "all" && (insights?.total ?? 0) > insightItems.length && (
+              {view === "all" && moreInsights && (
                 <Link href={{ pathname: "/analysis", query: { ...withView(filter as Record<string, string>), type: "insights" } }} className="mt-2 inline-flex min-h-10 items-center text-sm font-bold text-gold-dark hover:underline">
                   {t("allInsights")}
                 </Link>
               )}
-              {view === "insights" && insights && insights.total > INSIGHTS_PAGE && (
-                <Pager page={page} pages={Math.ceil(insights.total / INSIGHTS_PAGE)} query={{ ...filter, type: "insights" }} locale={locale} />
+              {view === "insights" && insightPages > 1 && (
+                <Pager page={page} pages={insightPages} query={{ ...filter, type: "insights" }} locale={locale} />
               )}
             </section>
           )}
-          {view === "insights" && insightItems.length === 0 && !nothing && <p className="text-sm text-text-2">{t("emptyInsights")}</p>}
+          {view === "insights" && feed.length === 0 && !lockedMembers && !nothing && <p className="text-sm text-text-2">{t("emptyInsights")}</p>}
 
           {newsItems.length > 0 && (
             <section className="space-y-4">

@@ -93,6 +93,7 @@ field) and SMS alerts for sharp moves.
 | Full price table (all products, all markets, domestic + global) | partial (**global and IME prices only**; domestic day prices are paid, 2026-10-26) | ✓ | ✓ |
 | Price chart | world prices only, last 1 month (IME and market history are paid: client, 2026-10-28, owner OK) | full history + compare | full history + compare |
 | Fundamental news (2026-10-30: titles only for Free) | — | ✓ | ✓ |
+| Members' analyses: read and post (2026-10-30, ADR-0028; owner OK'd) | — | ✓ | ✓ |
 | Expert market analysis | ✗ (locked, blurred teaser) | ✗ | ✓ |
 | Price forecast scenarios | ✗ | ✗ | ✓ |
 | Daily auctions / IME offerings | ✗ (teaser) | ✗ | ✓ |

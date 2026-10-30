@@ -11,8 +11,6 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
-- [ ] Members' analyses (client, 2026-10-30): Silver and Gold users post their own analysis with an optional chart
-      image, shown as «تحلیل توسط <name>». Plan and open questions to the client first (moderation, who reads, images).
 - [ ] Monitoring, part 2: `/metrics` in the Go API (per route; prices freshness, SMS, payments, sign-ups) with alerts
       (SourceStale, PaymentFailures, SmsBudget), user events (sign-up, checkout, payment, feature use) and a business
       dashboard; then GlitchTip, an outside uptime check, traces.
@@ -54,6 +52,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-30 Members' analyses («تحلیل کاربران», client + owner, ADR-0028): Silver and Gold post and read them (title,
+  text, metal, view, one chart image re-encoded into Postgres), with the team's analyses newest first, blue «تحلیل توسط
+  <name>» vs gold for the team; 3 a day, promises refused, staff hide in the admin (audited), disclaimers on the page.
 - 2026-10-30 Article keywords (client): a «کلمات کلیدی» field in the admin (migration 00020, `keywords` in the API),
   shown as #tags under a locked title instead of the summary (metal, category and type when empty); locked news says
   «ویژه‌ی مشترکان نقره‌ای و طلایی». Demo articles now follow their seed file (upsert) and carry keywords.

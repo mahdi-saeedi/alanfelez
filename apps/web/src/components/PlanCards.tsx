@@ -6,12 +6,13 @@ import { TierBadge } from "@/components/Locked";
 
 type Period = Schemas["BillingPeriod"];
 type PlanList = { items: Schemas["Plan"][]; purchasable: boolean };
-// The rows of the client's plan table (2026-10-26), in its order, plus «اخبار فاندامنتال» (Silver since 2026-10-30).
+// The rows of the client's plan table (2026-10-26), in its order, plus «اخبار فاندامنتال» and «تحلیل کاربران»
+// (Silver, 2026-10-30).
 // «تحلیل تکنیکال» is one row: analysis.read and forecast.read unlock together (Gold). What each plan includes still
 // comes from the API.
 export const PLAN_FEATURES = [
   "prices.base", "chart.basic", "prices.full", "chart.full", "news.read",
-  "auctions.read", "analysis.read", "calculator.use", "alerts.sms",
+  "community.read", "auctions.read", "analysis.read", "calculator.use", "alerts.sms",
 ] as const;
 
 /** The three plan cards (plans page and home page), from GET /v1/plans. */

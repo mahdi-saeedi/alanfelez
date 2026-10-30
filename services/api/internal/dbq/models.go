@@ -70,6 +70,28 @@ type AppCalculation struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type AppCommunityPost struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	MetalID    pgtype.Int2
+	Outlook    pgtype.Text
+	Title      string
+	Body       string
+	Status     string
+	HiddenBy   pgtype.UUID
+	HiddenAt   pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+}
+
+type AppCommunityPostImage struct {
+	PostID    pgtype.UUID
+	Width     int32
+	Height    int32
+	SizeBytes int32
+	Content   []byte
+}
+
 type AppContactMessage struct {
 	ID        pgtype.UUID
 	Name      string

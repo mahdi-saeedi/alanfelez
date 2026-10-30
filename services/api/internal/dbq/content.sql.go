@@ -77,6 +77,86 @@ func (q *Queries) AdminListArticles(ctx context.Context, arg AdminListArticlesPa
 	return items, nil
 }
 
+const adminListCommunityPosts = `-- name: AdminListCommunityPosts :many
+SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.status, p.hidden_at, p.created_at,
+       m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+FROM app.community_posts p
+LEFT JOIN market.metals m ON m.id = p.metal_id
+WHERE ($1::text IS NULL OR p.status = $1::text)
+  AND ($2::text = '' OR p.title ILIKE '%' || $2::text || '%' OR p.author_name ILIKE '%' || $2::text || '%')
+ORDER BY p.created_at DESC
+LIMIT 200
+`
+
+type AdminListCommunityPostsParams struct {
+	Status pgtype.Text
+	Q      string
+}
+
+type AdminListCommunityPostsRow struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Outlook    pgtype.Text
+	Title      string
+	Body       string
+	Status     string
+	HiddenAt   pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	MetalSlug  pgtype.Text
+	MetalFa    pgtype.Text
+	MetalEn    pgtype.Text
+	HasImage   bool
+}
+
+func (q *Queries) AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error) {
+	rows, err := q.db.Query(ctx, adminListCommunityPosts, arg.Status, arg.Q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListCommunityPostsRow{}
+	for rows.Next() {
+		var i AdminListCommunityPostsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.AuthorName,
+			&i.Outlook,
+			&i.Title,
+			&i.Body,
+			&i.Status,
+			&i.HiddenAt,
+			&i.CreatedAt,
+			&i.MetalSlug,
+			&i.MetalFa,
+			&i.MetalEn,
+			&i.HasImage,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countCommunityPosts = `-- name: CountCommunityPosts :one
+SELECT count(*) FROM app.community_posts p
+LEFT JOIN market.metals m ON m.id = p.metal_id
+WHERE p.status = 'published' AND ($1::text IS NULL OR m.slug = $1::text)
+`
+
+func (q *Queries) CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error) {
+	row := q.db.QueryRow(ctx, countCommunityPosts, metal)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countPublishedArticles = `-- name: CountPublishedArticles :one
 SELECT count(*) FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
@@ -95,6 +175,23 @@ type CountPublishedArticlesParams struct {
 
 func (q *Queries) CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countPublishedArticles, arg.Types, arg.Category, arg.Metal)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserCommunityPostsSince = `-- name: CountUserCommunityPostsSince :one
+SELECT count(*) FROM app.community_posts WHERE user_id = $1 AND created_at > $2
+`
+
+type CountUserCommunityPostsSinceParams struct {
+	UserID    pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+}
+
+// Deleted posts don't come back here, so the daily limit counts what's left; hidden ones still count.
+func (q *Queries) CountUserCommunityPostsSince(ctx context.Context, arg CountUserCommunityPostsSinceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countUserCommunityPostsSince, arg.UserID, arg.CreatedAt)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -206,6 +303,42 @@ func (q *Queries) CreateArticleCategory(ctx context.Context, arg CreateArticleCa
 	return i, err
 }
 
+const createCommunityPost = `-- name: CreateCommunityPost :one
+INSERT INTO app.community_posts (user_id, author_name, metal_id, outlook, title, body)
+VALUES ($1, $2,
+        (SELECT mm.id FROM market.metals mm WHERE mm.slug = $3::text),
+        $4, $5, $6)
+RETURNING id, created_at
+`
+
+type CreateCommunityPostParams struct {
+	UserID     pgtype.UUID
+	AuthorName string
+	MetalSlug  pgtype.Text
+	Outlook    pgtype.Text
+	Title      string
+	Body       string
+}
+
+type CreateCommunityPostRow struct {
+	ID        pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) CreateCommunityPost(ctx context.Context, arg CreateCommunityPostParams) (CreateCommunityPostRow, error) {
+	row := q.db.QueryRow(ctx, createCommunityPost,
+		arg.UserID,
+		arg.AuthorName,
+		arg.MetalSlug,
+		arg.Outlook,
+		arg.Title,
+		arg.Body,
+	)
+	var i CreateCommunityPostRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
+
 const createFaqCategory = `-- name: CreateFaqCategory :one
 INSERT INTO app.faq_categories (slug, name_fa, name_en, sort) VALUES ($1, $2, $3, $4)
 RETURNING id, slug, name_fa, name_en, sort
@@ -279,6 +412,23 @@ func (q *Queries) CreateFaqItem(ctx context.Context, arg CreateFaqItemParams) (p
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const deleteCommunityPost = `-- name: DeleteCommunityPost :execrows
+DELETE FROM app.community_posts WHERE id = $1 AND user_id = $2
+`
+
+type DeleteCommunityPostParams struct {
+	ID     pgtype.UUID
+	UserID pgtype.UUID
+}
+
+func (q *Queries) DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPostParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteCommunityPost, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const deleteFaqItem = `-- name: DeleteFaqItem :execrows
@@ -357,6 +507,35 @@ func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow
 		&i.CategorySlug,
 		&i.MetalSlug,
 	)
+	return i, err
+}
+
+const getCommunityPostImage = `-- name: GetCommunityPostImage :one
+SELECT i.content FROM app.community_post_images i
+JOIN app.community_posts p ON p.id = i.post_id
+WHERE i.post_id = $1 AND p.status = 'published'
+`
+
+func (q *Queries) GetCommunityPostImage(ctx context.Context, postID pgtype.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getCommunityPostImage, postID)
+	var content []byte
+	err := row.Scan(&content)
+	return content, err
+}
+
+const getCommunityPostOwner = `-- name: GetCommunityPostOwner :one
+SELECT user_id, status FROM app.community_posts WHERE id = $1
+`
+
+type GetCommunityPostOwnerRow struct {
+	UserID pgtype.UUID
+	Status string
+}
+
+func (q *Queries) GetCommunityPostOwner(ctx context.Context, id pgtype.UUID) (GetCommunityPostOwnerRow, error) {
+	row := q.db.QueryRow(ctx, getCommunityPostOwner, id)
+	var i GetCommunityPostOwnerRow
+	err := row.Scan(&i.UserID, &i.Status)
 	return i, err
 }
 
@@ -532,6 +711,72 @@ func (q *Queries) ListArticleCategories(ctx context.Context) ([]ListArticleCateg
 			&i.NameFa,
 			&i.NameEn,
 			&i.Sort,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCommunityPosts = `-- name: ListCommunityPosts :many
+
+SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at,
+       m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+FROM app.community_posts p
+LEFT JOIN market.metals m ON m.id = p.metal_id
+WHERE p.status = 'published'
+  AND ($1::text IS NULL OR m.slug = $1::text)
+ORDER BY p.created_at DESC, p.id
+LIMIT $3 OFFSET $2
+`
+
+type ListCommunityPostsParams struct {
+	Metal pgtype.Text
+	Off   int32
+	Lim   int32
+}
+
+type ListCommunityPostsRow struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Outlook    pgtype.Text
+	Title      string
+	Body       string
+	CreatedAt  pgtype.Timestamptz
+	MetalSlug  pgtype.Text
+	MetalFa    pgtype.Text
+	MetalEn    pgtype.Text
+	HasImage   bool
+}
+
+// Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
+func (q *Queries) ListCommunityPosts(ctx context.Context, arg ListCommunityPostsParams) ([]ListCommunityPostsRow, error) {
+	rows, err := q.db.Query(ctx, listCommunityPosts, arg.Metal, arg.Off, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCommunityPostsRow{}
+	for rows.Next() {
+		var i ListCommunityPostsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.AuthorName,
+			&i.Outlook,
+			&i.Title,
+			&i.Body,
+			&i.CreatedAt,
+			&i.MetalSlug,
+			&i.MetalFa,
+			&i.MetalEn,
+			&i.HasImage,
 		); err != nil {
 			return nil, err
 		}
@@ -801,6 +1046,32 @@ func (q *Queries) ListPublishedArticles(ctx context.Context, arg ListPublishedAr
 	return items, nil
 }
 
+const putCommunityPostImage = `-- name: PutCommunityPostImage :exec
+INSERT INTO app.community_post_images (post_id, width, height, size_bytes, content)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (post_id) DO UPDATE SET width = EXCLUDED.width, height = EXCLUDED.height,
+  size_bytes = EXCLUDED.size_bytes, content = EXCLUDED.content
+`
+
+type PutCommunityPostImageParams struct {
+	PostID    pgtype.UUID
+	Width     int32
+	Height    int32
+	SizeBytes int32
+	Content   []byte
+}
+
+func (q *Queries) PutCommunityPostImage(ctx context.Context, arg PutCommunityPostImageParams) error {
+	_, err := q.db.Exec(ctx, putCommunityPostImage,
+		arg.PostID,
+		arg.Width,
+		arg.Height,
+		arg.SizeBytes,
+		arg.Content,
+	)
+	return err
+}
+
 const putSetting = `-- name: PutSetting :exec
 INSERT INTO app.site_settings (key, value) VALUES ($1, $2)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
@@ -831,6 +1102,27 @@ type SavePageRevisionParams struct {
 func (q *Queries) SavePageRevision(ctx context.Context, arg SavePageRevisionParams) error {
 	_, err := q.db.Exec(ctx, savePageRevision, arg.Actor, arg.Slug)
 	return err
+}
+
+const setCommunityPostStatus = `-- name: SetCommunityPostStatus :execrows
+UPDATE app.community_posts SET status = $1,
+  hidden_by = CASE WHEN $1::text = 'hidden' THEN $2::uuid END,
+  hidden_at = CASE WHEN $1::text = 'hidden' THEN now() END
+WHERE id = $3
+`
+
+type SetCommunityPostStatusParams struct {
+	Status string
+	Actor  pgtype.UUID
+	ID     pgtype.UUID
+}
+
+func (q *Queries) SetCommunityPostStatus(ctx context.Context, arg SetCommunityPostStatusParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setCommunityPostStatus, arg.Status, arg.Actor, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const setFlag = `-- name: SetFlag :one

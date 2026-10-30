@@ -16,6 +16,7 @@ type Querier interface {
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
 	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
+	AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error)
 	AdminListContactMessages(ctx context.Context, status pgtype.Text) ([]AdminListContactMessagesRow, error)
 	AdminListMarkets(ctx context.Context) ([]AdminListMarketsRow, error)
 	// Catalog (admin): metals, products, series ------------------------------------------------------------------
@@ -47,11 +48,15 @@ type Querier interface {
 	// Which references of a new product or series exist (to answer 404 rather than 409).
 	CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error)
 	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
+	CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error)
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
 	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
 	CountUserAlerts(ctx context.Context, userID pgtype.UUID) (int32, error)
+	// Deleted posts don't come back here, so the daily limit counts what's left; hidden ones still count.
+	CountUserCommunityPostsSince(ctx context.Context, arg CountUserCommunityPostsSinceParams) (int64, error)
 	CreateArticle(ctx context.Context, arg CreateArticleParams) (pgtype.UUID, error)
 	CreateArticleCategory(ctx context.Context, arg CreateArticleCategoryParams) (CreateArticleCategoryRow, error)
+	CreateCommunityPost(ctx context.Context, arg CreateCommunityPostParams) (CreateCommunityPostRow, error)
 	CreateFaqCategory(ctx context.Context, arg CreateFaqCategoryParams) (CreateFaqCategoryRow, error)
 	CreateFaqItem(ctx context.Context, arg CreateFaqItemParams) (pgtype.UUID, error)
 	// Idempotent per user: the same key returns the ticket created the first time (inserted = false).
@@ -64,6 +69,7 @@ type Querier interface {
 	DeleteAuction(ctx context.Context, id pgtype.UUID) (string, error)
 	DeleteAuctionFile(ctx context.Context, auctionID pgtype.UUID) (int64, error)
 	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
+	DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPostParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
@@ -82,6 +88,8 @@ type Querier interface {
 	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
 	GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error)
 	GetAuctionFile(ctx context.Context, auctionID pgtype.UUID) (GetAuctionFileRow, error)
+	GetCommunityPostImage(ctx context.Context, postID pgtype.UUID) ([]byte, error)
+	GetCommunityPostOwner(ctx context.Context, id pgtype.UUID) (GetCommunityPostOwnerRow, error)
 	// The calculator's base price: the latest published point of one series, with its source.
 	GetLatestPrice(ctx context.Context, seriesID int32) (GetLatestPriceRow, error)
 	GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error)
@@ -145,6 +153,8 @@ type Querier interface {
 	ListAuctions(ctx context.Context, arg ListAuctionsParams) ([]ListAuctionsRow, error)
 	ListCalculations(ctx context.Context, userID pgtype.UUID) ([]ListCalculationsRow, error)
 	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
+	// Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
+	ListCommunityPosts(ctx context.Context, arg ListCommunityPostsParams) ([]ListCommunityPostsRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
 	ListFaqCategories(ctx context.Context) ([]ListFaqCategoriesRow, error)
 	// Every item in display order; published_only = true for the public site.
@@ -191,6 +201,7 @@ type Querier interface {
 	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
 	// Adds or replaces the auction's PDF notice (0 rows: no such auction).
 	PutAuctionFile(ctx context.Context, arg PutAuctionFileParams) (int64, error)
+	PutCommunityPostImage(ctx context.Context, arg PutCommunityPostImageParams) error
 	PutSetting(ctx context.Context, arg PutSettingParams) error
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
@@ -208,6 +219,7 @@ type Querier interface {
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
 	// Re-activating re-arms the alert, so it fires on the next crossing.
 	SetAlertActive(ctx context.Context, arg SetAlertActiveParams) (int64, error)
+	SetCommunityPostStatus(ctx context.Context, arg SetCommunityPostStatusParams) (int64, error)
 	// Upsert: a flag missing from an environment's seed is created on first switch.
 	SetFlag(ctx context.Context, arg SetFlagParams) (SetFlagRow, error)
 	SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) error

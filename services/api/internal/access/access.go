@@ -44,6 +44,8 @@ const (
 	CalculatorUse   Feature = "calculator.use"   // load-value calculator
 	AlertsSMS       Feature = "alerts.sms"       // SMS price alerts
 	SupportPriority Feature = "support.priority" // priority ticket handling
+	CommunityRead   Feature = "community.read"   // members' analyses: read them (client, 2026-10-30)
+	CommunityPost   Feature = "community.post"   // members' analyses: post one
 )
 
 // minTier is the tier matrix (SCOPE.md §6, the client's plan table of 2026-10-26).
@@ -60,6 +62,8 @@ var minTier = map[Feature]Tier{
 	CalculatorUse:   Gold,
 	AlertsSMS:       Gold,
 	SupportPriority: Gold,
+	CommunityRead:   Silver,
+	CommunityPost:   Silver,
 }
 
 // Features returns every known feature in a stable order.

@@ -80,6 +80,9 @@ Every limit is configurable. Defaults:
   job; staging and production since 2026-10-30), so coming
   back later asks for the password or SMS code again. Using the site refreshes the token every few minutes and keeps
   the session alive; when it has ended the header says so and offers «ورود دوباره». Staff sessions follow the same rule.
+- **Members' analyses** (ADR-0028): plain text only (HTML stripped), promises of profit refused, 3 a day per member,
+  staff hide (audited); images are decoded and re-encoded as JPEG (≤ 1,600 px) so no metadata or non-image payload is
+  stored, and are served only through the API's tier check (Silver, or staff).
 - `robots` rules and `noindex` for anything behind a lock. Watermark PDF exports (Gold) with the user ID.
 
 ## 6. Price integrity (T3)
