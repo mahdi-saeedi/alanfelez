@@ -1,4 +1,4 @@
-# Blackbox exporter (deploy/vendor/charts) for staging and production: every 30 s it opens the public addresses the
+# Blackbox exporter (deploy/vendor/charts) for production (staging has none): every 30 s it opens the public addresses the
 # way a browser would (DNS, TLS, status code, time) and Prometheus alerts when one fails (SiteDown) or a certificate
 # is about to expire. The targets are per environment in the Argo CD app (deploy/argocd/envs/<env>/33-blackbox.yaml).
 # It runs on the same server, so "the whole server is down" needs a check from outside (OPERATIONS §1, Uptime).

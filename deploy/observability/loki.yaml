@@ -1,4 +1,4 @@
-# Loki (deploy/vendor/charts) for staging and production: every pod's logs, collected by Alloy (alloy.yaml), searched in
+# Loki (deploy/vendor/charts) for production (staging has none): every pod's logs, collected by Alloy (alloy.yaml), searched in
 # Grafana (Explore → Loki). One process with its index and chunks on the node's disk; retention per environment in the
 # Argo CD app (deploy/argocd/envs/<env>/31-loki.yaml). The apps already log JSON with request_id (no personal data).
 fullnameOverride: loki

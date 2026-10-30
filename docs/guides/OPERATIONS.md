@@ -1,15 +1,16 @@
 # Operations: Observability, Backups, Runbooks
 
-> Status: **built 2026-10-29** for metrics, logs, dashboards and alerts (staging and production); traces, GlitchTip and the
+> Status: **built 2026-10-29** for metrics, logs, dashboards and alerts on **production only** (staging has none since
+> 2026-10-30: its server has too little memory, and it is only for checking changes); traces, GlitchTip and the
 > outside uptime check are next. Stack decision: ADR-0015. Targets: [NFR.md](../architecture/NFR.md).
 
-## 1. Observability stack (self-hosted, one per cluster: `deploy/observability/`)
+## 1. Observability stack (self-hosted on the production cluster: `deploy/observability/`)
 | Signal | Tool | Status |
 |---|---|---|
-| Dashboards | **Grafana** at `https://admin.alanfelez.ir/grafana` (staging: `admin.staging…`). Sign in with the staff Keycloak account: `admin` → Grafana Admin, other staff → Viewer, customers refused | ✅ |
-| Metrics | **Prometheus**: the server (node exporter), every pod (kubelet, kube-state-metrics), Traefik (every request: service, status, time), Postgres (CloudNativePG: backups, WAL archiving, connections), Keycloak, Argo CD, Argo Rollouts, cert-manager. 30 days (staging 7) | ✅ |
+| Dashboards | **Grafana** at `https://admin.alanfelez.ir/grafana`. Sign in with the staff Keycloak account: `admin` → Grafana Admin, other staff → Viewer, customers refused | ✅ |
+| Metrics | **Prometheus**: the server (node exporter), every pod (kubelet, kube-state-metrics), Traefik (every request: service, status, time), Postgres (CloudNativePG: backups, WAL archiving, connections), Keycloak, Argo CD, Argo Rollouts, cert-manager. 30 days | ✅ |
 | Site checks | **Blackbox exporter**: site, API, sign-in and admin opened like a browser every 30 s (status, time, certificate) | ✅ |
-| Logs | **Loki** + **Alloy**: every pod's log lines and the Kubernetes events (image pulls, crashes, failed probes), 30 days (staging 7). JSON lines keep `request_id`; no personal data | ✅ |
+| Logs | **Loki** + **Alloy**: every pod's log lines and the Kubernetes events (image pulls, crashes, failed probes), 30 days. JSON lines keep `request_id`; no personal data | ✅ |
 | Alerts | Prometheus rules (`manifests/base/rules.yaml` + the chart's Kubernetes/node rules) → **Alertmanager** → the team's **Bale** group (`seal-bale-bot.sh`) | ✅ (needs the bot, below) |
 | App metrics | `/metrics` of the Go API (per route, business counters) | ⏳ next |
 | Traces | OpenTelemetry → Tempo | ⏳ phase 2+ |
