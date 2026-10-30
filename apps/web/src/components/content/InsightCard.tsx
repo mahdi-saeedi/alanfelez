@@ -15,13 +15,15 @@ export async function InsightCard({ a, locale }: { a: ArticleSummary; locale: Lo
         {a.locked && <LockIcon className="h-5 w-5" />}
       </div>
       <h3 className="font-bold leading-7">{a.title}</h3>
+      {/* Written by the Alan Felez team (client, 2026-10-30); members' own analyses will carry their name instead. */}
+      <p className="text-xs font-bold text-gold-dark">{t("byTeam")}</p>
       <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Meta a={a} locale={locale} />
         {a.locked ? (
-          <Link href="/plans" className="rounded-lg bg-gold px-3 py-1.5 text-xs font-bold text-graphite hover:bg-gold-light">{t("readToUnlock")}</Link>
+          <Link href="/plans" className="rounded-lg bg-gold px-3 py-2 text-xs font-bold text-graphite hover:bg-gold-light">{t("readToUnlock")}</Link>
         ) : (
-          <Link href={`/analysis/${a.slug}`} className="rounded-lg bg-graphite px-3 py-1.5 text-xs font-bold text-white hover:bg-graphite-2">{t("read")}</Link>
+          <Link href={`/analysis/${a.slug}`} className="rounded-lg bg-graphite px-3 py-2 text-xs font-bold text-white hover:bg-graphite-2">{t("read")}</Link>
         )}
       </div>
     </article>
