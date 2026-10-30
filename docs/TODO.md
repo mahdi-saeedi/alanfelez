@@ -11,6 +11,8 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
+- [ ] Members' analyses (client, 2026-10-30): Silver and Gold users post their own analysis with an optional chart
+      image, shown as «تحلیل توسط <name>». Plan and open questions to the client first (moderation, who reads, images).
 - [ ] Monitoring, part 2: `/metrics` in the Go API (per route; prices freshness, SMS, payments, sign-ups) with alerts
       (SourceStale, PaymentFailures, SmsBudget), user events (sign-up, checkout, payment, feature use) and a business
       dashboard; then GlitchTip, an outside uptime check, traces.
@@ -52,6 +54,10 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-30 «پیش‌بینی و تحلیل» (client): tabs «همه / تحلیل‌های تکنیکال / اخبار فاندامنتال», analyses before news,
+  «تحلیل توسط تحلیل‌گران الان‌فلز» on analyses, filters only for metals/topics with articles (one scrolling line on
+  phones), no empty cover, market indicators with their own market and unit and locked for free users, phone sidebar
+  after the articles; article page: related articles, share buttons, larger back link. More demo news and analyses.
 - 2026-10-30 Signed out after 1 hour without activity on staging and production (client + owner): Keycloak `ssoSessionIdleTimeout`
   3600 s (was 7 days), applied to the running realm by the profile job; the 2-device limit stays.
 - 2026-10-30 Monitoring removed from **staging** (sign-in broke there: its 8 GB server ran short of memory); production

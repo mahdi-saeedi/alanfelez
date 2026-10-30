@@ -186,3 +186,116 @@ datasets:
           <li><strong>Base case:</strong> current supply and demand continue</li>
           <li><strong>Downside:</strong> if global prices fall</li>
           </ul>
+
+      - slug: demo-copper-chile-strike
+        type: news
+        status: published
+        metal: copper
+        outlook: up
+        published_days_ago: 0.3
+        read_minutes: 2
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "اعتصاب در یک معدن مس شیلی و نگرانی از کمبود عرضه"
+        title_en: "Strike at a Chilean copper mine raises supply worries"
+        summary_fa: "توقف موقت تولید در یکی از معادن بزرگ مس شیلی، نگرانی بازار از کمبود عرضه‌ی کنسانتره را بیشتر کرد."
+        summary_en: "A temporary halt at a large Chilean copper mine added to market worries about concentrate supply."
+        body_fa: "<p>این یک خبر نمونه است. توقف تولید در معادن بزرگ، عرضه‌ی جهانی کنسانتره را کم می‌کند و معمولاً روی قیمت جهانی مس اثر می‌گذارد.</p>"
+        body_en: "<p>This is a demo news item. Halts at large mines cut global concentrate supply and usually affect the world copper price.</p>"
+
+      - slug: demo-fed-rates-metals
+        type: news
+        status: published
+        category: economy
+        outlook: down
+        published_days_ago: 0.6
+        read_minutes: 3
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "تصمیم فدرال رزرو درباره‌ی نرخ بهره و واکنش بازار فلزات پایه"
+        title_en: "The Fed’s rate decision and how base metals reacted"
+        summary_fa: "نگه‌داشتن نرخ بهره در سطح فعلی، دلار را تقویت کرد و فلزات پایه در معاملات جهانی کمی عقب نشستند."
+        summary_en: "Holding rates steady strengthened the dollar, and base metals eased slightly in global trading."
+        body_fa: "<p>این یک خبر نمونه است. دلار قوی‌تر، فلزاتی را که به دلار قیمت‌گذاری می‌شوند برای خریداران دیگر گران‌تر می‌کند.</p>"
+        body_en: "<p>This is a demo news item. A stronger dollar makes dollar-priced metals dearer for other buyers.</p>"
+
+      - slug: demo-ime-cathode-supply
+        type: news
+        status: published
+        metal: copper
+        outlook: neutral
+        published_days_ago: 1.2
+        read_minutes: 2
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "عرضه‌ی کاتد مس در بورس کالای ایران این هفته افزایش می‌یابد"
+        title_en: "More copper cathode on the Iran Mercantile Exchange this week"
+        summary_fa: "طبق اطلاعیه‌ی بورس کالا، حجم عرضه‌ی کاتد مس در هفته‌ی جاری نسبت به هفته‌ی قبل بیشتر است."
+        summary_en: "According to the exchange’s notice, this week’s copper cathode offering is larger than last week’s."
+        body_fa: "<p>این یک خبر نمونه است. عرضه‌ی بیشتر در بورس کالا معمولاً فشار رقابت بر قیمت‌های پایه را کم می‌کند.</p>"
+        body_en: "<p>This is a demo news item. A larger offering on the exchange usually eases competition on the base prices.</p>"
+
+      - slug: demo-lead-battery-demand
+        type: news
+        status: published
+        metal: lead
+        category: global
+        outlook: up
+        published_days_ago: 2
+        read_minutes: 2
+        author_fa: "تحریریه الان‌فلز (نمونه)"
+        author_en: "Alan Felez desk (demo)"
+        title_fa: "رشد تقاضای باتری و اثر آن بر بازار سرب"
+        title_en: "Battery demand and the lead market"
+        summary_fa: "افزایش تولید باتری‌های خودرو در آسیا، تقاضای سرب را در ماه گذشته بالا برده است."
+        summary_en: "Higher car-battery output in Asia lifted lead demand last month."
+        body_fa: "<p>این یک خبر نمونه است. صنعت باتری بزرگ‌ترین مصرف‌کننده‌ی سرب است.</p>"
+        body_en: "<p>This is a demo news item. The battery industry is lead’s largest consumer.</p>"
+
+      - slug: demo-copper-technical-support
+        type: analysis
+        status: published
+        metal: copper
+        outlook: up
+        published_days_ago: 0.4
+        read_minutes: 4
+        author_fa: "تحلیل‌گران الان‌فلز (نمونه)"
+        author_en: "Alan Felez analysts (demo)"
+        title_fa: "تحلیل تکنیکال مس: حمایت ۹٬۶۰۰ دلار و سناریوی برگشت"
+        title_en: "Copper technical analysis: support at $9,600 and a rebound scenario"
+        summary_fa: "قیمت جهانی مس به ناحیه‌ی حمایتی ۹٬۶۰۰ دلار رسیده؛ تا وقتی این سطح حفظ شود، سناریوی برگشت محتمل‌تر است."
+        summary_en: "The world copper price reached the $9,600 support zone; while it holds, a rebound is the likelier scenario."
+        body_fa: "<p>این یک تحلیل تکنیکال نمونه است و توصیه‌ی خرید یا فروش نیست.</p><h2>سطوح مهم</h2><ul><li>حمایت: ۹٬۶۰۰ دلار</li><li>مقاومت: ۱۰٬۱۰۰ دلار</li></ul><p>شکست حمایت، این سناریو را از اعتبار می‌اندازد.</p>"
+        body_en: "<p>This is a demo technical analysis, not a buy or sell recommendation.</p><h2>Key levels</h2><ul><li>Support: $9,600</li><li>Resistance: $10,100</li></ul><p>A break below support invalidates this scenario.</p>"
+
+      - slug: demo-aluminum-technical-range
+        type: analysis
+        status: published
+        metal: aluminum
+        outlook: neutral
+        published_days_ago: 0.9
+        read_minutes: 3
+        author_fa: "تحلیل‌گران الان‌فلز (نمونه)"
+        author_en: "Alan Felez analysts (demo)"
+        title_fa: "تحلیل تکنیکال آلومینیوم: نوسان در یک محدوده"
+        title_en: "Aluminium technical analysis: trading in a range"
+        summary_fa: "شمش آلومینیوم چند هفته است بین دو سطح مشخص نوسان می‌کند؛ خروج از این محدوده جهت بعدی را نشان می‌دهد."
+        summary_en: "Aluminium has traded between two clear levels for weeks; a break out of the range should show the next direction."
+        body_fa: "<p>این یک تحلیل تکنیکال نمونه است. تا خروج قیمت از محدوده، دیدگاه خنثی است.</p>"
+        body_en: "<p>This is a demo technical analysis. The view stays neutral until the price leaves the range.</p>"
+
+      - slug: demo-zinc-technical-trend
+        type: analysis
+        status: published
+        metal: zinc
+        outlook: down
+        published_days_ago: 1.8
+        read_minutes: 3
+        author_fa: "تحلیل‌گران الان‌فلز (نمونه)"
+        author_en: "Alan Felez analysts (demo)"
+        title_fa: "تحلیل تکنیکال روی: روند نزولی کوتاه‌مدت"
+        title_en: "Zinc technical analysis: a short-term downtrend"
+        summary_fa: "سقف‌های پایین‌تر در نمودار روزانه‌ی روی، روند نزولی کوتاه‌مدت را نشان می‌دهد."
+        summary_en: "Lower highs on zinc’s daily chart point to a short-term downtrend."
+        body_fa: "<p>این یک تحلیل تکنیکال نمونه است. برآوردی بر اساس داده‌های موجود است و تضمینی برای آینده نیست.</p>"
+        body_en: "<p>This is a demo technical analysis: an estimate from the data available, not a guarantee.</p>"

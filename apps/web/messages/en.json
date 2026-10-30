@@ -440,8 +440,8 @@
     "all": "All",
     "topNews": "Today’s top news",
     "indicators": "Key market prices",
-    "insights": "Alan Felez expert analysis",
-    "insightsSub": "Market analysis and possible price scenarios by Alan Felez analysts.",
+    "insights": "Alan Felez technical analysis",
+    "insightsSub": "Technical analysis and possible price scenarios, written by Alan Felez analysts.",
     "readToUnlock": "Upgrade to read",
     "read": "Read",
     "minutes": "{n} min read",
@@ -468,7 +468,26 @@
     "disclaimer": "This content is an estimate based on the data and conditions available when it was published. It is not a recommendation to buy or sell and gives no guarantee of future market outcomes.",
     "source": "Price source: {source}",
     "latestTitle": "Latest analysis",
-    "latestAll": "All analysis →"
+    "latestAll": "All analysis →",
+    "viewLabel": "Content type",
+    "topicLabel": "Metal or topic",
+    "views": {
+      "all": "All",
+      "insights": "Technical analysis",
+      "news": "Fundamental news"
+    },
+    "allInsights": "All analyses →",
+    "allNews": "All news →",
+    "newsTitle": "Fundamental news",
+    "emptyInsights": "No analysis published for this choice yet.",
+    "emptyNews": "No news published for this choice yet.",
+    "indicatorsLocked": "See prices with {plan}",
+    "byTeam": "Analysis by the Alan Felez analysts",
+    "share": "Share:",
+    "copyLink": "Copy link",
+    "copied": "Copied ✓",
+    "shareMore": "Other apps",
+    "related": "More about {topic}"
   },
   "faq": {
     "title": "Frequently asked questions",
