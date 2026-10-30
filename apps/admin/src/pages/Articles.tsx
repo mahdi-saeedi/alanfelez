@@ -135,6 +135,9 @@ function ArticleForm({ initial, id }: { initial: Input & { readMinutes?: number 
               <Field label={t("articles.f.summary")} hint={t("articles.f.summaryHint")}>
                 <textarea maxLength={600} rows={2} value={v.summaryFa} onChange={(e) => set("summaryFa", e.target.value)} className="w-full rounded-lg border border-border p-2 text-sm" />
               </Field>
+              <Field label={t("articles.f.keywords")} hint={t("articles.f.keywordsHint")}>
+                <Input maxLength={200} value={v.keywordsFa ?? ""} onChange={(e) => set("keywordsFa", e.target.value)} className="w-full" />
+              </Field>
               <Field plain label={t("articles.f.body")}><RichEditor key="fa" dir="rtl" value={v.bodyFa} onChange={(h) => set("bodyFa", h)} minHeight={360} /></Field>
               <Field label={t("articles.f.author")}><Input maxLength={100} value={v.authorFa ?? ""} onChange={(e) => set("authorFa", e.target.value)} className="w-full" /></Field>
             </>
@@ -143,6 +146,9 @@ function ArticleForm({ initial, id }: { initial: Input & { readMinutes?: number 
               <Field label={t("articles.f.title")}><Input maxLength={200} value={v.titleEn ?? ""} onChange={(e) => set("titleEn", e.target.value)} className="w-full" /></Field>
               <Field label={t("articles.f.summary")}>
                 <textarea maxLength={600} rows={2} value={v.summaryEn ?? ""} onChange={(e) => set("summaryEn", e.target.value)} className="w-full rounded-lg border border-border p-2 text-sm" />
+              </Field>
+              <Field label={t("articles.f.keywords")}>
+                <Input maxLength={200} value={v.keywordsEn ?? ""} onChange={(e) => set("keywordsEn", e.target.value)} className="w-full" />
               </Field>
               <Field plain label={t("articles.f.body")}><RichEditor key="en" dir="ltr" value={v.bodyEn ?? ""} onChange={(h) => set("bodyEn", h)} minHeight={360} /></Field>
               <Field label={t("articles.f.author")}><Input maxLength={100} value={v.authorEn ?? ""} onChange={(e) => set("authorEn", e.target.value)} className="w-full" /></Field>

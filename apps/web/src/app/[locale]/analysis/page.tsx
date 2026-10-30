@@ -5,7 +5,7 @@ import { formatDate, formatNumber, formatPriceValue, priceUnitLabel, type Locale
 import { Link } from "@/i18n/navigation";
 import { getArticleCategories, getArticles, getMetals, type ArticleSummary } from "@/lib/content";
 import { getBasePrices, getEntitlements, type PriceRow } from "@/lib/prices";
-import { Cover, Meta, TopicChip, metalTone } from "@/components/content/parts";
+import { Cover, KeywordChips, Meta, TopicChip, metalTone } from "@/components/content/parts";
 import { LockIcon, TierBadge } from "@/components/Locked";
 import { InsightCard } from "@/components/content/InsightCard";
 import { ChangePill } from "@/components/prices/ChangePill";
@@ -243,7 +243,14 @@ async function FeaturedCard({ a, locale }: { a: ArticleSummary; locale: Locale }
       <div className="space-y-2 p-5">
         {!a.coverUrl && <TopicChip a={a} />}
         <h2 className="text-lg font-extrabold group-hover:text-gold-dark sm:text-xl">{a.title}</h2>
-        {a.locked ? <LockedNote plan={a.requiredPlan} /> : <p className="line-clamp-2 text-sm text-text-2">{a.summary}</p>}
+        {a.locked ? (
+          <>
+            <KeywordChips a={a} />
+            <LockedNote plan={a.requiredPlan} />
+          </>
+        ) : (
+          <p className="line-clamp-2 text-sm text-text-2">{a.summary}</p>
+        )}
         <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
       </div>
     </Link>
@@ -255,7 +262,14 @@ async function NewsCard({ a, locale }: { a: ArticleSummary; locale: Locale }) {
     <Link href={`/analysis/${a.slug}`} className="group flex flex-col gap-2 rounded-card border border-border bg-surface p-4 shadow-soft hover:border-gold/60">
       <TopicChip a={a} />
       <h3 className="font-bold leading-7 group-hover:text-gold-dark">{a.title}</h3>
-      {a.locked ? <span className="flex-1"><LockedNote plan={a.requiredPlan} /></span> : <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>}
+      {a.locked ? (
+        <div className="flex flex-1 flex-col gap-2">
+          <KeywordChips a={a} />
+          <LockedNote plan={a.requiredPlan} />
+        </div>
+      ) : (
+        <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>
+      )}
       <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
     </Link>
   );
@@ -268,7 +282,7 @@ async function LockedNote({ plan }: { plan?: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gold-dark">
       <LockIcon className="h-4 w-4" />
-      {t("analysis.lockedNews", { plan: t(`lock.plan.${plan ?? "silver"}`) })}
+      {plan === "gold" ? t("analysis.lockedNews", { plan: t("lock.plan.gold") }) : t("analysis.lockedNewsSilver")}
     </span>
   );
 }

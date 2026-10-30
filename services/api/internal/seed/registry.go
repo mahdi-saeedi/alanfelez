@@ -102,7 +102,7 @@ var Datasets = map[string]Dataset{
 		Key:   []string{"slug"},
 		Columns: map[string]Column{
 			"slug": {}, "type": {}, "status": {}, "outlook": {}, "featured": {}, "title_fa": {}, "title_en": {},
-			"summary_fa": {}, "summary_en": {}, "body_fa": {}, "body_en": {}, "author_fa": {}, "author_en": {},
+			"summary_fa": {}, "summary_en": {}, "keywords_fa": {}, "keywords_en": {}, "body_fa": {}, "body_en": {}, "author_fa": {}, "author_en": {},
 			"cover_url": {}, "read_minutes": {},
 			"published_days_ago": {Ago: "published_at"},
 			"category":           {Ref: &Ref{Table: "app.article_categories", By: "slug", IDColumn: "category_id"}},

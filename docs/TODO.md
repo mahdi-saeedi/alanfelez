@@ -54,6 +54,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-30 Article keywords (client): a «کلمات کلیدی» field in the admin (migration 00020, `keywords` in the API),
+  shown as #tags under a locked title instead of the summary (metal, category and type when empty); locked news says
+  «ویژه‌ی مشترکان نقره‌ای و طلایی». Demo articles now follow their seed file (upsert) and carry keywords.
 - 2026-10-30 Fundamental news is Silver (client + owner): `news.read` → Silver in the tier matrix; Free sees news and
   analysis titles only (no summary or outlook on locked cards and pages, nor in search); plan table row «اخبار فاندامنتال»,
   «تحلیل تکنیکال» for Gold.

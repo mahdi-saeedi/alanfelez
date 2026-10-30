@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { getArticle, getArticles } from "@/lib/content";
-import { Cover, Meta, RichText, TopicChip } from "@/components/content/parts";
+import { Cover, KeywordChips, Meta, RichText, TopicChip } from "@/components/content/parts";
 import { Locked } from "@/components/Locked";
 import { InsightCard } from "@/components/content/InsightCard";
 import { ShareButtons } from "@/components/content/ShareButtons";
@@ -76,7 +76,7 @@ export default async function ArticlePage({ params }: Params) {
           <TopicChip a={a} />
         </div>
         <h1 className="text-2xl font-extrabold leading-10 sm:text-3xl">{a.title}</h1>
-        {!a.locked && <p className="text-text-2">{a.summary}</p>}
+        {a.locked ? <KeywordChips a={a} /> : <p className="text-text-2">{a.summary}</p>}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
           {insight ? <span className="font-bold text-gold-dark">{t("analysis.byTeam")}</span> : a.author && <span>{t("analysis.by", { name: a.author })}</span>}
           <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
@@ -89,8 +89,8 @@ export default async function ArticlePage({ params }: Params) {
         {a.body ? (
           <RichText html={a.body} />
         ) : (
-          <Locked plan={plan} title={t("analysis.lockedTitle", { plan: t(`lock.plan.${plan}`) })}>
-            {t(insight ? "analysis.lockedBody" : "analysis.lockedBodyNews", { plan: t(`lock.plan.${plan}`) })}
+          <Locked plan={plan} title={plan === "silver" ? t("analysis.lockedTitleSilver") : t("analysis.lockedTitle", { plan: t(`lock.plan.${plan}`) })}>
+            {insight ? t("analysis.lockedBody", { plan: t(`lock.plan.${plan}`) }) : t("analysis.lockedBodyNews")}
           </Locked>
         )}
       </div>
@@ -113,7 +113,7 @@ export default async function ArticlePage({ params }: Params) {
                 <li key={r.slug}>
                   <Link href={`/analysis/${r.slug}`} className="block rounded-card border border-border bg-surface p-4 shadow-soft hover:border-gold/60">
                     <span className="font-bold leading-7">{r.title}</span>
-                    {!r.locked && <span className="mt-1 line-clamp-2 block text-sm text-text-2">{r.summary}</span>}
+                    {r.locked ? <span className="mt-2 block"><KeywordChips a={r} /></span> : <span className="mt-1 line-clamp-2 block text-sm text-text-2">{r.summary}</span>}
                   </Link>
                 </li>
               ) : (

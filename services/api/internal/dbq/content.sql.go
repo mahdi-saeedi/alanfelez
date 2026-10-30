@@ -102,16 +102,16 @@ func (q *Queries) CountPublishedArticles(ctx context.Context, arg CountPublished
 
 const createArticle = `-- name: CreateArticle :one
 INSERT INTO app.articles (type, slug, status, category_id, metal_id, outlook, featured, title_fa, title_en,
-                          summary_fa, summary_en, body_fa, body_en, author_fa, author_en, cover_url, read_minutes,
+                          summary_fa, summary_en, keywords_fa, keywords_en, body_fa, body_en, author_fa, author_en, cover_url, read_minutes,
                           published_at, created_by, updated_by)
 VALUES ($1, $2, $3,
         (SELECT ac.id FROM app.article_categories ac WHERE ac.slug = $4::text),
         (SELECT mm.id FROM market.metals mm WHERE mm.slug = $5::text),
         $6, $7, $8, $9,
-        $10, $11, $12, $13,
-        $14, $15, $16, $17,
-        CASE WHEN $3::text = 'published' THEN coalesce($18::timestamptz, now()) ELSE $18::timestamptz END,
-        $19, $19)
+        $10, $11, $12, $13, $14, $15,
+        $16, $17, $18, $19,
+        CASE WHEN $3::text = 'published' THEN coalesce($20::timestamptz, now()) ELSE $20::timestamptz END,
+        $21, $21)
 RETURNING id
 `
 
@@ -127,6 +127,8 @@ type CreateArticleParams struct {
 	TitleEn      pgtype.Text
 	SummaryFa    string
 	SummaryEn    pgtype.Text
+	KeywordsFa   string
+	KeywordsEn   pgtype.Text
 	BodyFa       string
 	BodyEn       pgtype.Text
 	AuthorFa     pgtype.Text
@@ -150,6 +152,8 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (p
 		arg.TitleEn,
 		arg.SummaryFa,
 		arg.SummaryEn,
+		arg.KeywordsFa,
+		arg.KeywordsEn,
 		arg.BodyFa,
 		arg.BodyEn,
 		arg.AuthorFa,
@@ -291,7 +295,7 @@ func (q *Queries) DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, err
 
 const getArticle = `-- name: GetArticle :one
 SELECT a.id, a.type, a.slug, a.status, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
-       a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
+       a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
        a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug
 FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
@@ -310,6 +314,8 @@ type GetArticleRow struct {
 	TitleEn      pgtype.Text
 	SummaryFa    string
 	SummaryEn    pgtype.Text
+	KeywordsFa   string
+	KeywordsEn   pgtype.Text
 	BodyFa       string
 	BodyEn       pgtype.Text
 	AuthorFa     pgtype.Text
@@ -337,6 +343,8 @@ func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow
 		&i.TitleEn,
 		&i.SummaryFa,
 		&i.SummaryEn,
+		&i.KeywordsFa,
+		&i.KeywordsEn,
 		&i.BodyFa,
 		&i.BodyEn,
 		&i.AuthorFa,
@@ -385,7 +393,7 @@ func (q *Queries) GetPage(ctx context.Context, slug string) (GetPageRow, error) 
 
 const getPublishedArticle = `-- name: GetPublishedArticle :one
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
-       a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
+       a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -404,6 +412,8 @@ type GetPublishedArticleRow struct {
 	TitleEn      pgtype.Text
 	SummaryFa    string
 	SummaryEn    pgtype.Text
+	KeywordsFa   string
+	KeywordsEn   pgtype.Text
 	BodyFa       string
 	BodyEn       pgtype.Text
 	AuthorFa     pgtype.Text
@@ -433,6 +443,8 @@ func (q *Queries) GetPublishedArticle(ctx context.Context, slug string) (GetPubl
 		&i.TitleEn,
 		&i.SummaryFa,
 		&i.SummaryEn,
+		&i.KeywordsFa,
+		&i.KeywordsEn,
 		&i.BodyFa,
 		&i.BodyEn,
 		&i.AuthorFa,
@@ -696,7 +708,7 @@ func (q *Queries) ListPages(ctx context.Context) ([]ListPagesRow, error) {
 
 const listPublishedArticles = `-- name: ListPublishedArticles :many
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
-       a.cover_url, a.read_minutes, a.published_at,
+       a.keywords_fa, a.keywords_en, a.cover_url, a.read_minutes, a.published_at,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -728,6 +740,8 @@ type ListPublishedArticlesRow struct {
 	TitleEn      pgtype.Text
 	SummaryFa    string
 	SummaryEn    pgtype.Text
+	KeywordsFa   string
+	KeywordsEn   pgtype.Text
 	CoverUrl     pgtype.Text
 	ReadMinutes  int32
 	PublishedAt  pgtype.Timestamptz
@@ -765,6 +779,8 @@ func (q *Queries) ListPublishedArticles(ctx context.Context, arg ListPublishedAr
 			&i.TitleEn,
 			&i.SummaryFa,
 			&i.SummaryEn,
+			&i.KeywordsFa,
+			&i.KeywordsEn,
 			&i.CoverUrl,
 			&i.ReadMinutes,
 			&i.PublishedAt,
@@ -850,15 +866,16 @@ UPDATE app.articles AS a SET
   outlook = $6, featured = $7,
   title_fa = $8, title_en = $9,
   summary_fa = $10, summary_en = $11,
-  body_fa = $12, body_en = $13,
-  author_fa = $14, author_en = $15,
-  cover_url = $16, read_minutes = $17,
+  keywords_fa = $12, keywords_en = $13,
+  body_fa = $14, body_en = $15,
+  author_fa = $16, author_en = $17,
+  cover_url = $18, read_minutes = $19,
   published_at = CASE
-    WHEN $18::timestamptz IS NOT NULL THEN $18::timestamptz
+    WHEN $20::timestamptz IS NOT NULL THEN $20::timestamptz
     WHEN $3::text = 'published' THEN coalesce(a.published_at, now())
     ELSE a.published_at END,
-  updated_by = $19
-WHERE a.id = $20
+  updated_by = $21
+WHERE a.id = $22
 RETURNING a.id
 `
 
@@ -874,6 +891,8 @@ type UpdateArticleParams struct {
 	TitleEn      pgtype.Text
 	SummaryFa    string
 	SummaryEn    pgtype.Text
+	KeywordsFa   string
+	KeywordsEn   pgtype.Text
 	BodyFa       string
 	BodyEn       pgtype.Text
 	AuthorFa     pgtype.Text
@@ -899,6 +918,8 @@ func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (p
 		arg.TitleEn,
 		arg.SummaryFa,
 		arg.SummaryEn,
+		arg.KeywordsFa,
+		arg.KeywordsEn,
 		arg.BodyFa,
 		arg.BodyEn,
 		arg.AuthorFa,

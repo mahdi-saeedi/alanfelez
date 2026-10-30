@@ -489,7 +489,10 @@
     "shareMore": "Other apps",
     "related": "More about {topic}",
     "lockedNews": "For {plan} members",
-    "lockedBodyNews": "The full fundamental news is shown to {plan} and Gold members."
+    "lockedBodyNews": "The full fundamental news is shown to Silver and Gold members.",
+    "keywords": "Keywords",
+    "lockedNewsSilver": "For Silver and Gold members",
+    "lockedTitleSilver": "This article is for Silver and Gold members"
   },
   "faq": {
     "title": "Frequently asked questions",

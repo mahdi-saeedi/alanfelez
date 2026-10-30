@@ -1,6 +1,7 @@
 package content
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -69,5 +70,16 @@ func TestValidSlugAndClean(t *testing.T) {
 	}
 	if _, ok := Clean("ا", 2, 10); ok {
 		t.Error("too short must fail")
+	}
+}
+
+func TestKeywords(t *testing.T) {
+	got := Keywords(" مس، کمبود عرضه ,شیلی;شیلی\n<b>LME</b>؛ ، a,b,c,d")
+	want := []string{"مس", "کمبود عرضه", "شیلی", "LME", "a", "b"}
+	if !slices.Equal(got, want) {
+		t.Fatalf("Keywords = %q, want %q", got, want)
+	}
+	if k := Keywords(""); len(k) != 0 {
+		t.Fatalf("empty = %q", k)
 	}
 }

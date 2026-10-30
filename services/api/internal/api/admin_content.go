@@ -133,7 +133,8 @@ func (s *Server) AdminUpdateArticle(ctx context.Context, req AdminUpdateArticleR
 	arg := dbq.UpdateArticleParams{
 		ID: id, Type: c.Type, Slug: c.Slug, Status: c.Status, CategorySlug: c.CategorySlug, MetalSlug: c.MetalSlug,
 		Outlook: c.Outlook, Featured: c.Featured, TitleFa: c.TitleFa, TitleEn: c.TitleEn, SummaryFa: c.SummaryFa,
-		SummaryEn: c.SummaryEn, BodyFa: c.BodyFa, BodyEn: c.BodyEn, AuthorFa: c.AuthorFa, AuthorEn: c.AuthorEn,
+		SummaryEn: c.SummaryEn, KeywordsFa: c.KeywordsFa, KeywordsEn: c.KeywordsEn,
+		BodyFa: c.BodyFa, BodyEn: c.BodyEn, AuthorFa: c.AuthorFa, AuthorEn: c.AuthorEn,
 		CoverUrl: c.CoverUrl, ReadMinutes: c.ReadMinutes, PublishedAt: c.PublishedAt, Actor: c.Actor,
 	}
 	err = s.tx(ctx, func(q *dbq.Queries) error {
@@ -163,6 +164,7 @@ func (s *Server) AdminUpdateArticle(ctx context.Context, req AdminUpdateArticleR
 func (s *Server) articleParams(ctx context.Context, in AdminArticleInput, p *auth.Principal) (dbq.CreateArticleParams, string, error) {
 	var out dbq.CreateArticleParams
 	if tooLong(in.BodyFa, 200_000) || tooLong(deref(in.BodyEn), 200_000) || tooLong(in.SummaryFa, 2_000) || tooLong(deref(in.SummaryEn), 2_000) ||
+		tooLong(deref(in.KeywordsFa), 200) || tooLong(deref(in.KeywordsEn), 200) ||
 		tooLong(deref(in.TitleEn), 200) || tooLong(deref(in.AuthorFa), 100) || tooLong(deref(in.AuthorEn), 100) || tooLong(deref(in.CoverUrl), 500) {
 		return out, "a field is too long", nil
 	}
@@ -217,7 +219,8 @@ func (s *Server) articleParams(ctx context.Context, in AdminArticleInput, p *aut
 	out = dbq.CreateArticleParams{
 		Type: string(in.Type), Slug: slug, Status: string(in.Status), CategorySlug: category, MetalSlug: metal,
 		Featured: in.Featured, TitleFa: title, TitleEn: optText(in.TitleEn), SummaryFa: summary,
-		SummaryEn: plainOpt(in.SummaryEn), BodyFa: body, BodyEn: sanitizedOpt(in.BodyEn),
+		SummaryEn: plainOpt(in.SummaryEn), KeywordsFa: strings.Join(content.Keywords(deref(in.KeywordsFa)), "، "),
+		KeywordsEn: keywordsOpt(in.KeywordsEn), BodyFa: body, BodyEn: sanitizedOpt(in.BodyEn),
 		AuthorFa: optText(in.AuthorFa), AuthorEn: optText(in.AuthorEn), CoverUrl: cover,
 		ReadMinutes: int32(content.ReadMinutes(body)), Actor: p.ID, //nolint:gosec // bodies are ≤ 200k chars: ≤ 1,000 minutes
 	}
@@ -230,11 +233,18 @@ func (s *Server) articleParams(ctx context.Context, in AdminArticleInput, p *aut
 	return out, "", nil
 }
 
+// keywordsOpt cleans the English keywords; empty means none (the site then shows the Persian ones).
+func keywordsOpt(s *string) pgtype.Text {
+	k := content.Keywords(deref(s))
+	return pgtype.Text{String: strings.Join(k, ", "), Valid: len(k) > 0}
+}
+
 func adminArticleOf(a dbq.GetArticleRow) AdminArticle {
 	out := AdminArticle{
 		Id: a.ID.Bytes, Type: ArticleType(a.Type), Slug: a.Slug, Status: ArticleStatus(a.Status), Featured: a.Featured,
 		Category: textp(a.CategorySlug), Metal: textp(a.MetalSlug), Outlook: outlookOf(a.Outlook),
 		TitleFa: a.TitleFa, TitleEn: textp(a.TitleEn), SummaryFa: a.SummaryFa, SummaryEn: textp(a.SummaryEn),
+		KeywordsFa: &a.KeywordsFa, KeywordsEn: textp(a.KeywordsEn),
 		BodyFa: a.BodyFa, BodyEn: textp(a.BodyEn), AuthorFa: textp(a.AuthorFa), AuthorEn: textp(a.AuthorEn),
 		CoverUrl: textp(a.CoverUrl), ReadMinutes: int(a.ReadMinutes), PublishedAt: timep(a.PublishedAt),
 		CreatedAt: a.CreatedAt.Time.UTC(), UpdatedAt: a.UpdatedAt.Time.UTC(),

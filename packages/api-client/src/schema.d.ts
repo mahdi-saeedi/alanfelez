@@ -1903,6 +1903,8 @@ export interface components {
             title: string;
             /** @description Plain text */
             summary: string;
+            /** @description A few words on what it's about, shown instead of the summary when the article is locked (may be empty) */
+            keywords?: string[];
             category?: components["schemas"]["Localized"];
             metal?: components["schemas"]["Localized"];
             outlook?: components["schemas"]["Outlook"];
@@ -2120,6 +2122,9 @@ export interface components {
             titleEn?: string;
             summaryFa: string;
             summaryEn?: string;
+            /** @description Comma-separated, shown under a locked title instead of the summary */
+            keywordsFa?: string;
+            keywordsEn?: string;
             /** @description HTML from the editor (sanitized on save) */
             bodyFa: string;
             bodyEn?: string;

@@ -14,7 +14,7 @@ RETURNING id, slug, name_fa, name_en, sort;
 -- name: ListPublishedArticles :many
 -- Newest first. Filters are optional (NULL = any).
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
-       a.cover_url, a.read_minutes, a.published_at,
+       a.keywords_fa, a.keywords_en, a.cover_url, a.read_minutes, a.published_at,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -38,7 +38,7 @@ WHERE a.status = 'published' AND a.published_at <= now()
 
 -- name: GetPublishedArticle :one
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
-       a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
+       a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -61,7 +61,7 @@ LIMIT 200;
 
 -- name: GetArticle :one
 SELECT a.id, a.type, a.slug, a.status, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
-       a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
+       a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
        a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug
 FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
@@ -70,13 +70,13 @@ WHERE a.id = $1;
 
 -- name: CreateArticle :one
 INSERT INTO app.articles (type, slug, status, category_id, metal_id, outlook, featured, title_fa, title_en,
-                          summary_fa, summary_en, body_fa, body_en, author_fa, author_en, cover_url, read_minutes,
+                          summary_fa, summary_en, keywords_fa, keywords_en, body_fa, body_en, author_fa, author_en, cover_url, read_minutes,
                           published_at, created_by, updated_by)
 VALUES (sqlc.arg(type), sqlc.arg(slug), sqlc.arg(status),
         (SELECT ac.id FROM app.article_categories ac WHERE ac.slug = sqlc.narg(category_slug)::text),
         (SELECT mm.id FROM market.metals mm WHERE mm.slug = sqlc.narg(metal_slug)::text),
         sqlc.narg(outlook), sqlc.arg(featured), sqlc.arg(title_fa), sqlc.narg(title_en),
-        sqlc.arg(summary_fa), sqlc.narg(summary_en), sqlc.arg(body_fa), sqlc.narg(body_en),
+        sqlc.arg(summary_fa), sqlc.narg(summary_en), sqlc.arg(keywords_fa), sqlc.narg(keywords_en), sqlc.arg(body_fa), sqlc.narg(body_en),
         sqlc.narg(author_fa), sqlc.narg(author_en), sqlc.narg(cover_url), sqlc.arg(read_minutes),
         CASE WHEN sqlc.arg(status)::text = 'published' THEN coalesce(sqlc.narg(published_at)::timestamptz, now()) ELSE sqlc.narg(published_at)::timestamptz END,
         sqlc.arg(actor), sqlc.arg(actor))
@@ -91,6 +91,7 @@ UPDATE app.articles AS a SET
   outlook = sqlc.narg(outlook), featured = sqlc.arg(featured),
   title_fa = sqlc.arg(title_fa), title_en = sqlc.narg(title_en),
   summary_fa = sqlc.arg(summary_fa), summary_en = sqlc.narg(summary_en),
+  keywords_fa = sqlc.arg(keywords_fa), keywords_en = sqlc.narg(keywords_en),
   body_fa = sqlc.arg(body_fa), body_en = sqlc.narg(body_en),
   author_fa = sqlc.narg(author_fa), author_en = sqlc.narg(author_en),
   cover_url = sqlc.narg(cover_url), read_minutes = sqlc.arg(read_minutes),
