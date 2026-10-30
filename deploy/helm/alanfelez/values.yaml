@@ -92,6 +92,9 @@ keycloak:
     enabled: true                  # PreSync job: apply the realm file's user profile to the running realm
   sessionLimit: 2                  # devices signed in at once per account (the oldest is signed out); 0 = no limit.
                                    # Applied by the profile job once; to change it later use the Keycloak admin console
+  ssoSessionIdleSeconds: 0         # signed out after this many seconds without activity, then password or SMS code
+                                   # again; set on the running realm by the profile job every sync. 0 = leave the realm
+                                   # as it is. Per environment (staging first, then production: client + owner, 2026-10-30)
   extraEnv: {}
   resources:
     requests: { cpu: 250m, memory: 768Mi }

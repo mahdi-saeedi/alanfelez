@@ -7,6 +7,8 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-10-30 (monitoring only on production)
 
 ## Now (in progress)
+- [ ] Idle sign-out on production: after the client tests it on staging, set `keycloak.ssoSessionIdleSeconds: 3600`
+      in `deploy/environments/production/values.yaml` (owner OK'd 2026-10-30).
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
 ## Next (no one else needed)
@@ -51,6 +53,8 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-30 Signed out after 1 hour without activity on staging (client + owner): Keycloak `ssoSessionIdleTimeout`
+  3600 s (was 7 days), applied to the running realm by the profile job; the 2-device limit stays.
 - 2026-10-30 Monitoring removed from **staging** (sign-in broke there: its 8 GB server ran short of memory); production
   keeps it. Staging is for checking changes, the server watched is production.
 - 2026-10-29 Staging rollouts wait 10 min (was 3) for new pods: a brief DNS failure while pulling the image aborted
