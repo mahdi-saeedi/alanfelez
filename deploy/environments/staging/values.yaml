@@ -22,7 +22,7 @@ api:
   # Approved sms.ir templates (client, 2026-10-27): reminder, plan ended, price alert (PRODUCT, PRICE, CHANGE).
   smsir: {templates: "subscription_expiring=491453,subscription_ended=892531,price_alert=146260,price_update=919549"}
 keycloak:
-  ssoSessionIdleSeconds: 3600 # signed out after 1 hour without activity (client + owner, 2026-10-30); production after testing
+  ssoSessionIdleSeconds: 3600 # signed out after 1 hour without activity (client + owner, 2026-10-30)
   # Sign-in codes go out by real SMS through sms.ir (line 500037506946788; key in secrets/alanfelez-sms, restricted to the
   # servers' IPs). Template 972517 is the client's approved verify template with parameter CODE.
   otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}

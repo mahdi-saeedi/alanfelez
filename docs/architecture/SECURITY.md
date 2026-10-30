@@ -77,7 +77,7 @@ Every limit is configurable. Defaults:
   need a Java extension. Seeing and revoking devices on the account page is not built yet.
 - **Idle sign-out** (client + owner, 2026-10-30): a Keycloak session ends after 1 hour without activity
   (`ssoSessionIdleTimeout`, `keycloak.ssoSessionIdleSeconds` per environment, set on the running realm by the profile
-  job; staging first, production after testing), so coming
+  job; staging and production since 2026-10-30), so coming
   back later asks for the password or SMS code again. Using the site refreshes the token every few minutes and keeps
   the session alive; when it has ended the header says so and offers «ورود دوباره». Staff sessions follow the same rule.
 - `robots` rules and `noindex` for anything behind a lock. Watermark PDF exports (Gold) with the user ID.
