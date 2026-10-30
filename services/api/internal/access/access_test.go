@@ -9,7 +9,7 @@ var expected = map[Feature]map[Tier]bool{
 	PricesFull:      {Free: false, Silver: true, Gold: true},
 	ChartBasic:      {Free: true, Silver: true, Gold: true},
 	ChartFull:       {Free: false, Silver: true, Gold: true},
-	NewsRead:        {Free: true, Silver: true, Gold: true},
+	NewsRead:        {Free: false, Silver: true, Gold: true},
 	AnalysisRead:    {Free: false, Silver: false, Gold: true},
 	ForecastRead:    {Free: false, Silver: false, Gold: true},
 	AuctionsRead:    {Free: false, Silver: false, Gold: true},

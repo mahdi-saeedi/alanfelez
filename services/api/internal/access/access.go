@@ -37,7 +37,7 @@ const (
 	PricesFull      Feature = "prices.full"      // every product, market and source
 	ChartBasic      Feature = "chart.basic"      // charts of world prices with limited history
 	ChartFull       Feature = "chart.full"       // full history, and the history of IME and market prices
-	NewsRead        Feature = "news.read"        // public news
+	NewsRead        Feature = "news.read"        // fundamental news (Silver since 2026-10-30)
 	AnalysisRead    Feature = "analysis.read"    // expert market analysis
 	ForecastRead    Feature = "forecast.read"    // price forecast scenarios
 	AuctionsRead    Feature = "auctions.read"    // IME daily auctions data
@@ -53,7 +53,7 @@ var minTier = map[Feature]Tier{
 	PricesFull:      Silver,
 	ChartBasic:      Free,
 	ChartFull:       Silver,
-	NewsRead:        Free,
+	NewsRead:        Silver, // client + owner, 2026-10-30: fundamental news is for subscribers
 	AnalysisRead:    Gold,
 	ForecastRead:    Gold,
 	AuctionsRead:    Gold,

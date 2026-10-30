@@ -76,10 +76,10 @@ export default async function ArticlePage({ params }: Params) {
           <TopicChip a={a} />
         </div>
         <h1 className="text-2xl font-extrabold leading-10 sm:text-3xl">{a.title}</h1>
-        <p className="text-text-2">{a.summary}</p>
+        {!a.locked && <p className="text-text-2">{a.summary}</p>}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-3">
           {insight ? <span className="font-bold text-gold-dark">{t("analysis.byTeam")}</span> : a.author && <span>{t("analysis.by", { name: a.author })}</span>}
-          <Meta a={a} locale={locale} />
+          <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
         </div>
       </header>
 
@@ -90,7 +90,7 @@ export default async function ArticlePage({ params }: Params) {
           <RichText html={a.body} />
         ) : (
           <Locked plan={plan} title={t("analysis.lockedTitle", { plan: t(`lock.plan.${plan}`) })}>
-            {t("analysis.lockedBody", { plan: t(`lock.plan.${plan}`) })}
+            {t(insight ? "analysis.lockedBody" : "analysis.lockedBodyNews", { plan: t(`lock.plan.${plan}`) })}
           </Locked>
         )}
       </div>
@@ -113,7 +113,7 @@ export default async function ArticlePage({ params }: Params) {
                 <li key={r.slug}>
                   <Link href={`/analysis/${r.slug}`} className="block rounded-card border border-border bg-surface p-4 shadow-soft hover:border-gold/60">
                     <span className="font-bold leading-7">{r.title}</span>
-                    <span className="mt-1 line-clamp-2 block text-sm text-text-2">{r.summary}</span>
+                    {!r.locked && <span className="mt-1 line-clamp-2 block text-sm text-text-2">{r.summary}</span>}
                   </Link>
                 </li>
               ) : (
