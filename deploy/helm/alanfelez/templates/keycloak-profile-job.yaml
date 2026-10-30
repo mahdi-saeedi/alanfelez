@@ -1,7 +1,7 @@
 {{- if .Values.keycloak.profileSync.enabled }}
 # Keycloak imports the realm file only when the realm doesn't exist, so later changes to its user profile (sign-up
 # fields, who sees them) never reach a running realm by themselves. Before every sync this job applies the profile
-# from the new Keycloak image to the running Keycloak, adds web-client token mappers it lacks, and the device limit (the new profile also works with the old code, so before is
+# from the new Keycloak image to the running Keycloak, adds web-client token mappers it lacks, the device limit and the idle sign-out time (the new profile also works with the old code, so before is
 # the safe side). It never blocks a deploy: on a first install (no Keycloak yet) or any error it logs and exits 0;
 # then run services/keycloak/realm/apply-user-profile.sh by hand.
 apiVersion: batch/v1
@@ -104,6 +104,16 @@ spec:
                 echo "session limit added: {{ .Values.keycloak.sessionLimit }} devices per account"
                 {{- end }}
               }
+              # Signed out after {{ .Values.keycloak.ssoSessionIdleSeconds }} s without activity (client + owner, 2026-10-30): coming
+              # back later asks for the password or SMS code again, instead of SSO signing the browser straight back in.
+              # Using the site refreshes the token every few minutes, which keeps an active session alive.
+              set_session_idle() {
+                : # (empty when the value is 0)
+                {{- if .Values.keycloak.ssoSessionIdleSeconds }}
+                $kcadm update realms/alanfelez -s ssoSessionIdleTimeout={{ .Values.keycloak.ssoSessionIdleSeconds }} --config $cfg
+                echo "sessions end after {{ .Values.keycloak.ssoSessionIdleSeconds }} s without activity"
+                {{- end }}
+              }
               for i in $(seq 1 12); do
                 if $kcadm config credentials --config $cfg --server "$url" --realm master --user "$KC_ADMIN" --password "$KC_ADMIN_PASSWORD" >/dev/null 2>&1; then
                   if $kcadm update users/profile -r alanfelez -f /opt/keycloak/data/user-profile.json --config $cfg; then
@@ -113,6 +123,7 @@ spec:
                   fi
                   add_web_mappers || echo "WARNING: the web client's token mappers were not checked"
                   add_session_limit || echo "WARNING: the session limit was not checked"
+                  set_session_idle || echo "WARNING: the idle sign-out time was not set"
                   add_api_admin_client || echo "WARNING: the API's service-account client was not checked"
                   add_grafana_client || echo "WARNING: Grafana's sign-in client was not checked"
                   exit 0

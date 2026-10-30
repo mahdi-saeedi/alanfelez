@@ -21,7 +21,7 @@
   ],
   "defaultLocale": "fa",
   "accessTokenLifespan": 300,
-  "ssoSessionIdleTimeout": 604800,
+  "ssoSessionIdleTimeout": 3600,
   "ssoSessionMaxLifespan": 2592000,
   "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 0,
