@@ -34,7 +34,7 @@ func article(typ, slug, status string) map[string]any {
 	return map[string]any{
 		"type": typ, "slug": slug, "status": status, "featured": false, "metal": "copper", "outlook": "up",
 		"titleFa": "عنوان " + slug, "summaryFa": "", "bodyFa": `<h2>بخش</h2><p onclick="x()">متن <strong>مس</strong></p><script>alert(1)</script>`,
-		"titleEn": "Title " + slug, "bodyEn": "<p>English body</p>",
+		"titleEn": "Title " + slug, "bodyEn": "<p>English body</p>", "keywordsFa": "مس، کمبود عرضه ,مس",
 	}
 }
 
@@ -70,6 +70,10 @@ func TestArticlesLockedBodiesNeverSent(t *testing.T) {
 		}
 		if a["summary"] == "" { // derived from the body when left empty
 			t.Fatalf("empty summary for %v", a["slug"])
+		}
+		// Keywords (shown under a locked title) are cleaned on save: split, trimmed, no repeats.
+		if kw, _ := a["keywords"].([]any); len(kw) != 2 || kw[0] != "مس" || kw[1] != "کمبود عرضه" {
+			t.Fatalf("keywords of %v: %v", a["slug"], a["keywords"])
 		}
 	}
 	if st, body, _ := e.call(http.MethodGet, "/v1/articles?type=analysis&type=forecast&metal=copper", "", nil); st != 200 || body["total"].(float64) != 1 {

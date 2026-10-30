@@ -73,6 +73,7 @@ func (s *Server) ListArticles(ctx context.Context, req ListArticlesRequestObject
 		a := ArticleSummary{
 			Slug: r.Slug, Type: ArticleType(r.Type), Title: localized(lang, r.TitleFa, r.TitleEn),
 			Summary: localized(lang, r.SummaryFa, r.SummaryEn), Featured: r.Featured, CoverUrl: textp(r.CoverUrl),
+			Keywords:    keywordsOf(lang, r.KeywordsFa, r.KeywordsEn),
 			ReadMinutes: int(r.ReadMinutes), PublishedAt: r.PublishedAt.Time.UTC(),
 			Category: localizedRef(lang, r.CategorySlug, r.CategoryFa, r.CategoryEn),
 			Metal:    localizedRef(lang, r.MetalSlug, r.MetalFa, r.MetalEn),
@@ -101,6 +102,7 @@ func (s *Server) GetArticle(ctx context.Context, req GetArticleRequestObject) (G
 	a := Article{
 		Slug: r.Slug, Type: ArticleType(r.Type), Title: localized(lang, r.TitleFa, r.TitleEn),
 		Summary: localized(lang, r.SummaryFa, r.SummaryEn), Featured: r.Featured, CoverUrl: textp(r.CoverUrl),
+		Keywords:    keywordsOf(lang, r.KeywordsFa, r.KeywordsEn),
 		ReadMinutes: int(r.ReadMinutes), PublishedAt: r.PublishedAt.Time.UTC(), UpdatedAt: r.UpdatedAt.Time.UTC(),
 		Category: localizedRef(lang, r.CategorySlug, r.CategoryFa, r.CategoryEn),
 		Metal:    localizedRef(lang, r.MetalSlug, r.MetalFa, r.MetalEn),
@@ -339,4 +341,10 @@ func isUniqueViolation(err error) bool {
 
 func conflict(ctx context.Context, detail string) Problem {
 	return problem(ctx, http.StatusConflict, codeConflict, "Conflict", detail)
+}
+
+// keywordsOf is the article's keywords in the caller's language (English falls back to Persian, like the title).
+func keywordsOf(lang, fa string, en pgtype.Text) *[]string {
+	k := content.Keywords(localized(lang, fa, en))
+	return &k
 }

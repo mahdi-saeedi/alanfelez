@@ -4,6 +4,9 @@
 version: 1
 datasets:
   - name: articles
+    # upsert: the demo rows follow this file on every deploy (keywords added 2026-10-30 reach staging); real articles
+    # are other rows and never touched. Edit demo rows here, not in the admin.
+    mode: upsert
     rows:
       - slug: demo-copper-global-rise
         type: news
@@ -16,6 +19,8 @@ datasets:
         read_minutes: 2
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "آمار تولید چین، تقاضای صنعتی، بورس لندن"
+        keywords_en: "China output data, industrial demand, LME"
         title_fa: "رشد قیمت مس در بازارهای جهانی پس از انتشار آمار تولید چین"
         title_en: "Copper rises on global markets after China’s output data"
         summary_fa: "بازارهای جهانی فلز پایه به گزارش‌های تولید صنعتی چین واکنش مثبت نشان دادند و قیمت مس در بورس فلزات لندن افزایش یافت."
@@ -48,6 +53,8 @@ datasets:
         read_minutes: 2
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "هزینه انرژی، تولید داخلی، شمش"
+        keywords_en: "Energy costs, domestic output, ingot"
         title_fa: "تغییر نرخ انرژی و تأثیر آن بر هزینه تولید آلومینیوم در ایران"
         title_en: "Energy prices and their effect on aluminium production costs in Iran"
         summary_fa: "تولیدکنندگان آلومینیوم داخلی با افزایش هزینه‌های انرژی دست‌وپنجه نرم می‌کنند؛ موضوعی که می‌تواند بر قیمت‌های داخلی اثر بگذارد."
@@ -66,6 +73,8 @@ datasets:
         read_minutes: 1
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "ضایعات، اصفهان، حجم معاملات"
+        keywords_en: "Scrap, Isfahan, trading volume"
         title_fa: "رونق بازار ضایعات آلومینیوم در اصفهان"
         title_en: "Aluminium scrap trade picks up in Isfahan"
         summary_fa: "حجم معاملات ضایعات آلومینیوم در استان اصفهان در ماه گذشته نسبت به ماه قبل افزایش یافته است."
@@ -84,6 +93,8 @@ datasets:
         read_minutes: 2
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "نرخ ارز، قیمت‌گذاری داخلی"
+        keywords_en: "Exchange rate, domestic pricing"
         title_fa: "نرخ ارز و اثر آن بر بازار داخلی فلزات"
         title_en: "The exchange rate and its effect on the domestic metals market"
         summary_fa: "نوسانات نرخ ارز همچنان یکی از عوامل اصلی قیمت‌گذاری فلزات در بازار داخلی است."
@@ -102,6 +113,8 @@ datasets:
         read_minutes: 1
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "ورق فولادی، کمبود عرضه"
+        keywords_en: "Steel sheet, short supply"
         title_fa: "ورق فولادی در بازار ایران؛ عرضه محدود و تقاضای پایدار"
         title_en: "Steel sheet in Iran: limited supply, steady demand"
         summary_fa: "کمبود نسبی عرضه ورق‌های فولادی در بازارهای داخلی باعث ثبات نسبی قیمت‌ها شده است."
@@ -120,6 +133,8 @@ datasets:
         read_minutes: 4
         author_fa: "کارشناس الان‌فلز (نمونه)"
         author_en: "Alan Felez analyst (demo)"
+        keywords_fa: "عرضه و تقاضا، نرخ ارز، قیمت جهانی"
+        keywords_en: "Supply and demand, exchange rate, world price"
         title_fa: "چشم‌انداز قیمت آلومینیوم در ماه پیش رو"
         title_en: "Aluminium price outlook for the coming month"
         summary_fa: "بررسی عوامل عرضه، تقاضا، نرخ ارز و قیمت جهانی که در ماه پیش رو بر بازار آلومینیوم اثر می‌گذارند."
@@ -150,6 +165,8 @@ datasets:
         read_minutes: 5
         author_fa: "کارشناس الان‌فلز (نمونه)"
         author_en: "Alan Felez analyst (demo)"
+        keywords_fa: "کاتد، سیم و کابل، تقاضا"
+        keywords_en: "Cathode, wire and cable, demand"
         title_fa: "تحلیل عرضه و تقاضا در بازار مس ایران"
         title_en: "Supply and demand in Iran’s copper market"
         summary_fa: "نگاهی به عرضه کاتد و مفتول مس، تقاضای صنایع سیم و کابل و اثر قیمت جهانی بر بازار داخلی."
@@ -168,6 +185,8 @@ datasets:
         read_minutes: 3
         author_fa: "کارشناس الان‌فلز (نمونه)"
         author_en: "Alan Felez analyst (demo)"
+        keywords_fa: "گالوانیزه، سناریو، فصل"
+        keywords_en: "Galvanising, scenarios, season"
         title_fa: "سناریوهای احتمالی قیمت روی تا پایان فصل"
         title_en: "Possible zinc price scenarios to the end of the season"
         summary_fa: "سه سناریوی احتمالی برای مسیر قیمت روی بر اساس داده‌های موجود؛ برآوردی برای کمک به تصمیم‌گیری."
@@ -196,6 +215,8 @@ datasets:
         read_minutes: 2
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "اعتصاب معدن، شیلی، کنسانتره"
+        keywords_en: "Mine strike, Chile, concentrate"
         title_fa: "اعتصاب در یک معدن مس شیلی و نگرانی از کمبود عرضه"
         title_en: "Strike at a Chilean copper mine raises supply worries"
         summary_fa: "توقف موقت تولید در یکی از معادن بزرگ مس شیلی، نگرانی بازار از کمبود عرضه‌ی کنسانتره را بیشتر کرد."
@@ -212,6 +233,8 @@ datasets:
         read_minutes: 3
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "فدرال رزرو، نرخ بهره، دلار"
+        keywords_en: "Federal Reserve, interest rates, dollar"
         title_fa: "تصمیم فدرال رزرو درباره‌ی نرخ بهره و واکنش بازار فلزات پایه"
         title_en: "The Fed’s rate decision and how base metals reacted"
         summary_fa: "نگه‌داشتن نرخ بهره در سطح فعلی، دلار را تقویت کرد و فلزات پایه در معاملات جهانی کمی عقب نشستند."
@@ -228,6 +251,8 @@ datasets:
         read_minutes: 2
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "بورس کالا، عرضه کاتد"
+        keywords_en: "Commodity exchange, cathode offering"
         title_fa: "عرضه‌ی کاتد مس در بورس کالای ایران این هفته افزایش می‌یابد"
         title_en: "More copper cathode on the Iran Mercantile Exchange this week"
         summary_fa: "طبق اطلاعیه‌ی بورس کالا، حجم عرضه‌ی کاتد مس در هفته‌ی جاری نسبت به هفته‌ی قبل بیشتر است."
@@ -245,6 +270,8 @@ datasets:
         read_minutes: 2
         author_fa: "تحریریه الان‌فلز (نمونه)"
         author_en: "Alan Felez desk (demo)"
+        keywords_fa: "باتری خودرو، آسیا، تقاضا"
+        keywords_en: "Car batteries, Asia, demand"
         title_fa: "رشد تقاضای باتری و اثر آن بر بازار سرب"
         title_en: "Battery demand and the lead market"
         summary_fa: "افزایش تولید باتری‌های خودرو در آسیا، تقاضای سرب را در ماه گذشته بالا برده است."
@@ -261,6 +288,8 @@ datasets:
         read_minutes: 4
         author_fa: "تحلیل‌گران الان‌فلز (نمونه)"
         author_en: "Alan Felez analysts (demo)"
+        keywords_fa: "حمایت، مقاومت، نمودار روزانه"
+        keywords_en: "Support, resistance, daily chart"
         title_fa: "تحلیل تکنیکال مس: حمایت ۹٬۶۰۰ دلار و سناریوی برگشت"
         title_en: "Copper technical analysis: support at $9,600 and a rebound scenario"
         summary_fa: "قیمت جهانی مس به ناحیه‌ی حمایتی ۹٬۶۰۰ دلار رسیده؛ تا وقتی این سطح حفظ شود، سناریوی برگشت محتمل‌تر است."
@@ -277,6 +306,8 @@ datasets:
         read_minutes: 3
         author_fa: "تحلیل‌گران الان‌فلز (نمونه)"
         author_en: "Alan Felez analysts (demo)"
+        keywords_fa: "محدوده‌ی نوسان، شکست"
+        keywords_en: "Trading range, breakout"
         title_fa: "تحلیل تکنیکال آلومینیوم: نوسان در یک محدوده"
         title_en: "Aluminium technical analysis: trading in a range"
         summary_fa: "شمش آلومینیوم چند هفته است بین دو سطح مشخص نوسان می‌کند؛ خروج از این محدوده جهت بعدی را نشان می‌دهد."
@@ -293,6 +324,8 @@ datasets:
         read_minutes: 3
         author_fa: "تحلیل‌گران الان‌فلز (نمونه)"
         author_en: "Alan Felez analysts (demo)"
+        keywords_fa: "روند، سقف‌های پایین‌تر"
+        keywords_en: "Trend, lower highs"
         title_fa: "تحلیل تکنیکال روی: روند نزولی کوتاه‌مدت"
         title_en: "Zinc technical analysis: a short-term downtrend"
         summary_fa: "سقف‌های پایین‌تر در نمودار روزانه‌ی روی، روند نزولی کوتاه‌مدت را نشان می‌دهد."

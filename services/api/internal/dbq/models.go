@@ -34,6 +34,8 @@ type AppArticle struct {
 	UpdatedBy   pgtype.UUID
 	CreatedAt   pgtype.Timestamptz
 	UpdatedAt   pgtype.Timestamptz
+	KeywordsFa  string
+	KeywordsEn  pgtype.Text
 }
 
 type AppArticleCategory struct {

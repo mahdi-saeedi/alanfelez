@@ -37,6 +37,22 @@ export function TopicChip({ a }: { a: Pick<ArticleSummary, "metal" | "category">
   );
 }
 
+/**
+ * Under a locked title, in place of the summary (client, 2026-10-30): the editor's keywords, or the metal, category and
+ * type when there are none. Says what the article is about without giving it away.
+ */
+export async function KeywordChips({ a }: { a: Pick<ArticleSummary, "keywords" | "metal" | "category" | "type"> }) {
+  const t = await getTranslations("analysis");
+  const words = a.keywords?.length ? a.keywords : [a.metal?.name, a.category?.name, t(`type.${a.type}`)].filter((w): w is string => !!w);
+  return (
+    <ul className="flex flex-wrap gap-1.5" aria-label={t("keywords")}>
+      {words.map((w) => (
+        <li key={w} className="rounded-md bg-surface-2 px-2 py-0.5 text-xs text-text-2">#{w.replace(/\s+/g, "_")}</li>
+      ))}
+    </ul>
+  );
+}
+
 /** The author's view of the direction (an estimate, so it's labeled as the analyst's view). */
 export async function OutlookPill({ outlook }: { outlook?: ArticleSummary["outlook"] }) {
   if (!outlook) return null;

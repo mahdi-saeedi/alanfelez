@@ -2588,6 +2588,11 @@ components:
         type: { $ref: '#/components/schemas/ArticleType' }
         title: { type: string }
         summary: { type: string, description: Plain text }
+        keywords:
+          type: array
+          maxItems: 6
+          items: { type: string }
+          description: A few words on what it's about, shown instead of the summary when the article is locked (may be empty)
         category: { $ref: '#/components/schemas/Localized' }
         metal: { $ref: '#/components/schemas/Localized' }
         outlook: { $ref: '#/components/schemas/Outlook' }
@@ -2838,6 +2843,8 @@ components:
         titleEn: { type: string, maxLength: 200 }
         summaryFa: { type: string, maxLength: 600 }
         summaryEn: { type: string, maxLength: 600 }
+        keywordsFa: { type: string, maxLength: 200, description: 'Comma-separated, shown under a locked title instead of the summary' }
+        keywordsEn: { type: string, maxLength: 200 }
         bodyFa: { type: string, maxLength: 200000, description: HTML from the editor (sanitized on save) }
         bodyEn: { type: string, maxLength: 200000 }
         authorFa: { type: string, maxLength: 100 }

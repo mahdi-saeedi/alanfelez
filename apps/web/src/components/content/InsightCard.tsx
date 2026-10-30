@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { LockIcon } from "@/components/Locked";
-import { Meta } from "./parts";
+import { KeywordChips, Meta } from "./parts";
 import type { ArticleSummary } from "@/lib/content";
 
 /** Gold analysis / forecast teaser. Locked: title + summary only, with the upgrade CTA (no body exists here). */
@@ -18,7 +18,7 @@ export async function InsightCard({ a, locale }: { a: ArticleSummary; locale: Lo
       {/* Written by the Alan Felez team (client, 2026-10-30); members' own analyses will carry their name instead. */}
       <p className="text-xs font-bold text-gold-dark">{t("byTeam")}</p>
       {/* Locked: the title only (client, 2026-10-30), so the teaser doesn't give the analysis away. */}
-      {a.locked ? <span className="flex-1" /> : <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>}
+      {a.locked ? <div className="flex-1"><KeywordChips a={a} /></div> : <p className="line-clamp-2 flex-1 text-sm text-text-2">{a.summary}</p>}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Meta a={a.locked ? { ...a, outlook: undefined } : a} locale={locale} />
         {a.locked ? (

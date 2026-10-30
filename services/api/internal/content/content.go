@@ -8,6 +8,7 @@ package content
 import (
 	"html"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -74,6 +75,22 @@ func Sanitize(s string) string { return strings.TrimSpace(policy.Sanitize(s)) }
 // PlainText strips all markup from s and collapses whitespace (for summaries, search and word counts).
 func PlainText(s string) string {
 	return strings.Join(strings.Fields(html.UnescapeString(strict.Sanitize(s))), " ")
+}
+
+// MaxKeywords is how many keywords an article shows under a locked title.
+const MaxKeywords = 6
+
+// Keywords splits what an editor typed ("مس، کمبود عرضه, شیلی") into at most MaxKeywords plain-text words or phrases,
+// in order, without blanks or repeats. Persian and Latin commas, semicolons and new lines all separate.
+func Keywords(s string) []string {
+	parts := strings.FieldsFunc(s, func(r rune) bool { return r == ',' || r == '،' || r == ';' || r == '؛' || r == '\n' })
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if p = PlainText(p); p != "" && !slices.Contains(out, p) && len(out) < MaxKeywords {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // ReadMinutes estimates reading time for body HTML at 200 words a minute (at least 1).
