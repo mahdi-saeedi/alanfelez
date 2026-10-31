@@ -669,7 +669,12 @@
     "latestTitle": "Latest auctions",
     "latestAll": "All auctions →",
     "upgrade": "Upgrade to see the details",
-    "details": "See the details"
+    "details": "See the details",
+    "lockedBanner": "Each auction's deadline, place, organiser and notice are for {plan} members.",
+    "lockedCta": "Upgrade to {plan}",
+    "lockedShort": "Deadline, place and notice: Gold",
+    "daysLeft": "{n} days left",
+    "lastDay": "Last day"
   },
   "calculator": {
     "title": "Load value calculator",
