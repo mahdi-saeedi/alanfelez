@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-30 (monitoring only on production)
+Last updated: 2026-10-31 (monitoring off on production after the server hung)
 
 ## Now (in progress)
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
@@ -52,6 +52,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-31 Monitoring **turned off on production** too: the production server stopped answering (no ping, no SSH)
+  after it ran for two days; staging had failed the same way. Back only after the cause is found in the server's
+  logs and with lighter settings (deploy/observability stays in git; the Argo CD apps are removed).
 - 2026-10-31 Idle sign-out is 3 hours on staging and production (client; was 1 hour).
 - 2026-10-31 Auctions page (client): «… روز مانده» / «آخرین روز» on open auctions (Gold), a count per status,
   only metals with auctions, one-line filters on phones, a short lock banner for free users, and Gold details folded
