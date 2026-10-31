@@ -5,7 +5,8 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Schemas } from "@alanfelez/api-client";
 import { formatDate, formatNumber, parseDecimal, type Locale } from "@alanfelez/ui/format";
 import { deleteAction, estimateAction, saveAction } from "@/app/[locale]/calculator/actions";
-import { EMPTY_FORM, type CalcForm, type CalcProduct } from "./calc-form";
+import { EMPTY_FORM, amountInWords, type CalcForm, type CalcProduct } from "./calc-form";
+import { StickyResult } from "./StickyResult";
 
 type Result = Schemas["CalculatorResult"];
 type Input = Schemas["CalculatorInput"];
@@ -101,12 +102,16 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
     }
   };
 
+  // Free: one worked example from today's free base price (1 ton of the first product), so the box isn't just «—».
+  const sample = products.find((p) => p.priceRialPerKg);
+  const example = sample?.priceRialPerKg ? { name: sample.name, toman: (sample.priceRialPerKg * 1000) / 10 } : undefined;
   const field = "w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-gold disabled:bg-surface-2";
   const chip = (on: boolean) => `rounded-control border px-3 py-1.5 text-sm ${on ? "border-graphite bg-graphite font-bold text-white" : "border-border bg-surface hover:border-gold"}`;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+    <div className={`grid gap-6 ${allowed ? "lg:grid-cols-[1fr_300px]" : ""}`}>
       <fieldset disabled={!allowed} className="min-w-0 space-y-5 rounded-card border border-border bg-surface p-5 shadow-soft sm:p-6">
+        {allowed && result && <StickyResult target="calc-result" label={t("resultTitle")} value={`${formatNumber(Math.round(result.valueRial / 10), locale)} ${t("toman")}`} />}
         <div className="grid gap-5 md:grid-cols-2">
           <div>
             <p className="mb-2 text-sm font-bold">{t("metal")}</p>
@@ -142,7 +147,11 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-control bg-surface-2 px-4 py-3 text-sm">
             <span className="text-text-2">{t("basePrice")}:</span>
             {product.priceRialPerKg ? (
-              <span className="font-extrabold tabular-nums">{formatNumber(Math.round(product.priceRialPerKg / 10), locale)} <span className="text-xs font-normal text-text-2">{t("toman")}/{t("kg")}</span></span>
+              <span className="text-end">
+                <span className="font-extrabold tabular-nums">{formatNumber(Math.round(product.priceRialPerKg / 10), locale)} <span className="text-xs font-normal text-text-2">{t("toman")}/{t("kg")}</span></span>
+                {/* Source and last update next to every price (CLAUDE.md). */}
+                {product.observedAt && <span className="block text-xs text-text-3">{t("priceFrom", { source: product.source ?? "", time: formatDate(product.observedAt, locale, true) })}</span>}
+              </span>
             ) : (
               <span className="text-xs text-text-3">{t("noBase")}</span>
             )}
@@ -187,12 +196,16 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
           </div>
         </div>
 
-        <section className="rounded-card bg-graphite p-5 text-center text-white" aria-live="polite">
+        <section id="calc-result" className="scroll-mt-28 rounded-card bg-graphite p-5 text-center text-white" aria-live="polite">
           <p className="text-sm text-silver-light">{t("resultTitle")}</p>
           <p className={`mt-2 text-3xl font-extrabold tabular-nums sm:text-4xl ${pending ? "opacity-60" : ""}`}>
             {result ? formatNumber(Math.round(result.valueRial / 10), locale) : "—"}
           </p>
           <p className="mt-1 text-xs text-silver-light">{t("toman")}</p>
+          {result && <p className="mt-1 text-sm font-bold text-gold-light">{amountInWords(Math.round(result.valueRial / 10), locale)}</p>}
+          {!allowed && example && (
+            <p className="mt-3 text-xs text-silver-light">{t("example", { product: example.name, value: amountInWords(example.toman, locale) })}</p>
+          )}
           {error && allowed && <p className="mt-3 text-xs text-gold-light">{error}</p>}
           {result && (
             <dl className="mt-5 grid grid-cols-2 gap-2 text-start sm:grid-cols-4">
@@ -235,13 +248,13 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
             <ul className="divide-y divide-border">
               {saved.map((c) => (
                 <li key={c.id} className="py-2.5 text-sm">
-                  <button type="button" onClick={() => open(c)} className="block text-start font-bold hover:text-gold-dark">{c.name}</button>
+                  <button type="button" onClick={() => open(c)} className="block min-h-9 text-start font-bold hover:text-gold-dark">{c.name}</button>
                   <div className="text-xs text-text-3">
                     {formatNumber(c.result.input.weightGrams / 1000, locale)} {t("kg")} · {formatDate(c.createdAt, locale)}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-bold tabular-nums">{formatNumber(Math.round(c.result.valueRial / 10), locale)} {t("toman")}</span>
-                    <button type="button" onClick={() => remove(c.id)} className="text-xs text-text-3 hover:text-down">{t("delete")}</button>
+                    <button type="button" onClick={() => remove(c.id)} className="min-h-9 px-2 text-xs text-text-3 hover:text-down">{t("delete")}</button>
                   </div>
                 </li>
               ))}

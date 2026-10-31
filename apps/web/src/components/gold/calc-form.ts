@@ -8,7 +8,29 @@ export type CalcProduct = {
   metal: { slug: string; name: string };
   category: { slug: string; name: string };
   priceRialPerKg?: number;
+  /** Where today's price comes from and when it was last updated (shown next to it, CLAUDE.md copy rule). */
+  source?: string;
+  observedAt?: string;
 };
+
+/**
+ * A Toman amount in words (client, 2026-10-31): «۸ میلیارد و ۷۵ میلیون تومان» reads faster than 8,075,000,000.
+ * Rounded to the thousand; English uses billion/million with two decimals.
+ */
+export function amountInWords(toman: number, locale: "fa" | "en"): string {
+  const n = Math.round(Math.abs(toman) / 1000) * 1000;
+  if (locale === "en") {
+    const fmt = (v: number) => v.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    return n >= 1e9 ? `≈ ${fmt(n / 1e9)} billion Toman` : n >= 1e6 ? `≈ ${fmt(n / 1e6)} million Toman` : `≈ ${fmt(n)} Toman`;
+  }
+  const fa = (v: number) => v.toLocaleString("fa-IR");
+  const parts: string[] = [];
+  const b = Math.floor(n / 1e9), m = Math.floor((n % 1e9) / 1e6), k = Math.floor((n % 1e6) / 1e3);
+  if (b) parts.push(`${fa(b)} میلیارد`);
+  if (m) parts.push(`${fa(m)} میلیون`);
+  if (k) parts.push(`${fa(k)} هزار`);
+  return parts.length ? `${toman < 0 ? "منفی " : ""}${parts.join(" و ")} تومان` : "";
+}
 
 /** Form state as typed (strings, so Persian digits and decimals work), also what a share link carries. */
 export type CalcForm = {
