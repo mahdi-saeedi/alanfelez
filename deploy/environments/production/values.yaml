@@ -34,7 +34,7 @@ web:
   cspFormOrigins: [] # add the real gateway's payment page origin with F13, e.g. https://www.zarinpal.com
 keycloak:
   replicas: 1 # 2 after launch (clustered through the database)
-  ssoSessionIdleSeconds: 3600 # signed out after 1 hour without activity (client + owner, 2026-10-30)
+  ssoSessionIdleSeconds: 10800 # signed out after 3 hours without activity (client, 2026-10-31; was 1 hour)
   # Sign-in codes by real SMS through sms.ir (template 972517; key in secrets/alanfelez-sms, sealed with the key both
   # clusters share today: reseal it with the other production secrets before launch, docs/TODO.md).
   otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}
