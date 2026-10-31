@@ -16,11 +16,13 @@ export function CommunityPage() {
   const locale = useGetLocale()() as Locale;
   const qc = useQueryClient();
   const [status, setStatus] = useState<Status>();
+  const [reported, setReported] = useState(false);
   const [q, setQ] = useState("");
   const roles = useQuery({ queryKey: ["roles"], queryFn: currentRoles });
   const list = useQuery({
-    queryKey: ["admin", "community", status ?? "all", q],
-    queryFn: async () => unwrap(await api.GET("/v1/admin/community/posts", { params: { query: { ...(status ? { status } : {}), ...(q ? { q } : {}) } } })),
+    queryKey: ["admin", "community", status ?? "all", reported, q],
+    queryFn: async () =>
+      unwrap(await api.GET("/v1/admin/community/posts", { params: { query: { ...(status ? { status } : {}), ...(reported ? { reported } : {}), ...(q ? { q } : {}) } } })),
   });
   const set = useMutation({
     mutationFn: async (v: { id: string; status: Status }) =>
@@ -34,8 +36,12 @@ export function CommunityPage() {
     <Page title={t("community.title")} hint={t("community.hint")}>
       <div className="flex flex-wrap items-center gap-2">
         {([undefined, "published", "hidden"] as const).map((s) => (
-          <button key={s ?? "all"} type="button" className={chip(status === s)} onClick={() => setStatus(s)}>{t(s ? `community.${s}` : "community.all")}</button>
+          <button key={s ?? "all"} type="button" className={chip(!reported && status === s)} onClick={() => { setStatus(s); setReported(false); }}>{t(s ? `community.${s}` : "community.all")}</button>
         ))}
+        {/* Reported by members: these come first in every list; the chip shows only them. */}
+        <button type="button" className={chip(reported)} onClick={() => { setReported(true); setStatus(undefined); }}>
+          {t("community.reported")}{list.data?.reportedOpen ? ` (${list.data.reportedOpen})` : ""}
+        </button>
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("community.search")} className="w-56" />
       </div>
       {list.isError && <Notice tone="error">{errorText(list.error, t)}</Notice>}
@@ -46,7 +52,10 @@ export function CommunityPage() {
           <Card key={p.id} className="space-y-2 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-bold">{p.authorName}</span>
-              <Badge tone={p.status === "published" ? "green" : "red"}>{t(`community.${p.status}`)}</Badge>
+              <span className="flex gap-1.5">
+                {(p.reports ?? 0) > 0 && <Badge tone="red">{t("community.reports").replace("{n}", String(p.reports))}</Badge>}
+                <Badge tone={p.status === "published" ? "green" : "red"}>{t(`community.${p.status}`)}</Badge>
+              </span>
             </div>
             <h3 className="font-bold">{p.title}</h3>
             <p className="whitespace-pre-line text-sm text-text-2">{p.body}</p>

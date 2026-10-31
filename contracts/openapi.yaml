@@ -1297,6 +1297,18 @@ paths:
         '204': { description: Deleted }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/community/posts/{id}/report:
+    post:
+      operationId: reportCommunityPost
+      tags: [community]
+      summary: Flag a member's analysis as unsuitable (needs community.read; not your own post). Once per member per post
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Reported (or already reported) }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/community/posts/{id}/image:
     get:
       operationId: getCommunityPostImage
@@ -1335,10 +1347,11 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: status, in: query, required: false, schema: { type: string, enum: [published, hidden] } }
+        - { name: reported, in: query, required: false, schema: { type: boolean }, description: Only posts someone reported }
         - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
       responses:
         '200':
-          description: Posts
+          description: Posts, reported published ones first
           content:
             application/json:
               schema:
@@ -1348,6 +1361,7 @@ paths:
                   items:
                     type: array
                     items: { $ref: '#/components/schemas/AdminCommunityPost' }
+                  reportedOpen: { type: integer, description: Published posts with at least one report }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/community/posts/{id}/status:
@@ -2911,6 +2925,7 @@ components:
         authorName: { type: string, description: The sign-up name (full name or company) }
         hasImage: { type: boolean }
         mine: { type: boolean, description: The caller wrote it (may delete it) }
+        reportedByMe: { type: boolean, description: The caller already reported it }
         createdAt: { type: string, format: date-time }
 
     CommunityPostList:
@@ -2937,6 +2952,7 @@ components:
             status: { type: string, enum: [published, hidden] }
             userId: { type: string, format: uuid }
             hiddenAt: { type: string, format: date-time }
+            reports: { type: integer, description: How many members reported it }
 
     Ticket:
       type: object

@@ -84,6 +84,36 @@ func TestCommunityPosts(t *testing.T) {
 		t.Fatalf("fourth post: %d %v", st, b)
 	}
 
+	// Members report it (not their own; once each); staff see it first with the count.
+	if st, _, _ := e.call(http.MethodPost, "/v1/community/posts/"+id+"/report", "gold", nil); st != 400 {
+		t.Fatalf("report own: %d", st)
+	}
+	if st, _, _ := e.call(http.MethodPost, "/v1/community/posts/"+id+"/report", "user", nil); st != 403 {
+		t.Fatalf("free report: %d", st)
+	}
+	for range 2 {
+		if st, _, raw := e.call(http.MethodPost, "/v1/community/posts/"+id+"/report", "silver", nil); st != 204 {
+			t.Fatalf("report: %d %s", st, raw)
+		}
+	}
+	if _, b, _ := e.call(http.MethodGet, "/v1/community/posts", "silver", nil); func() bool {
+		for _, it := range b["items"].([]any) {
+			if m := it.(map[string]any); m["id"] == id {
+				return m["reportedByMe"] != true
+			}
+		}
+		return true
+	}() {
+		t.Fatalf("reportedByMe missing: %v", b)
+	}
+	_, b, _ = e.call(http.MethodGet, "/v1/admin/community/posts", "support", nil)
+	if first := b["items"].([]any)[0].(map[string]any); first["id"] != id || first["reports"].(float64) != 1 || b["reportedOpen"].(float64) != 1 {
+		t.Fatalf("admin reported first: %v", b)
+	}
+	if _, b, _ := e.call(http.MethodGet, "/v1/admin/community/posts?reported=true", "support", nil); len(b["items"].([]any)) != 1 {
+		t.Fatalf("reported filter: %v", b)
+	}
+
 	// Staff hide it (audited); it leaves the feed and its image; support may not.
 	if st, _, _ := e.call(http.MethodPut, "/v1/admin/community/posts/"+id+"/status", "support", map[string]any{"status": "hidden"}); st != 403 {
 		t.Fatalf("support hide: %d", st)

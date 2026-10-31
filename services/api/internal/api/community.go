@@ -51,8 +51,12 @@ func (s *Server) ListCommunityPosts(ctx context.Context, req ListCommunityPostsR
 		}
 		return ListCommunityPosts200JSONResponse(out), nil
 	}
+	var callerID pgtype.UUID
+	if caller != nil {
+		callerID = caller.ID
+	}
 	rows, err := s.q.ListCommunityPosts(ctx, dbq.ListCommunityPostsParams{
-		Metal: metal, Lim: int32(limit), Off: int32((page - 1) * limit), //nolint:gosec // clamped above
+		Caller: callerID, Metal: metal, Lim: int32(limit), Off: int32((page - 1) * limit), //nolint:gosec // clamped above
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list community posts: %w", err)
@@ -63,6 +67,7 @@ func (s *Server) ListCommunityPosts(ctx context.Context, req ListCommunityPostsR
 			Id: r.ID.Bytes, Title: r.Title, Body: r.Body, AuthorName: r.AuthorName, HasImage: r.HasImage,
 			Mine: caller != nil && caller.ID == r.UserID, CreatedAt: r.CreatedAt.Time.UTC(),
 			Metal: localizedRef(lang, r.MetalSlug, r.MetalFa, r.MetalEn), Outlook: outlookOf(r.Outlook),
+			ReportedByMe: &r.ReportedByMe,
 		})
 	}
 	if caller != nil && access.Allowed(cur.Tier, access.CommunityPost) {
@@ -181,6 +186,37 @@ func (s *Server) DeleteCommunityPost(ctx context.Context, req DeleteCommunityPos
 	return DeleteCommunityPost204Response{}, nil
 }
 
+// ReportCommunityPost flags someone else's post for staff (once per member; a repeat is a no-op).
+func (s *Server) ReportCommunityPost(ctx context.Context, req ReportCommunityPostRequestObject) (ReportCommunityPostResponseObject, error) {
+	type bad = ReportCommunityPostdefaultApplicationProblemPlusJSONResponse
+	p := auth.FromContext(ctx)
+	if p == nil {
+		return fail[bad](unauthenticated(ctx)), nil
+	}
+	cur, err := s.tiers.Tier(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	if !access.Allowed(cur.Tier, access.CommunityRead) {
+		return fail[bad](lockedProblem(ctx, access.CommunityRead)), nil
+	}
+	id := pgtype.UUID{Bytes: req.Id, Valid: true}
+	o, err := s.q.GetCommunityPostOwner(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && o.Status != "published") {
+		return fail[bad](notFound(ctx, "post")), nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("post owner: %w", err)
+	}
+	if o.UserID == p.ID {
+		return fail[bad](badRequest(ctx, "you can't report your own post")), nil
+	}
+	if err := s.q.ReportCommunityPost(ctx, dbq.ReportCommunityPostParams{PostID: id, UserID: p.ID}); err != nil {
+		return nil, fmt.Errorf("report post: %w", err)
+	}
+	return ReportCommunityPost204Response{}, nil
+}
+
 // PutCommunityPostImage stores the chart image of the caller's own post, re-encoded as a JPEG.
 func (s *Server) PutCommunityPostImage(ctx context.Context, req PutCommunityPostImageRequestObject) (PutCommunityPostImageResponseObject, error) {
 	type bad = PutCommunityPostImagedefaultApplicationProblemPlusJSONResponse
@@ -246,7 +282,7 @@ func (s *Server) AdminListCommunityPosts(ctx context.Context, req AdminListCommu
 	if _, pr := requireRoles(ctx, rolesRead...); pr != nil {
 		return fail[AdminListCommunityPostsdefaultApplicationProblemPlusJSONResponse](*pr), nil
 	}
-	arg := dbq.AdminListCommunityPostsParams{Q: deref(req.Params.Q)}
+	arg := dbq.AdminListCommunityPostsParams{Q: deref(req.Params.Q), ReportedOnly: req.Params.Reported != nil && *req.Params.Reported}
 	if req.Params.Status != nil {
 		arg.Status = textOf(string(*req.Params.Status))
 	}
@@ -260,8 +296,15 @@ func (s *Server) AdminListCommunityPosts(ctx context.Context, req AdminListCommu
 			Id: r.ID.Bytes, UserId: r.UserID.Bytes, Title: r.Title, Body: r.Body, AuthorName: r.AuthorName,
 			HasImage: r.HasImage, CreatedAt: r.CreatedAt.Time.UTC(), Status: AdminCommunityPostStatus(r.Status),
 			HiddenAt: timep(r.HiddenAt), Metal: localizedRef("fa", r.MetalSlug, r.MetalFa, r.MetalEn), Outlook: outlookOf(r.Outlook),
+			Reports: &[]int{int(r.Reports)}[0],
 		})
 	}
+	open, err := s.q.CountReportedCommunityPosts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("count reported posts: %w", err)
+	}
+	n := int(open)
+	out.ReportedOpen = &n
 	return out, nil
 }
 

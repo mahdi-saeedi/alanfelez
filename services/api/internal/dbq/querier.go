@@ -16,6 +16,7 @@ type Querier interface {
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
 	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
+	// Reported published posts first (most reports first), then the rest newest first.
 	AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error)
 	AdminListContactMessages(ctx context.Context, status pgtype.Text) ([]AdminListContactMessagesRow, error)
 	AdminListMarkets(ctx context.Context) ([]AdminListMarketsRow, error)
@@ -51,6 +52,7 @@ type Querier interface {
 	CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error)
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
 	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
+	CountReportedCommunityPosts(ctx context.Context) (int64, error)
 	CountUserAlerts(ctx context.Context, userID pgtype.UUID) (int32, error)
 	// Deleted posts don't come back here, so the daily limit counts what's left; hidden ones still count.
 	CountUserCommunityPostsSince(ctx context.Context, arg CountUserCommunityPostsSinceParams) (int64, error)
@@ -208,6 +210,7 @@ type Querier interface {
 	RecordVisit(ctx context.Context, arg RecordVisitParams) error
 	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
+	ReportCommunityPost(ctx context.Context, arg ReportCommunityPostParams) error
 	// Total SMS spend since a time (the daily budget circuit breaker, SECURITY §4).
 	SMSCostSince(ctx context.Context, since pgtype.Timestamptz) (int64, error)
 	// Keeps the text that is about to be replaced.

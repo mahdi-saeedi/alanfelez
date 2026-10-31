@@ -26,6 +26,13 @@ export async function createCommunityPost(locale: Locale, body: CommunityPostInp
   return { status: res.response.status, post: res.data, problem: res.error } as const;
 }
 
+export async function reportCommunityPost(id: string) {
+  const { client, personal } = await callerApi();
+  if (!personal) return 401;
+  const res = await client.POST("/v1/community/posts/{id}/report", { params: { path: { id } }, cache: "no-store" });
+  return res.response.status;
+}
+
 export async function deleteCommunityPost(id: string) {
   const { client, personal } = await callerApi();
   if (!personal) return 401;

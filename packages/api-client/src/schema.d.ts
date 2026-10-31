@@ -950,6 +950,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/community/posts/{id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Flag a member's analysis as unsuitable (needs community.read; not your own post). Once per member per post */
+        post: operations["reportCommunityPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/community/posts/{id}/image": {
         parameters: {
             query?: never;
@@ -2163,6 +2180,8 @@ export interface components {
             hasImage: boolean;
             /** @description The caller wrote it (may delete it) */
             mine: boolean;
+            /** @description The caller already reported it */
+            reportedByMe?: boolean;
             /** Format: date-time */
             createdAt: string;
         };
@@ -2186,6 +2205,8 @@ export interface components {
             userId: string;
             /** Format: date-time */
             hiddenAt?: string;
+            /** @description How many members reported it */
+            reports?: number;
         };
         Ticket: {
             /** Format: uuid */
@@ -4068,6 +4089,27 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    reportCommunityPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reported (or already reported) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     getCommunityPostImage: {
         parameters: {
             query?: never;
@@ -4120,6 +4162,8 @@ export interface operations {
         parameters: {
             query?: {
                 status?: "published" | "hidden";
+                /** @description Only posts someone reported */
+                reported?: boolean;
                 q?: string;
             };
             header?: never;
@@ -4128,7 +4172,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Posts */
+            /** @description Posts, reported published ones first */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4136,6 +4180,8 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["AdminCommunityPost"][];
+                        /** @description Published posts with at least one report */
+                        reportedOpen?: number;
                     };
                 };
             };

@@ -4,6 +4,7 @@ import { OutlookPill, metalTone } from "@/components/content/parts";
 import type { CommunityPost } from "@/lib/community";
 import { ExpandableText } from "./ExpandableText";
 import { DeletePostButton } from "./DeletePostButton";
+import { ReportPostButton } from "./ReportPostButton";
 
 /**
  * A member's analysis (client, 2026-10-30), only ever rendered for Silver and Gold (the API sends no posts to others).
@@ -36,7 +37,11 @@ export async function CommunityCard({ p, locale }: { p: CommunityPost; locale: L
           <time dateTime={p.createdAt}>{formatDate(p.createdAt, locale, true)}</time>
           <OutlookPill outlook={p.outlook} />
         </div>
-        {p.mine && <DeletePostButton id={p.id} label={t("delete")} confirm={t("deleteConfirm")} />}
+        {p.mine ? (
+          <DeletePostButton id={p.id} label={t("delete")} confirm={t("deleteConfirm")} />
+        ) : (
+          <ReportPostButton id={p.id} done={!!p.reportedByMe} labels={{ report: t("report"), confirm: t("reportConfirm"), reported: t("reported") }} />
+        )}
       </div>
       <p className="text-[11px] leading-5 text-text-3">{t("ownView")}</p>
     </article>

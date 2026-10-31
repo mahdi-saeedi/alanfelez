@@ -92,6 +92,12 @@ type AppCommunityPostImage struct {
 	Content   []byte
 }
 
+type AppCommunityPostReport struct {
+	PostID    pgtype.UUID
+	UserID    pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+}
+
 type AppContactMessage struct {
 	ID        pgtype.UUID
 	Name      string

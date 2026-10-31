@@ -80,18 +80,22 @@ func (q *Queries) AdminListArticles(ctx context.Context, arg AdminListArticlesPa
 const adminListCommunityPosts = `-- name: AdminListCommunityPosts :many
 SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.status, p.hidden_at, p.created_at,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
-       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
+       (SELECT count(*) FROM app.community_post_reports r WHERE r.post_id = p.id) AS reports
 FROM app.community_posts p
 LEFT JOIN market.metals m ON m.id = p.metal_id
 WHERE ($1::text IS NULL OR p.status = $1::text)
-  AND ($2::text = '' OR p.title ILIKE '%' || $2::text || '%' OR p.author_name ILIKE '%' || $2::text || '%')
-ORDER BY p.created_at DESC
+  AND (NOT $2::bool OR EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id))
+  AND ($3::text = '' OR p.title ILIKE '%' || $3::text || '%' OR p.author_name ILIKE '%' || $3::text || '%')
+ORDER BY (p.status = 'published' AND EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id)) DESC,
+         reports DESC, p.created_at DESC
 LIMIT 200
 `
 
 type AdminListCommunityPostsParams struct {
-	Status pgtype.Text
-	Q      string
+	Status       pgtype.Text
+	ReportedOnly bool
+	Q            string
 }
 
 type AdminListCommunityPostsRow struct {
@@ -108,10 +112,12 @@ type AdminListCommunityPostsRow struct {
 	MetalFa    pgtype.Text
 	MetalEn    pgtype.Text
 	HasImage   bool
+	Reports    int64
 }
 
+// Reported published posts first (most reports first), then the rest newest first.
 func (q *Queries) AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error) {
-	rows, err := q.db.Query(ctx, adminListCommunityPosts, arg.Status, arg.Q)
+	rows, err := q.db.Query(ctx, adminListCommunityPosts, arg.Status, arg.ReportedOnly, arg.Q)
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +139,7 @@ func (q *Queries) AdminListCommunityPosts(ctx context.Context, arg AdminListComm
 			&i.MetalFa,
 			&i.MetalEn,
 			&i.HasImage,
+			&i.Reports,
 		); err != nil {
 			return nil, err
 		}
@@ -175,6 +182,18 @@ type CountPublishedArticlesParams struct {
 
 func (q *Queries) CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countPublishedArticles, arg.Types, arg.Category, arg.Metal)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countReportedCommunityPosts = `-- name: CountReportedCommunityPosts :one
+SELECT count(DISTINCT r.post_id) FROM app.community_post_reports r
+JOIN app.community_posts p ON p.id = r.post_id WHERE p.status = 'published'
+`
+
+func (q *Queries) CountReportedCommunityPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countReportedCommunityPosts)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -726,38 +745,46 @@ const listCommunityPosts = `-- name: ListCommunityPosts :many
 
 SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
-       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
+       EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id AND r.user_id = $1::uuid) AS reported_by_me
 FROM app.community_posts p
 LEFT JOIN market.metals m ON m.id = p.metal_id
 WHERE p.status = 'published'
-  AND ($1::text IS NULL OR m.slug = $1::text)
+  AND ($2::text IS NULL OR m.slug = $2::text)
 ORDER BY p.created_at DESC, p.id
-LIMIT $3 OFFSET $2
+LIMIT $4 OFFSET $3
 `
 
 type ListCommunityPostsParams struct {
-	Metal pgtype.Text
-	Off   int32
-	Lim   int32
+	Caller pgtype.UUID
+	Metal  pgtype.Text
+	Off    int32
+	Lim    int32
 }
 
 type ListCommunityPostsRow struct {
-	ID         pgtype.UUID
-	UserID     pgtype.UUID
-	AuthorName string
-	Outlook    pgtype.Text
-	Title      string
-	Body       string
-	CreatedAt  pgtype.Timestamptz
-	MetalSlug  pgtype.Text
-	MetalFa    pgtype.Text
-	MetalEn    pgtype.Text
-	HasImage   bool
+	ID           pgtype.UUID
+	UserID       pgtype.UUID
+	AuthorName   string
+	Outlook      pgtype.Text
+	Title        string
+	Body         string
+	CreatedAt    pgtype.Timestamptz
+	MetalSlug    pgtype.Text
+	MetalFa      pgtype.Text
+	MetalEn      pgtype.Text
+	HasImage     bool
+	ReportedByMe bool
 }
 
 // Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
 func (q *Queries) ListCommunityPosts(ctx context.Context, arg ListCommunityPostsParams) ([]ListCommunityPostsRow, error) {
-	rows, err := q.db.Query(ctx, listCommunityPosts, arg.Metal, arg.Off, arg.Lim)
+	rows, err := q.db.Query(ctx, listCommunityPosts,
+		arg.Caller,
+		arg.Metal,
+		arg.Off,
+		arg.Lim,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -777,6 +804,7 @@ func (q *Queries) ListCommunityPosts(ctx context.Context, arg ListCommunityPosts
 			&i.MetalFa,
 			&i.MetalEn,
 			&i.HasImage,
+			&i.ReportedByMe,
 		); err != nil {
 			return nil, err
 		}
@@ -1084,6 +1112,20 @@ type PutSettingParams struct {
 
 func (q *Queries) PutSetting(ctx context.Context, arg PutSettingParams) error {
 	_, err := q.db.Exec(ctx, putSetting, arg.Key, arg.Value)
+	return err
+}
+
+const reportCommunityPost = `-- name: ReportCommunityPost :exec
+INSERT INTO app.community_post_reports (post_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING
+`
+
+type ReportCommunityPostParams struct {
+	PostID pgtype.UUID
+	UserID pgtype.UUID
+}
+
+func (q *Queries) ReportCommunityPost(ctx context.Context, arg ReportCommunityPostParams) error {
+	_, err := q.db.Exec(ctx, reportCommunityPost, arg.PostID, arg.UserID)
 	return err
 }
 
