@@ -57,6 +57,9 @@ alert says what is wrong and where to look; ✅ when it is resolved.
 ## 4. Runbooks
 Keep each runbook short: symptoms → check → fix → verify → follow-up. Stored here and linked from the alerts.
 
+- **R1 SiteDown, server unreachable (no ping, no SSH):** reboot it from the ArvanCloud panel. Then `journalctl -b -1`
+  shows why. 2026-10-31: cloud-init's network hotplug re-ran DHCP on eth0 for every pod's virtual device and a failed
+  renewal dropped the IP (fixed by `bootstrap.sh base`: hotplug off; check `systemctl is-enabled cloud-init-hotplugd.socket` = masked).
 - **R1 SiteDown:** check the Arvan CDN status → SSH, then `docker compose ps` → check the Caddy logs → restart the failed service → if the host is dead, go to DR (§5.3).
 - **R2 HighErrorRate:** open Grafana (by route) → GlitchTip (new error after a deploy?) → **roll back** (re-deploy the previous tag) if it started with a release.
 - **R3 SourceStale / Quarantined:** check the adapter's `source_runs.error` → is the upstream down, did its format change, or are credentials expired? → tell editors to use **manual entry** → fix the adapter → review the quarantined points in the admin.
