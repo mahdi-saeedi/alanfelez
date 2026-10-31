@@ -52,6 +52,8 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-31 «گزارش» on members' analyses (client): Silver and Gold flag someone else's post once (migration 00022);
+  the admin lists reported posts first with a count and a «گزارش‌شده» filter.
 - 2026-10-30 Members' analyses («تحلیل کاربران», client + owner, ADR-0028): Silver and Gold post and read them (title,
   text, metal, view, one chart image re-encoded into Postgres), with the team's analyses newest first, blue «تحلیل توسط
   <name>» vs gold for the team; 3 a day, promises refused, staff hide in the admin (audited), disclaimers on the page.

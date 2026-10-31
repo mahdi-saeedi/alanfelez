@@ -536,7 +536,10 @@
         "limited": "You've reached 3 analyses today.",
         "locked": "Posting is for Silver and Gold members; sign in if you haven't.",
         "failed": "Couldn't publish; please try again."
-      }
+      },
+      "report": "Report",
+      "reportConfirm": "Is this analysis unsuitable (advertising, promises of profit, insults…)? Your report goes to the Alan Felez team.",
+      "reported": "Reported ✓"
     }
   },
   "faq": {

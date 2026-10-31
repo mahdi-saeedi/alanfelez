@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createCommunityPost, deleteCommunityPost } from "@/lib/community";
+import { createCommunityPost, deleteCommunityPost, reportCommunityPost } from "@/lib/community";
 
 export type PostResult = { status: "posted"; id: string } | { status: "invalid" | "claim" | "limited" | "locked" | "failed" };
 
@@ -27,6 +27,11 @@ export async function postAnalysisAction(form: FormData): Promise<PostResult> {
   if (res.status === 401 || res.status === 403) return { status: "locked" };
   if (res.status === 400) return { status: res.problem?.detail?.includes("promise") ? "claim" : "invalid" };
   return { status: "failed" };
+}
+
+/** «گزارش» on someone else's analysis: true when it's recorded (or was already). */
+export async function reportAnalysisAction(id: string): Promise<boolean> {
+  return (await reportCommunityPost(id)) === 204;
 }
 
 export async function deleteAnalysisAction(form: FormData) {

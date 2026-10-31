@@ -184,7 +184,8 @@ RETURNING key, enabled, updated_at;
 -- name: ListCommunityPosts :many
 SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
-       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
+       EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id AND r.user_id = sqlc.narg(caller)::uuid) AS reported_by_me
 FROM app.community_posts p
 LEFT JOIN market.metals m ON m.id = p.metal_id
 WHERE p.status = 'published'
@@ -226,15 +227,26 @@ JOIN app.community_posts p ON p.id = i.post_id
 WHERE i.post_id = $1 AND p.status = 'published';
 
 -- name: AdminListCommunityPosts :many
+-- Reported published posts first (most reports first), then the rest newest first.
 SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.status, p.hidden_at, p.created_at,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
-       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image
+       EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
+       (SELECT count(*) FROM app.community_post_reports r WHERE r.post_id = p.id) AS reports
 FROM app.community_posts p
 LEFT JOIN market.metals m ON m.id = p.metal_id
 WHERE (sqlc.narg(status)::text IS NULL OR p.status = sqlc.narg(status)::text)
+  AND (NOT sqlc.arg(reported_only)::bool OR EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id))
   AND (sqlc.arg(q)::text = '' OR p.title ILIKE '%' || sqlc.arg(q)::text || '%' OR p.author_name ILIKE '%' || sqlc.arg(q)::text || '%')
-ORDER BY p.created_at DESC
+ORDER BY (p.status = 'published' AND EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id)) DESC,
+         reports DESC, p.created_at DESC
 LIMIT 200;
+
+-- name: ReportCommunityPost :exec
+INSERT INTO app.community_post_reports (post_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;
+
+-- name: CountReportedCommunityPosts :one
+SELECT count(DISTINCT r.post_id) FROM app.community_post_reports r
+JOIN app.community_posts p ON p.id = r.post_id WHERE p.status = 'published';
 
 -- name: SetCommunityPostStatus :execrows
 UPDATE app.community_posts SET status = sqlc.arg(status),
