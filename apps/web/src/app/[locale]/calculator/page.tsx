@@ -6,7 +6,8 @@ import { getBasePrices, getEntitlements, getPrices, type PriceRow } from "@/lib/
 import { getMyCalculations } from "@/lib/gold";
 import { Calculator } from "@/components/gold/Calculator";
 import { EMPTY_FORM, type CalcForm, type CalcProduct } from "@/components/gold/calc-form";
-import { Locked } from "@/components/Locked";
+import { LockIcon } from "@/components/Locked";
+import { Link } from "@/i18n/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -41,17 +42,18 @@ export default async function CalculatorPage({ params, searchParams }: Params) {
   if (initial.paidBy !== "seller" && initial.paidBy !== "buyer") initial.paidBy = "seller";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
       <header className="mb-6">
         <h1 className="text-2xl font-extrabold sm:text-3xl">{t("title")}</h1>
         <p className="mt-2 text-text-2">{t("subtitle")}</p>
       </header>
+      {/* A short line instead of the big box; the disabled form below shows what Gold gets (client, 2026-10-31). */}
       {!allowed && (
-        <div className="mb-6">
-          <Locked plan="gold" title={t("lockedTitle", { plan: tl("plan.gold") })}>
-            {t("lockedBody", { plan: tl("plan.gold") })}
-          </Locked>
-        </div>
+        <Link href="/plans" className="mb-6 flex items-center gap-3 rounded-card border border-gold/50 bg-gold/10 p-3 text-sm hover:border-gold">
+          <LockIcon className="h-5 w-5 shrink-0 text-gold-dark" />
+          <span className="flex-1">{t("lockedBody", { plan: tl("plan.gold") })}</span>
+          <span className="shrink-0 rounded-lg bg-gold px-3 py-2 text-xs font-bold text-graphite">{t("lockedCta", { plan: tl("plan.gold") })}</span>
+        </Link>
       )}
       <Calculator products={products} initial={initial} allowed={allowed} saved={saved} />
     </div>
@@ -67,5 +69,7 @@ function toProduct(r: PriceRow): CalcProduct {
     metal: { slug: r.series.metal.slug, name: r.series.metal.name },
     category: { slug: r.series.category.slug, name: r.series.category.name },
     priceRialPerKg: perKg,
+    source: r.source ?? r.series.market.name,
+    observedAt: r.observedAt,
   };
 }

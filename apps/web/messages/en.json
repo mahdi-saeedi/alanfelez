@@ -722,7 +722,9 @@
     "full": "You can save up to 50 calculations; delete some old ones.",
     "lockedTitle": "The calculator is for {plan} subscribers",
     "lockedBody": "With {plan} you can value loads at today's prices and save them.",
-    "priceFrom": "{source} · {time}"
+    "priceFrom": "{source} · {time}",
+    "lockedCta": "Upgrade to {plan}",
+    "example": "Example at today's price: 1 ton of {product} {value} (no impurity, deductions or shipping)"
   },
   "alerts": {
     "title": "SMS price alerts",
