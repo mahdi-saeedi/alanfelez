@@ -1937,7 +1937,7 @@ paths:
     get:
       operationId: listMyCalculations
       tags: [me, gold]
-      summary: Saved calculations (newest first, max 50)
+      summary: Saved calculations of the last 3 months (newest first, max 200); older ones are deleted
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -3220,7 +3220,9 @@ components:
         series: { type: string, description: 'IRR price series whose latest price is the base (optional)' }
         unitPriceRialPerKg: { type: integer, format: int64, description: Manual price; overrides the series price }
         weightGrams: { type: integer, format: int64, minimum: 0 }
-        impurityBp: { type: integer, minimum: 0, maximum: 10000 }
+        moistureBp: { type: integer, minimum: 0, maximum: 9999, description: 'Water in the load as weighed; comes off first (0 if left out)' }
+        impurityBp: { type: integer, minimum: 0, maximum: 10000, description: Dirt, oil, iron and other foreign material, as a share of the dry weight }
+        recoveryBp: { type: integer, minimum: 0, maximum: 10000, description: 'Payable metal in the clean weight (copper in insulated cable, metal content); 0 or left out = 100 %' }
         deductionBp: { type: integer, minimum: 0, maximum: 10000 }
         shippingRial: { type: integer, format: int64, minimum: 0 }
         shippingPaidBy: { type: string, enum: [seller, buyer] }
@@ -3240,7 +3242,9 @@ components:
       properties:
         input: { $ref: '#/components/schemas/CalculatorInput' }
         price: { $ref: '#/components/schemas/CalculatorPrice' }
-        netWeightGrams: { type: integer, format: int64 }
+        dryWeightGrams: { type: integer, format: int64, description: After moisture }
+        cleanWeightGrams: { type: integer, format: int64, description: After impurity }
+        netWeightGrams: { type: integer, format: int64, description: 'Payable metal: after moisture, impurity and recovery' }
         grossRial: { type: integer, format: int64 }
         deductionsRial: { type: integer, format: int64 }
         shippingRial: { type: integer, format: int64 }

@@ -38,10 +38,30 @@ export type CalcForm = {
   weight: string;
   unit: "kg" | "ton";
   price: string;
+  moisture: string;
   impurity: string;
+  /** Payable metal in the clean weight, % (the copper in insulated cable, a concentrate's metal content). */
+  recovery: string;
   deductions: string;
   shipping: string;
   paidBy: "seller" | "buyer";
 };
 
-export const EMPTY_FORM: CalcForm = { series: "", weight: "1000", unit: "kg", price: "", impurity: "0", deductions: "0", shipping: "0", paidBy: "seller" };
+export const EMPTY_FORM: CalcForm = {
+  series: "", weight: "1000", unit: "kg", price: "", moisture: "0", impurity: "0", recovery: "100", deductions: "0", shipping: "0", paidBy: "seller",
+};
+
+/**
+ * Which of moisture, impurity and payable metal matter most for a metal and kind of load, so the form can say so
+ * (client, 2026-10-31): water for aluminium scrap, clean bare metal for copper scrap and cable, metal content for raw
+ * materials. Keys name messages under calculator.hints; every field stays editable for every load.
+ */
+export function loadHints(metal: string, category: string): { moisture?: string; impurity?: string; recovery?: string } {
+  if (category === "raw") return { moisture: "rawMoisture", recovery: "rawRecovery" };
+  if (category !== "scrap") return {};
+  if (metal === "aluminum") return { moisture: "aluminumMoisture", impurity: "aluminumImpurity" };
+  if (metal === "copper") return { impurity: "copperImpurity", recovery: "copperRecovery" };
+  if (metal === "brass") return { impurity: "brassImpurity", recovery: "brassRecovery" };
+  if (metal === "lead") return { impurity: "leadImpurity", recovery: "leadRecovery" };
+  return { impurity: "scrapImpurity" };
+}

@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Schemas } from "@alanfelez/api-client";
 import { formatDate, formatNumber, parseDecimal, type Locale } from "@alanfelez/ui/format";
 import { deleteAction, estimateAction, saveAction } from "@/app/[locale]/calculator/actions";
-import { EMPTY_FORM, amountInWords, type CalcForm, type CalcProduct } from "./calc-form";
+import { EMPTY_FORM, amountInWords, loadHints, type CalcForm, type CalcProduct } from "./calc-form";
 import { StickyResult } from "./StickyResult";
 
 type Result = Schemas["CalculatorResult"];
@@ -93,7 +93,8 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
     setForm({
       series: i.series ?? "", unit: "kg", weight: String(i.weightGrams / 1000), paidBy: i.shippingPaidBy,
       price: i.series && c.result.price ? "" : String((i.unitPriceRialPerKg ?? 0) / 10),
-      impurity: String(i.impurityBp / 100), deductions: String(i.deductionBp / 100), shipping: String(i.shippingRial / 10),
+      moisture: String((i.moistureBp ?? 0) / 100), impurity: String(i.impurityBp / 100), recovery: String((i.recoveryBp || 10000) / 100),
+      deductions: String(i.deductionBp / 100), shipping: String(i.shippingRial / 10),
     });
     const p = products.find((x) => x.series === i.series);
     if (p) {
@@ -105,6 +106,7 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
   // Free: one worked example from today's free base price (1 ton of the first product), so the box isn't just «—».
   const sample = products.find((p) => p.priceRialPerKg);
   const example = sample?.priceRialPerKg ? { name: sample.name, toman: (sample.priceRialPerKg * 1000) / 10 } : undefined;
+  const hints = loadHints(metal, category || product?.category.slug || "");
   const field = "w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-gold disabled:bg-surface-2";
   const chip = (on: boolean) => `rounded-control border px-3 py-1.5 text-sm ${on ? "border-graphite bg-graphite font-bold text-white" : "border-border bg-surface hover:border-gold"}`;
 
@@ -174,10 +176,16 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
             <input inputMode="decimal" dir="ltr" value={form.price} placeholder={product?.priceRialPerKg ? String(Math.round(product.priceRialPerKg / 10)) : ""} onChange={(e) => set("price", e.target.value)} className={field} />
             <span className="block text-xs text-text-3">{t("manualHint")}</span>
           </label>
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-bold">{t("impurity")}</span>
-            <input inputMode="decimal" dir="ltr" value={form.impurity} onChange={(e) => set("impurity", e.target.value)} className={field} />
-          </label>
+          {(["moisture", "impurity", "recovery"] as const).map((k) => (
+            <label key={k} className={`block space-y-1.5 rounded-control text-sm ${hints[k] ? "bg-gold/10 p-2 ring-1 ring-gold/40" : ""}`}>
+              <span className="flex flex-wrap items-center gap-2 font-bold">
+                {t(k === "recovery" && hints.recovery ? `hints.${hints.recovery}Label` : k)}
+                {hints[k] && <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[11px] font-bold text-gold-dark">{t("important")}</span>}
+              </span>
+              <input inputMode="decimal" dir="ltr" value={form[k]} onChange={(e) => set(k, e.target.value)} className={field} />
+              <span className="block text-xs leading-5 text-text-3">{hints[k] ? t(`hints.${hints[k]}`) : t(`${k}Hint`)}</span>
+            </label>
+          ))}
           <label className="block space-y-1.5 text-sm">
             <span className="font-bold">{t("deductions")}</span>
             <input inputMode="decimal" dir="ltr" value={form.deductions} onChange={(e) => set("deductions", e.target.value)} className={field} />
@@ -211,6 +219,8 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
             <dl className="mt-5 grid grid-cols-2 gap-2 text-start sm:grid-cols-4">
               {[
                 [t("base"), `${formatNumber(Math.round((result.input.unitPriceRialPerKg ?? 0) / 10), locale)} ${t("toman")}/${t("kg")}`],
+                ...(result.dryWeightGrams !== undefined && result.dryWeightGrams !== result.input.weightGrams ? [[t("dry"), `${formatNumber(result.dryWeightGrams / 1000, locale)} ${t("kg")}`]] : []),
+                ...(result.cleanWeightGrams !== undefined && result.cleanWeightGrams !== result.netWeightGrams ? [[t("clean"), `${formatNumber(result.cleanWeightGrams / 1000, locale)} ${t("kg")}`]] : []),
                 [t("net"), `${formatNumber(result.netWeightGrams / 1000, locale)} ${t("kg")}`],
                 [t("deducted"), `${formatNumber(Math.round(result.deductionsRial / 10), locale)} ${t("toman")}`],
                 [t("shippingCost"), `${formatNumber(Math.round(result.shippingRial / 10), locale)} ${t("toman")}`],
@@ -228,6 +238,7 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
             </p>
           )}
           <p className="mt-3 text-xs text-silver-light">{t("estimate")}</p>
+          <p className="mt-2 text-[11px] leading-5 text-silver-light/80">{t("formula")}</p>
         </section>
 
         <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
@@ -241,7 +252,8 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
 
       {allowed && (
         <aside className="h-fit rounded-card border border-border bg-surface p-4 shadow-soft">
-          <h2 className="mb-3 font-bold">{t("savedTitle")}</h2>
+          <h2 className="font-bold">{t("savedTitle")}</h2>
+          <p className="mb-3 text-xs text-text-3">{t("savedHint")}</p>
           {saved.length === 0 ? (
             <p className="text-sm text-text-2">{t("noSaved")}</p>
           ) : (
@@ -270,17 +282,21 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
 function toInput(f: CalcForm): Input | undefined {
   const weight = parseDecimal(f.weight);
   const impurity = parseDecimal(f.impurity || "0");
+  const moisture = parseDecimal(f.moisture || "0");
+  const recovery = parseDecimal(f.recovery || "100");
   const deductions = parseDecimal(f.deductions || "0");
   const shipping = parseDecimal(f.shipping || "0");
   const price = f.price.trim() ? parseDecimal(f.price) : undefined;
-  if (weight === undefined || impurity === undefined || deductions === undefined || shipping === undefined) return undefined;
+  if (weight === undefined || impurity === undefined || deductions === undefined || shipping === undefined || moisture === undefined || recovery === undefined) return undefined;
   if (f.price.trim() && price === undefined) return undefined;
   if (!f.series && price === undefined) return undefined;
   return {
     ...(f.series ? { series: f.series } : {}),
     ...(price !== undefined ? { unitPriceRialPerKg: Math.round(price * 10) } : {}),
     weightGrams: Math.round(weight * (f.unit === "ton" ? 1_000_000 : 1000)),
+    moistureBp: Math.round(moisture * 100),
     impurityBp: Math.round(impurity * 100),
+    recoveryBp: Math.round(recovery * 100),
     deductionBp: Math.round(deductions * 100),
     shippingRial: Math.round(shipping * 10),
     shippingPaidBy: f.paidBy,

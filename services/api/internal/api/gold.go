@@ -20,7 +20,7 @@ import (
 )
 
 // Limits for saved things (🛠 SCOPE §17).
-const maxCalculations = 50
+const maxCalculations = 200 // in the last 3 months (older ones are deleted)
 
 // --- calculator ---------------------------------------------------------------------
 
@@ -85,6 +85,7 @@ func (s *Server) estimate(ctx context.Context, in CalculatorInput, lang string) 
 	}
 	r, err := calculator.Estimate(calculator.Input{
 		WeightGrams: in.WeightGrams, UnitPriceRialPerKg: *out.Input.UnitPriceRialPerKg, ImpurityBP: int64(in.ImpurityBp),
+		MoistureBP: int64(intOr0(in.MoistureBp)), RecoveryBP: int64(intOr0(in.RecoveryBp)),
 		DeductionBP: int64(in.DeductionBp), ShippingRial: in.ShippingRial, ShippingPaidBy: calculator.Party(in.ShippingPaidBy),
 	})
 	if errors.Is(err, calculator.ErrInvalidInput) {
@@ -93,6 +94,7 @@ func (s *Server) estimate(ctx context.Context, in CalculatorInput, lang string) 
 	if err != nil {
 		return out, "", err
 	}
+	out.DryWeightGrams, out.CleanWeightGrams = &r.DryWeightGrams, &r.CleanWeightGrams
 	out.NetWeightGrams, out.GrossRial, out.DeductionsRial, out.ShippingRial, out.ValueRial = r.NetWeightGrams, r.GrossRial, r.DeductionsRial, r.ShippingRial, r.ValueRial
 	return out, "", nil
 }
@@ -102,6 +104,9 @@ func (s *Server) ListMyCalculations(ctx context.Context, _ ListMyCalculationsReq
 	p := auth.FromContext(ctx)
 	if p == nil {
 		return fail[ListMyCalculationsdefaultApplicationProblemPlusJSONResponse](unauthenticated(ctx)), nil
+	}
+	if err := s.q.DeleteOldCalculations(ctx, p.ID); err != nil {
+		return nil, fmt.Errorf("delete old calculations: %w", err)
 	}
 	rows, err := s.q.ListCalculations(ctx, p.ID)
 	if err != nil {
@@ -145,12 +150,15 @@ func (s *Server) SaveMyCalculation(ctx context.Context, req SaveMyCalculationReq
 	if _, err := s.touchUser(ctx, p); err != nil {
 		return nil, err
 	}
+	if err := s.q.DeleteOldCalculations(ctx, p.ID); err != nil {
+		return nil, fmt.Errorf("delete old calculations: %w", err)
+	}
 	n, err := s.q.CountCalculations(ctx, p.ID)
 	if err != nil {
 		return nil, fmt.Errorf("count calculations: %w", err)
 	}
 	if n >= maxCalculations {
-		return fail[SaveMyCalculationdefaultApplicationProblemPlusJSONResponse](conflict(ctx, "at most 50 saved calculations: delete some first")), nil
+		return fail[SaveMyCalculationdefaultApplicationProblemPlusJSONResponse](conflict(ctx, "at most 200 saved calculations: delete some first")), nil
 	}
 	in, _ := json.Marshal(res.Input)
 	out, _ := json.Marshal(res)
@@ -400,4 +408,12 @@ func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSetting
 		out.Metal, out.Enabled = textp(row.MetalSlug), row.Enabled
 	}
 	return out, nil
+}
+
+// intOr0 is an optional integer field, 0 when it's left out.
+func intOr0(p *int) int {
+	if p == nil {
+		return 0
+	}
+	return *p
 }

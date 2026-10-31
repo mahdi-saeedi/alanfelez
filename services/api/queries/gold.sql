@@ -57,13 +57,18 @@ INSERT INTO app.calculations (user_id, name, series_id, input, result)
 VALUES ($1, $2, (SELECT ps.id FROM market.price_series ps WHERE ps.slug = sqlc.narg(series_slug)::text), $3, $4)
 RETURNING id, created_at;
 
+-- Saved calculations are kept for 3 months (client, 2026-10-31): older ones are deleted when the user lists or saves.
+
 -- name: ListCalculations :many
 SELECT c.id, c.name, s.slug AS series_slug, c.input, c.result, c.created_at
 FROM app.calculations c LEFT JOIN market.price_series s ON s.id = c.series_id
-WHERE c.user_id = $1 ORDER BY c.created_at DESC LIMIT 50;
+WHERE c.user_id = $1 AND c.created_at > now() - interval '3 months' ORDER BY c.created_at DESC LIMIT 200;
 
 -- name: CountCalculations :one
-SELECT count(*)::int FROM app.calculations WHERE user_id = $1;
+SELECT count(*)::int FROM app.calculations WHERE user_id = $1 AND created_at > now() - interval '3 months';
+
+-- name: DeleteOldCalculations :exec
+DELETE FROM app.calculations WHERE user_id = $1 AND created_at <= now() - interval '3 months';
 
 -- name: DeleteCalculation :execrows
 DELETE FROM app.calculations WHERE id = $1 AND user_id = $2;

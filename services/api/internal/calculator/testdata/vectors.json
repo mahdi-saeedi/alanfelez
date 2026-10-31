@@ -1,42 +1,13 @@
 [
-  {
-    "name": "prototype example: 1000 kg, 185,000 Toman/kg, 10% impurity, 10% deductions",
-    "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1850000, "impurityBp": 1000, "deductionBp": 1000, "shippingRial": 0, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 900000, "grossRial": 1665000000, "deductionsRial": 166500000, "shippingRial": 0, "valueRial": 1498500000}
-  },
-  {
-    "name": "seller pays 1,000,000 Toman shipping",
-    "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1850000, "impurityBp": 1000, "deductionBp": 1000, "shippingRial": 10000000, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 900000, "grossRial": 1665000000, "deductionsRial": 166500000, "shippingRial": 10000000, "valueRial": 1488500000}
-  },
-  {
-    "name": "buyer pays 1,000,000 Toman shipping",
-    "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1850000, "impurityBp": 1000, "deductionBp": 1000, "shippingRial": 10000000, "shippingPaidBy": "buyer"},
-    "want":  {"netWeightGrams": 900000, "grossRial": 1665000000, "deductionsRial": 166500000, "shippingRial": 10000000, "valueRial": 1508500000}
-  },
-  {
-    "name": "no impurity, no deductions",
-    "input": {"weightGrams": 2000000, "unitPriceRialPerKg": 5200000, "impurityBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 2000000, "grossRial": 10400000000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 10400000000}
-  },
-  {
-    "name": "half-up rounding on every step",
-    "input": {"weightGrams": 333, "unitPriceRialPerKg": 1000001, "impurityBp": 333, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 322, "grossRial": 322000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 322000}
-  },
-  {
-    "name": "zero weight",
-    "input": {"weightGrams": 0, "unitPriceRialPerKg": 1850000, "impurityBp": 500, "deductionBp": 500, "shippingRial": 0, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 0, "grossRial": 0, "deductionsRial": 0, "shippingRial": 0, "valueRial": 0}
-  },
-  {
-    "name": "seller shipping larger than value gives negative result",
-    "input": {"weightGrams": 1000, "unitPriceRialPerKg": 1000000, "impurityBp": 0, "deductionBp": 0, "shippingRial": 5000000, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 1000, "grossRial": 1000000, "deductionsRial": 0, "shippingRial": 5000000, "valueRial": -4000000}
-  },
-  {
-    "name": "maximum weight and price do not overflow",
-    "input": {"weightGrams": 100000000000, "unitPriceRialPerKg": 50000000, "impurityBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"},
-    "want":  {"netWeightGrams": 100000000000, "grossRial": 5000000000000000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 5000000000000000}
-  }
+  {"name": "prototype example: 1000 kg, 185,000 Toman/kg, 10% impurity, 10% deductions", "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1850000, "impurityBp": 1000, "deductionBp": 1000, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 900000, "grossRial": 1665000000, "deductionsRial": 166500000, "shippingRial": 0, "valueRial": 1498500000, "dryWeightGrams": 1000000, "cleanWeightGrams": 900000}},
+  {"name": "seller pays 1,000,000 Toman shipping", "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1850000, "impurityBp": 1000, "deductionBp": 1000, "shippingRial": 10000000, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 900000, "grossRial": 1665000000, "deductionsRial": 166500000, "shippingRial": 10000000, "valueRial": 1488500000, "dryWeightGrams": 1000000, "cleanWeightGrams": 900000}},
+  {"name": "buyer pays 1,000,000 Toman shipping", "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1850000, "impurityBp": 1000, "deductionBp": 1000, "shippingRial": 10000000, "shippingPaidBy": "buyer"}, "want": {"netWeightGrams": 900000, "grossRial": 1665000000, "deductionsRial": 166500000, "shippingRial": 10000000, "valueRial": 1508500000, "dryWeightGrams": 1000000, "cleanWeightGrams": 900000}},
+  {"name": "no impurity, no deductions", "input": {"weightGrams": 2000000, "unitPriceRialPerKg": 5200000, "impurityBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 2000000, "grossRial": 10400000000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 10400000000, "dryWeightGrams": 2000000, "cleanWeightGrams": 2000000}},
+  {"name": "half-up rounding on every step", "input": {"weightGrams": 333, "unitPriceRialPerKg": 1000001, "impurityBp": 333, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 322, "grossRial": 322000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 322000, "dryWeightGrams": 333, "cleanWeightGrams": 322}},
+  {"name": "zero weight", "input": {"weightGrams": 0, "unitPriceRialPerKg": 1850000, "impurityBp": 500, "deductionBp": 500, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 0, "grossRial": 0, "deductionsRial": 0, "shippingRial": 0, "valueRial": 0, "dryWeightGrams": 0, "cleanWeightGrams": 0}},
+  {"name": "seller shipping larger than value gives negative result", "input": {"weightGrams": 1000, "unitPriceRialPerKg": 1000000, "impurityBp": 0, "deductionBp": 0, "shippingRial": 5000000, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 1000, "grossRial": 1000000, "deductionsRial": 0, "shippingRial": 5000000, "valueRial": -4000000, "dryWeightGrams": 1000, "cleanWeightGrams": 1000}},
+  {"name": "maximum weight and price do not overflow", "input": {"weightGrams": 100000000000, "unitPriceRialPerKg": 50000000, "impurityBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"netWeightGrams": 100000000000, "grossRial": 5000000000000000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 5000000000000000, "dryWeightGrams": 100000000000, "cleanWeightGrams": 100000000000}},
+  {"name": "aluminium turnings: 2 t, 5% moisture, 3% oil and iron, 2% deductions", "input": {"weightGrams": 2000000, "unitPriceRialPerKg": 1500000, "moistureBp": 500, "impurityBp": 300, "deductionBp": 200, "shippingRial": 20000000, "shippingPaidBy": "seller"}, "want": {"dryWeightGrams": 1900000, "cleanWeightGrams": 1843000, "netWeightGrams": 1843000, "grossRial": 2764500000, "deductionsRial": 55290000, "shippingRial": 20000000, "valueRial": 2689210000}},
+  {"name": "insulated copper cable: 1 t, 60% copper, 1% dirt", "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 6400000, "impurityBp": 100, "recoveryBp": 6000, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"dryWeightGrams": 1000000, "cleanWeightGrams": 990000, "netWeightGrams": 594000, "grossRial": 3801600000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 3801600000}},
+  {"name": "recovery 0 means 100% (bare metal)", "input": {"weightGrams": 1000000, "unitPriceRialPerKg": 1000000, "impurityBp": 0, "recoveryBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"}, "want": {"dryWeightGrams": 1000000, "cleanWeightGrams": 1000000, "netWeightGrams": 1000000, "grossRial": 1000000000, "deductionsRial": 0, "shippingRial": 0, "valueRial": 1000000000}}
 ]

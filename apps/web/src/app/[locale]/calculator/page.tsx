@@ -46,6 +46,7 @@ export default async function CalculatorPage({ params, searchParams }: Params) {
       <header className="mb-6">
         <h1 className="text-2xl font-extrabold sm:text-3xl">{t("title")}</h1>
         <p className="mt-2 text-text-2">{t("subtitle")}</p>
+        <p className="mt-1 text-sm text-text-3">{t("historyNote")}</p>
       </header>
       {/* A short line instead of the big box; the disabled form below shows what Gold gets (client, 2026-10-31). */}
       {!allowed && (

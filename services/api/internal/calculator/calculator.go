@@ -24,27 +24,37 @@ const bpScale = 10_000 // 100 % in basis points
 type Input struct {
 	WeightGrams        int64 `json:"weightGrams"`
 	UnitPriceRialPerKg int64 `json:"unitPriceRialPerKg"` // base price, or the user's manual price
-	ImpurityBP         int64 `json:"impurityBp"`
-	DeductionBP        int64 `json:"deductionBp"`
-	ShippingRial       int64 `json:"shippingRial"`
-	ShippingPaidBy     Party `json:"shippingPaidBy"`
+	// MoistureBP is the water in the load as weighed (aluminium turnings, cans, concentrates): it comes off first.
+	MoistureBP int64 `json:"moistureBp,omitempty"`
+	// ImpurityBP is dirt, oil, iron and other foreign material, as a share of the dry weight.
+	ImpurityBP int64 `json:"impurityBp"`
+	// RecoveryBP is the share of the clean weight that is the payable metal: the copper in insulated cable, the
+	// metal content of a concentrate or alloy. 0 or absent means 100 % (bare, clean metal).
+	RecoveryBP     int64 `json:"recoveryBp,omitempty"`
+	DeductionBP    int64 `json:"deductionBp"`
+	ShippingRial   int64 `json:"shippingRial"`
+	ShippingPaidBy Party `json:"shippingPaidBy"`
 }
 
 // Result is the breakdown shown in the result panel.
 type Result struct {
-	NetWeightGrams int64 `json:"netWeightGrams"`
-	GrossRial      int64 `json:"grossRial"`
-	DeductionsRial int64 `json:"deductionsRial"`
-	ShippingRial   int64 `json:"shippingRial"`
-	ValueRial      int64 `json:"valueRial"`
+	DryWeightGrams   int64 `json:"dryWeightGrams"`   // after moisture
+	CleanWeightGrams int64 `json:"cleanWeightGrams"` // after impurity
+	NetWeightGrams   int64 `json:"netWeightGrams"`   // payable metal, after recovery
+	GrossRial        int64 `json:"grossRial"`
+	DeductionsRial   int64 `json:"deductionsRial"`
+	ShippingRial     int64 `json:"shippingRial"`
+	ValueRial        int64 `json:"valueRial"`
 }
 
 // ErrInvalidInput wraps every validation failure.
 var ErrInvalidInput = errors.New("calculator: invalid input")
 
-// Estimate computes:
+// Estimate computes, the way scrap and concentrate loads are settled (wet weight → dry → clean → payable metal):
 //
-//	net        = weight × (1 − impurity)
+//	dry        = weight × (1 − moisture)
+//	clean      = dry × (1 − impurity)
+//	net        = clean × recovery            (recovery 100 % unless given)
 //	gross      = net[kg] × unitPrice
 //	deductions = gross × deduction
 //	value      = gross − deductions − shipping  (seller pays)
@@ -55,7 +65,13 @@ func Estimate(in Input) (Result, error) {
 	if err := in.validate(); err != nil {
 		return Result{}, err
 	}
-	net := mulDivHalfUp(in.WeightGrams, bpScale-in.ImpurityBP, bpScale)
+	recovery := in.RecoveryBP
+	if recovery == 0 {
+		recovery = bpScale
+	}
+	dry := mulDivHalfUp(in.WeightGrams, bpScale-in.MoistureBP, bpScale)
+	clean := mulDivHalfUp(dry, bpScale-in.ImpurityBP, bpScale)
+	net := mulDivHalfUp(clean, recovery, bpScale)
 	gross := mulDivHalfUp(net, in.UnitPriceRialPerKg, 1000)
 	ded := mulDivHalfUp(gross, in.DeductionBP, bpScale)
 
@@ -66,11 +82,13 @@ func Estimate(in Input) (Result, error) {
 		value -= in.ShippingRial
 	}
 	return Result{
-		NetWeightGrams: net,
-		GrossRial:      gross,
-		DeductionsRial: ded,
-		ShippingRial:   in.ShippingRial,
-		ValueRial:      value,
+		DryWeightGrams:   dry,
+		CleanWeightGrams: clean,
+		NetWeightGrams:   net,
+		GrossRial:        gross,
+		DeductionsRial:   ded,
+		ShippingRial:     in.ShippingRial,
+		ValueRial:        value,
 	}, nil
 }
 
@@ -89,7 +107,9 @@ func (in Input) validate() error {
 	}
 	check(in.WeightGrams >= 0 && in.WeightGrams <= maxWeightGrams, "weightGrams out of range")
 	check(in.UnitPriceRialPerKg >= 0 && in.UnitPriceRialPerKg <= maxPriceRial, "unitPriceRialPerKg out of range")
+	check(in.MoistureBP >= 0 && in.MoistureBP < bpScale, "moistureBp must be 0..9999")
 	check(in.ImpurityBP >= 0 && in.ImpurityBP <= bpScale, "impurityBp must be 0..10000")
+	check(in.RecoveryBP >= 0 && in.RecoveryBP <= bpScale, "recoveryBp must be 0..10000")
 	check(in.DeductionBP >= 0 && in.DeductionBP <= bpScale, "deductionBp must be 0..10000")
 	check(in.ShippingRial >= 0 && in.ShippingRial <= maxPriceRial, "shippingRial out of range")
 	check(in.ShippingPaidBy == SellerPays || in.ShippingPaidBy == BuyerPays, `shippingPaidBy must be "seller" or "buyer"`)
