@@ -1412,7 +1412,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Saved calculations (newest first, max 50) */
+        /** Saved calculations of the last 3 months (newest first, max 200); older ones are deleted */
         get: operations["listMyCalculations"];
         put?: never;
         /** Compute and save a calculation (Gold). 409 CONFLICT at 50 saved */
@@ -2446,7 +2446,12 @@ export interface components {
             unitPriceRialPerKg?: number;
             /** Format: int64 */
             weightGrams: number;
+            /** @description Water in the load as weighed; comes off first (0 if left out) */
+            moistureBp?: number;
+            /** @description Dirt */
             impurityBp: number;
+            /** @description Payable metal in the clean weight (copper in insulated cable, metal content); 0 or left out = 100 % */
+            recoveryBp?: number;
             deductionBp: number;
             /** Format: int64 */
             shippingRial: number;
@@ -2463,7 +2468,20 @@ export interface components {
         CalculatorResult: {
             input: components["schemas"]["CalculatorInput"];
             price?: components["schemas"]["CalculatorPrice"];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description After moisture
+             */
+            dryWeightGrams?: number;
+            /**
+             * Format: int64
+             * @description After impurity
+             */
+            cleanWeightGrams?: number;
+            /**
+             * Format: int64
+             * @description Payable metal: after moisture, impurity and recovery
+             */
             netWeightGrams: number;
             /** Format: int64 */
             grossRial: number;

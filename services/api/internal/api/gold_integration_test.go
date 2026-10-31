@@ -198,6 +198,13 @@ func TestCalculator(t *testing.T) {
 	if _, res, _ := e.call(http.MethodPost, "/v1/calculator/estimate", "gold", in); res["valueRial"].(float64) != 6_300_000_000 {
 		t.Fatalf("manual price overrides: %v", res)
 	}
+	// Moisture comes off first, then impurity (on the dry weight), then recovery: 1 t, 5 % water, 10 % dirt, 60 %
+	// copper → 513 kg payable × 700,000 Toman = 359,100,000 Toman.
+	wet := map[string]any{"unitPriceRialPerKg": 7_000_000, "weightGrams": 1_000_000, "moistureBp": 500, "impurityBp": 1000, "recoveryBp": 6000, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"}
+	if _, res, raw := e.call(http.MethodPost, "/v1/calculator/estimate", "gold", wet); res["dryWeightGrams"].(float64) != 950_000 ||
+		res["cleanWeightGrams"].(float64) != 855_000 || res["netWeightGrams"].(float64) != 513_000 || res["valueRial"].(float64) != 3_591_000_000 {
+		t.Fatalf("moisture and recovery: %s", raw)
+	}
 	for name, bad := range map[string]map[string]any{
 		"LME series":    {"series": "copper-lme", "weightGrams": 1, "impurityBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"},
 		"no price":      {"weightGrams": 1, "impurityBp": 0, "deductionBp": 0, "shippingRial": 0, "shippingPaidBy": "seller"},
@@ -216,8 +223,13 @@ func TestCalculator(t *testing.T) {
 	if st, _, _ := e.call(http.MethodPost, "/v1/me/calculations", "silver", map[string]any{"name": "x", "input": in}); st != 403 {
 		t.Fatalf("silver save: %d", st)
 	}
+	// Kept for 3 months: an older one is deleted when the list is read.
+	if _, err := e.pool.Exec(t.Context(), `INSERT INTO app.calculations (user_id, name, input, result, created_at)
+		VALUES ('00000000-0000-0000-0000-000000000003', 'old', '{}', '{}', now() - interval '4 months')`); err != nil {
+		t.Fatal(err)
+	}
 	_, list, _ := e.call(http.MethodGet, "/v1/me/calculations", "gold", nil)
-	if len(list["items"].([]any)) != 1 {
+	if len(list["items"].([]any)) != 1 || e.count(`SELECT count(*) FROM app.calculations WHERE name = 'old'`) != 0 {
 		t.Fatalf("list: %v", list)
 	}
 	id := saved["id"].(string)

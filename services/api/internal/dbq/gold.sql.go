@@ -158,7 +158,7 @@ func (q *Queries) BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMov
 }
 
 const countCalculations = `-- name: CountCalculations :one
-SELECT count(*)::int FROM app.calculations WHERE user_id = $1
+SELECT count(*)::int FROM app.calculations WHERE user_id = $1 AND created_at > now() - interval '3 months'
 `
 
 func (q *Queries) CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error) {
@@ -234,6 +234,15 @@ func (q *Queries) DeleteCalculation(ctx context.Context, arg DeleteCalculationPa
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const deleteOldCalculations = `-- name: DeleteOldCalculations :exec
+DELETE FROM app.calculations WHERE user_id = $1 AND created_at <= now() - interval '3 months'
+`
+
+func (q *Queries) DeleteOldCalculations(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOldCalculations, userID)
+	return err
 }
 
 const getAuctionFile = `-- name: GetAuctionFile :one
@@ -531,9 +540,10 @@ func (q *Queries) ListAuctions(ctx context.Context, arg ListAuctionsParams) ([]L
 }
 
 const listCalculations = `-- name: ListCalculations :many
+
 SELECT c.id, c.name, s.slug AS series_slug, c.input, c.result, c.created_at
 FROM app.calculations c LEFT JOIN market.price_series s ON s.id = c.series_id
-WHERE c.user_id = $1 ORDER BY c.created_at DESC LIMIT 50
+WHERE c.user_id = $1 AND c.created_at > now() - interval '3 months' ORDER BY c.created_at DESC LIMIT 200
 `
 
 type ListCalculationsRow struct {
@@ -545,6 +555,7 @@ type ListCalculationsRow struct {
 	CreatedAt  pgtype.Timestamptz
 }
 
+// Saved calculations are kept for 3 months (client, 2026-10-31): older ones are deleted when the user lists or saves.
 func (q *Queries) ListCalculations(ctx context.Context, userID pgtype.UUID) ([]ListCalculationsRow, error) {
 	rows, err := q.db.Query(ctx, listCalculations, userID)
 	if err != nil {

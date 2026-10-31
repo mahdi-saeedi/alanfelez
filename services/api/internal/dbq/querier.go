@@ -74,6 +74,7 @@ type Querier interface {
 	DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPostParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
+	DeleteOldCalculations(ctx context.Context, userID pgtype.UUID) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error)
@@ -153,6 +154,7 @@ type Querier interface {
 	// Gold features: metal auctions, saved calculations, SMS price alerts.
 	// Metal auctions, newest first, with optional filters. total is the count of all matching rows (for paging).
 	ListAuctions(ctx context.Context, arg ListAuctionsParams) ([]ListAuctionsRow, error)
+	// Saved calculations are kept for 3 months (client, 2026-10-31): older ones are deleted when the user lists or saves.
 	ListCalculations(ctx context.Context, userID pgtype.UUID) ([]ListCalculationsRow, error)
 	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
 	// Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
