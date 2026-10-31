@@ -1,6 +1,7 @@
 # Operations: Observability, Backups, Runbooks
 
-> Status: **built 2026-10-29** for metrics, logs, dashboards and alerts on **production only** (staging has none since
+> Status: **turned off 2026-10-31** (the production server hung; staging had the same on 2026-10-30) until the cause is
+> found. Built 2026-10-29 for metrics, logs, dashboards and alerts on **production only** (staging has none since
 > 2026-10-30: its server has too little memory, and it is only for checking changes); traces, GlitchTip and the
 > outside uptime check are next. Stack decision: ADR-0015. Targets: [NFR.md](../architecture/NFR.md).
 
