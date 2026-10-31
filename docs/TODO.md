@@ -22,8 +22,6 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] OK the idle sign-out at **3 hours** on production too (client asked 2026-10-31; staging has it):
-      `keycloak.ssoSessionIdleSeconds: 10800` in `deploy/environments/production/values.yaml`.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
@@ -54,7 +52,7 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
-- 2026-10-31 Idle sign-out on staging is 3 hours (client; was 1 hour).
+- 2026-10-31 Idle sign-out is 3 hours on staging and production (client; was 1 hour).
 - 2026-10-31 Auctions page (client): «… روز مانده» / «آخرین روز» on open auctions (Gold), a count per status,
   only metals with auctions, one-line filters on phones, a short lock banner for free users, and Gold details folded
   behind «جزئیات بیشتر» on phones. Counts come from the latest 100 auctions (enough for now).
