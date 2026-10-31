@@ -3,6 +3,7 @@ import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { LockIcon } from "@/components/Locked";
 import type { Auction } from "@/lib/gold";
+import { PhoneDetails } from "./PhoneDetails";
 
 const STATUS_STYLE = {
   open: "bg-up-bg text-up",
@@ -19,6 +20,8 @@ const STATUS_STYLE = {
 export async function AuctionCard({ a, locale, locked, compact = false }: { a: Auction; locale: Locale; locked: boolean; compact?: boolean }) {
   const t = await getTranslations("auctions");
   const deadlinePassed = a.deadlineAt ? Date.parse(a.deadlineAt) < Date.now() : false;
+  // Days left to take part (Gold only: the deadline isn't sent to others).
+  const daysLeft = a.deadlineAt && !deadlinePassed ? Math.ceil((Date.parse(a.deadlineAt) - Date.now()) / 86_400_000) : null;
   const button = "shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold";
   return (
     <article id={`auction-${a.id}`} className={`flex h-full scroll-mt-24 flex-col rounded-card border bg-surface p-5 shadow-soft ${locked ? "border-gold/60" : "border-border"}`}>
@@ -26,6 +29,11 @@ export async function AuctionCard({ a, locale, locked, compact = false }: { a: A
         <span className={`rounded-full px-2.5 py-0.5 font-bold ${STATUS_STYLE[a.status]}`}>{t(`status.${a.status}`)}</span>
         <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-text-2">{a.metal.name}</span>
         <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-text-2">{t(`category.${a.category}`)}</span>
+        {daysLeft !== null && a.status === "open" && (
+          <span className={`ms-auto rounded-full px-2.5 py-0.5 font-bold ${daysLeft <= 2 ? "bg-down-bg text-down" : "bg-info-bg text-info"}`}>
+            {daysLeft <= 1 ? t("lastDay") : t("daysLeft", { n: formatNumber(daysLeft, locale) })}
+          </span>
+        )}
       </div>
       <h3 className="mt-3 font-bold leading-7">{a.title}</h3>
       <p className="mt-2 text-sm text-text-2">
@@ -35,7 +43,7 @@ export async function AuctionCard({ a, locale, locked, compact = false }: { a: A
       {compact ? null : locked ? (
         <p className="mt-auto flex items-center gap-2 border-t border-border pt-3 text-xs text-text-3">
           <LockIcon className="h-4 w-4 shrink-0 text-gold-dark" />
-          {t("lockedLine")}
+          {t("lockedShort")}
         </p>
       ) : (
         <div className="mt-3 space-y-1.5 border-t border-border pt-3 text-sm">
@@ -47,9 +55,13 @@ export async function AuctionCard({ a, locale, locked, compact = false }: { a: A
               <span className="text-text-3">—</span>
             )}
           </p>
-          {a.location && <p><span className="text-text-3">{t("location")}: </span>{a.location}</p>}
-          {a.organizer && <p><span className="text-text-3">{t("organizer")}: </span>{a.organizer}</p>}
-          {a.details && <p className="whitespace-pre-line leading-7 text-text-2">{a.details}</p>}
+          {(a.location || a.organizer || a.details) && (
+            <PhoneDetails more={t("moreDetails")} less={t("lessDetails")}>
+              {a.location && <p><span className="text-text-3">{t("location")}: </span>{a.location}</p>}
+              {a.organizer && <p><span className="text-text-3">{t("organizer")}: </span>{a.organizer}</p>}
+              {a.details && <p className="whitespace-pre-line leading-7 text-text-2">{a.details}</p>}
+            </PhoneDetails>
+          )}
           {a.hasPdf && (
             <p className="pt-1">
               <a href={`/api/auctions/${a.id}/pdf`} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-lg border border-gold/60 px-3 py-1.5 text-sm font-bold text-gold-dark hover:bg-gold/10">

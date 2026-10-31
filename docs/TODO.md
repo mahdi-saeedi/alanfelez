@@ -52,6 +52,9 @@ Last updated: 2026-10-30 (monitoring only on production)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-31 Auctions page (client): «… روز مانده» / «آخرین روز» on open auctions (Gold), a count per status,
+  only metals with auctions, one-line filters on phones, a short lock banner for free users, and Gold details folded
+  behind «جزئیات بیشتر» on phones. Counts come from the latest 100 auctions (enough for now).
 - 2026-10-31 «گزارش» on members' analyses (client): Silver and Gold flag someone else's post once (migration 00022);
   the admin lists reported posts first with a count and a «گزارش‌شده» filter.
 - 2026-10-30 Members' analyses («تحلیل کاربران», client + owner, ADR-0028): Silver and Gold post and read them (title,
