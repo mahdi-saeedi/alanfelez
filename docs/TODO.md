@@ -52,6 +52,9 @@ Last updated: 2026-10-31 (monitoring off on production after the server hung)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-10-31 **Production outage 07:56–10:19 UTC found:** not monitoring. cloud-init's network hotplug handler re-ran
+  DHCP on eth0 for each pod's virtual device (23,979 times since 2026-10-18); one renewal failed and the server lost its
+  IP. Turned off on staging; `bootstrap.sh base` now turns it off on new servers. Production: owner runs the same.
 - 2026-10-31 Monitoring **turned off on production** too: the production server stopped answering (no ping, no SSH)
   after it ran for two days; staging had failed the same way. Back only after the cause is found in the server's
   logs and with lighter settings (deploy/observability stays in git; the Argo CD apps are removed).

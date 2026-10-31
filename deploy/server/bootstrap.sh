@@ -33,6 +33,15 @@ base() {
     > /etc/systemd/resolved.conf.d/alanfelez.conf
   systemctl restart systemd-resolved
 
+  step "Network: no cloud-init hotplug (it re-runs DHCP on eth0 for every pod's virtual device)"
+  # ArvanCloud's image turns it on (93-network-hotplug.cfg). On a Kubernetes node every pod start/stop adds or removes
+  # a veth device; the handler then renews eth0's DHCP lease each time, and one failed renewal took the production
+  # server off the network for 2.5 hours (2026-10-31, OPERATIONS §4 R1). Network changes apply at boot only.
+  printf '# Alan Felez (bootstrap.sh): network changes at boot only, never on hotplug (see bootstrap.sh)\nupdates:\n  network:\n    when: [boot]\n' \
+    > /etc/cloud/cloud.cfg.d/99-alanfelez-no-hotplug.cfg
+  systemctl disable --now cloud-init-hotplugd.socket cloud-init-hotplugd.service >/dev/null 2>&1 || true
+  systemctl mask cloud-init-hotplugd.socket >/dev/null 2>&1 || true
+
   step "Ubuntu packages from the ArvanCloud mirror; time from ntp.day.ir"
   f=/etc/apt/sources.list.d/ubuntu.sources
   if [ -f "$f" ]; then
