@@ -73,8 +73,8 @@ export async function Footer() {
         <div>
           <Link href="/" className="inline-flex items-center gap-3 text-white">
             {/* eslint-disable-next-line @next/next/no-img-element -- a small static logo */}
-            <img src="/logo.png" alt="" width={48} height={48} className="h-12 w-12 rounded-lg" />
-            <span className="text-xl font-extrabold">{t("brand.name")}</span>
+            <img src="/logo-wide.png" alt="" width={624} height={260} className="h-14 w-auto" />
+            <span className="sr-only">{t("brand.name")}</span>
           </Link>
           <p className="mt-4 max-w-sm leading-7">{t("footer.about")}</p>
           {social.length > 0 && (
