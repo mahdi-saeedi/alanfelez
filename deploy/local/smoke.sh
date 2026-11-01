@@ -11,8 +11,10 @@ curl -s -H 'Accept-Language: en' "$API/v1/plans" | grep -q '"amount":"20000000"'
 P="$(curl -s "$API/v1/prices")"
 # Anonymous: base series only (LME is free since 2026-10-25). The paid ones are counted and named in lockedSeries (for
 # the 🔒 rows), never among the items: ITEMS is the response up to "lockedCount", which follows the items array.
+# Rows without a price aren't listed, and this stack runs no price worker, so the list may be empty here; the
+# integration tests check the listing with prices.
 ITEMS="${P%%\"lockedCount\"*}"
-echo "$P" | grep -q '"lockedSeries":\[{' && echo "$ITEMS" | grep -q 'copper-lme' && ! echo "$ITEMS" | grep -q 'copper-cable-free' && ok "api prices (anonymous: base series only)" || fail "api /v1/prices"
+echo "$P" | grep -q '"items":\[' && echo "$P" | grep -q '"lockedSeries":\[' && ! echo "$ITEMS" | grep -q 'copper-cable-free' && ok "api prices (anonymous: base series only)" || fail "api /v1/prices"
 { curl -sN --max-time 3 "$API/v1/prices/stream" || true; } | grep -q '^retry:' && ok "api live price stream (SSE)" || fail "api /v1/prices/stream"
 curl -s "$API/v1/faq" | grep -q '"slug":"what-is-alanfelez"' && ok "api faq (seeded from FAQ.docx)" || fail "api /v1/faq"
 curl -s "$API/v1/pages/terms" | grep -q '"version"' && ok "api pages (terms)" || fail "api /v1/pages/terms"

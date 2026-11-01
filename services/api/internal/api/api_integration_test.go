@@ -158,10 +158,17 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		{Series: "aluminum-ingot-ime", ObservedAt: now.Add(-100 * 24 * time.Hour), Price: 2_000_000},
 		{Series: "aluminum-ingot-ime", ObservedAt: now.Add(-24 * time.Hour), Price: 2_100_000},
 		{Series: "aluminum-ingot-ime", ObservedAt: now.Add(-time.Minute), Price: 2_121_000},
+		// A row is listed once it has a price (rows without one stay off the site).
+		{Series: "rebar-16-global", ObservedAt: now.Add(-time.Minute), Price: 55_000},
+		{Series: "brass-yellow-global", ObservedAt: now.Add(-time.Minute), Price: 750_000},
+		{Series: "cast-iron-scrap-global", ObservedAt: now.Add(-time.Minute), Price: 40_000},
 	}, prices.IngestOptions{}); err != nil {
 		t.Fatal(err)
 	}
 
+	if n := e.count(`SELECT count(*) FROM market.price_series WHERE slug = 'aluminum-bauxite-free'`); n != 1 {
+		t.Fatalf("product list seed: aluminum-bauxite-free rows = %d", n)
+	}
 	for _, tok := range []string{"", "user"} {
 		st, body, raw := e.call(http.MethodGet, "/v1/prices", tok, nil)
 		if st != http.StatusOK {
@@ -186,6 +193,10 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 			if !strings.Contains(raw, `"slug":"`+g+`"`) {
 				t.Fatalf("%q: the free tier must see the global series %s", tok, g)
 			}
+		}
+		// The client's product list (seed 45) is loaded, but a row with no price yet isn't listed, not even locked.
+		if strings.Contains(raw, "aluminum-bauxite-free") {
+			t.Fatalf("%q: a row without a price is listed: %s", tok, raw)
 		}
 		if body["lockedCount"].(float64) < 1 {
 			t.Fatalf("%q: lockedCount = %v", tok, body["lockedCount"])
