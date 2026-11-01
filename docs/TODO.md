@@ -7,9 +7,6 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-01 (product list per metal in the admin)
 
 ## Now (in progress)
-- [ ] **Old products cleanup (owner OK needed):** migration on `feat/catalog-cleanup`: rename «ضایعات آلومینیوم نرم» →
-      «آلومینیوم نرم», «مس قرمز» → «مس کابلی قرمز», move «شمش آلومینیوم» to intermediate, delete the products the
-      client's list doesn't have (their price history, demo mostly, and any user alerts on them). Mahdi to approve.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
@@ -55,6 +52,9 @@ Last updated: 2026-11-01 (product list per metal in the admin)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-01 Old sample products retired (migration 00023, owner OK): «آلومینیوم نرم», «مس کابلی قرمز», «شمش آلومینیوم» in
+  intermediate; «مس کابلی», «ضایعات برنج», «ورق ۴ آهن» and the day-price rows of «برنج زرد», «میلگرد ۱۶», «ضایعات چدن»
+  deleted with their history (those three now only carry the world price, named برنج, آهن, چدن).
 - 2026-11-01 The client's product list (85 products, 7 metals, each with a «بازار» Toman/kg row) loaded from
   `config/seed/reference/45-product-list.yaml`; a row shows on the site (prices, metal page, charts, calculator)
   once it has its first price, so new products and metals from the admin appear by themselves.

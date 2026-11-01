@@ -31,14 +31,8 @@ datasets:
             aluminum-ingot-ime: 2850000
             aluminum-soft-scrap-free: 1950000
             copper-red-free: 6400000
-            copper-cable-free: 6900000
-            brass-yellow-free: 4300000
-            brass-scrap-free: 3700000
             zinc-ingot-ime: 2600000
             lead-ingot-ime: 1900000
-            rebar-16-iron: 345000
-            steel-sheet-4-iron: 410000
-            cast-iron-scrap-free: 180000
             aluminum-lme: 260000
             copper-lme: 980000
             zinc-lme: 280000
