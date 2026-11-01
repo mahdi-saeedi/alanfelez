@@ -36,7 +36,7 @@ var principals = map[string]*auth.Principal{
 	"editor":  {ID: uid("00000000-0000-0000-0000-00000000000e"), Username: "editor", Roles: []string{auth.RoleStaff, auth.RoleEditor}},
 	"support": {ID: uid("00000000-0000-0000-0000-00000000000c"), Username: "support", Roles: []string{auth.RoleStaff, auth.RoleSupport}},
 	"user": {ID: uid("00000000-0000-0000-0000-000000000001"), Username: "09120000001",
-		Activity: "trader", Metals: []string{"copper", "zinc"}, Province: "تهران"},
+		Activity: "trader", Metals: []string{"copper", "zinc"}, Province: "تهران", Company: "بازرگانی نمونه"},
 	"silver": {ID: uid("00000000-0000-0000-0000-000000000002"), Username: "09120000002"},
 	"gold":   {ID: uid("00000000-0000-0000-0000-000000000003"), Username: "09120000003", GivenName: "Gol", FamilyName: "Test"},
 }

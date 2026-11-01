@@ -156,7 +156,7 @@ func (q *Queries) AdminListOrders(ctx context.Context, arg AdminListOrdersParams
 
 const anonymizeUser = `-- name: AnonymizeUser :execrows
 UPDATE app.users u SET username = 'deleted', phone_e164 = NULL, first_name = NULL, last_name = NULL, email = NULL,
-  activity = NULL, metals = NULL, province = NULL, blocked_at = COALESCE(u.blocked_at, now()), deleted_at = now()
+  activity = NULL, metals = NULL, province = NULL, company = NULL, blocked_at = COALESCE(u.blocked_at, now()), deleted_at = now()
 WHERE u.id = $1 AND u.deleted_at IS NULL
 `
 
@@ -1003,7 +1003,7 @@ func (q *Queries) ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) e
 
 const searchUsers = `-- name: SearchUsers :many
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
-       u.activity, u.metals, u.province, u.deleted_at,
+       u.activity, u.metals, u.province, u.company, u.deleted_at,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at
 FROM app.users u
 LEFT JOIN LATERAL (
@@ -1033,6 +1033,7 @@ type SearchUsersRow struct {
 	Activity      pgtype.Text
 	Metals        []string
 	Province      pgtype.Text
+	Company       pgtype.Text
 	DeletedAt     pgtype.Timestamptz
 	CurrentPlan   string
 	CurrentEndsAt pgtype.Timestamptz
@@ -1061,6 +1062,7 @@ func (q *Queries) SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow,
 			&i.Activity,
 			&i.Metals,
 			&i.Province,
+			&i.Company,
 			&i.DeletedAt,
 			&i.CurrentPlan,
 			&i.CurrentEndsAt,
@@ -1137,14 +1139,15 @@ func (q *Queries) SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UU
 
 const upsertUser = `-- name: UpsertUser :one
 
-INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, last_seen_at)
+INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, company, last_seen_at)
 VALUES ($1, $2, $3, $4, $5, $6,
-        $7, $8::text[], $9, now())
+        $7, $8::text[], $9, $10, now())
 ON CONFLICT (id) DO UPDATE SET
   username = EXCLUDED.username, phone_e164 = COALESCE(EXCLUDED.phone_e164, app.users.phone_e164),
   first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email,
   activity = COALESCE(EXCLUDED.activity, app.users.activity), metals = COALESCE(EXCLUDED.metals, app.users.metals),
-  province = COALESCE(EXCLUDED.province, app.users.province), last_seen_at = now()
+  province = COALESCE(EXCLUDED.province, app.users.province), company = COALESCE(EXCLUDED.company, app.users.company),
+  last_seen_at = now()
 WHERE app.users.deleted_at IS NULL -- a deleted account's last token can't write its details back (no row returned)
 RETURNING id, username, phone_e164, first_name, last_name, email, locale, blocked_at, created_at
 `
@@ -1159,6 +1162,7 @@ type UpsertUserParams struct {
 	Activity  pgtype.Text
 	Metals    []string
 	Province  pgtype.Text
+	Company   pgtype.Text
 }
 
 type UpsertUserRow struct {
@@ -1175,7 +1179,7 @@ type UpsertUserRow struct {
 
 // Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 // LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
-// The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+// The sign-up answers (activity, metals, province, company) are kept when a token doesn't carry them (staff, older tokens).
 // Returns no row for a deleted account.
 func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error) {
 	row := q.db.QueryRow(ctx, upsertUser,
@@ -1188,6 +1192,7 @@ func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertU
 		arg.Activity,
 		arg.Metals,
 		arg.Province,
+		arg.Company,
 	)
 	var i UpsertUserRow
 	err := row.Scan(

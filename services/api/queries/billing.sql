@@ -2,16 +2,17 @@
 -- LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 
 -- name: UpsertUser :one
--- The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+-- The sign-up answers (activity, metals, province, company) are kept when a token doesn't carry them (staff, older tokens).
 -- Returns no row for a deleted account.
-INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, last_seen_at)
+INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, company, last_seen_at)
 VALUES (sqlc.arg(id), sqlc.arg(username), sqlc.narg(phone_e164), sqlc.narg(first_name), sqlc.narg(last_name), sqlc.narg(email),
-        sqlc.narg(activity), sqlc.narg(metals)::text[], sqlc.narg(province), now())
+        sqlc.narg(activity), sqlc.narg(metals)::text[], sqlc.narg(province), sqlc.narg(company), now())
 ON CONFLICT (id) DO UPDATE SET
   username = EXCLUDED.username, phone_e164 = COALESCE(EXCLUDED.phone_e164, app.users.phone_e164),
   first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, email = EXCLUDED.email,
   activity = COALESCE(EXCLUDED.activity, app.users.activity), metals = COALESCE(EXCLUDED.metals, app.users.metals),
-  province = COALESCE(EXCLUDED.province, app.users.province), last_seen_at = now()
+  province = COALESCE(EXCLUDED.province, app.users.province), company = COALESCE(EXCLUDED.company, app.users.company),
+  last_seen_at = now()
 WHERE app.users.deleted_at IS NULL -- a deleted account's last token can't write its details back (no row returned)
 RETURNING id, username, phone_e164, first_name, last_name, email, locale, blocked_at, created_at;
 
@@ -21,7 +22,7 @@ SELECT id, username, phone_e164, first_name, last_name, email, locale, blocked_a
 -- name: SearchUsers :many
 -- Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
-       u.activity, u.metals, u.province, u.deleted_at,
+       u.activity, u.metals, u.province, u.company, u.deleted_at,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at
 FROM app.users u
 LEFT JOIN LATERAL (
@@ -208,7 +209,7 @@ LIMIT 200;
 -- Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
 -- profile (never used the API) or already deleted.
 UPDATE app.users u SET username = 'deleted', phone_e164 = NULL, first_name = NULL, last_name = NULL, email = NULL,
-  activity = NULL, metals = NULL, province = NULL, blocked_at = COALESCE(u.blocked_at, now()), deleted_at = now()
+  activity = NULL, metals = NULL, province = NULL, company = NULL, blocked_at = COALESCE(u.blocked_at, now()), deleted_at = now()
 WHERE u.id = $1 AND u.deleted_at IS NULL;
 
 -- name: DeleteUserPrivateData :exec

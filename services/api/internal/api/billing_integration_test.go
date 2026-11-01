@@ -228,7 +228,7 @@ func TestAdminUsersAndGrants(t *testing.T) {
 	if st != 200 || len(body["items"].([]any)) != 1 {
 		t.Fatalf("search: %d %v", st, body)
 	}
-	if u := body["items"].([]any)[0].(map[string]any); u["activity"] != "trader" || fmt.Sprint(u["metals"]) != "[copper zinc]" || u["province"] != "تهران" {
+	if u := body["items"].([]any)[0].(map[string]any); u["activity"] != "trader" || fmt.Sprint(u["metals"]) != "[copper zinc]" || u["province"] != "تهران" || u["company"] != "بازرگانی نمونه" {
 		t.Fatalf("sign-up answers: %v", u)
 	}
 	if st, _, _ := e.call(http.MethodGet, "/v1/admin/users", customer, nil); st != 403 {

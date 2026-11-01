@@ -36,6 +36,7 @@ type Principal struct {
 	Activity string
 	Metals   []string
 	Province string
+	Company  string // optional in the form
 }
 
 // HasRole reports whether the caller has role r.
@@ -95,6 +96,7 @@ type claims struct {
 	Activity    string   `json:"activity"`
 	Metals      []string `json:"metals"`
 	Province    string   `json:"province"`
+	Company     string   `json:"company"`
 	RealmAccess struct {
 		Roles []string `json:"roles"`
 	} `json:"realm_access"`
@@ -119,7 +121,7 @@ func (o *OIDCVerifier) Verify(ctx context.Context, raw string) (*Principal, erro
 	return &Principal{
 		ID: id, Username: c.Username, GivenName: c.GivenName, FamilyName: c.FamilyName, Email: c.Email,
 		Roles:    mergeRoles(c.RealmAccess.Roles, c.Roles),
-		Activity: c.Activity, Metals: c.Metals, Province: c.Province,
+		Activity: c.Activity, Metals: c.Metals, Province: c.Province, Company: c.Company,
 	}, nil
 }
 

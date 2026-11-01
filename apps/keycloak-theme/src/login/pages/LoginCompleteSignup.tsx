@@ -6,9 +6,11 @@ import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
 
 /**
- * Sign-up form (client, 2026-10-25), shown once after the SMS code by PhoneOtpAuthenticator (formAction=complete):
- * name or company, the verified phone (read-only), password + repeat, activity and the terms are required; specialty
- * metals, province, city and address are optional. Older accounts see it once with what they already have filled in.
+ * Sign-up form (client, 2026-10-25; layout 2026-11-01), shown once after the SMS code by PhoneOtpAuthenticator
+ * (formAction=complete). Two parts: the sign-in details in their own box (the verified phone as user name, password +
+ * repeat), then, under a gold divider, «مشخصات شما»: full name, activity, at least one specialty metal (tick boxes) and
+ * the terms are required; company, province, city and address are optional. Older accounts see it once with what they
+ * already have filled in.
  * The server checks everything again (SignupForm.java); the required marks and the disabled button only help.
  */
 export default function LoginCompleteSignup(props: PageProps<Extract<KcContext, { pageId: "login-complete-signup.ftl" }>, I18n>) {
@@ -42,6 +44,42 @@ export default function LoginCompleteSignup(props: PageProps<Extract<KcContext, 
       <form id="kc-signup-form" className={kcClsx("kcFormClass")} action={url.loginAction} method="post" noValidate>
         <input type="hidden" name="formAction" value="complete" />
 
+        <section className="mb-2 rounded-2xl border border-border bg-surface-2 p-4" aria-labelledby="login-box">
+          <h2 id="login-box" className="mb-3 flex items-center gap-2 font-extrabold">
+            <span aria-hidden className="grid size-7 place-items-center rounded-lg bg-graphite text-gold">
+              <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="8" cy="15" r="4" /><path d="m11 12 9-9m-3 3 3 3m-6 0 2 2" /></svg>
+            </span>
+            {msg("signupLoginBox")}
+          </h2>
+          <div className={kcClsx("kcFormGroupClass")}>
+            <Label htmlFor="phone" text={msgStr("signupPhone")} required />
+            <input id="phone" type="tel" dir="ltr" readOnly value={isFa ? toPersianDigits(phoneNational) : phoneNational} className={`${kcClsx("kcInputClass")} bg-surface text-text-2`} aria-describedby="phone-hint" />
+            <small id="phone-hint" className={kcClsx("kcInputHelperTextAfterClass")}>{msg("signupPhoneHint")}</small>
+          </div>
+          {needPassword && (
+            <div className="grid gap-x-3 sm:grid-cols-2">
+              <div className={kcClsx("kcFormGroupClass")}>
+                <Label htmlFor="password" text={msgStr("signupPassword")} required />
+                <input id="password" name="password" type="password" dir="ltr" autoComplete="new-password" required minLength={4} className={kcClsx("kcInputClass")} {...invalid("password")} />
+                {err("password") ? <FieldError name="password" /> : <small className={kcClsx("kcInputHelperTextAfterClass")}>{msg("signupPasswordHint")}</small>}
+              </div>
+              <div className={kcClsx("kcFormGroupClass")}>
+                <Label htmlFor="passwordConfirm" text={msgStr("signupPasswordConfirm")} required />
+                <input id="passwordConfirm" name="passwordConfirm" type="password" dir="ltr" autoComplete="new-password" required className={kcClsx("kcInputClass")} {...invalid("passwordConfirm")} />
+                <FieldError name="passwordConfirm" />
+              </div>
+            </div>
+          )}
+        </section>
+
+        <div className="my-6 flex items-center gap-3 text-sm font-extrabold text-gold-dark" role="presentation">
+          <span className="h-px flex-1 bg-gradient-to-l from-gold to-transparent" />
+          <span aria-hidden>◆</span>
+          <span>{msg("signupAboutYou")}</span>
+          <span aria-hidden>◆</span>
+          <span className="h-px flex-1 bg-gradient-to-r from-gold to-transparent" />
+        </div>
+
         <div className={kcClsx("kcFormGroupClass")}>
           <Label htmlFor="fullName" text={msgStr("profileFullName")} required />
           <input id="fullName" name="fullName" type="text" autoComplete="name" required maxLength={100} defaultValue={values.fullName} className={kcClsx("kcInputClass")} {...invalid("fullName")} />
@@ -49,25 +87,10 @@ export default function LoginCompleteSignup(props: PageProps<Extract<KcContext, 
         </div>
 
         <div className={kcClsx("kcFormGroupClass")}>
-          <Label htmlFor="phone" text={msgStr("signupPhone")} required />
-          <input id="phone" type="tel" dir="ltr" readOnly value={isFa ? toPersianDigits(phoneNational) : phoneNational} className={`${kcClsx("kcInputClass")} bg-surface-2 text-text-2`} aria-describedby="phone-hint" />
-          <small id="phone-hint" className={kcClsx("kcInputHelperTextAfterClass")}>{msg("signupPhoneHint")}</small>
+          <Label htmlFor="company" text={msgStr("signupCompany")} required={false} />
+          <input id="company" name="company" type="text" autoComplete="organization" maxLength={100} defaultValue={values.company} placeholder={msgStr("signupCompanyPlaceholder")} className={kcClsx("kcInputClass")} {...invalid("company")} />
+          <FieldError name="company" />
         </div>
-
-        {needPassword && (
-          <>
-            <div className={kcClsx("kcFormGroupClass")}>
-              <Label htmlFor="password" text={msgStr("signupPassword")} required />
-              <input id="password" name="password" type="password" dir="ltr" autoComplete="new-password" required minLength={10} className={kcClsx("kcInputClass")} {...invalid("password")} />
-              {err("password") ? <FieldError name="password" /> : <small className={kcClsx("kcInputHelperTextAfterClass")}>{msg("signupPasswordHint")}</small>}
-            </div>
-            <div className={kcClsx("kcFormGroupClass")}>
-              <Label htmlFor="passwordConfirm" text={msgStr("signupPasswordConfirm")} required />
-              <input id="passwordConfirm" name="passwordConfirm" type="password" dir="ltr" autoComplete="new-password" required className={kcClsx("kcInputClass")} {...invalid("passwordConfirm")} />
-              <FieldError name="passwordConfirm" />
-            </div>
-          </>
-        )}
 
         <div className={kcClsx("kcFormGroupClass")}>
           <Label htmlFor="activity" text={msgStr("signupActivity")} required />
@@ -78,19 +101,25 @@ export default function LoginCompleteSignup(props: PageProps<Extract<KcContext, 
           <FieldError name="activity" />
         </div>
 
-        <fieldset className={kcClsx("kcFormGroupClass")}>
-          <legend className="mb-1.5"><Label text={msgStr("signupMetals")} required={false} /></legend>
-          <div className="flex flex-wrap gap-2">
+        <fieldset className={kcClsx("kcFormGroupClass")} aria-describedby={err("metals") ? "metals-error" : "metals-hint"}>
+          <legend className="mb-1.5">
+            <Label text={msgStr("signupMetals")} required />
+            <small id="metals-hint" className="ms-1 text-text-3">— {msg("signupMetalsHint")}</small>
+          </legend>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {metalOptions.map((m) => (
               <label key={m} className="cursor-pointer">
                 <input type="checkbox" name="metals" value={m} defaultChecked={values.metals.includes(m)} className="peer sr-only" />
-                <span className="inline-block rounded-full border border-border bg-white px-3.5 py-1.5 text-sm peer-checked:border-gold peer-checked:bg-gold/15 peer-checked:font-semibold peer-focus-visible:outline-2 peer-focus-visible:outline-gold">
+                <span className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm peer-checked:border-gold peer-checked:bg-gold/10 peer-checked:font-semibold peer-focus-visible:outline-2 peer-focus-visible:outline-gold peer-checked:[&>i]:border-gold peer-checked:[&>i]:bg-gold peer-checked:[&_svg]:opacity-100">
+                  <i aria-hidden className="grid size-4 shrink-0 place-items-center rounded border-[1.5px] border-text-3 not-italic">
+                    <svg viewBox="0 0 12 12" className="size-3 text-white opacity-0" fill="none" stroke="currentColor" strokeWidth="2"><path d="m2.5 6.5 2.5 2.5 4.5-5" /></svg>
+                  </i>
                   {label(`metal_${m}`)}
                 </span>
               </label>
             ))}
           </div>
-          <small className={kcClsx("kcInputHelperTextAfterClass")}>{msg("signupMetalsHint")}</small>
+          <FieldError name="metals" />
         </fieldset>
 
         <div className="grid gap-4 sm:grid-cols-2">

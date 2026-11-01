@@ -90,6 +90,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
     // Sign-up form (SignupForm). Declared in the realm's user profile so admins see them.
     static final String ATTR_ACTIVITY = "activity";
     static final String ATTR_METALS = "metals";
+    static final String ATTR_COMPANY = "company";
     static final String ATTR_PROVINCE = "province";
     static final String ATTR_CITY = "city";
     static final String ATTR_ADDRESS = "address";
@@ -357,6 +358,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
             return;
         }
         user.setFirstName(f.fullName());
+        setOrRemove(user, ATTR_COMPANY, f.company().isEmpty() ? List.of() : List.of(f.company()));
         user.setSingleAttribute(ATTR_ACTIVITY, f.activity());
         setOrRemove(user, ATTR_METALS, f.metals());
         setOrRemove(user, ATTR_PROVINCE, f.province().isEmpty() ? List.of() : List.of(f.province()));
@@ -384,6 +386,7 @@ public class PhoneOtpAuthenticator implements Authenticator {
     private Response signupForm(AuthenticationFlowContext ctx, UserModel user, SignupForm posted, Map<String, String> errors) {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("fullName", posted != null ? posted.fullName() : Optional.ofNullable(user.getFirstName()).orElse(""));
+        values.put("company", posted != null ? posted.company() : Optional.ofNullable(user.getFirstAttribute(ATTR_COMPANY)).orElse(""));
         values.put("activity", posted != null ? posted.activity() : Optional.ofNullable(user.getFirstAttribute(ATTR_ACTIVITY)).orElse(""));
         values.put("metals", posted != null ? posted.metals() : user.getAttributeStream(ATTR_METALS).toList());
         values.put("province", posted != null ? posted.province() : Optional.ofNullable(user.getFirstAttribute(ATTR_PROVINCE)).orElse(""));

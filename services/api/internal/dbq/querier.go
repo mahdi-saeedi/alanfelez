@@ -276,7 +276,7 @@ type Querier interface {
 	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
-	// The sign-up answers (activity, metals, province) are kept when a token doesn't carry them (staff, older tokens).
+	// The sign-up answers (activity, metals, province, company) are kept when a token doesn't carry them (staff, older tokens).
 	// Returns no row for a deleted account.
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
 	UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)

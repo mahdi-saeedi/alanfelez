@@ -33,7 +33,8 @@
 
 ## 3. Authentication (Keycloak)
 - Mobile sign-up requires OTP. OTP = 6 digits, **valid 2 min**, max 5 attempts, then the code is burned.
-- Passwords (optional): minimum 10 characters, checked against a breached-password list if feasible. Keycloak **brute-force detection** is on (temporary lockout).
+- Passwords (optional): minimum 4 characters (client decision with the owner's OK, 2026-11-01; was 10, weaker by
+  design: the SMS code stays the main way in), set by `keycloak.passwordPolicy` in the chart. Keycloak **brute-force detection** is on (temporary lockout).
 - Tokens: access 5 min, refresh with rotation. Sessions: users idle 7 days / max 30 days, staff idle 30 min / max 12 h.
 - Go validates the `iss`, `aud`, `exp` and `nbf` claims and the signature via JWKS (cached, with rotation handled).
 - Staff roles are only assigned manually by an `admin`. Keep the role list minimal: `admin`, `editor`, `support`.

@@ -2099,6 +2099,8 @@ export interface components {
             metals?: string[];
             /** @description Sign-up answer */
             province?: string;
+            /** @description Sign-up answer */
+            company?: string;
             /**
              * Format: date-time
              * @description Set once the user was deleted (no personal details left).

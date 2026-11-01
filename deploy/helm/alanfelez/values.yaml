@@ -93,6 +93,9 @@ keycloak:
   sessionLimit: 2                  # devices signed in at once per account (the oldest is signed out); 0 = no limit.
                                    # Applied by the profile job once; to change it later use the Keycloak admin console
   ssoSessionIdleSeconds: 0         # signed out after this many seconds without activity, then password or SMS code
+  # Password rule of the realm, applied to the running Keycloak before every sync (the realm file only seeds a new realm).
+  # 4 characters minimum: client decision with the owner's OK, 2026-11-01 (was 10). Empty = leave the realm as it is.
+  passwordPolicy: "length(4) and notUsername(undefined) and notEmail(undefined)"
                                    # again; set on the running realm by the profile job every sync. 0 = leave the realm
                                    # as it is. Per environment (staging first, then production: client + owner, 2026-10-30)
   extraEnv: {}
