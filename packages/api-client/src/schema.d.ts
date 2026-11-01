@@ -646,6 +646,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/metals/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename a metal. Roles, editor, admin; audited */
+        put: operations["adminUpdateMetal"];
+        post?: never;
+        /** Delete a metal that has no products and isn't used elsewhere (409 otherwise). Roles, editor, admin; audited */
+        delete: operations["adminDeleteMetal"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/products/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename a product or move it to another category. Roles, editor, admin; audited */
+        put: operations["adminUpdateProduct"];
+        post?: never;
+        /** Delete a product and its price rows if none has a price yet; one with prices can only be deactivated (409). Roles, editor, admin; audited */
+        delete: operations["adminDeleteProduct"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/series/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a price row that has no price yet; one with prices can only be deactivated (409). Roles, editor, admin; audited */
+        delete: operations["adminDeleteSeries"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/catalog/active": {
         parameters: {
             query?: never;
@@ -1772,6 +1825,10 @@ export interface components {
             nameEn?: string;
             active: boolean;
         };
+        AdminRenameInput: {
+            nameFa: string;
+            nameEn?: string;
+        };
         AdminMetalInput: {
             slug: string;
             nameFa: string;
@@ -1806,6 +1863,8 @@ export interface components {
             slug: string;
             productFa: string;
             productEn?: string;
+            /** @description Product slug */
+            product?: string;
             metal?: string;
             market: string;
             currency: components["schemas"]["Currency"];
@@ -3571,6 +3630,122 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminProduct"];
                 };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateMetal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRenameInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteMetal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRenameInput"] & {
+                    /** @description Category slug; unchanged if left out */
+                    category?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteSeries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Problem"];
         };

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/alanfelez/alanfelez/services/api/internal/audit"
@@ -300,4 +301,173 @@ func (s *Server) AdminPricesAt(ctx context.Context, req AdminPricesAtRequestObje
 		out = append(out, AdminPriceAt{Series: r.SeriesSlug, Id: i64s(r.ID), Amount: i64s(r.PriceMinor), ObservedAt: r.ObservedAt.Time.UTC(), IsManual: r.IsManual})
 	}
 	return AdminPricesAt200JSONResponse{Items: out}, nil
+}
+
+// --- rename and delete (client, 2026-11-01): staff keep the product list themselves ---------------------------------
+
+// isForeignKeyViolation reports a row still referenced elsewhere (a saved calculation, an alert, an article…).
+func isForeignKeyViolation(err error) bool {
+	var pg *pgconn.PgError
+	return errors.As(err, &pg) && pg.Code == "23503"
+}
+
+// AdminUpdateMetal renames a metal.
+func (s *Server) AdminUpdateMetal(ctx context.Context, req AdminUpdateMetalRequestObject) (AdminUpdateMetalResponseObject, error) {
+	type bad = AdminUpdateMetaldefaultApplicationProblemPlusJSONResponse
+	p, pr := requireRoles(ctx, rolesPriceWrite...)
+	if pr != nil {
+		return fail[bad](*pr), nil
+	}
+	nameFa := strings.TrimSpace(req.Body.NameFa)
+	if nameFa == "" {
+		return fail[bad](badRequest(ctx, "nameFa is required")), nil
+	}
+	var n int64
+	err := s.tx(ctx, func(q *dbq.Queries) error {
+		var err error
+		if n, err = q.RenameMetal(ctx, dbq.RenameMetalParams{Slug: req.Slug, NameFa: nameFa, NameEn: optText(req.Body.NameEn)}); err != nil || n == 0 {
+			return err
+		}
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "metal.rename", Entity: "metal", EntityID: req.Slug, Data: req.Body})
+	})
+	if err != nil {
+		return nil, fmt.Errorf("rename metal: %w", err)
+	}
+	if n == 0 {
+		return fail[bad](notFound(ctx, "metal")), nil
+	}
+	return AdminUpdateMetal204Response{}, nil
+}
+
+// AdminDeleteMetal deletes a metal with no products that nothing else refers to.
+func (s *Server) AdminDeleteMetal(ctx context.Context, req AdminDeleteMetalRequestObject) (AdminDeleteMetalResponseObject, error) {
+	type bad = AdminDeleteMetaldefaultApplicationProblemPlusJSONResponse
+	p, pr := requireRoles(ctx, rolesPriceWrite...)
+	if pr != nil {
+		return fail[bad](*pr), nil
+	}
+	has, err := s.q.MetalHasProducts(ctx, req.Slug)
+	if err != nil {
+		return nil, fmt.Errorf("metal products: %w", err)
+	}
+	if has {
+		return fail[bad](conflict(ctx, "the metal has products: delete or deactivate them first")), nil
+	}
+	var n int64
+	err = s.tx(ctx, func(q *dbq.Queries) error {
+		if n, err = q.DeleteMetal(ctx, req.Slug); err != nil || n == 0 {
+			return err
+		}
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "metal.delete", Entity: "metal", EntityID: req.Slug})
+	})
+	if isForeignKeyViolation(err) {
+		return fail[bad](conflict(ctx, "the metal is used elsewhere (articles, auctions, SMS choices)")), nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("delete metal: %w", err)
+	}
+	if n == 0 {
+		return fail[bad](notFound(ctx, "metal")), nil
+	}
+	return AdminDeleteMetal204Response{}, nil
+}
+
+// AdminUpdateProduct renames a product or moves it to another category; its price history stays.
+func (s *Server) AdminUpdateProduct(ctx context.Context, req AdminUpdateProductRequestObject) (AdminUpdateProductResponseObject, error) {
+	type bad = AdminUpdateProductdefaultApplicationProblemPlusJSONResponse
+	p, pr := requireRoles(ctx, rolesPriceWrite...)
+	if pr != nil {
+		return fail[bad](*pr), nil
+	}
+	nameFa := strings.TrimSpace(req.Body.NameFa)
+	if nameFa == "" {
+		return fail[bad](badRequest(ctx, "nameFa is required")), nil
+	}
+	var n int64
+	err := s.tx(ctx, func(q *dbq.Queries) error {
+		var err error
+		if n, err = q.UpdateProduct(ctx, dbq.UpdateProductParams{
+			Slug: req.Slug, NameFa: nameFa, NameEn: optText(req.Body.NameEn), Category: textOfPtr(req.Body.Category),
+		}); err != nil || n == 0 {
+			return err
+		}
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "product.update", Entity: "product", EntityID: req.Slug, Data: req.Body})
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update product: %w", err)
+	}
+	if n == 0 {
+		return fail[bad](notFound(ctx, "product or category")), nil
+	}
+	return AdminUpdateProduct204Response{}, nil
+}
+
+// AdminDeleteProduct deletes a product and its price rows when none has a price yet. One with prices keeps its
+// history and can only be deactivated (409), so charts and saved calculations never lose data.
+func (s *Server) AdminDeleteProduct(ctx context.Context, req AdminDeleteProductRequestObject) (AdminDeleteProductResponseObject, error) {
+	type bad = AdminDeleteProductdefaultApplicationProblemPlusJSONResponse
+	p, pr := requireRoles(ctx, rolesPriceWrite...)
+	if pr != nil {
+		return fail[bad](*pr), nil
+	}
+	has, err := s.q.ProductHasPrices(ctx, req.Slug)
+	if err != nil {
+		return nil, fmt.Errorf("product prices: %w", err)
+	}
+	if has {
+		return fail[bad](conflict(ctx, "the product has prices: deactivate it instead")), nil
+	}
+	var n int64
+	err = s.tx(ctx, func(q *dbq.Queries) error {
+		if err := q.DeleteProductSeries(ctx, req.Slug); err != nil {
+			return err
+		}
+		if n, err = q.DeleteProduct(ctx, req.Slug); err != nil || n == 0 {
+			return err
+		}
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "product.delete", Entity: "product", EntityID: req.Slug})
+	})
+	if isForeignKeyViolation(err) {
+		return fail[bad](conflict(ctx, "the product is used elsewhere (alerts, saved calculations): deactivate it instead")), nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("delete product: %w", err)
+	}
+	if n == 0 {
+		return fail[bad](notFound(ctx, "product")), nil
+	}
+	return AdminDeleteProduct204Response{}, nil
+}
+
+// AdminDeleteSeries deletes a price row with no price yet (otherwise 409: deactivate it).
+func (s *Server) AdminDeleteSeries(ctx context.Context, req AdminDeleteSeriesRequestObject) (AdminDeleteSeriesResponseObject, error) {
+	type bad = AdminDeleteSeriesdefaultApplicationProblemPlusJSONResponse
+	p, pr := requireRoles(ctx, rolesPriceWrite...)
+	if pr != nil {
+		return fail[bad](*pr), nil
+	}
+	has, err := s.q.SeriesHasPrices(ctx, req.Slug)
+	if err != nil {
+		return nil, fmt.Errorf("series prices: %w", err)
+	}
+	if has {
+		return fail[bad](conflict(ctx, "the row has prices: deactivate it instead")), nil
+	}
+	var n int64
+	err = s.tx(ctx, func(q *dbq.Queries) error {
+		if n, err = q.DeleteSeries(ctx, req.Slug); err != nil || n == 0 {
+			return err
+		}
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "series.delete", Entity: "price_series", EntityID: req.Slug})
+	})
+	if isForeignKeyViolation(err) {
+		return fail[bad](conflict(ctx, "the row is used elsewhere (alerts, saved calculations): deactivate it instead")), nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("delete series: %w", err)
+	}
+	if n == 0 {
+		return fail[bad](notFound(ctx, "price row")), nil
+	}
+	return AdminDeleteSeries204Response{}, nil
 }

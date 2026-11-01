@@ -74,10 +74,14 @@ type Querier interface {
 	DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPostParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
+	DeleteMetal(ctx context.Context, slug string) (int64, error)
 	DeleteOldCalculations(ctx context.Context, userID pgtype.UUID) error
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error)
+	DeleteProduct(ctx context.Context, slug string) (int64, error)
+	DeleteProductSeries(ctx context.Context, slug string) error
+	DeleteSeries(ctx context.Context, slug string) (int64, error)
 	// What only the user had: SMS choice, price alerts, saved calculations; the SMS log keeps cost and status without the
 	// number; contact-form messages they sent while signed in keep the text without name, number, email and address.
 	DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error
@@ -193,6 +197,7 @@ type Querier interface {
 	LockUserBilling(ctx context.Context, userID pgtype.UUID) error
 	// armed = false after firing (above / below); triggered = true stamps last_triggered_at.
 	MarkAlert(ctx context.Context, arg MarkAlertParams) error
+	MetalHasProducts(ctx context.Context, slug string) (bool, error)
 	// Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
 	MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error)
 	// Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
@@ -203,6 +208,7 @@ type Querier interface {
 	// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
 	// (when there is none) the first one after it. No row = the series has no published price at all.
 	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
+	ProductHasPrices(ctx context.Context, slug string) (bool, error)
 	// Adds or replaces the auction's PDF notice (0 rows: no such auction).
 	PutAuctionFile(ctx context.Context, arg PutAuctionFileParams) (int64, error)
 	PutCommunityPostImage(ctx context.Context, arg PutCommunityPostImageParams) error
@@ -210,6 +216,7 @@ type Querier interface {
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
 	RecordVisit(ctx context.Context, arg RecordVisitParams) error
+	RenameMetal(ctx context.Context, arg RenameMetalParams) (int64, error)
 	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
 	ReportCommunityPost(ctx context.Context, arg ReportCommunityPostParams) error
@@ -219,6 +226,7 @@ type Querier interface {
 	SavePageRevision(ctx context.Context, arg SavePageRevisionParams) error
 	// Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
 	SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow, error)
+	SeriesHasPrices(ctx context.Context, slug string) (bool, error)
 	// Downsampled history: the last published price per bucket. Buckets are aligned to Tehran midnight so daily
 	// buckets are calendar days in Iran.
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
@@ -252,6 +260,8 @@ type Querier interface {
 	UpdateFaqItem(ctx context.Context, arg UpdateFaqItemParams) (pgtype.UUID, error)
 	// Optimistic lock: no row when someone saved a newer version in between.
 	UpdatePage(ctx context.Context, arg UpdatePageParams) (UpdatePageRow, error)
+	// category NULL keeps the current one; an unknown category slug updates nothing (the handler answers 404).
+	UpdateProduct(ctx context.Context, arg UpdateProductParams) (int64, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
 	// 0 rows: unknown metal slug.
 	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)

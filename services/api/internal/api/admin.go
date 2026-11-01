@@ -37,7 +37,7 @@ func (s *Server) AdminListSeries(ctx context.Context, _ AdminListSeriesRequestOb
 	out := make([]AdminSeries, 0, len(rows))
 	for _, r := range rows {
 		a := AdminSeries{
-			Slug: r.Slug, ProductFa: r.ProductFa, ProductEn: textp(r.ProductEn), Metal: &r.MetalSlug, Market: r.MarketSlug,
+			Slug: r.Slug, ProductFa: r.ProductFa, ProductEn: textp(r.ProductEn), Product: &r.ProductSlug, Metal: &r.MetalSlug, Market: r.MarketSlug,
 			Currency: Currency(r.Currency), Unit: Unit(r.Unit), IsBase: r.IsBase, Active: r.Active, MaxJumpBp: int(r.MaxJumpBp),
 			LatestAt: timep(r.ObservedAt), LatestSource: textp(r.SourceSlug),
 		}
