@@ -1,4 +1,6 @@
-# Products, price sources and price series (DATA_MODEL §2). Editable in the admin after the first load. Don't edit the
+# Products, price sources and price series (DATA_MODEL §2). Since migration 00023 the sample products the client's
+# list doesn't have are gone; برنج, آهن and چدن only carry their metal's world price. The rest of the list: 45-product-list.yaml.
+# Editable in the admin after the first load. Don't edit the
 # products or rows here any more: a changed file is re-applied and brings back products staff deleted in the admin.
 # Product names are the sample rows from the client's design docs (price table, 11 rows). مس کاتد is ours: it's the
 # product behind the LME copper reference (SCOPE §14).
@@ -7,18 +9,15 @@ version: 1
 datasets:
   - name: products
     rows:
-      - { slug: aluminum-ingot,      metal: aluminum,  category: raw,          name_fa: شمش آلومینیوم,        name_en: Aluminum ingot,      sort: 10 }
-      - { slug: aluminum-soft-scrap, metal: aluminum,  category: scrap,        name_fa: ضایعات آلومینیوم نرم, name_en: Soft aluminum scrap, sort: 11 }
-      - { slug: copper-red,          metal: copper,    category: scrap,        name_fa: مس قرمز,              name_en: Red copper,          sort: 20 }
-      - { slug: copper-cable,        metal: copper,    category: scrap,        name_fa: مس کابلی,             name_en: Cable copper,        sort: 21 }
+      - { slug: aluminum-ingot,      metal: aluminum,  category: intermediate, name_fa: شمش آلومینیوم,        name_en: Aluminum ingot,      sort: 10 }
+      - { slug: aluminum-soft-scrap, metal: aluminum,  category: scrap,        name_fa: آلومینیوم نرم,        name_en: Soft aluminum, sort: 11 }
+      - { slug: copper-red,          metal: copper,    category: scrap,        name_fa: مس کابلی قرمز,        name_en: Red cable copper,          sort: 20 }
       - { slug: copper-cathode,      metal: copper,    category: raw,          name_fa: مس کاتد,              name_en: Copper cathode,      sort: 22 }
-      - { slug: brass-yellow,        metal: brass,     category: raw,          name_fa: برنج زرد,             name_en: Yellow brass,        sort: 30 }
-      - { slug: brass-scrap,         metal: brass,     category: scrap,        name_fa: ضایعات برنج,          name_en: Brass scrap,         sort: 31 }
+      - { slug: brass-yellow,        metal: brass,     category: raw,          name_fa: برنج,                 name_en: Brass,        sort: 30 }
       - { slug: zinc-ingot,          metal: zinc,      category: raw,          name_fa: شمش روی,              name_en: Zinc ingot,          sort: 40 }
       - { slug: lead-ingot,          metal: lead,      category: raw,          name_fa: شمش سرب,              name_en: Lead ingot,          sort: 50 }
-      - { slug: rebar-16,            metal: iron,      category: intermediate, name_fa: میلگرد ۱۶,            name_en: Rebar 16 mm,         sort: 60 }
-      - { slug: steel-sheet-4,       metal: iron,      category: intermediate, name_fa: ورق ۴ آهن,            name_en: Steel sheet 4 mm,    sort: 61 }
-      - { slug: cast-iron-scrap,     metal: cast-iron, category: scrap,        name_fa: ضایعات چدن,           name_en: Cast iron scrap,     sort: 70 }
+      - { slug: rebar-16,            metal: iron,      category: intermediate, name_fa: آهن,                  name_en: Iron,         sort: 60 }
+      - { slug: cast-iron-scrap,     metal: cast-iron, category: scrap,        name_fa: چدن,                  name_en: Cast iron,     sort: 70 }
 
   # Manual entry is a source like any other, so every point says where it came from (SCOPE §13).
   - name: sources
@@ -31,14 +30,8 @@ datasets:
       - { slug: aluminum-ingot-ime,      product: aluminum-ingot,      market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 10 }
       - { slug: aluminum-soft-scrap-free, product: aluminum-soft-scrap, market: free, currency: IRR, unit: kg,  is_base: false, sort: 11 }
       - { slug: copper-red-free,         product: copper-red,          market: free, currency: IRR, unit: kg,  is_base: false, sort: 20 }
-      - { slug: copper-cable-free,       product: copper-cable,        market: free, currency: IRR, unit: kg,  is_base: false, sort: 21 }
-      - { slug: brass-yellow-free,       product: brass-yellow,        market: free, currency: IRR, unit: kg,  is_base: false, sort: 30 }
-      - { slug: brass-scrap-free,        product: brass-scrap,         market: free, currency: IRR, unit: kg,  is_base: false, sort: 31 }
       - { slug: zinc-ingot-ime,          product: zinc-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 40 }
       - { slug: lead-ingot-ime,          product: lead-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 50 }
-      - { slug: rebar-16-iron,           product: rebar-16,            market: free, currency: IRR, unit: kg,  is_base: false, sort: 60 }
-      - { slug: steel-sheet-4-iron,      product: steel-sheet-4,       market: free, currency: IRR, unit: kg,  is_base: false, sort: 61 }
-      - { slug: cast-iron-scrap-free,    product: cast-iron-scrap,     market: free, currency: IRR, unit: kg,  is_base: false, sort: 70 }
       - { slug: aluminum-lme,            product: aluminum-ingot,      market: global, currency: USD, unit: ton, is_base: true,  sort: 110 }
       - { slug: copper-lme,              product: copper-cathode,      market: global, currency: USD, unit: ton, is_base: true,  sort: 120 }
       - { slug: zinc-lme,                product: zinc-ingot,          market: global, currency: USD, unit: ton, is_base: true,  sort: 140 }

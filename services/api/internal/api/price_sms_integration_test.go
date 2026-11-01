@@ -17,7 +17,7 @@ import (
 
 func TestGoldPriceSMS(t *testing.T) {
 	e := setup(t)
-	e.seedPrices() // copper-red-free 6,464,000 (prev close 6,400,000), copper-lme, copper-cable-free
+	e.seedPrices() // copper-red-free 6,464,000 (prev close 6,400,000), copper-lme, copper-telecom-free
 
 	// Settings: Gold only; the metal must exist.
 	if st, body, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "user", map[string]any{"metal": "copper", "enabled": true}); st != 403 || body["code"] != "FEATURE_LOCKED" {
@@ -73,7 +73,7 @@ func TestGoldPriceSMS(t *testing.T) {
 	}
 
 	// Another copper product changes: "prices updated" counts only it.
-	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-cable-free", ObservedAt: now, Price: 7_150_000}}, prices.IngestOptions{}); err != nil {
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-telecom-free", ObservedAt: now, Price: 7_150_000}}, prices.IngestOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	if n, err = svc.AutoAt(t.Context(), noon(1)); err != nil || n != 1 {
@@ -89,7 +89,7 @@ func TestGoldPriceSMS(t *testing.T) {
 
 	// Turned off: nothing more, even for a new change.
 	e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metal": "copper", "enabled": false})
-	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-cable-free", ObservedAt: now.Add(time.Second), Price: 7_160_000}}, prices.IngestOptions{}); err != nil {
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-telecom-free", ObservedAt: now.Add(time.Second), Price: 7_160_000}}, prices.IngestOptions{}); err != nil {
 		t.Fatal(err)
 	}
 	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {

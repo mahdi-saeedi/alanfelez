@@ -135,7 +135,7 @@ func (e *env) seedPrices() {
 		{Series: "copper-red-free", ObservedAt: now.Add(-24 * time.Hour), Price: 6_400_000},
 		{Series: "copper-red-free", ObservedAt: now.Add(-time.Minute), Price: 6_464_000},
 		{Series: "copper-lme", ObservedAt: now.Add(-time.Minute), Price: 980_000},
-		{Series: "copper-cable-free", ObservedAt: now.Add(-time.Minute), Price: 7_100_000}, // a paid (non-base) series
+		{Series: "copper-telecom-free", ObservedAt: now.Add(-time.Minute), Price: 7_100_000}, // a paid (non-base) series
 	}
 	res, err := e.prices.Ingest(e.t.Context(), prices.Origin{SourceID: src.ID}, quotes, prices.IngestOptions{})
 	if err != nil {
@@ -177,7 +177,7 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 		// Domestic day prices (free market, Iran iron market) are Silver and Gold since 2026-10-26: listed by name in
 		// lockedSeries for the 🔒 rows, never among the items and never with their prices.
 		itemsJSON, _ := json.Marshal(body["items"])
-		if strings.Contains(string(itemsJSON), "copper-cable-free") || strings.Contains(string(itemsJSON), "copper-red-free") ||
+		if strings.Contains(string(itemsJSON), "copper-telecom-free") || strings.Contains(string(itemsJSON), "copper-red-free") ||
 			strings.Contains(raw, "7100000") || strings.Contains(raw, "6464000") {
 			t.Fatalf("%q: locked series leaked: %s", tok, raw)
 		}
@@ -223,7 +223,7 @@ func TestLockedSeriesNeverReachTheFreeTier(t *testing.T) {
 
 	// Non-base history is locked for free; so is IME history (client, 2026-10-28: the free plan charts world prices
 	// only), and a range beyond 30 days.
-	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-cable-free/points", "user", nil); st != 403 || body["code"] != "FEATURE_LOCKED" || body["feature"] != "prices.full" || body["requiredPlan"] != "silver" {
+	if st, body, _ := e.call(http.MethodGet, "/v1/series/copper-telecom-free/points", "user", nil); st != 403 || body["code"] != "FEATURE_LOCKED" || body["feature"] != "prices.full" || body["requiredPlan"] != "silver" {
 		t.Fatalf("free non-base history: %d %v", st, body)
 	}
 	if st, body, _ := e.call(http.MethodGet, "/v1/series/aluminum-ingot-ime/points?range=1M", "", nil); st != 403 || body["feature"] != "chart.full" || body["requiredPlan"] != "silver" {
@@ -272,7 +272,7 @@ func TestPaidTierAfterManualGrant(t *testing.T) {
 
 func TestAdminRoles(t *testing.T) {
 	e := setup(t)
-	price := map[string]any{"series": "rebar-16-iron", "amount": "345000"}
+	price := map[string]any{"series": "iron-rebar-free", "amount": "345000"}
 	cases := []struct {
 		method, path, token string
 		body                any
