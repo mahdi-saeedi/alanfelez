@@ -48,7 +48,7 @@ export type CalcForm = {
 };
 
 export const EMPTY_FORM: CalcForm = {
-  series: "", weight: "1000", unit: "kg", price: "", moisture: "0", impurity: "0", recovery: "100", deductions: "0", shipping: "0", paidBy: "seller",
+  series: "", weight: "1,000", unit: "kg", price: "", moisture: "0", impurity: "0", recovery: "100", deductions: "0", shipping: "0", paidBy: "seller",
 };
 
 /**
@@ -64,4 +64,20 @@ export function loadHints(metal: string, category: string): { moisture?: string;
   if (metal === "brass") return { impurity: "brassImpurity", recovery: "brassRecovery" };
   if (metal === "lead") return { impurity: "leadImpurity", recovery: "leadRecovery" };
   return { impurity: "scrapImpurity" };
+}
+
+/**
+ * Groups an amount as it's typed, three digits at a time (client, 2026-10-31): «3000000» → «3,000,000», so a price
+ * of millions doesn't need counting zeros. Persian and Arabic digits become Latin (the field is LTR); one decimal point
+ * is kept, its fraction ungrouped. parseDecimal reads the commas back.
+ */
+export function groupDigits(typed: string): string {
+  const latin = typed
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[٫/]/g, ".")
+    .replace(/[^\d.]/g, "");
+  const [whole = "", ...rest] = latin.split(".");
+  const grouped = whole.replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return rest.length ? `${grouped}.${rest.join("")}` : grouped;
 }

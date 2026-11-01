@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Schemas } from "@alanfelez/api-client";
 import { formatDate, formatNumber, parseDecimal, type Locale } from "@alanfelez/ui/format";
 import { deleteAction, estimateAction, saveAction } from "@/app/[locale]/calculator/actions";
-import { EMPTY_FORM, amountInWords, loadHints, type CalcForm, type CalcProduct } from "./calc-form";
+import { EMPTY_FORM, amountInWords, groupDigits, loadHints, type CalcForm, type CalcProduct } from "./calc-form";
 import { StickyResult } from "./StickyResult";
 
 type Result = Schemas["CalculatorResult"];
@@ -92,9 +92,9 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
     const i = c.result.input;
     setForm({
       series: i.series ?? "", unit: "kg", weight: String(i.weightGrams / 1000), paidBy: i.shippingPaidBy,
-      price: i.series && c.result.price ? "" : String((i.unitPriceRialPerKg ?? 0) / 10),
+      price: i.series && c.result.price ? "" : groupDigits(String((i.unitPriceRialPerKg ?? 0) / 10)),
       moisture: String((i.moistureBp ?? 0) / 100), impurity: String(i.impurityBp / 100), recovery: String((i.recoveryBp || 10000) / 100),
-      deductions: String(i.deductionBp / 100), shipping: String(i.shippingRial / 10),
+      deductions: String(i.deductionBp / 100), shipping: groupDigits(String(i.shippingRial / 10)),
     });
     const p = products.find((x) => x.series === i.series);
     if (p) {
@@ -164,7 +164,7 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
           <div className="space-y-1.5 text-sm">
             <label htmlFor="calc-weight" className="font-bold">{t("weight")}</label>
             <div className="flex gap-2">
-              <input id="calc-weight" inputMode="decimal" dir="ltr" value={form.weight} onChange={(e) => set("weight", e.target.value)} className={field} />
+              <input id="calc-weight" inputMode="decimal" dir="ltr" value={form.weight} onChange={(e) => set("weight", groupDigits(e.target.value))} className={field} />
               <select aria-label={t("weight")} value={form.unit} onChange={(e) => set("unit", e.target.value as CalcForm["unit"])} className="rounded-control border border-border bg-surface px-3 text-sm">
                 <option value="kg">{t("kg")}</option>
                 <option value="ton">{t("ton")}</option>
@@ -173,7 +173,7 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
           </div>
           <label className="block space-y-1.5 text-sm">
             <span className="font-bold">{t("manualPrice")}</span>
-            <input inputMode="decimal" dir="ltr" value={form.price} placeholder={product?.priceRialPerKg ? String(Math.round(product.priceRialPerKg / 10)) : ""} onChange={(e) => set("price", e.target.value)} className={field} />
+            <input inputMode="decimal" dir="ltr" value={form.price} placeholder={product?.priceRialPerKg ? groupDigits(String(Math.round(product.priceRialPerKg / 10))) : ""} onChange={(e) => set("price", groupDigits(e.target.value))} className={field} />
             <span className="block text-xs text-text-3">{t("manualHint")}</span>
           </label>
           {(["moisture", "impurity", "recovery"] as const).map((k) => (
@@ -192,7 +192,7 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
           </label>
           <label className="block space-y-1.5 text-sm">
             <span className="font-bold">{t("shipping")}</span>
-            <input inputMode="numeric" dir="ltr" value={form.shipping} onChange={(e) => set("shipping", e.target.value)} className={field} />
+            <input inputMode="numeric" dir="ltr" value={form.shipping} onChange={(e) => set("shipping", groupDigits(e.target.value))} className={field} />
           </label>
           <div className="space-y-1.5 text-sm">
             <p className="font-bold">{t("paidBy")}</p>
