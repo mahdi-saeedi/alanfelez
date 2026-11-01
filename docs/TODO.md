@@ -52,6 +52,11 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-01 Sign-up form (client, owner OK): the sign-in details (phone, password, repeat) in their own box, «مشخصات شما»
+  under a gold divider; full name (no longer "or company") and a separate optional company name; «توزیع و پخش» no
+  longer offered; at least one specialty metal required (tick boxes); password minimum 4 (was 10), set on running
+  realms by the keycloak-profile job. The company name reaches the admin users list (token mapper `company` →
+  `app.users.company`, migration 00025).
 - 2026-11-01 Prices page (client): product groups as boxes inside a metal's category (`market.product_groups`, migration
   00024 with «آلومینیوم نرم»/«آلومینیوم خشک»; admin: add/rename/reorder/delete, a group menu per product); the three
   filters numbered one under the other (metal → category → market); the Toman/Rial and kg/ton switch removed; the ticker

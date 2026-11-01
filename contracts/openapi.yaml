@@ -2869,6 +2869,7 @@ components:
           items: { type: string }
           description: Sign-up answer, metal slugs (aluminum, copper, brass, zinc, lead, iron, cast-iron).
         province: { type: string, description: Sign-up answer, the province as chosen (Persian name). }
+        company: { type: string, description: Sign-up answer, the company name (optional in the form). }
         deletedAt: { type: string, format: date-time, description: Set once the user was deleted (no personal details left). }
 
     AdminOrder:

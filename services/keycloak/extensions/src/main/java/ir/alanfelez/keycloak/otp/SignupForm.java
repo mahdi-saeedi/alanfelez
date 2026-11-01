@@ -6,13 +6,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The sign-up form shown once after the first SMS code (client, 2026-10-25): name or company, password and its repeat,
- * field of activity and acceptance of the terms are required; specialty metals, province, city and address are
- * optional. Options are stored as stable slugs; the theme shows their labels (apps/keycloak-theme/src/login/i18n.ts).
+ * The sign-up form shown once after the first SMS code (client, 2026-10-25; 2026-11-01): full name, password and its
+ * repeat, field of activity, at least one specialty metal and acceptance of the terms are required; company name,
+ * province, city and address are optional. «توزیع و پخش» (distributor) is no longer offered; accounts that chose it
+ * keep the value. Options are stored as stable slugs; the theme shows their labels (apps/keycloak-theme/src/login/i18n.ts).
  * Pure: reading and checking only, so it is unit tested without Keycloak.
  */
 public record SignupForm(
         String fullName,
+        String company,
         String password,
         String passwordConfirm,
         String activity,
@@ -23,7 +25,7 @@ public record SignupForm(
         boolean termsAccepted) {
 
     public static final List<String> ACTIVITIES =
-            List.of("trader", "producer", "industrial-consumer", "distributor", "recycler", "investor", "other");
+            List.of("trader", "producer", "industrial-consumer", "recycler", "investor", "other");
     /** The site's metals (config/seed/reference/10-market.yaml). */
     public static final List<String> METALS = List.of("aluminum", "copper", "brass", "zinc", "lead", "iron", "cast-iron");
     /** Iran's 31 provinces. */
@@ -34,6 +36,7 @@ public record SignupForm(
             "mazandaran", "qazvin", "qom", "semnan", "sistan-baluchestan", "tehran", "yazd", "zanjan");
 
     static final int NAME_MAX = 100;
+    static final int COMPANY_MAX = 100;
     static final int CITY_MAX = 60;
     static final int ADDRESS_MAX = 300;
 
@@ -46,7 +49,7 @@ public record SignupForm(
             }
         }
         return new SignupForm(
-                text(form, "fullName"), raw(form, "password"), raw(form, "passwordConfirm"), text(form, "activity"),
+                text(form, "fullName"), text(form, "company"), raw(form, "password"), raw(form, "passwordConfirm"), text(form, "activity"),
                 metals, text(form, "province"), text(form, "city"), text(form, "address"),
                 "on".equals(text(form, "terms")) || "true".equals(text(form, "terms")));
     }
@@ -62,6 +65,9 @@ public record SignupForm(
         } else if (fullName.length() > NAME_MAX) {
             e.put("fullName", "signupTooLong");
         }
+        if (company.length() > COMPANY_MAX) {
+            e.put("company", "signupTooLong");
+        }
         if (needPassword) {
             if (password.isEmpty()) {
                 e.put("password", "signupPasswordRequired");
@@ -71,6 +77,9 @@ public record SignupForm(
         }
         if (!ACTIVITIES.contains(activity)) {
             e.put("activity", "signupActivityRequired");
+        }
+        if (metals.isEmpty()) {
+            e.put("metals", "signupMetalsRequired");
         }
         if (!province.isEmpty() && !PROVINCES.contains(province)) {
             e.put("province", "signupInvalidChoice");

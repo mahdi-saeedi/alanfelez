@@ -29,7 +29,7 @@ export type KcContextExtensionPerPage = {
   "login-complete-signup.ftl": {
     phoneNational: string;
     needPassword: boolean;
-    values: { fullName: string; activity: string; metals: string[]; province: string; city: string; address: string };
+    values: { fullName: string; company: string; activity: string; metals: string[]; province: string; city: string; address: string };
     fieldErrors: Record<string, string>;
     activities: string[];
     metalOptions: string[];

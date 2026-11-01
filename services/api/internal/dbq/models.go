@@ -369,6 +369,7 @@ type AppUser struct {
 	Metals     []string
 	Province   pgtype.Text
 	DeletedAt  pgtype.Timestamptz
+	Company    pgtype.Text
 }
 
 type AppVisitSalt struct {

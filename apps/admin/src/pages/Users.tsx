@@ -45,7 +45,10 @@ export function UsersPage() {
                   <div dir="ltr" className="font-bold">{u.phone ?? u.username}</div>
                   <code className="text-xs text-text-3" dir="ltr">{u.id}</code>
                 </Td>
-                <Td>{[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}</Td>
+                <Td>
+                  {[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}
+                  {u.company && <div className="text-xs text-text-2">{t("users.company")}: {u.company}</div>}
+                </Td>
                 <Td className="text-xs">
                   {u.activity || u.metals?.length || u.province ? (
                     <>
