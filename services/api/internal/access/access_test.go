@@ -68,3 +68,20 @@ func TestEntitlements_MatchesAllowed(t *testing.T) {
 		}
 	}
 }
+
+// A higher plan always includes everything a lower plan has (client, 2026-11-01: Gold = Silver plus more).
+func TestHigherTierIncludesLowerTier(t *testing.T) {
+	for i := 1; i < len(Tiers); i++ {
+		lower, higher := Tiers[i-1], Tiers[i]
+		for _, f := range Features() {
+			if Allowed(lower, f) && !Allowed(higher, f) {
+				t.Errorf("%s has %s but %s doesn't", lower, f, higher)
+			}
+		}
+		for k := range limits {
+			if Limit(higher, k) != 0 && (Limit(lower, k) == 0 || Limit(higher, k) < Limit(lower, k)) {
+				t.Errorf("limit %s: %s gets %d, less than %s's %d", k, higher, Limit(higher, k), lower, Limit(lower, k))
+			}
+		}
+	}
+}
