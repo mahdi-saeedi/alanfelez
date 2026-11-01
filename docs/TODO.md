@@ -52,9 +52,9 @@ Last updated: 2026-10-31 (monitoring off on production after the server hung)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
-- 2026-11-01 Logo (client): the wide logo without its dark square (`public/logo-wide.png`, made from
-  docs/design/brand/logo-alanfelez.png) in the header and footer, larger on phones; on phones the language switch moved
-  into the menu to make room. A vector logo (F3) would be sharper still.
+- 2026-11-01 Logo (client): no dark square, larger on phones (the language switch moved into the phone menu), and
+  sharp at any size: `components/Logo.tsx` draws the mark as vector shapes traced from docs/design/brand/logo-alanfelez.png
+  (the only file, 215 px) and the name as text in Vazirmatn. Replace with the designer's vector file when it comes (F3).
 - 2026-11-01 Calculator (client): weight, price and shipping are grouped with commas as they're typed (3,000,000).
 - 2026-10-31 **Production outage 07:56–10:19 UTC found:** not monitoring. cloud-init's network hotplug handler re-ran
   DHCP on eth0 for each pod's virtual device (23,979 times since 2026-10-18); one renewal failed and the server lost its
