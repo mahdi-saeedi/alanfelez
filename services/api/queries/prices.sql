@@ -220,6 +220,39 @@ UPDATE market.products SET active = $2, updated_at = now() WHERE slug = $1;
 -- name: SetSeriesActive :execrows
 UPDATE market.price_series SET active = $2, updated_at = now() WHERE slug = $1;
 
+-- name: RenameMetal :execrows
+UPDATE market.metals SET name_fa = sqlc.arg(name_fa), name_en = sqlc.narg(name_en) WHERE slug = sqlc.arg(slug);
+
+-- name: UpdateProduct :execrows
+-- category NULL keeps the current one; an unknown category slug updates nothing (the handler answers 404).
+UPDATE market.products p SET name_fa = sqlc.arg(name_fa), name_en = sqlc.narg(name_en),
+  category_id = COALESCE((SELECT c.id FROM market.product_categories c WHERE c.slug = sqlc.narg(category)::text), p.category_id),
+  updated_at = now()
+WHERE p.slug = sqlc.arg(slug)
+  AND (sqlc.narg(category)::text IS NULL OR EXISTS (SELECT 1 FROM market.product_categories c WHERE c.slug = sqlc.narg(category)::text));
+
+-- name: ProductHasPrices :one
+SELECT EXISTS (SELECT 1 FROM market.price_points pp JOIN market.price_series s ON s.id = pp.series_id
+               JOIN market.products p ON p.id = s.product_id WHERE p.slug = $1);
+
+-- name: SeriesHasPrices :one
+SELECT EXISTS (SELECT 1 FROM market.price_points pp JOIN market.price_series s ON s.id = pp.series_id WHERE s.slug = $1);
+
+-- name: DeleteProductSeries :exec
+DELETE FROM market.price_series s USING market.products p WHERE s.product_id = p.id AND p.slug = $1;
+
+-- name: DeleteProduct :execrows
+DELETE FROM market.products WHERE slug = $1;
+
+-- name: DeleteSeries :execrows
+DELETE FROM market.price_series WHERE slug = $1;
+
+-- name: MetalHasProducts :one
+SELECT EXISTS (SELECT 1 FROM market.products p JOIN market.metals m ON m.id = p.metal_id WHERE m.slug = $1);
+
+-- name: DeleteMetal :execrows
+DELETE FROM market.metals WHERE slug = $1;
+
 -- Sources ----------------------------------------------------------------------------------------------------
 
 -- name: ListSources :many

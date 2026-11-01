@@ -4,9 +4,11 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-10-31 (monitoring off on production after the server hung)
+Last updated: 2026-11-01 (product list per metal in the admin)
 
 ## Now (in progress)
+- [ ] **Client product list** (2026-11-01, ~90 products for the 7 metals): load it once the client answers how the
+      12 existing products map (rename/move = data change, owner OK) and whether empty rows may show before prices exist.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
@@ -52,6 +54,10 @@ Last updated: 2026-10-31 (monitoring off on production after the server hung)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-01 Product list per metal in the admin («فلزات و محصولات», client): pick a metal, add a product in one step
+  (its «بازار» Toman/kg row is created with it, id made automatically), rename a metal or product, move a product to
+  another category, delete one that has no prices yet (otherwise deactivate). New endpoints PUT/DELETE
+  `/v1/admin/metals/{slug}`, `/v1/admin/products/{slug}`, DELETE `/v1/admin/series/{slug}`, all audited.
 - 2026-11-01 Logo (client): no dark square, larger on phones (the language switch moved into the phone menu), and
   sharp at any size: `components/Logo.tsx` draws the mark as vector shapes traced from docs/design/brand/logo-alanfelez.png
   (the only file, 215 px) and the name as text in Vazirmatn. Replace with the designer's vector file when it comes (F3).

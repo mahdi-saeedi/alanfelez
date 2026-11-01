@@ -326,12 +326,57 @@ func (q *Queries) DeleteLatest(ctx context.Context, seriesID int32) error {
 	return err
 }
 
+const deleteMetal = `-- name: DeleteMetal :execrows
+DELETE FROM market.metals WHERE slug = $1
+`
+
+func (q *Queries) DeleteMetal(ctx context.Context, slug string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMetal, slug)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteOldSourceRuns = `-- name: DeleteOldSourceRuns :execrows
 DELETE FROM market.source_runs WHERE started_at < $1
 `
 
 func (q *Queries) DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteOldSourceRuns, startedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteProduct = `-- name: DeleteProduct :execrows
+DELETE FROM market.products WHERE slug = $1
+`
+
+func (q *Queries) DeleteProduct(ctx context.Context, slug string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteProduct, slug)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteProductSeries = `-- name: DeleteProductSeries :exec
+DELETE FROM market.price_series s USING market.products p WHERE s.product_id = p.id AND p.slug = $1
+`
+
+func (q *Queries) DeleteProductSeries(ctx context.Context, slug string) error {
+	_, err := q.db.Exec(ctx, deleteProductSeries, slug)
+	return err
+}
+
+const deleteSeries = `-- name: DeleteSeries :execrows
+DELETE FROM market.price_series WHERE slug = $1
+`
+
+func (q *Queries) DeleteSeries(ctx context.Context, slug string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteSeries, slug)
 	if err != nil {
 		return 0, err
 	}
@@ -1035,6 +1080,17 @@ func (q *Queries) LockPoint(ctx context.Context, id int64) (LockPointRow, error)
 	return i, err
 }
 
+const metalHasProducts = `-- name: MetalHasProducts :one
+SELECT EXISTS (SELECT 1 FROM market.products p JOIN market.metals m ON m.id = p.metal_id WHERE m.slug = $1)
+`
+
+func (q *Queries) MetalHasProducts(ctx context.Context, slug string) (bool, error) {
+	row := q.db.QueryRow(ctx, metalHasProducts, slug)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const priceAround = `-- name: PriceAround :one
 SELECT price_minor FROM (
   (SELECT pp.price_minor, 0 AS side FROM market.price_points pp
@@ -1059,6 +1115,47 @@ func (q *Queries) PriceAround(ctx context.Context, arg PriceAroundParams) (int64
 	var price_minor int64
 	err := row.Scan(&price_minor)
 	return price_minor, err
+}
+
+const productHasPrices = `-- name: ProductHasPrices :one
+SELECT EXISTS (SELECT 1 FROM market.price_points pp JOIN market.price_series s ON s.id = pp.series_id
+               JOIN market.products p ON p.id = s.product_id WHERE p.slug = $1)
+`
+
+func (q *Queries) ProductHasPrices(ctx context.Context, slug string) (bool, error) {
+	row := q.db.QueryRow(ctx, productHasPrices, slug)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const renameMetal = `-- name: RenameMetal :execrows
+UPDATE market.metals SET name_fa = $1, name_en = $2 WHERE slug = $3
+`
+
+type RenameMetalParams struct {
+	NameFa string
+	NameEn pgtype.Text
+	Slug   string
+}
+
+func (q *Queries) RenameMetal(ctx context.Context, arg RenameMetalParams) (int64, error) {
+	result, err := q.db.Exec(ctx, renameMetal, arg.NameFa, arg.NameEn, arg.Slug)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const seriesHasPrices = `-- name: SeriesHasPrices :one
+SELECT EXISTS (SELECT 1 FROM market.price_points pp JOIN market.price_series s ON s.id = pp.series_id WHERE s.slug = $1)
+`
+
+func (q *Queries) SeriesHasPrices(ctx context.Context, slug string) (bool, error) {
+	row := q.db.QueryRow(ctx, seriesHasPrices, slug)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const seriesPoints = `-- name: SeriesPoints :many
@@ -1229,6 +1326,35 @@ func (q *Queries) SourceHealth(ctx context.Context) ([]SourceHealthRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateProduct = `-- name: UpdateProduct :execrows
+UPDATE market.products p SET name_fa = $1, name_en = $2,
+  category_id = COALESCE((SELECT c.id FROM market.product_categories c WHERE c.slug = $3::text), p.category_id),
+  updated_at = now()
+WHERE p.slug = $4
+  AND ($3::text IS NULL OR EXISTS (SELECT 1 FROM market.product_categories c WHERE c.slug = $3::text))
+`
+
+type UpdateProductParams struct {
+	NameFa   string
+	NameEn   pgtype.Text
+	Category pgtype.Text
+	Slug     string
+}
+
+// category NULL keeps the current one; an unknown category slug updates nothing (the handler answers 404).
+func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateProduct,
+		arg.NameFa,
+		arg.NameEn,
+		arg.Category,
+		arg.Slug,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const upsertLatest = `-- name: UpsertLatest :exec

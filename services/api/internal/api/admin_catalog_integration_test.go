@@ -174,7 +174,43 @@ func TestCatalogAdmin(t *testing.T) {
 	if e.copperRedPublic() == nil {
 		t.Fatal("copper-red-free should be listed again")
 	}
-	for action, want := range map[string]int{"metal.create": 1, "product.create": 1, "series.create": 2, "product.deactivate": 1, "product.activate": 1} {
+	// Rename, move, delete (client, 2026-11-01): a row or product with prices can only be deactivated.
+	for _, c := range []struct {
+		method, path, token string
+		body                any
+		want                int
+	}{
+		{http.MethodPut, "/v1/admin/metals/nickel", "support", map[string]any{"nameFa": "نیکل"}, 403},
+		{http.MethodPut, "/v1/admin/metals/nickel", "editor", map[string]any{"nameFa": "نیکل خالص", "nameEn": "Nickel"}, 204},
+		{http.MethodPut, "/v1/admin/metals/nope", "editor", map[string]any{"nameFa": "x"}, 404},
+		{http.MethodPut, "/v1/admin/products/nickel-cathode", "editor", map[string]any{"nameFa": "کاتد نیکل گرید A", "category": "intermediate"}, 204},
+		{http.MethodPut, "/v1/admin/products/nickel-cathode", "editor", map[string]any{"nameFa": "x", "category": "nope"}, 404},
+		{http.MethodDelete, "/v1/admin/series/nickel-cathode-lme", "editor", nil, 409}, // has a price
+		{http.MethodDelete, "/v1/admin/series/nickel-cathode-free", "support", nil, 403},
+		{http.MethodDelete, "/v1/admin/series/nickel-cathode-free", "editor", nil, 204},
+		{http.MethodDelete, "/v1/admin/products/nickel-cathode", "editor", nil, 409},
+		{http.MethodDelete, "/v1/admin/metals/nickel", "editor", nil, 409}, // still has a product
+		{http.MethodPost, "/v1/admin/products", "editor", map[string]any{"slug": "nickel-scrap", "metal": "nickel", "category": "scrap", "nameFa": "ضایعات نیکل"}, 201},
+		{http.MethodPost, "/v1/admin/series", "editor", map[string]any{"slug": "nickel-scrap-free", "product": "nickel-scrap", "market": "free", "currency": "IRR", "unit": "kg"}, 201},
+		{http.MethodDelete, "/v1/admin/products/nickel-scrap", "editor", nil, 204}, // its empty row goes with it
+		{http.MethodDelete, "/v1/admin/products/nope", "editor", nil, 404},
+	} {
+		if st, b, _ := e.call(c.method, c.path, c.token, c.body); st != c.want {
+			t.Errorf("%s %s as %q: %d, want %d (%v)", c.method, c.path, c.token, st, c.want, b)
+		}
+	}
+	_, cat, _ := e.call(http.MethodGet, "/v1/admin/catalog", "support", nil)
+	for _, it := range cat["products"].([]any) {
+		if m := it.(map[string]any); m["slug"] == "nickel-cathode" && (m["nameFa"] != "کاتد نیکل گرید A" || m["category"] != "intermediate") {
+			t.Fatalf("product not updated: %v", m)
+		}
+		if m := it.(map[string]any); m["slug"] == "nickel-scrap" {
+			t.Fatal("deleted product still listed")
+		}
+	}
+
+	for action, want := range map[string]int{"metal.create": 1, "product.create": 2, "series.create": 3, "product.deactivate": 1, "product.activate": 1,
+		"metal.rename": 1, "product.update": 1, "series.delete": 1, "product.delete": 1} {
 		if n := e.auditCount(action); n != want {
 			t.Errorf("%s audit rows = %d, want %d", action, n, want)
 		}

@@ -888,6 +888,77 @@ paths:
               schema: { $ref: '#/components/schemas/AdminProduct' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/metals/{slug}:
+    put:
+      operationId: adminUpdateMetal
+      tags: [admin]
+      summary: Rename a metal. Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminRenameInput' }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteMetal
+      tags: [admin]
+      summary: Delete a metal that has no products and isn't used elsewhere (409 otherwise). Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/products/{slug}:
+    put:
+      operationId: adminUpdateProduct
+      tags: [admin]
+      summary: Rename a product or move it to another category. Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AdminRenameInput'
+                - type: object
+                  properties:
+                    category: { type: string, description: Category slug; unchanged if left out }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteProduct
+      tags: [admin]
+      summary: Delete a product and its price rows if none has a price yet; one with prices can only be deactivated (409). Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/series/{slug}:
+    delete:
+      operationId: adminDeleteSeries
+      tags: [admin]
+      summary: Delete a price row that has no price yet; one with prices can only be deactivated (409). Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/catalog/active:
     post:
       operationId: adminSetCatalogActive
@@ -2478,6 +2549,13 @@ components:
         nameEn: { type: string }
         active: { type: boolean }
 
+    AdminRenameInput:
+      type: object
+      required: [nameFa]
+      properties:
+        nameFa: { type: string, minLength: 1, maxLength: 120 }
+        nameEn: { type: string, maxLength: 120 }
+
     AdminMetalInput:
       type: object
       required: [slug, nameFa]
@@ -2525,6 +2603,7 @@ components:
         slug: { type: string }
         productFa: { type: string }
         productEn: { type: string }
+        product: { type: string, description: Product slug }
         metal: { type: string }
         market: { type: string }
         currency: { $ref: '#/components/schemas/Currency' }
