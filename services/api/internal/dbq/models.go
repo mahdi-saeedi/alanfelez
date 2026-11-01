@@ -478,6 +478,8 @@ type MarketProduct struct {
 	Active     bool
 	CreatedAt  pgtype.Timestamptz
 	UpdatedAt  pgtype.Timestamptz
+	// Optional group of the same metal and category; NULL = shown under «سایر …»
+	GroupID pgtype.Int2
 }
 
 type MarketProductCategory struct {
@@ -488,6 +490,17 @@ type MarketProductCategory struct {
 	Sort      int32
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
+}
+
+// Boxes of products inside one metal and category on the prices page (admin-managed)
+type MarketProductGroup struct {
+	ID         int16
+	MetalID    int16
+	CategoryID int16
+	NameFa     string
+	NameEn     pgtype.Text
+	Sort       int32
+	CreatedAt  pgtype.Timestamptz
 }
 
 type MarketSource struct {

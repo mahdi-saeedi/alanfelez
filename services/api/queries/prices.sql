@@ -8,12 +8,14 @@ SELECT s.id, s.slug, s.currency, s.unit, s.is_base, s.max_jump_bp, s.active,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        mk.slug AS market_slug, mk.name_fa AS market_fa, mk.name_en AS market_en, mk.scope AS market_scope,
        l.point_id, l.price_minor, l.observed_at, l.prev_close_minor,
-       src.slug AS source_slug, src.provider AS source_provider, src.name_fa AS source_fa, src.name_en AS source_en
+       src.slug AS source_slug, src.provider AS source_provider, src.name_fa AS source_fa, src.name_en AS source_en,
+       g.id AS group_id, g.name_fa AS group_fa, g.name_en AS group_en, g.sort AS group_sort
 FROM market.price_series s
 JOIN market.products p            ON p.id = s.product_id
 JOIN market.metals m              ON m.id = p.metal_id
 JOIN market.product_categories c  ON c.id = p.category_id
 JOIN market.markets mk            ON mk.id = s.market_id
+LEFT JOIN market.product_groups g ON g.id = p.group_id
 LEFT JOIN market.price_latest l   ON l.series_id = s.id
 LEFT JOIN market.sources src      ON src.id = l.source_id
 WHERE (s.active AND p.active) OR sqlc.arg(include_inactive)::boolean
@@ -166,7 +168,7 @@ DELETE FROM market.price_latest WHERE series_id = $1;
 SELECT slug, name_fa, name_en FROM market.metals ORDER BY sort, slug;
 
 -- name: AdminListProducts :many
-SELECT p.slug, m.slug AS metal_slug, c.slug AS category_slug, p.name_fa, p.name_en, p.active
+SELECT p.slug, m.slug AS metal_slug, c.slug AS category_slug, p.name_fa, p.name_en, p.active, p.group_id
 FROM market.products p
 JOIN market.metals m             ON m.id = p.metal_id
 JOIN market.product_categories c ON c.id = p.category_id
@@ -227,6 +229,10 @@ UPDATE market.metals SET name_fa = sqlc.arg(name_fa), name_en = sqlc.narg(name_e
 -- category NULL keeps the current one; an unknown category slug updates nothing (the handler answers 404).
 UPDATE market.products p SET name_fa = sqlc.arg(name_fa), name_en = sqlc.narg(name_en),
   category_id = COALESCE((SELECT c.id FROM market.product_categories c WHERE c.slug = sqlc.narg(category)::text), p.category_id),
+  -- A group stays only while the category does; a new category drops it unless a group is set in the same call.
+  group_id = CASE WHEN sqlc.narg(category)::text IS NOT NULL
+                   AND sqlc.narg(category)::text <> (SELECT c.slug FROM market.product_categories c WHERE c.id = p.category_id)
+                  THEN NULL ELSE p.group_id END,
   updated_at = now()
 WHERE p.slug = sqlc.arg(slug)
   AND (sqlc.narg(category)::text IS NULL OR EXISTS (SELECT 1 FROM market.product_categories c WHERE c.slug = sqlc.narg(category)::text));
@@ -287,3 +293,38 @@ SELECT EXISTS (SELECT 1 FROM market.price_points WHERE source_id = $1);
 
 -- name: LatestPriceBySlug :many
 SELECT s.slug, l.price_minor FROM market.price_latest l JOIN market.price_series s ON s.id = l.series_id;
+
+-- name: AdminListGroups :many
+SELECT g.id, m.slug AS metal_slug, c.slug AS category_slug, g.name_fa, g.name_en, g.sort
+FROM market.product_groups g
+JOIN market.metals m             ON m.id = g.metal_id
+JOIN market.product_categories c ON c.id = g.category_id
+ORDER BY m.sort, c.sort, g.sort, g.id;
+
+-- name: InsertGroup :one
+-- No row back = the metal or category doesn't exist; a unique violation = the name is taken in that metal and category.
+INSERT INTO market.product_groups (metal_id, category_id, name_fa, name_en, sort)
+SELECT m.id, c.id, sqlc.arg(name_fa), sqlc.narg(name_en),
+       (SELECT COALESCE(max(g.sort), 0) + 1 FROM market.product_groups g WHERE g.metal_id = m.id AND g.category_id = c.id)
+FROM market.metals m, market.product_categories c
+WHERE m.slug = sqlc.arg(metal) AND c.slug = sqlc.arg(category)
+RETURNING id, sort;
+
+-- name: UpdateGroup :execrows
+UPDATE market.product_groups SET name_fa = sqlc.arg(name_fa), name_en = sqlc.narg(name_en),
+  sort = COALESCE(sqlc.narg(sort)::int, sort)
+WHERE id = sqlc.arg(id);
+
+-- name: DeleteGroup :execrows
+-- Its products become ungrouped (ON DELETE SET NULL).
+DELETE FROM market.product_groups WHERE id = $1;
+
+-- name: SetProductGroup :execrows
+-- group_id NULL = no group. A group of another metal or category updates nothing (the handler answers 400).
+UPDATE market.products p SET group_id = sqlc.narg(group_id)::smallint, updated_at = now()
+WHERE p.slug = sqlc.arg(slug)
+  AND (sqlc.narg(group_id)::smallint IS NULL OR EXISTS (
+    SELECT 1 FROM market.product_groups g WHERE g.id = sqlc.narg(group_id)::smallint AND g.metal_id = p.metal_id AND g.category_id = p.category_id));
+
+-- name: ProductExists :one
+SELECT EXISTS (SELECT 1 FROM market.products WHERE slug = $1);

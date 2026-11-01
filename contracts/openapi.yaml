@@ -834,11 +834,14 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [metals, products, categories, markets]
+                required: [metals, products, categories, markets, groups]
                 properties:
                   metals:
                     type: array
                     items: { $ref: '#/components/schemas/AdminCatalogItem' }
+                  groups:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminGroup' }
                   products:
                     type: array
                     items: { $ref: '#/components/schemas/AdminProduct' }
@@ -957,6 +960,78 @@ paths:
         - { name: slug, in: path, required: true, schema: { type: string } }
       responses:
         '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/groups:
+    post:
+      operationId: adminCreateGroup
+      tags: [admin]
+      summary: Add a product group (a box inside a metal's category on the prices page). Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminGroupInput' }
+      responses:
+        '201':
+          description: Group added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminGroup' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/groups/{id}:
+    put:
+      operationId: adminUpdateGroup
+      tags: [admin]
+      summary: Rename or reorder a product group. Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AdminRenameInput'
+                - type: object
+                  properties:
+                    sort: { type: integer, minimum: 0, maximum: 10000, description: Position among the category's groups; unchanged if left out }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteGroup
+      tags: [admin]
+      summary: Delete a product group; its products stay, without a group. Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/products/{slug}/group:
+    put:
+      operationId: adminSetProductGroup
+      tags: [admin]
+      summary: Put a product in a group of its metal and category, or take it out (group 0). Roles, editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [group]
+              properties:
+                group: { type: integer, minimum: 0, description: Group id; 0 = no group }
+      responses:
+        '204': { description: Saved }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/catalog/active:
@@ -2387,6 +2462,16 @@ components:
         currency: { $ref: '#/components/schemas/Currency' }
         unit: { $ref: '#/components/schemas/Unit' }
         isBase: { type: boolean, description: Visible to the free tier }
+        group: { $ref: '#/components/schemas/ProductGroupRef' }
+
+    ProductGroupRef:
+      type: object
+      description: The box the product is shown in on the prices page (inside its metal and category); absent = none
+      required: [id, name, sort]
+      properties:
+        id: { type: integer }
+        name: { type: string, example: آلومینیوم نرم }
+        sort: { type: integer }
 
     Price:
       type: object
@@ -2548,6 +2633,27 @@ components:
         nameFa: { type: string }
         nameEn: { type: string }
         active: { type: boolean }
+        group: { type: integer, description: Product group id; absent = no group }
+
+    AdminGroup:
+      type: object
+      required: [id, metal, category, nameFa, sort]
+      properties:
+        id: { type: integer }
+        metal: { type: string }
+        category: { type: string }
+        nameFa: { type: string }
+        nameEn: { type: string }
+        sort: { type: integer }
+
+    AdminGroupInput:
+      type: object
+      required: [metal, category, nameFa]
+      properties:
+        metal: { type: string }
+        category: { type: string }
+        nameFa: { type: string, minLength: 1, maxLength: 80 }
+        nameEn: { type: string, maxLength: 80 }
 
     AdminRenameInput:
       type: object

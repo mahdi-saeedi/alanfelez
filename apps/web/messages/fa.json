@@ -249,10 +249,6 @@
     },
     "market": "بازار",
     "allMarkets": "همه‌ی بازارها",
-    "showIn": "نمایش قیمت‌های داخلی به:",
-    "perKg": "هر کیلوگرم",
-    "perTon": "هر تن",
-    "showInNote": "(قیمت‌های جهانی همیشه دلار/تن)",
     "yesterday": "دیروز {time}",
     "openChart": "مشاهده‌ی نمودار",
     "search": "جست‌وجوی محصول",
@@ -264,7 +260,16 @@
       "down": "بیشترین کاهش"
     },
     "noMatch": "محصولی با این نام پیدا نشد.",
-    "showInShort": "نمایش:"
+    "filters": "فیلترها",
+    "step": {
+      "metal": "فلز",
+      "category": "دسته",
+      "market": "بازار"
+    },
+    "otherGroup": "سایر {category}",
+    "groupCount": "{n, plural, other {# محصول}}",
+    "tickerWorld": "جهانی",
+    "tickerIme": "بورس کالا"
   },
   "chart": {
     "title": "نمودار قیمت فلزات",

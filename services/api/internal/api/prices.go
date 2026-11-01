@@ -232,6 +232,9 @@ func priceRow(lang string, r dbq.ListLatestPricesRow) PriceRow {
 		CategorySlug: r.CategorySlug, CategoryFa: r.CategoryFa, CategoryEn: r.CategoryEn,
 		MarketSlug: r.MarketSlug, MarketFa: r.MarketFa, MarketScope: r.MarketScope, MarketEn: r.MarketEn,
 	})}
+	if r.GroupID.Valid {
+		row.Series.Group = &ProductGroupRef{Id: int(r.GroupID.Int16), Name: localized(lang, r.GroupFa.String, r.GroupEn), Sort: int(r.GroupSort.Int32)}
+	}
 	if !r.PriceMinor.Valid {
 		return row
 	}

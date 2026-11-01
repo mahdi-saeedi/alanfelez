@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatNumber, type Locale, type PriceDisplay } from "@alanfelez/ui/format";
+import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/lib/api";
 import { getPrices } from "@/lib/prices";
@@ -11,18 +11,16 @@ import { LockIcon } from "@/components/Locked";
 /**
  * Metal prices (SCOPE §5 #2, design 07-metal-prices): /prices (every metal) and /prices/<metal> (one metal, its own
  * address and title for search engines, client 2026-10-27; same look). Filters are links, so it works without JS:
- * metal (path), category, market, and how domestic prices are shown (?cur=rial, ?per=ton; SCOPE §14).
+ * metal (path), category and market, one under the other and numbered so the path from metal to price is clear
+ * (client, 2026-11-01). Each row shows its own unit, so there is no Toman/Rial or kg/ton switch any more.
  */
-export type PricesQuery = { category?: string; market?: string; cur?: string; per?: string };
+export type PricesQuery = { category?: string; market?: string };
 
 // The 🔒 rows shown at most; the line under the table counts all of them.
 const LOCKED_ROWS = 10;
 
 export async function PricesView({ locale, metal, query, title, subtitle }: { locale: Locale; metal?: string; query: PricesQuery; title: string; subtitle: string }) {
   const { category, market } = query;
-  const cur = query.cur === "rial" ? "rial" : undefined;
-  const per = query.per === "ton" ? "ton" : undefined;
-  const display: PriceDisplay = { rial: !!cur, perTon: !!per };
   const t = await getTranslations("prices");
   const tl = await getTranslations("lock");
 
@@ -49,18 +47,13 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
   // A metal is part of the path (/prices/copper); the rest stay query parameters.
   const href = (q: { metal?: string } & PricesQuery) => {
     const m = "metal" in q ? q.metal : metal;
-    return { pathname: m ? `/prices/${m}` : "/prices", query: clean({ category, market, cur, per, ...q, metal: undefined }) };
+    return { pathname: m ? `/prices/${m}` : "/prices", query: clean({ category, market, ...q, metal: undefined }) };
   };
-
-  // Toman/Rial and per kg/ton: above the table on larger screens, under it on phones (the prices come first there).
-  const units = (
-    <div className="flex items-center gap-2 text-xs text-text-2">
-      <span className="shrink-0"><span className="sm:hidden">{t("showInShort")}</span><span className="hidden sm:inline">{t("showIn")}</span></span>
-      <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("unitLabel.toman") }, { slug: "rial", name: t("unitLabel.rial") }]} active={cur} link={(v) => href({ cur: v })} />
-      <Tabs small label={t("showIn")} items={[{ slug: undefined, name: t("perKg") }, { slug: "ton", name: t("perTon") }]} active={per} link={(v) => href({ per: v })} />
-      <span className="hidden text-text-3 sm:inline">{t("showInNote")}</span>
-    </div>
-  );
+  const steps = [
+    { key: "metal", items: [{ slug: undefined, name: t("all") }, ...metals], active: metal, link: (slug?: string) => href({ metal: slug }) },
+    { key: "category", items: [{ slug: undefined, name: t("all") }, ...categories], active: category, link: (slug?: string) => href({ category: slug }) },
+    { key: "market", items: [{ slug: undefined, name: t("allMarkets") }, ...marketTabs], active: market, link: (slug?: string) => href({ market: slug }) },
+  ] as const;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
@@ -74,30 +67,23 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="min-w-0 space-y-4">
-          {/* On phones each filter is one line that scrolls sideways, so the prices start near the top. */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-            <Tabs
-              items={[{ slug: undefined, name: t("all") }, ...metals]}
-              active={metal}
-              link={(slug) => href({ metal: slug })}
-            />
-            <Tabs
-              items={[{ slug: undefined, name: t("all") }, ...categories]}
-              active={category}
-              link={(slug) => href({ category: slug })}
-            />
-            <Tabs
-              label={t("market")}
-              items={[{ slug: undefined, name: t("allMarkets") }, ...marketTabs]}
-              active={market}
-              link={(slug) => href({ market: slug })}
-            />
-          </div>
-          <div className="hidden sm:block">{units}</div>
+          {/* Three numbered steps, one under the other: metal → category → market (client, 2026-11-01). On phones each
+              list scrolls sideways on its own line, so the prices still start near the top. */}
+          <ol className="space-y-2" aria-label={t("filters")}>
+            {steps.map((st, i) => (
+              <li key={st.key} className="flex items-center gap-2 sm:gap-3">
+                <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-graphite text-xs font-extrabold text-white">{formatNumber(i + 1, locale)}</span>
+                <span className="w-10 shrink-0 text-sm font-bold text-text-2 sm:w-14">{t(`step.${st.key}`)}</span>
+                <div className="min-w-0 flex-1">
+                  <Tabs label={t(`step.${st.key}`)} items={[...st.items]} active={st.active} link={st.link} />
+                </div>
+              </li>
+            ))}
+          </ol>
 
           <div className="overflow-hidden rounded-card border border-border bg-surface shadow-soft">
             {rows.length || lockedSeries.length ? (
-              <PriceTable rows={rows} locked={lockedSeries.slice(0, LOCKED_ROWS)} plan={plan} display={display} />
+              <PriceTable rows={rows} locked={lockedSeries.slice(0, LOCKED_ROWS)} plan={plan} grouped={!!metal} />
             ) : (
               <p className="p-8 text-center text-text-2">{t("empty")}</p>
             )}
@@ -115,7 +101,6 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
               {latest && <span>{t("lastUpdate", { time: formatDate(latest, locale, true) })}</span>}
             </div>
           </div>
-          <div className="sm:hidden">{units}</div>
           <p className="text-xs text-text-3">{t("info")}</p>
 
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-border bg-surface p-5 shadow-soft">
