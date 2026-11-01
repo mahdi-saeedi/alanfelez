@@ -162,6 +162,36 @@ function LockedCardView({ s, plan }: { s: Series; plan: string }) {
   );
 }
 
+type Item = { kind: "row"; row: Row } | { kind: "locked"; s: Series };
+type Section = { key: string; title?: string; items: Item[] };
+
+/**
+ * The boxes of one metal's table (client, 2026-11-01): within each category, its groups in their order («آلومینیوم نرم»,
+ * «آلومینیوم خشک», …), then the category's products without a group under «سایر …» (a category with no groups is one
+ * box under its own name). Only when some product has a group;
+ * otherwise one untitled section, as before.
+ */
+function sectionsOf(items: Item[], other: (category: string) => string): Section[] {
+  const seriesOf = (it: Item) => (it.kind === "row" ? it.row.series : it.s);
+  if (!items.some((it) => seriesOf(it).group)) return [{ key: "all", items }];
+  // A category without groups gets its own name as the title; «سایر …» only follows a category's groups.
+  const grouped = new Set(items.map(seriesOf).filter((s) => s.group).map((s) => s.category.slug));
+  const cats: string[] = [];
+  const byKey = new Map<string, Section & { cat: string; sort: number }>();
+  for (const it of items) {
+    const s = seriesOf(it);
+    if (!cats.includes(s.category.slug)) cats.push(s.category.slug);
+    const key = s.group ? `g${s.group.id}` : `o-${s.category.slug}`;
+    let sec = byKey.get(key);
+    if (!sec) {
+      sec = { key, cat: s.category.slug, sort: s.group ? s.group.sort : Number.MAX_SAFE_INTEGER, title: s.group ? s.group.name : grouped.has(s.category.slug) ? other(s.category.name) : s.category.name, items: [] };
+      byKey.set(key, sec);
+    }
+    sec.items.push(it);
+  }
+  return [...byKey.values()].sort((a, b) => cats.indexOf(a.cat) - cats.indexOf(b.cat) || a.sort - b.sort);
+}
+
 /** Persian and Arabic letters compare the same (ی/ي, ک/ك), and case doesn't matter, so «كابل» finds «کابل». */
 function norm(s: string) {
   return s.toLowerCase().replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/‌/g, " ").trim();
@@ -170,10 +200,11 @@ function norm(s: string) {
 /**
  * Metal prices table (design 07-metal-prices). Values update live; rows come from the server (tier-filtered).
  * `locked` are the series the caller's plan doesn't include (names only, client 2026-10-28), after the priced rows.
- * `display` switches domestic prices between Toman and Rial and per kg or per ton (SCOPE §14).
+ * `display` switches domestic prices between Toman and Rial and per kg or per ton (SCOPE §14; the prices page no longer
+ * offers it, client 2026-11-01). `grouped` (one metal shown) puts the rows in their product groups, see sectionsOf.
  * A search box and a sort by daily change (client, 2026-10-28) work in the browser on the rows already here.
  */
-export function PriceTable({ rows, locked = [], plan = "", display = {} }: { rows: Row[]; locked?: Series[]; plan?: string; display?: PriceDisplay }) {
+export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped = false }: { rows: Row[]; locked?: Series[]; plan?: string; display?: PriceDisplay; grouped?: boolean }) {
   const t = useTranslations("prices");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<Sort>("");
@@ -184,6 +215,10 @@ export function PriceTable({ rows, locked = [], plan = "", display = {} }: { row
   const shownLocked = locked.filter(match);
   const nextSort: Record<Sort, Sort> = { "": "up", up: "down", down: "" };
   const arrow = sort === "up" ? "↓" : sort === "down" ? "↑" : "↕";
+  const items: Item[] = [...shown.map((row) => ({ kind: "row" as const, row })), ...shownLocked.map((s) => ({ kind: "locked" as const, s }))];
+  // A sort by change mixes the groups, so it shows one flat list.
+  const sections = grouped && !sort ? sectionsOf(items, (category) => t("otherGroup", { category })) : [{ key: "all", items } as Section];
+  const count = (n: number) => t("groupCount", { n });
 
   return (
     <>
@@ -213,12 +248,17 @@ export function PriceTable({ rows, locked = [], plan = "", display = {} }: { row
     </div>
     {shown.length === 0 && shownLocked.length === 0 && <p className="p-8 text-center text-sm text-text-2">{t("noMatch")}</p>}
     <ul className="divide-y divide-border md:hidden">
-      {shown.map((r) => (
-        <PriceCardView key={r.series.slug} row={r} display={display} />
-      ))}
-      {shownLocked.map((s) => (
-        <LockedCardView key={s.slug} s={s} plan={plan} />
-      ))}
+      {sections.map((sec) => [
+        sec.title && (
+          <li key={`h-${sec.key}`} className="flex items-center justify-between gap-2 bg-gold/10 px-4 py-2.5">
+            <span className="flex items-center gap-2 font-extrabold text-gold-dark"><span aria-hidden className="h-4 w-1 rounded-full bg-gold" />{sec.title}</span>
+            <span className="text-xs text-text-3">{count(sec.items.length)}</span>
+          </li>
+        ),
+        ...sec.items.map((it) =>
+          it.kind === "row" ? <PriceCardView key={it.row.series.slug} row={it.row} display={display} /> : <LockedCardView key={it.s.slug} s={it.s} plan={plan} />,
+        ),
+      ])}
     </ul>
     <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[760px] text-start text-sm">
@@ -239,12 +279,22 @@ export function PriceTable({ rows, locked = [], plan = "", display = {} }: { row
           </tr>
         </thead>
         <tbody>
-          {shown.map((r) => (
-            <PriceRowView key={r.series.slug} row={r} display={display} />
-          ))}
-          {shownLocked.map((s) => (
-            <LockedRowView key={s.slug} s={s} plan={plan} display={display} />
-          ))}
+          {sections.map((sec) => [
+            sec.title && (
+              <tr key={`h-${sec.key}`} className="border-t border-gold/30 bg-gold/10">
+                <td colSpan={8} className="px-4 py-2.5">
+                  <span className="flex items-center gap-2 font-extrabold text-gold-dark">
+                    <span aria-hidden className="h-4 w-1 rounded-full bg-gold" />
+                    {sec.title}
+                    <span className="text-xs font-normal text-text-3">({count(sec.items.length)})</span>
+                  </span>
+                </td>
+              </tr>
+            ),
+            ...sec.items.map((it) =>
+              it.kind === "row" ? <PriceRowView key={it.row.series.slug} row={it.row} display={display} /> : <LockedRowView key={it.s.slug} s={it.s} plan={plan} display={display} />,
+            ),
+          ])}
         </tbody>
       </table>
     </div>

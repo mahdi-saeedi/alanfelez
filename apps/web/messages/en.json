@@ -249,10 +249,6 @@
     },
     "market": "Market",
     "allMarkets": "All markets",
-    "showIn": "Show Iran prices in:",
-    "perKg": "per kg",
-    "perTon": "per ton",
-    "showInNote": "(world prices are always USD/ton)",
     "yesterday": "yesterday {time}",
     "openChart": "Open the chart",
     "search": "Search products",
@@ -264,7 +260,16 @@
       "down": "Biggest fall"
     },
     "noMatch": "No product matches.",
-    "showInShort": "Show:"
+    "filters": "Filters",
+    "step": {
+      "metal": "Metal",
+      "category": "Category",
+      "market": "Market"
+    },
+    "otherGroup": "Other {category}",
+    "groupCount": "{n, plural, one {# product} other {# products}}",
+    "tickerWorld": "World",
+    "tickerIme": "IME"
   },
   "chart": {
     "title": "Metal price chart",

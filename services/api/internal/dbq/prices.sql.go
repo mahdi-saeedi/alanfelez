@@ -41,6 +41,50 @@ func (q *Queries) AdminListCategories(ctx context.Context) ([]AdminListCategorie
 	return items, nil
 }
 
+const adminListGroups = `-- name: AdminListGroups :many
+SELECT g.id, m.slug AS metal_slug, c.slug AS category_slug, g.name_fa, g.name_en, g.sort
+FROM market.product_groups g
+JOIN market.metals m             ON m.id = g.metal_id
+JOIN market.product_categories c ON c.id = g.category_id
+ORDER BY m.sort, c.sort, g.sort, g.id
+`
+
+type AdminListGroupsRow struct {
+	ID           int16
+	MetalSlug    string
+	CategorySlug string
+	NameFa       string
+	NameEn       pgtype.Text
+	Sort         int32
+}
+
+func (q *Queries) AdminListGroups(ctx context.Context) ([]AdminListGroupsRow, error) {
+	rows, err := q.db.Query(ctx, adminListGroups)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListGroupsRow{}
+	for rows.Next() {
+		var i AdminListGroupsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.MetalSlug,
+			&i.CategorySlug,
+			&i.NameFa,
+			&i.NameEn,
+			&i.Sort,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const adminListMarkets = `-- name: AdminListMarkets :many
 SELECT slug, name_fa, name_en FROM market.markets ORDER BY sort, slug
 `
@@ -104,7 +148,7 @@ func (q *Queries) AdminListMetals(ctx context.Context) ([]AdminListMetalsRow, er
 }
 
 const adminListProducts = `-- name: AdminListProducts :many
-SELECT p.slug, m.slug AS metal_slug, c.slug AS category_slug, p.name_fa, p.name_en, p.active
+SELECT p.slug, m.slug AS metal_slug, c.slug AS category_slug, p.name_fa, p.name_en, p.active, p.group_id
 FROM market.products p
 JOIN market.metals m             ON m.id = p.metal_id
 JOIN market.product_categories c ON c.id = p.category_id
@@ -118,6 +162,7 @@ type AdminListProductsRow struct {
 	NameFa       string
 	NameEn       pgtype.Text
 	Active       bool
+	GroupID      pgtype.Int2
 }
 
 func (q *Queries) AdminListProducts(ctx context.Context) ([]AdminListProductsRow, error) {
@@ -136,6 +181,7 @@ func (q *Queries) AdminListProducts(ctx context.Context) ([]AdminListProductsRow
 			&i.NameFa,
 			&i.NameEn,
 			&i.Active,
+			&i.GroupID,
 		); err != nil {
 			return nil, err
 		}
@@ -315,6 +361,19 @@ func (q *Queries) CountPoints(ctx context.Context, seriesID int32) (int64, error
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const deleteGroup = `-- name: DeleteGroup :execrows
+DELETE FROM market.product_groups WHERE id = $1
+`
+
+// Its products become ungrouped (ON DELETE SET NULL).
+func (q *Queries) DeleteGroup(ctx context.Context, id int16) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteGroup, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const deleteLatest = `-- name: DeleteLatest :exec
@@ -565,6 +624,40 @@ func (q *Queries) GetSourceBySlug(ctx context.Context, slug string) (GetSourceBy
 	return i, err
 }
 
+const insertGroup = `-- name: InsertGroup :one
+INSERT INTO market.product_groups (metal_id, category_id, name_fa, name_en, sort)
+SELECT m.id, c.id, $1, $2,
+       (SELECT COALESCE(max(g.sort), 0) + 1 FROM market.product_groups g WHERE g.metal_id = m.id AND g.category_id = c.id)
+FROM market.metals m, market.product_categories c
+WHERE m.slug = $3 AND c.slug = $4
+RETURNING id, sort
+`
+
+type InsertGroupParams struct {
+	NameFa   string
+	NameEn   pgtype.Text
+	Metal    string
+	Category string
+}
+
+type InsertGroupRow struct {
+	ID   int16
+	Sort int32
+}
+
+// No row back = the metal or category doesn't exist; a unique violation = the name is taken in that metal and category.
+func (q *Queries) InsertGroup(ctx context.Context, arg InsertGroupParams) (InsertGroupRow, error) {
+	row := q.db.QueryRow(ctx, insertGroup,
+		arg.NameFa,
+		arg.NameEn,
+		arg.Metal,
+		arg.Category,
+	)
+	var i InsertGroupRow
+	err := row.Scan(&i.ID, &i.Sort)
+	return i, err
+}
+
 const insertMetal = `-- name: InsertMetal :one
 INSERT INTO market.metals (slug, name_fa, name_en, sort)
 VALUES ($1, $2, $3, (SELECT COALESCE(max(sort), 0) + 1 FROM market.metals))
@@ -806,12 +899,14 @@ SELECT s.id, s.slug, s.currency, s.unit, s.is_base, s.max_jump_bp, s.active,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        mk.slug AS market_slug, mk.name_fa AS market_fa, mk.name_en AS market_en, mk.scope AS market_scope,
        l.point_id, l.price_minor, l.observed_at, l.prev_close_minor,
-       src.slug AS source_slug, src.provider AS source_provider, src.name_fa AS source_fa, src.name_en AS source_en
+       src.slug AS source_slug, src.provider AS source_provider, src.name_fa AS source_fa, src.name_en AS source_en,
+       g.id AS group_id, g.name_fa AS group_fa, g.name_en AS group_en, g.sort AS group_sort
 FROM market.price_series s
 JOIN market.products p            ON p.id = s.product_id
 JOIN market.metals m              ON m.id = p.metal_id
 JOIN market.product_categories c  ON c.id = p.category_id
 JOIN market.markets mk            ON mk.id = s.market_id
+LEFT JOIN market.product_groups g ON g.id = p.group_id
 LEFT JOIN market.price_latest l   ON l.series_id = s.id
 LEFT JOIN market.sources src      ON src.id = l.source_id
 WHERE (s.active AND p.active) OR $1::boolean
@@ -847,6 +942,10 @@ type ListLatestPricesRow struct {
 	SourceProvider pgtype.Text
 	SourceFa       pgtype.Text
 	SourceEn       pgtype.Text
+	GroupID        pgtype.Int2
+	GroupFa        pgtype.Text
+	GroupEn        pgtype.Text
+	GroupSort      pgtype.Int4
 }
 
 // Price series, points and latest prices (internal/prices). Money is minor units; time is UTC.
@@ -889,6 +988,10 @@ func (q *Queries) ListLatestPrices(ctx context.Context, includeInactive bool) ([
 			&i.SourceProvider,
 			&i.SourceFa,
 			&i.SourceEn,
+			&i.GroupID,
+			&i.GroupFa,
+			&i.GroupEn,
+			&i.GroupSort,
 		); err != nil {
 			return nil, err
 		}
@@ -1117,6 +1220,17 @@ func (q *Queries) PriceAround(ctx context.Context, arg PriceAroundParams) (int64
 	return price_minor, err
 }
 
+const productExists = `-- name: ProductExists :one
+SELECT EXISTS (SELECT 1 FROM market.products WHERE slug = $1)
+`
+
+func (q *Queries) ProductExists(ctx context.Context, slug string) (bool, error) {
+	row := q.db.QueryRow(ctx, productExists, slug)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const productHasPrices = `-- name: ProductHasPrices :one
 SELECT EXISTS (SELECT 1 FROM market.price_points pp JOIN market.price_series s ON s.id = pp.series_id
                JOIN market.products p ON p.id = s.product_id WHERE p.slug = $1)
@@ -1239,6 +1353,27 @@ func (q *Queries) SetProductActive(ctx context.Context, arg SetProductActivePara
 	return result.RowsAffected(), nil
 }
 
+const setProductGroup = `-- name: SetProductGroup :execrows
+UPDATE market.products p SET group_id = $1::smallint, updated_at = now()
+WHERE p.slug = $2
+  AND ($1::smallint IS NULL OR EXISTS (
+    SELECT 1 FROM market.product_groups g WHERE g.id = $1::smallint AND g.metal_id = p.metal_id AND g.category_id = p.category_id))
+`
+
+type SetProductGroupParams struct {
+	GroupID pgtype.Int2
+	Slug    string
+}
+
+// group_id NULL = no group. A group of another metal or category updates nothing (the handler answers 400).
+func (q *Queries) SetProductGroup(ctx context.Context, arg SetProductGroupParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setProductGroup, arg.GroupID, arg.Slug)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const setSeriesActive = `-- name: SetSeriesActive :execrows
 UPDATE market.price_series SET active = $2, updated_at = now() WHERE slug = $1
 `
@@ -1328,9 +1463,39 @@ func (q *Queries) SourceHealth(ctx context.Context) ([]SourceHealthRow, error) {
 	return items, nil
 }
 
+const updateGroup = `-- name: UpdateGroup :execrows
+UPDATE market.product_groups SET name_fa = $1, name_en = $2,
+  sort = COALESCE($3::int, sort)
+WHERE id = $4
+`
+
+type UpdateGroupParams struct {
+	NameFa string
+	NameEn pgtype.Text
+	Sort   pgtype.Int4
+	ID     int16
+}
+
+func (q *Queries) UpdateGroup(ctx context.Context, arg UpdateGroupParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateGroup,
+		arg.NameFa,
+		arg.NameEn,
+		arg.Sort,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateProduct = `-- name: UpdateProduct :execrows
 UPDATE market.products p SET name_fa = $1, name_en = $2,
   category_id = COALESCE((SELECT c.id FROM market.product_categories c WHERE c.slug = $3::text), p.category_id),
+  -- A group stays only while the category does; a new category drops it unless a group is set in the same call.
+  group_id = CASE WHEN $3::text IS NOT NULL
+                   AND $3::text <> (SELECT c.slug FROM market.product_categories c WHERE c.id = p.category_id)
+                  THEN NULL ELSE p.group_id END,
   updated_at = now()
 WHERE p.slug = $4
   AND ($3::text IS NULL OR EXISTS (SELECT 1 FROM market.product_categories c WHERE c.slug = $3::text))

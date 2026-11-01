@@ -111,17 +111,30 @@ func (s *Server) AdminCatalog(ctx context.Context, _ AdminCatalogRequestObject) 
 	if err != nil {
 		return nil, fmt.Errorf("list markets: %w", err)
 	}
+	groups, err := s.q.AdminListGroups(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list groups: %w", err)
+	}
 	out := AdminCatalog200JSONResponse{
+		Groups: make([]AdminGroup, 0, len(groups)),
 		Metals: make([]AdminCatalogItem, 0, len(metals)), Products: make([]AdminProduct, 0, len(products)),
 		Categories: make([]AdminCatalogItem, 0, len(categories)), Markets: make([]AdminCatalogItem, 0, len(markets)),
 	}
 	for _, m := range metals {
 		out.Metals = append(out.Metals, AdminCatalogItem{Slug: m.Slug, NameFa: m.NameFa, NameEn: textp(m.NameEn)})
 	}
-	for _, p := range products {
-		out.Products = append(out.Products, AdminProduct{
-			Slug: p.Slug, Metal: p.MetalSlug, Category: p.CategorySlug, NameFa: p.NameFa, NameEn: textp(p.NameEn), Active: p.Active,
+	for _, g := range groups {
+		out.Groups = append(out.Groups, AdminGroup{
+			Id: int(g.ID), Metal: g.MetalSlug, Category: g.CategorySlug, NameFa: g.NameFa, NameEn: textp(g.NameEn), Sort: int(g.Sort),
 		})
+	}
+	for _, p := range products {
+		a := AdminProduct{Slug: p.Slug, Metal: p.MetalSlug, Category: p.CategorySlug, NameFa: p.NameFa, NameEn: textp(p.NameEn), Active: p.Active}
+		if p.GroupID.Valid {
+			g := int(p.GroupID.Int16)
+			a.Group = &g
+		}
+		out.Products = append(out.Products, a)
 	}
 	for _, c := range categories {
 		out.Categories = append(out.Categories, AdminCatalogItem{Slug: c.Slug, NameFa: c.NameFa, NameEn: textp(c.NameEn)})

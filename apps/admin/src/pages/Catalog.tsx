@@ -59,6 +59,12 @@ export function CatalogPage() {
   const removeError = remove.error && errorText(remove.error, t, { CONFLICT: `catalog.deleteBlocked.${remove.variables?.kind ?? "product"}` });
 
   const products = (c?.products ?? []).filter((p) => p.metal === metal?.slug);
+  const groupsOf = (category: string) => (c?.groups ?? []).filter((g) => g.metal === metal?.slug && g.category === category).sort((a, b) => a.sort - b.sort || a.id - b.id);
+  const setGroup = useMutation({
+    mutationFn: async (v: { slug: string; group: number }) =>
+      ensureOk(await api.PUT("/v1/admin/products/{slug}/group", { params: { path: { slug: v.slug } }, body: { group: v.group } })),
+    onSuccess: done,
+  });
   const rowsOf = (product: string) => (series.data ?? []).filter((s) => s.product === product);
   const marketName = (slug: string) => name(c?.markets.find((m) => m.slug === slug) ?? { nameFa: slug });
 
@@ -68,6 +74,7 @@ export function CatalogPage() {
       {(catalog.isError || series.isError) && <Notice tone="error">{t("table.error")}</Notice>}
       {toggle.error && <Notice tone="error">{errorText(toggle.error, t)}</Notice>}
       {removeError && <Notice tone="error">{removeError}</Notice>}
+      {setGroup.error && <Notice tone="error">{errorText(setGroup.error, t)}</Notice>}
 
       <Section title={t("catalog.metals")}>
         <nav aria-label={t("catalog.metals")} className="flex flex-wrap gap-2 p-3">
@@ -99,56 +106,94 @@ export function CatalogPage() {
           </div>
           {editing === `metal:${metal.slug}` && <RenameForm kind="metal" item={metal} onClose={done} />}
 
-          {writable && <QuickAdd key={metal.slug} metal={metal} categories={c.categories} markets={c.markets} />}
+          {writable && <QuickAdd key={metal.slug} metal={metal} categories={c.categories} markets={c.markets} groupsOf={groupsOf} />}
 
           {products.length === 0 && <p className="p-4 text-sm text-text-3">{t("catalog.noProducts")}</p>}
           {c.categories.map((cat) => {
             const list = products.filter((p) => p.category === cat.slug);
-            if (list.length === 0) return null;
+            const groups = groupsOf(cat.slug);
+            if (list.length === 0 && groups.length === 0) return null;
+            const product = (p: Schemas["AdminProduct"]) => (
+                      <li key={p.slug} className="border-t border-border p-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-bold">{name(p)}</span>{" "}
+                            {!p.active && <Badge>{t("prices.inactive")}</Badge>}
+                            <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
+                              <code dir="ltr" className="text-text-3">{p.slug}</code>
+                              {rowsOf(p.slug).map((s) => (
+                                <span key={s.slug} className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
+                                  {marketName(s.market)} · {t(unitKey(s))}
+                                  {s.isBase && <Badge tone="gold">{t("prices.base")}</Badge>}
+                                  {!s.active && <Badge>{t("prices.inactive")}</Badge>}
+                                  {writable && (
+                                    <>
+                                      <button type="button" className="text-text-3 underline hover:text-text" onClick={() => confirmToggle("series", s.slug, !s.active, `${name(p)} · ${marketName(s.market)}`)}>
+                                        {t(s.active ? "catalog.deactivate" : "catalog.activate")}
+                                      </button>
+                                      {!s.latestAmount && (
+                                        <button type="button" className="text-down underline" onClick={() => confirmRemove("series", s.slug, `${name(p)} · ${marketName(s.market)}`)}>{t("catalog.delete")}</button>
+                                      )}
+                                    </>
+                                  )}
+                                </span>
+                              ))}
+                              {rowsOf(p.slug).length === 0 && <span className="text-down">{t("catalog.noRow")}</span>}
+                            </div>
+                          </div>
+                          {writable && editing !== `product:${p.slug}` && (
+                            <span className="flex flex-wrap items-center gap-2">
+                              <label className="flex items-center gap-1 text-xs text-text-3">
+                                {t("catalog.group")}
+                                <Select
+                                  value={p.group ?? 0}
+                                  disabled={setGroup.isPending}
+                                  onChange={(e) => setGroup.mutate({ slug: p.slug, group: Number(e.target.value) })}
+                                  className="max-w-40 py-1 text-xs"
+                                >
+                                  <option value={0}>{t("catalog.noGroup")}</option>
+                                  {groupsOf(p.category).map((g) => <option key={g.id} value={g.id}>{name(g)}</option>)}
+                                </Select>
+                              </label>
+                              <Button type="button" tone="ghost" onClick={() => setEditing(`product:${p.slug}`)}>{t("catalog.edit")}</Button>
+                              <Button type="button" tone="ghost" disabled={toggle.isPending} onClick={() => confirmToggle("product", p.slug, !p.active, name(p))}>{t(p.active ? "catalog.deactivate" : "catalog.activate")}</Button>
+                              <Button type="button" tone="danger" disabled={remove.isPending} onClick={() => confirmRemove("product", p.slug, name(p))}>{t("catalog.delete")}</Button>
+                            </span>
+                          )}
+                        </div>
+                        {editing === `product:${p.slug}` && <RenameForm kind="product" item={p} categories={c.categories} onClose={done} />}
+                      </li>
+            );
+            const ungrouped = list.filter((p) => !p.group || !groups.some((g) => g.id === p.group));
             return (
               <div key={cat.slug} className="border-t border-border">
                 <h3 className="bg-surface-2 px-3 py-2 text-sm font-extrabold">{name(cat)} <span className="font-normal text-text-3">({list.length.toLocaleString(locale === "en" ? "en" : "fa")})</span></h3>
-                <ul>
-                  {list.map((p) => (
-                    <li key={p.slug} className="border-t border-border p-3">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                        <div className="min-w-0 flex-1">
-                          <span className="font-bold">{name(p)}</span>{" "}
-                          {!p.active && <Badge>{t("prices.inactive")}</Badge>}
-                          <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">
-                            <code dir="ltr" className="text-text-3">{p.slug}</code>
-                            {rowsOf(p.slug).map((s) => (
-                              <span key={s.slug} className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
-                                {marketName(s.market)} · {t(unitKey(s))}
-                                {s.isBase && <Badge tone="gold">{t("prices.base")}</Badge>}
-                                {!s.active && <Badge>{t("prices.inactive")}</Badge>}
-                                {writable && (
-                                  <>
-                                    <button type="button" className="text-text-3 underline hover:text-text" onClick={() => confirmToggle("series", s.slug, !s.active, `${name(p)} · ${marketName(s.market)}`)}>
-                                      {t(s.active ? "catalog.deactivate" : "catalog.activate")}
-                                    </button>
-                                    {!s.latestAmount && (
-                                      <button type="button" className="text-down underline" onClick={() => confirmRemove("series", s.slug, `${name(p)} · ${marketName(s.market)}`)}>{t("catalog.delete")}</button>
-                                    )}
-                                  </>
-                                )}
-                              </span>
-                            ))}
-                            {rowsOf(p.slug).length === 0 && <span className="text-down">{t("catalog.noRow")}</span>}
-                          </div>
-                        </div>
-                        {writable && editing !== `product:${p.slug}` && (
-                          <span className="flex flex-wrap gap-2">
-                            <Button type="button" tone="ghost" onClick={() => setEditing(`product:${p.slug}`)}>{t("catalog.edit")}</Button>
-                            <Button type="button" tone="ghost" disabled={toggle.isPending} onClick={() => confirmToggle("product", p.slug, !p.active, name(p))}>{t(p.active ? "catalog.deactivate" : "catalog.activate")}</Button>
-                            <Button type="button" tone="danger" disabled={remove.isPending} onClick={() => confirmRemove("product", p.slug, name(p))}>{t("catalog.delete")}</Button>
-                          </span>
-                        )}
+                {writable && <GroupsBar metal={metal} category={cat} groups={groups} />}
+                {groups.map((g) => {
+                  const inGroup = list.filter((p) => p.group === g.id);
+                  return (
+                    <div key={g.id} className="m-3 overflow-hidden rounded-lg border border-gold/40">
+                      <div className="flex items-center gap-2 bg-gold/10 px-3 py-2">
+                        <span className="font-extrabold text-gold-dark">{name(g)}</span>
+                        <span className="text-xs text-text-3">{t("catalog.groupCount", { n: inGroup.length.toLocaleString(locale === "en" ? "en" : "fa") })}</span>
                       </div>
-                      {editing === `product:${p.slug}` && <RenameForm kind="product" item={p} categories={c.categories} onClose={done} />}
-                    </li>
-                  ))}
-                </ul>
+                      {inGroup.length === 0 ? <p className="border-t border-border p-3 text-xs text-text-3">{t("catalog.groupEmpty")}</p> : <ul>{inGroup.map(product)}</ul>}
+                    </div>
+                  );
+                })}
+                {ungrouped.length > 0 && (
+                  groups.length > 0 ? (
+                    <div className="m-3 overflow-hidden rounded-lg border border-dashed border-border">
+                      <div className="flex items-center gap-2 bg-surface-2 px-3 py-2">
+                        <span className="font-extrabold text-text-2">{t("catalog.ungrouped")}</span>
+                        <span className="text-xs text-text-3">{t("catalog.ungroupedHint", { category: name(cat) })}</span>
+                      </div>
+                      <ul>{ungrouped.map(product)}</ul>
+                    </div>
+                  ) : (
+                    <ul>{ungrouped.map(product)}</ul>
+                  )
+                )}
               </div>
             );
           })}
@@ -156,6 +201,70 @@ export function CatalogPage() {
         </Section>
       )}
     </Page>
+  );
+}
+
+/**
+ * The groups of one metal's category (client, 2026-11-01): boxes such as «آلومینیوم نرم» / «آلومینیوم خشک» on the prices
+ * page. Add one, rename it, move it up or down, or delete it (its products stay, without a group).
+ */
+function GroupsBar({ metal, category, groups }: { metal: Item; category: Item; groups: Schemas["AdminGroup"][] }) {
+  const t = useTranslate();
+  const qc = useQueryClient();
+  const [nameFa, setNameFa] = useState("");
+  const refresh = () => void qc.invalidateQueries({ queryKey: ["admin"] });
+  const add = useMutation({
+    mutationFn: async () => unwrap(await api.POST("/v1/admin/groups", { body: { metal: metal.slug, category: category.slug, nameFa: nameFa.trim() } })),
+    onSuccess: () => { setNameFa(""); refresh(); },
+  });
+  const update = useMutation({
+    mutationFn: async (list: { g: Schemas["AdminGroup"]; nameFa?: string; sort?: number }[]) => {
+      for (const { g, nameFa: n, sort } of list) {
+        ensureOk(await api.PUT("/v1/admin/groups/{id}", { params: { path: { id: g.id } }, body: { nameFa: n ?? g.nameFa, ...(g.nameEn ? { nameEn: g.nameEn } : {}), ...(sort !== undefined ? { sort } : {}) } }));
+      }
+    },
+    onSettled: refresh,
+  });
+  const remove = useMutation({
+    mutationFn: async (id: number) => ensureOk(await api.DELETE("/v1/admin/groups/{id}", { params: { path: { id } } })),
+    onSettled: refresh,
+  });
+  // Moving swaps two neighbours; every group gets its position again, so equal old numbers can't get stuck.
+  const move = (i: number, d: -1 | 1) => {
+    const order = [...groups];
+    [order[i], order[i + d]] = [order[i + d]!, order[i]!];
+    update.mutate(order.map((g, k) => ({ g, sort: k + 1 })).filter(({ g, sort }) => g.sort !== sort));
+  };
+  const rename = (g: Schemas["AdminGroup"]) => {
+    const n = window.prompt(t("catalog.groupRenamePrompt"), g.nameFa)?.trim();
+    if (n && n !== g.nameFa) update.mutate([{ g, nameFa: n }]);
+  };
+  const error = add.error ?? update.error ?? remove.error;
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-border px-3 py-2.5 text-sm">
+      <span className="font-bold">{t("catalog.groups")}</span>
+      {groups.length === 0 && <span className="text-xs text-text-3">{t("catalog.noGroups")}</span>}
+      {groups.map((g, i) => (
+        <span key={g.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1">
+          <span className="font-bold">{g.nameFa}</span>
+          <button type="button" disabled={i === 0 || update.isPending} onClick={() => move(i, -1)} aria-label={t("catalog.moveUp")} className="text-text-3 hover:text-text disabled:opacity-30">↑</button>
+          <button type="button" disabled={i === groups.length - 1 || update.isPending} onClick={() => move(i, 1)} aria-label={t("catalog.moveDown")} className="text-text-3 hover:text-text disabled:opacity-30">↓</button>
+          <button type="button" onClick={() => rename(g)} className="text-xs text-text-3 underline hover:text-text">{t("catalog.rename")}</button>
+          <button
+            type="button"
+            onClick={() => window.confirm(t("catalog.groupDeleteConfirm", { name: g.nameFa })) && remove.mutate(g.id)}
+            className="text-xs text-down underline"
+          >
+            {t("catalog.delete")}
+          </button>
+        </span>
+      ))}
+      <form className="flex items-center gap-2" onSubmit={(e: FormEvent) => { e.preventDefault(); if (nameFa.trim()) add.mutate(); }}>
+        <Input value={nameFa} maxLength={80} onChange={(e) => setNameFa(e.target.value)} placeholder={t("catalog.groupPlaceholder")} className="w-48 py-1" />
+        <Button type="submit" tone="gold" disabled={add.isPending || !nameFa.trim()}>{t("catalog.addGroup")}</Button>
+      </form>
+      {error && <Notice tone="error">{errorText(error, t, { CONFLICT: "catalog.groupTaken" })}</Notice>}
+    </div>
   );
 }
 
@@ -211,7 +320,7 @@ function autoSlug(metal: string, nameEn: string) {
  * «افزودن محصول به لیست»: one form for the common case. Creates the product under this metal and its price row in the
  * chosen market (default «بازار», Toman per kg), so it appears in the price-entry list straight away.
  */
-function QuickAdd({ metal, categories, markets }: { metal: Item; categories: Item[]; markets: Item[] }) {
+function QuickAdd({ metal, categories, markets, groupsOf }: { metal: Item; categories: Item[]; markets: Item[]; groupsOf: (category: string) => Schemas["AdminGroup"][] }) {
   const t = useTranslate();
   const qc = useQueryClient();
   const empty = {
@@ -220,6 +329,7 @@ function QuickAdd({ metal, categories, markets }: { metal: Item; categories: Ite
     category: categories.find((c) => c.slug === "scrap")?.slug ?? categories[0]?.slug ?? "",
     market: markets.find((m) => m.slug === "free")?.slug ?? markets[0]?.slug ?? "",
     unit: "IRR/kg",
+    group: 0,
   };
   const [f, setF] = useState(empty);
   const [added, setAdded] = useState<string>();
@@ -230,25 +340,32 @@ function QuickAdd({ metal, categories, markets }: { metal: Item; categories: Ite
       await unwrap(await api.POST("/v1/admin/products", { body: { slug, metal: metal.slug, category: f.category, nameFa: f.nameFa.trim(), ...(nameEn ? { nameEn } : {}) } }));
       const [currency, unit] = f.unit.split("/") as ["IRR" | "USD", "kg" | "ton"];
       await unwrap(await api.POST("/v1/admin/series", { body: { slug: `${slug}-${f.market}`, product: slug, market: f.market, currency, unit, maxJumpBp: 1500 } }));
+      if (f.group) ensureOk(await api.PUT("/v1/admin/products/{slug}/group", { params: { path: { slug } }, body: { group: f.group } }));
       return f.nameFa.trim();
     },
     onSuccess: (n) => {
       setAdded(n);
-      setF({ ...empty, category: f.category, market: f.market, unit: f.unit });
+      setF({ ...empty, category: f.category, market: f.market, unit: f.unit, group: f.group });
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: ["admin"] }),
   });
   return (
     <form
-      className="grid gap-3 border-b border-border bg-gold/5 p-3 sm:grid-cols-2 lg:grid-cols-5"
+      className="grid gap-3 border-b border-border bg-gold/5 p-3 sm:grid-cols-2 lg:grid-cols-6"
       onSubmit={(e: FormEvent) => { e.preventDefault(); setAdded(undefined); run.mutate(); }}
     >
-      <h3 className="text-sm font-extrabold sm:col-span-2 lg:col-span-5">{t("catalog.quickAdd", { metal: metal.nameFa })}</h3>
+      <h3 className="text-sm font-extrabold sm:col-span-2 lg:col-span-6">{t("catalog.quickAdd", { metal: metal.nameFa })}</h3>
       <Field label={t("catalog.nameFa")}><Input required maxLength={120} value={f.nameFa} onChange={(e) => setF({ ...f, nameFa: e.target.value })} className="w-full" placeholder={t("catalog.nameFaExample")} /></Field>
       <Field label={t("catalog.nameEn")}><Input dir="ltr" maxLength={120} value={f.nameEn} onChange={(e) => setF({ ...f, nameEn: e.target.value })} className="w-full" /></Field>
       <Field label={t("catalog.category")}>
-        <Select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} className="w-full">
+        <Select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value, group: 0 })} className="w-full">
           {categories.map((c) => <option key={c.slug} value={c.slug}>{c.nameFa}</option>)}
+        </Select>
+      </Field>
+      <Field label={t("catalog.group")}>
+        <Select value={f.group} onChange={(e) => setF({ ...f, group: Number(e.target.value) })} className="w-full">
+          <option value={0}>{t("catalog.noGroup")}</option>
+          {groupsOf(f.category).map((g) => <option key={g.id} value={g.id}>{g.nameFa}</option>)}
         </Select>
       </Field>
       <Field label={t("catalog.market")}>
@@ -264,7 +381,7 @@ function QuickAdd({ metal, categories, markets }: { metal: Item; categories: Ite
           <option value="USD/kg">{t("catalog.unit.usdKg")}</option>
         </Select>
       </Field>
-      <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-5">
+      <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-6">
         <Button type="submit" tone="gold" disabled={run.isPending}>{run.isPending ? t("common.saving") : t("catalog.addToList")}</Button>
         {added && <Notice tone="ok">{t("catalog.addedName", { name: added })}</Notice>}
         {run.error && <Notice tone="error">{errorText(run.error, t, { CONFLICT: "catalog.takenName", NOT_FOUND: "catalog.missingRef" })}</Notice>}

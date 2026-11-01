@@ -699,6 +699,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a product group (a box inside a metal's category on the prices page). Roles, editor, admin; audited */
+        post: operations["adminCreateGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename or reorder a product group. Roles, editor, admin; audited */
+        put: operations["adminUpdateGroup"];
+        post?: never;
+        /** Delete a product group; its products stay, without a group. Roles, editor, admin; audited */
+        delete: operations["adminDeleteGroup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/products/{slug}/group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put a product in a group of its metal and category, or take it out (group 0). Roles, editor, admin; audited */
+        put: operations["adminSetProductGroup"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/catalog/active": {
         parameters: {
             query?: never;
@@ -1670,6 +1722,14 @@ export interface components {
             unit: components["schemas"]["Unit"];
             /** @description Visible to the free tier */
             isBase: boolean;
+            group?: components["schemas"]["ProductGroupRef"];
+        };
+        /** @description The box the product is shown in on the prices page (inside its metal and category); absent = none */
+        ProductGroupRef: {
+            id: number;
+            /** @example آلومینیوم نرم */
+            name: string;
+            sort: number;
         };
         /** @description Integer minor units per unit (Rial per kg for IRR, US cents per ton for USD) as a string. */
         Price: {
@@ -1824,6 +1884,22 @@ export interface components {
             nameFa: string;
             nameEn?: string;
             active: boolean;
+            /** @description Product group id; absent = no group */
+            group?: number;
+        };
+        AdminGroup: {
+            id: number;
+            metal: string;
+            category: string;
+            nameFa: string;
+            nameEn?: string;
+            sort: number;
+        };
+        AdminGroupInput: {
+            metal: string;
+            category: string;
+            nameFa: string;
+            nameEn?: string;
         };
         AdminRenameInput: {
             nameFa: string;
@@ -3575,6 +3651,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         metals: components["schemas"]["AdminCatalogItem"][];
+                        groups: components["schemas"]["AdminGroup"][];
                         products: components["schemas"]["AdminProduct"][];
                         categories: components["schemas"]["AdminCatalogItem"][];
                         markets: components["schemas"]["AdminCatalogItem"][];
@@ -3741,6 +3818,108 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminGroupInput"];
+            };
+        };
+        responses: {
+            /** @description Group added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminGroup"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRenameInput"] & {
+                    /** @description Position among the category's groups; unchanged if left out */
+                    sort?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetProductGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Group id; 0 = no group */
+                    group: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
             204: {
                 headers: {
                     [name: string]: unknown;

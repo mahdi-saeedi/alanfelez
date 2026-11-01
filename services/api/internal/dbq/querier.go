@@ -19,6 +19,7 @@ type Querier interface {
 	// Reported published posts first (most reports first), then the rest newest first.
 	AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error)
 	AdminListContactMessages(ctx context.Context, status pgtype.Text) ([]AdminListContactMessagesRow, error)
+	AdminListGroups(ctx context.Context) ([]AdminListGroupsRow, error)
 	AdminListMarkets(ctx context.Context) ([]AdminListMarketsRow, error)
 	// Catalog (admin): metals, products, series ------------------------------------------------------------------
 	AdminListMetals(ctx context.Context) ([]AdminListMetalsRow, error)
@@ -73,6 +74,8 @@ type Querier interface {
 	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
 	DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPostParams) (int64, error)
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
+	// Its products become ungrouped (ON DELETE SET NULL).
+	DeleteGroup(ctx context.Context, id int16) (int64, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
 	DeleteMetal(ctx context.Context, slug string) (int64, error)
 	DeleteOldCalculations(ctx context.Context, userID pgtype.UUID) error
@@ -124,6 +127,8 @@ type Querier interface {
 	InsertCalculation(ctx context.Context, arg InsertCalculationParams) (InsertCalculationRow, error)
 	// Support (internal/support): contact form messages and user tickets.
 	InsertContactMessage(ctx context.Context, arg InsertContactMessageParams) (InsertContactMessageRow, error)
+	// No row back = the metal or category doesn't exist; a unique violation = the name is taken in that metal and category.
+	InsertGroup(ctx context.Context, arg InsertGroupParams) (InsertGroupRow, error)
 	// No row back = the slug is taken.
 	InsertMetal(ctx context.Context, arg InsertMetalParams) (InsertMetalRow, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) (pgtype.UUID, error)
@@ -208,6 +213,7 @@ type Querier interface {
 	// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
 	// (when there is none) the first one after it. No row = the series has no published price at all.
 	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
+	ProductExists(ctx context.Context, slug string) (bool, error)
 	ProductHasPrices(ctx context.Context, slug string) (bool, error)
 	// Adds or replaces the auction's PDF notice (0 rows: no such auction).
 	PutAuctionFile(ctx context.Context, arg PutAuctionFileParams) (int64, error)
@@ -241,6 +247,8 @@ type Querier interface {
 	SetPointStatus(ctx context.Context, arg SetPointStatusParams) error
 	SetPriceUpdateCursor(ctx context.Context, arg SetPriceUpdateCursorParams) error
 	SetProductActive(ctx context.Context, arg SetProductActiveParams) (int64, error)
+	// group_id NULL = no group. A group of another metal or category updates nothing (the handler answers 400).
+	SetProductGroup(ctx context.Context, arg SetProductGroupParams) (int64, error)
 	SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error)
 	// Also bumps last_message_at when a message was just added (touched = true).
 	SetTicketStatus(ctx context.Context, arg SetTicketStatusParams) (SetTicketStatusRow, error)
@@ -258,6 +266,7 @@ type Querier interface {
 	UpdateContactMessage(ctx context.Context, arg UpdateContactMessageParams) (UpdateContactMessageRow, error)
 	UpdateFaqCategory(ctx context.Context, arg UpdateFaqCategoryParams) (UpdateFaqCategoryRow, error)
 	UpdateFaqItem(ctx context.Context, arg UpdateFaqItemParams) (pgtype.UUID, error)
+	UpdateGroup(ctx context.Context, arg UpdateGroupParams) (int64, error)
 	// Optimistic lock: no row when someone saved a newer version in between.
 	UpdatePage(ctx context.Context, arg UpdatePageParams) (UpdatePageRow, error)
 	// category NULL keeps the current one; an unknown category slug updates nothing (the handler answers 404).

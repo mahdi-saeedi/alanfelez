@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-01 (product list per metal in the admin)
+Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 
 ## Now (in progress)
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
@@ -52,6 +52,10 @@ Last updated: 2026-11-01 (product list per metal in the admin)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-01 Prices page (client): product groups as boxes inside a metal's category (`market.product_groups`, migration
+  00024 with «آلومینیوم نرم»/«آلومینیوم خشک»; admin: add/rename/reorder/delete, a group menu per product); the three
+  filters numbered one under the other (metal → category → market); the Toman/Rial and kg/ton switch removed; the ticker
+  says which market (بورس کالا / جهانی) and unit each price is.
 - 2026-11-01 Old sample products retired (migration 00023, owner OK): «آلومینیوم نرم», «مس کابلی قرمز», «شمش آلومینیوم» in
   intermediate; «مس کابلی», «ضایعات برنج», «ورق ۴ آهن» and the day-price rows of «برنج زرد», «میلگرد ۱۶», «ضایعات چدن»
   deleted with their history (those three now only carry the world price, named برنج, آهن, چدن).
