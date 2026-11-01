@@ -1,7 +1,9 @@
 {
   "brand": {
     "name": "Alan Felez",
-    "tagline": "Metals market information at a glance"
+    "tagline": "Metals market information at a glance",
+    "latin": "Alan Felez",
+    "logo": "الان‌فلز"
   },
   "nav": {
     "home": "Home",

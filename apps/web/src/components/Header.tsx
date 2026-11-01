@@ -6,6 +6,7 @@ import { readSession } from "@/lib/session-refresh";
 import { Link } from "@/i18n/navigation";
 import { auth, signIn, signOut } from "@/auth";
 import { LocaleSwitch } from "./LocaleSwitch";
+import { Logo } from "./Logo";
 import { getSite } from "@/lib/content";
 import { accessToken } from "@/lib/api";
 import { DesktopNav, MobileMenu } from "./MobileNav";
@@ -79,8 +80,7 @@ export async function Header() {
         <MobileMenu locale={showLocale ? { label: t("locale.switch"), ariaLabel: t("locale.switchLabel") } : undefined} />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
           {/* The wide logo without its dark square (client, 2026-11-01): the name in it is the brand name, so no text beside it. */}
-          <img src="/logo-wide.png" alt="" width={624} height={260} className="h-11 w-auto transition-[height] group-data-[compact]:h-9 sm:h-14 lg:h-16 lg:group-data-[compact]:h-11" />
-          <span className="sr-only">{t("brand.name")}</span>
+          <Logo name={t("brand.logo")} latin={t("brand.latin")} className="[--logo-h:40px] group-data-[compact]:[--logo-h:32px] sm:[--logo-h:48px] lg:[--logo-h:56px] lg:group-data-[compact]:[--logo-h:40px]" />
         </Link>
         <DesktopNav />
         <div className="ms-auto flex items-center gap-1.5 sm:gap-2 lg:ms-0">
