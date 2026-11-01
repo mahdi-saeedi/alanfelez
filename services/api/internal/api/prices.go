@@ -30,6 +30,11 @@ func (s *Server) ListPrices(ctx context.Context, req ListPricesRequestObject) (L
 	baseOnly := p.Base != nil && *p.Base
 	out := PriceList{Items: make([]PriceRow, 0, len(rows)), LockedSeries: []SeriesRef{}}
 	for _, r := range rows {
+		// A row without any price yet stays off the site (and out of the calculator and charts) until staff enter its
+		// first price: new products from the admin appear by themselves, with no empty "—" rows before that.
+		if !r.PriceMinor.Valid {
+			continue
+		}
 		if (p.Metal != nil && *p.Metal != r.MetalSlug) || (p.Category != nil && *p.Category != r.CategorySlug) ||
 			(p.Market != nil && *p.Market != r.MarketSlug) || (baseOnly && !r.IsBase) {
 			continue

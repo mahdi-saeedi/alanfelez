@@ -1,0 +1,183 @@
+# The client's product list (2026-11-01): every metal's raw materials, intermediate products and scrap, each with a
+# «بازار» row in Toman/kg (paid tiers, like every non-global row). Products already in 40-prices.yaml aren't repeated.
+# Loaded once (insert_missing; an unchanged file is skipped), then the list is the admin's: staff add, rename,
+# deactivate or delete products in «فلزات و محصولات». Don't edit this file to change the list: a changed file is
+# re-applied and brings back products staff deleted. A row appears on the site once it has its first price.
+version: 1
+datasets:
+  - name: products
+    rows:
+      - { slug: aluminum-bauxite, metal: aluminum, category: raw, name_fa: بوکسیت, name_en: Bauxite, sort: 300 }
+      - { slug: aluminum-alumina, metal: aluminum, category: raw, name_fa: آلومینا, name_en: Alumina, sort: 301 }
+      - { slug: aluminum-fluoride, metal: aluminum, category: raw, name_fa: فلوراید آلومینیوم, name_en: Aluminum fluoride, sort: 302 }
+      - { slug: aluminum-billet, metal: aluminum, category: intermediate, name_fa: بیلت آلومینیوم, name_en: Aluminum billet, sort: 400 }
+      - { slug: aluminum-slab, metal: aluminum, category: intermediate, name_fa: اسلب آلومینیوم, name_en: Aluminum slab, sort: 401 }
+      - { slug: aluminum-rod, metal: aluminum, category: intermediate, name_fa: میلگرد آلومینیوم, name_en: Aluminum rod, sort: 402 }
+      - { slug: aluminum-ring, metal: aluminum, category: scrap, name_fa: رینگ آلومینیومی, name_en: Aluminum wheels, sort: 500 }
+      - { slug: aluminum-piston, metal: aluminum, category: scrap, name_fa: پیستون, name_en: Piston, sort: 501 }
+      - { slug: aluminum-cylinder-head, metal: aluminum, category: scrap, name_fa: سرسیلندر, name_en: Cylinder head, sort: 502 }
+      - { slug: aluminum-dry, metal: aluminum, category: scrap, name_fa: آلومینیوم خشک, name_en: Hard aluminum, sort: 503 }
+      - { slug: aluminum-can, metal: aluminum, category: scrap, name_fa: قوطی رانی, name_en: Cans, sort: 504 }
+      - { slug: aluminum-dry-turnings, metal: aluminum, category: scrap, name_fa: سفاله آلومینیوم خشک, name_en: Hard aluminum turnings, sort: 505 }
+      - { slug: aluminum-utensil, metal: aluminum, category: scrap, name_fa: آلومینیوم ظرفی, name_en: Utensil aluminum, sort: 506 }
+      - { slug: aluminum-radiator, metal: aluminum, category: scrap, name_fa: رادیات آلومینیوم, name_en: Aluminum radiators, sort: 507 }
+      - { slug: aluminum-profile, metal: aluminum, category: scrap, name_fa: پروفیل شاخه, name_en: Profile (extrusion), sort: 508 }
+      - { slug: aluminum-soft-turnings, metal: aluminum, category: scrap, name_fa: سفاله آلومینیوم نرم, name_en: Soft aluminum turnings, sort: 509 }
+      - { slug: copper-pipe, metal: copper, category: intermediate, name_fa: لوله مسی, name_en: Copper pipe, sort: 400 }
+      - { slug: copper-wire, metal: copper, category: intermediate, name_fa: مفتول مسی, name_en: Copper wire rod, sort: 401 }
+      - { slug: copper-ingot, metal: copper, category: intermediate, name_fa: شمش مس, name_en: Copper ingot, sort: 402 }
+      - { slug: copper-billet, metal: copper, category: intermediate, name_fa: بیلت مس, name_en: Copper billet, sort: 403 }
+      - { slug: copper-sheet, metal: copper, category: intermediate, name_fa: ورق مسی, name_en: Copper sheet, sort: 404 }
+      - { slug: copper-telecom, metal: copper, category: scrap, name_fa: مس مخابراتی, name_en: Telecom copper, sort: 500 }
+      - { slug: copper-cable-black, metal: copper, category: scrap, name_fa: مس کابلی سیاه, name_en: Black cable copper, sort: 501 }
+      - { slug: copper-melted, metal: copper, category: scrap, name_fa: مس ذوبی, name_en: Melted copper, sort: 502 }
+      - { slug: copper-armature, metal: copper, category: scrap, name_fa: مس آرمیچری, name_en: Armature copper, sort: 503 }
+      - { slug: copper-pipe-scrap, metal: copper, category: scrap, name_fa: لوله مسی, name_en: Copper pipe scrap, sort: 504 }
+      - { slug: copper-mill, metal: copper, category: scrap, name_fa: مس آسیابی, name_en: Milled copper, sort: 505 }
+      - { slug: zinc-ore, metal: zinc, category: raw, name_fa: سنگ معدن روی, name_en: Zinc ore, sort: 300 }
+      - { slug: zinc-melted, metal: zinc, category: scrap, name_fa: روی ذوبی, name_en: Melted zinc, sort: 500 }
+      - { slug: zinc-sheet-scrap, metal: zinc, category: scrap, name_fa: ورق‌های روی, name_en: Zinc sheets, sort: 501 }
+      - { slug: zinc-pipe-scrap, metal: zinc, category: scrap, name_fa: لوله‌های روی, name_en: Zinc pipes, sort: 502 }
+      - { slug: zinc-frame, metal: zinc, category: scrap, name_fa: قاب‌های رویی, name_en: Zinc frames, sort: 503 }
+      - { slug: zinc-auto-parts, metal: zinc, category: scrap, name_fa: قطعات خودرو رویی, name_en: Zinc auto parts, sort: 504 }
+      - { slug: lead-sheet, metal: lead, category: intermediate, name_fa: ورق سرب, name_en: Lead sheet, sort: 400 }
+      - { slug: lead-soft, metal: lead, category: scrap, name_fa: سرب نرم, name_en: Soft lead, sort: 500 }
+      - { slug: lead-hard, metal: lead, category: scrap, name_fa: سرب خشک, name_en: Hard lead, sort: 501 }
+      - { slug: lead-battery-dry, metal: lead, category: scrap, name_fa: باتری خشک, name_en: Dry batteries, sort: 502 }
+      - { slug: lead-battery-motor, metal: lead, category: scrap, name_fa: باتری موتور, name_en: Motorcycle batteries, sort: 503 }
+      - { slug: brass-pipe, metal: brass, category: intermediate, name_fa: لوله برنجی, name_en: Brass pipe, sort: 400 }
+      - { slug: brass-sheet, metal: brass, category: intermediate, name_fa: ورق برنجی, name_en: Brass sheet, sort: 401 }
+      - { slug: brass-rod, metal: brass, category: intermediate, name_fa: میلگرد برنجی, name_en: Brass rod, sort: 402 }
+      - { slug: brass-strip, metal: brass, category: intermediate, name_fa: تسمه برنجی, name_en: Brass strip, sort: 403 }
+      - { slug: brass-clippings, metal: brass, category: scrap, name_fa: برنج دم قیچی, name_en: Brass clippings, sort: 500 }
+      - { slug: brass-yellow, metal: brass, category: scrap, name_fa: برنج زردبار, name_en: Yellow brass scrap, sort: 501 }
+      - { slug: brass-white, metal: brass, category: scrap, name_fa: برنج سفید بار, name_en: White brass scrap, sort: 502 }
+      - { slug: brass-turnings, metal: brass, category: scrap, name_fa: سفاله برنج, name_en: Brass turnings, sort: 503 }
+      - { slug: brass-radiator, metal: brass, category: scrap, name_fa: رادیات برنجی, name_en: Brass radiators, sort: 504 }
+      - { slug: brass-mixed, metal: brass, category: scrap, name_fa: برنج درهم, name_en: Mixed brass, sort: 505 }
+      - { slug: brass-chandelier, metal: brass, category: scrap, name_fa: لوستر برنجی, name_en: Brass chandeliers, sort: 506 }
+      - { slug: brass-fittings, metal: brass, category: scrap, name_fa: شیرآلات برنجی, name_en: Brass fittings, sort: 507 }
+      - { slug: cast-iron-ingot, metal: cast-iron, category: intermediate, name_fa: شمش چدن, name_en: Cast iron ingot, sort: 400 }
+      - { slug: cast-iron-sheet, metal: cast-iron, category: intermediate, name_fa: ورق چدن, name_en: Cast iron sheet, sort: 401 }
+      - { slug: cast-iron-gray, metal: cast-iron, category: intermediate, name_fa: چدن خاکستری, name_en: Gray cast iron, sort: 402 }
+      - { slug: cast-iron-ductile, metal: cast-iron, category: intermediate, name_fa: چدن داکتیل, name_en: Ductile cast iron, sort: 403 }
+      - { slug: cast-iron-small, metal: cast-iron, category: scrap, name_fa: چدن ریز بار, name_en: Small cast iron scrap, sort: 500 }
+      - { slug: cast-iron-large, metal: cast-iron, category: scrap, name_fa: چدن درشت بار, name_en: Large cast iron scrap, sort: 501 }
+      - { slug: cast-iron-ductile-small, metal: cast-iron, category: scrap, name_fa: داکتیل ریزبار, name_en: Small ductile scrap, sort: 502 }
+      - { slug: cast-iron-ductile-large, metal: cast-iron, category: scrap, name_fa: داکتیل درشت بار, name_en: Large ductile scrap, sort: 503 }
+      - { slug: cast-iron-turnings, metal: cast-iron, category: scrap, name_fa: سفاله چدن, name_en: Cast iron turnings, sort: 504 }
+      - { slug: cast-iron-ni-hard, metal: cast-iron, category: scrap, name_fa: نایهارد, name_en: Ni-Hard, sort: 505 }
+      - { slug: iron-pellet, metal: iron, category: raw, name_fa: گندله, name_en: Iron ore pellets, sort: 300 }
+      - { slug: iron-dri, metal: iron, category: raw, name_fa: آهن اسفنجی, name_en: Sponge iron (DRI), sort: 301 }
+      - { slug: iron-rebar, metal: iron, category: intermediate, name_fa: میلگرد, name_en: Rebar, sort: 400 }
+      - { slug: iron-sheet, metal: iron, category: intermediate, name_fa: ورق آهن, name_en: Steel sheet, sort: 401 }
+      - { slug: iron-beam, metal: iron, category: intermediate, name_fa: تیرآهن, name_en: Steel beam, sort: 402 }
+      - { slug: iron-pipe, metal: iron, category: intermediate, name_fa: لوله آهن, name_en: Steel pipe, sort: 403 }
+      - { slug: iron-angle, metal: iron, category: intermediate, name_fa: نبشی, name_en: Angle, sort: 404 }
+      - { slug: iron-channel, metal: iron, category: intermediate, name_fa: ناودانی, name_en: Channel, sort: 405 }
+      - { slug: iron-wire, metal: iron, category: intermediate, name_fa: مفتول آهن, name_en: Steel wire rod, sort: 406 }
+      - { slug: iron-special, metal: iron, category: scrap, name_fa: آهن ویژه, name_en: Special scrap, sort: 500 }
+      - { slug: iron-super-special, metal: iron, category: scrap, name_fa: آهن سوپر ویژه, name_en: Super special scrap, sort: 501 }
+      - { slug: iron-grade-1, metal: iron, category: scrap, name_fa: آهن درجه ۱, name_en: Grade 1 scrap, sort: 502 }
+      - { slug: iron-grade-2, metal: iron, category: scrap, name_fa: آهن درجه ۲, name_en: Grade 2 scrap, sort: 503 }
+      - { slug: iron-galvanized, metal: iron, category: scrap, name_fa: گالوانیزه نو, name_en: New galvanized, sort: 504 }
+      - { slug: iron-alloy, metal: iron, category: scrap, name_fa: آهن آلیاژی, name_en: Alloy scrap, sort: 505 }
+      - { slug: iron-pressed-body, metal: iron, category: scrap, name_fa: پرسی بدنه, name_en: Pressed body scrap, sort: 506 }
+      - { slug: iron-loose-turnings, metal: iron, category: scrap, name_fa: سفاله پوشالی, name_en: Loose turnings, sort: 507 }
+      - { slug: iron-mechanical, metal: iron, category: scrap, name_fa: مکانیکی و ته کارگاهی, name_en: Mechanical and shop scrap, sort: 508 }
+      - { slug: iron-oily-sheet, metal: iron, category: scrap, name_fa: فله ورقی روغن, name_en: Oily loose sheet, sort: 509 }
+      - { slug: iron-pressed-car, metal: iron, category: scrap, name_fa: پرسی خودرو, name_en: Pressed car scrap, sort: 510 }
+      - { slug: iron-light, metal: iron, category: scrap, name_fa: آهن سبک, name_en: Light scrap, sort: 511 }
+      - { slug: iron-tin-new, metal: iron, category: scrap, name_fa: فله حلب نو, name_en: New loose tinplate, sort: 512 }
+      - { slug: iron-tin-old, metal: iron, category: scrap, name_fa: فله حلب کهنه, name_en: Old loose tinplate, sort: 513 }
+      - { slug: iron-doors, metal: iron, category: scrap, name_fa: درب و پنجره آهنی, name_en: Iron doors and windows, sort: 514 }
+      - { slug: iron-chip-turnings, metal: iron, category: scrap, name_fa: سفاله ناخنی, name_en: Chip turnings, sort: 515 }
+
+  - name: price_series
+    rows:
+      - { slug: aluminum-bauxite-free, product: aluminum-bauxite, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
+      - { slug: aluminum-alumina-free, product: aluminum-alumina, market: free, currency: IRR, unit: kg, is_base: false, sort: 301 }
+      - { slug: aluminum-fluoride-free, product: aluminum-fluoride, market: free, currency: IRR, unit: kg, is_base: false, sort: 302 }
+      - { slug: aluminum-billet-free, product: aluminum-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: aluminum-slab-free, product: aluminum-slab, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: aluminum-rod-free, product: aluminum-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
+      - { slug: aluminum-ring-free, product: aluminum-ring, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: aluminum-piston-free, product: aluminum-piston, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: aluminum-cylinder-head-free, product: aluminum-cylinder-head, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: aluminum-dry-free, product: aluminum-dry, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: aluminum-can-free, product: aluminum-can, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
+      - { slug: aluminum-dry-turnings-free, product: aluminum-dry-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
+      - { slug: aluminum-utensil-free, product: aluminum-utensil, market: free, currency: IRR, unit: kg, is_base: false, sort: 506 }
+      - { slug: aluminum-radiator-free, product: aluminum-radiator, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
+      - { slug: aluminum-profile-free, product: aluminum-profile, market: free, currency: IRR, unit: kg, is_base: false, sort: 508 }
+      - { slug: aluminum-soft-turnings-free, product: aluminum-soft-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 509 }
+      - { slug: copper-pipe-free, product: copper-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: copper-wire-free, product: copper-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: copper-ingot-free, product: copper-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
+      - { slug: copper-billet-free, product: copper-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
+      - { slug: copper-sheet-free, product: copper-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 404 }
+      - { slug: copper-telecom-free, product: copper-telecom, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: copper-cable-black-free, product: copper-cable-black, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: copper-melted-free, product: copper-melted, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: copper-armature-free, product: copper-armature, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: copper-pipe-scrap-free, product: copper-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
+      - { slug: copper-mill-free, product: copper-mill, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
+      - { slug: zinc-ore-free, product: zinc-ore, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
+      - { slug: zinc-melted-free, product: zinc-melted, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: zinc-sheet-scrap-free, product: zinc-sheet-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: zinc-pipe-scrap-free, product: zinc-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: zinc-frame-free, product: zinc-frame, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: zinc-auto-parts-free, product: zinc-auto-parts, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
+      - { slug: lead-sheet-free, product: lead-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: lead-soft-free, product: lead-soft, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: lead-hard-free, product: lead-hard, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: lead-battery-dry-free, product: lead-battery-dry, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: lead-battery-motor-free, product: lead-battery-motor, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: brass-pipe-free, product: brass-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: brass-sheet-free, product: brass-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: brass-rod-free, product: brass-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
+      - { slug: brass-strip-free, product: brass-strip, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
+      - { slug: brass-clippings-free, product: brass-clippings, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: brass-yellow-free, product: brass-yellow, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: brass-white-free, product: brass-white, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: brass-turnings-free, product: brass-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: brass-radiator-free, product: brass-radiator, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
+      - { slug: brass-mixed-free, product: brass-mixed, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
+      - { slug: brass-chandelier-free, product: brass-chandelier, market: free, currency: IRR, unit: kg, is_base: false, sort: 506 }
+      - { slug: brass-fittings-free, product: brass-fittings, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
+      - { slug: cast-iron-ingot-free, product: cast-iron-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: cast-iron-sheet-free, product: cast-iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: cast-iron-gray-free, product: cast-iron-gray, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
+      - { slug: cast-iron-ductile-free, product: cast-iron-ductile, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
+      - { slug: cast-iron-small-free, product: cast-iron-small, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: cast-iron-large-free, product: cast-iron-large, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: cast-iron-ductile-small-free, product: cast-iron-ductile-small, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: cast-iron-ductile-large-free, product: cast-iron-ductile-large, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: cast-iron-turnings-free, product: cast-iron-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
+      - { slug: cast-iron-ni-hard-free, product: cast-iron-ni-hard, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
+      - { slug: iron-pellet-free, product: iron-pellet, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
+      - { slug: iron-dri-free, product: iron-dri, market: free, currency: IRR, unit: kg, is_base: false, sort: 301 }
+      - { slug: iron-rebar-free, product: iron-rebar, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: iron-sheet-free, product: iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: iron-beam-free, product: iron-beam, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
+      - { slug: iron-pipe-free, product: iron-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
+      - { slug: iron-angle-free, product: iron-angle, market: free, currency: IRR, unit: kg, is_base: false, sort: 404 }
+      - { slug: iron-channel-free, product: iron-channel, market: free, currency: IRR, unit: kg, is_base: false, sort: 405 }
+      - { slug: iron-wire-free, product: iron-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 406 }
+      - { slug: iron-special-free, product: iron-special, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
+      - { slug: iron-super-special-free, product: iron-super-special, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: iron-grade-1-free, product: iron-grade-1, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: iron-grade-2-free, product: iron-grade-2, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: iron-galvanized-free, product: iron-galvanized, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
+      - { slug: iron-alloy-free, product: iron-alloy, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
+      - { slug: iron-pressed-body-free, product: iron-pressed-body, market: free, currency: IRR, unit: kg, is_base: false, sort: 506 }
+      - { slug: iron-loose-turnings-free, product: iron-loose-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
+      - { slug: iron-mechanical-free, product: iron-mechanical, market: free, currency: IRR, unit: kg, is_base: false, sort: 508 }
+      - { slug: iron-oily-sheet-free, product: iron-oily-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 509 }
+      - { slug: iron-pressed-car-free, product: iron-pressed-car, market: free, currency: IRR, unit: kg, is_base: false, sort: 510 }
+      - { slug: iron-light-free, product: iron-light, market: free, currency: IRR, unit: kg, is_base: false, sort: 511 }
+      - { slug: iron-tin-new-free, product: iron-tin-new, market: free, currency: IRR, unit: kg, is_base: false, sort: 512 }
+      - { slug: iron-tin-old-free, product: iron-tin-old, market: free, currency: IRR, unit: kg, is_base: false, sort: 513 }
+      - { slug: iron-doors-free, product: iron-doors, market: free, currency: IRR, unit: kg, is_base: false, sort: 514 }
+      - { slug: iron-chip-turnings-free, product: iron-chip-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 515 }
+      - { slug: copper-cathode-free, product: copper-cathode, market: free, currency: IRR, unit: kg, is_base: false, sort: 399 }

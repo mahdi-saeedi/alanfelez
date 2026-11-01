@@ -1,4 +1,5 @@
-# Products, price sources and price series (DATA_MODEL §2). Editable in the admin after the first load.
+# Products, price sources and price series (DATA_MODEL §2). Editable in the admin after the first load. Don't edit the
+# products or rows here any more: a changed file is re-applied and brings back products staff deleted in the admin.
 # Product names are the sample rows from the client's design docs (price table, 11 rows). مس کاتد is ours: it's the
 # product behind the LME copper reference (SCOPE §14).
 # Which market quotes which product is our assumption until the client confirms it (OPEN_QUESTIONS F12).
