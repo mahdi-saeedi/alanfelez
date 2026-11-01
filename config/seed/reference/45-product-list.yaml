@@ -50,7 +50,7 @@ datasets:
       - { slug: brass-rod, metal: brass, category: intermediate, name_fa: میلگرد برنجی, name_en: Brass rod, sort: 402 }
       - { slug: brass-strip, metal: brass, category: intermediate, name_fa: تسمه برنجی, name_en: Brass strip, sort: 403 }
       - { slug: brass-clippings, metal: brass, category: scrap, name_fa: برنج دم قیچی, name_en: Brass clippings, sort: 500 }
-      - { slug: brass-yellow, metal: brass, category: scrap, name_fa: برنج زردبار, name_en: Yellow brass scrap, sort: 501 }
+      - { slug: brass-yellow-scrap, metal: brass, category: scrap, name_fa: برنج زردبار, name_en: Yellow brass scrap, sort: 501 }
       - { slug: brass-white, metal: brass, category: scrap, name_fa: برنج سفید بار, name_en: White brass scrap, sort: 502 }
       - { slug: brass-turnings, metal: brass, category: scrap, name_fa: سفاله برنج, name_en: Brass turnings, sort: 503 }
       - { slug: brass-radiator, metal: brass, category: scrap, name_fa: رادیات برنجی, name_en: Brass radiators, sort: 504 }
@@ -138,7 +138,7 @@ datasets:
       - { slug: brass-rod-free, product: brass-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
       - { slug: brass-strip-free, product: brass-strip, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
       - { slug: brass-clippings-free, product: brass-clippings, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
-      - { slug: brass-yellow-free, product: brass-yellow, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
+      - { slug: brass-yellow-scrap-free, product: brass-yellow-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
       - { slug: brass-white-free, product: brass-white, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
       - { slug: brass-turnings-free, product: brass-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: brass-radiator-free, product: brass-radiator, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
