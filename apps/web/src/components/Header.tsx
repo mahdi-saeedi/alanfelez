@@ -42,6 +42,7 @@ export async function Header() {
   // again, instead of showing the user's name over a free-plan view.
   const expired = !!session?.user && !token;
   const signedIn = !!session?.user && !expired;
+  const showLocale = !!site?.englishSite || locale === "en";
   const ent = signedIn ? await getEntitlements() : null;
   const tier = ent?.tier ?? "free";
   const renew = await renewReminder(ent?.tier, ent?.tierEndsAt);
@@ -75,18 +76,19 @@ export async function Header() {
     <StickyHeader>
       {/* Phone widths (360 px) are tight: logo, language switch, log in and sign up must fit on one row. */}
       <div className="mx-auto flex max-w-7xl items-center gap-1.5 px-4 py-3 transition-[padding] group-data-[compact]:py-1.5 sm:gap-3 lg:gap-6">
-        <MobileMenu />
+        <MobileMenu locale={showLocale ? { label: t("locale.switch"), ariaLabel: t("locale.switchLabel") } : undefined} />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
-          <img src="/logo.png" alt="" width={84} height={84} className="h-14 w-14 rounded-lg transition-[width,height] group-data-[compact]:h-10 group-data-[compact]:w-10 sm:h-16 sm:w-16 lg:h-21 lg:w-21 lg:group-data-[compact]:h-12 lg:group-data-[compact]:w-12" />
-          {/* The logo already shows the name; on phones the text would push the header wider than the screen. */}
-          <span className="sr-only sm:not-sr-only">{t("brand.name")}</span>
+          {/* The wide logo without its dark square (client, 2026-11-01): the name in it is the brand name, so no text beside it. */}
+          <img src="/logo-wide.png" alt="" width={624} height={260} className="h-11 w-auto transition-[height] group-data-[compact]:h-9 sm:h-14 lg:h-16 lg:group-data-[compact]:h-11" />
+          <span className="sr-only">{t("brand.name")}</span>
         </Link>
         <DesktopNav />
         <div className="ms-auto flex items-center gap-1.5 sm:gap-2 lg:ms-0">
           <Link href="/search" aria-label={t("search.open")} title={t("search.open")} className="grid h-9 w-8 shrink-0 sm:w-9 place-items-center rounded-lg text-silver-light hover:bg-graphite-2 hover:text-white">
             <SearchIcon />
           </Link>
-          {(site?.englishSite || locale === "en") && <LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} />}
+          {/* On phones the language switch is in the menu, so the logo has room to be read. */}
+          {showLocale && <span className="hidden sm:inline-flex"><LocaleSwitch label={t("locale.switch")} ariaLabel={t("locale.switchLabel")} /></span>}
           {signedIn && session?.user ? (
             <div className="flex items-center gap-2">
               {/* Name and plan badge open the account menu (client, 2026-10-29); on phones the badge alone. */}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { MAIN_NAV, MORE_NAV, isActive } from "@/lib/nav";
+import { LocaleSwitch } from "./LocaleSwitch";
 
 /**
  * Phone menu (below lg): a button that opens a drawer with every page. Closes on navigation, Escape and outside
@@ -35,7 +36,7 @@ export function DesktopNav() {
   );
 }
 
-export function MobileMenu() {
+export function MobileMenu({ locale }: { locale?: { label: string; ariaLabel: string } }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -96,6 +97,11 @@ export function MobileMenu() {
                 {t(key)}
               </Link>
             ))}
+            {locale && (
+              <div className="mt-3 border-t border-graphite-3 pt-4">
+                <LocaleSwitch label={locale.label} ariaLabel={locale.ariaLabel} />
+              </div>
+            )}
           </div>
         </div>
       )}
