@@ -18,16 +18,21 @@ UPDATE market.products SET name_fa = 'برنج', name_en = 'Brass' WHERE slug = 
 UPDATE market.products SET name_fa = 'آهن', name_en = 'Iron' WHERE slug = 'rebar-16';
 UPDATE market.products SET name_fa = 'چدن', name_en = 'Cast iron' WHERE slug = 'cast-iron-scrap';
 
-CREATE TEMP TABLE gone_series ON COMMIT DROP AS
-SELECT s.id FROM market.price_series s JOIN market.products p ON p.id = s.product_id
-WHERE p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
-   OR s.slug IN ('brass-yellow-free', 'rebar-16-iron', 'cast-iron-scrap-free');
-
-DELETE FROM app.price_alerts WHERE series_id IN (SELECT id FROM gone_series);
-UPDATE app.calculations SET series_id = NULL WHERE series_id IN (SELECT id FROM gone_series);
-DELETE FROM market.price_latest WHERE series_id IN (SELECT id FROM gone_series);
-DELETE FROM market.price_points WHERE series_id IN (SELECT id FROM gone_series);
-DELETE FROM market.price_series WHERE id IN (SELECT id FROM gone_series);
+DELETE FROM app.price_alerts WHERE series_id IN (SELECT s.id FROM market.price_series s JOIN market.products p ON p.id = s.product_id
+                    WHERE p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
+                       OR s.slug IN ('brass-yellow-free', 'rebar-16-iron', 'cast-iron-scrap-free'));
+UPDATE app.calculations SET series_id = NULL WHERE series_id IN (SELECT s.id FROM market.price_series s JOIN market.products p ON p.id = s.product_id
+                    WHERE p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
+                       OR s.slug IN ('brass-yellow-free', 'rebar-16-iron', 'cast-iron-scrap-free'));
+DELETE FROM market.price_latest WHERE series_id IN (SELECT s.id FROM market.price_series s JOIN market.products p ON p.id = s.product_id
+                    WHERE p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
+                       OR s.slug IN ('brass-yellow-free', 'rebar-16-iron', 'cast-iron-scrap-free'));
+DELETE FROM market.price_points WHERE series_id IN (SELECT s.id FROM market.price_series s JOIN market.products p ON p.id = s.product_id
+                    WHERE p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
+                       OR s.slug IN ('brass-yellow-free', 'rebar-16-iron', 'cast-iron-scrap-free'));
+DELETE FROM market.price_series s USING market.products p
+WHERE p.id = s.product_id AND (p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
+   OR s.slug IN ('brass-yellow-free', 'rebar-16-iron', 'cast-iron-scrap-free'));
 DELETE FROM market.products p
 WHERE p.slug IN ('copper-cable', 'brass-scrap', 'steel-sheet-4')
   AND NOT EXISTS (SELECT 1 FROM market.price_series s WHERE s.product_id = p.id);
