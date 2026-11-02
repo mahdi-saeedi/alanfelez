@@ -37,7 +37,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   const heroRows = (global.length ? global : domestic).filter((r) => r.price);
   const heroMetals = await getMetals(locale);
   const heroItems: HeroItem[] = await Promise.all(
-    (heroMetals.length ? heroMetals : uniqueMetals(heroRows)).map(async (m) => {
+    heroOrder(heroMetals.length ? heroMetals : uniqueMetals(heroRows)).map(async (m) => {
       const r = heroRows.find((x) => x.series.metal.slug === m.slug);
       if (!r) return { metal: m.slug, name: m.name };
       const h = await getHistory(locale, r.series.slug, "1M");
@@ -225,4 +225,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
 /** The metals of some price rows, once each, in order (when the metal list isn't available). */
 function uniqueMetals(rows: { series: { metal: { slug: string; name: string } } }[]) {
   return [...new Map(rows.map((r) => [r.series.metal.slug, r.series.metal])).values()];
+}
+
+// The hero card's order (client, 2026-11-02): a grey metal, then a coloured one, so every switch is plain to see.
+const HERO_ORDER = ["aluminum", "copper", "zinc", "brass", "lead", "cast-iron", "iron"];
+function heroOrder<T extends { slug: string }>(metals: T[]): T[] {
+  const rank = (slug: string) => (HERO_ORDER.includes(slug) ? HERO_ORDER.indexOf(slug) : HERO_ORDER.length);
+  return [...metals].sort((a, b) => rank(a.slug) - rank(b.slug));
 }
