@@ -142,7 +142,8 @@ type Tab = { slug?: string; name: string };
 
 function Tabs({ items, active, link, label, small = false }: { items: Tab[]; active?: string; link: (slug?: string) => { pathname: string; query: Record<string, string> }; label?: string; small?: boolean }) {
   return (
-    <nav aria-label={label} className={`flex gap-1 rounded-control border border-border bg-surface ${small ? "shrink-0 p-1" : "overflow-x-auto whitespace-nowrap p-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:p-1"}`}>
+    // As wide as its options, not the whole row (client, 2026-11-02); on phones it still scrolls sideways when longer.
+    <nav aria-label={label} className={`flex w-fit max-w-full gap-1 rounded-control border border-border bg-surface ${small ? "shrink-0 p-1" : "overflow-x-auto whitespace-nowrap p-0.5 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:p-1"}`}>
       {items.map((it) => {
         const on = it.slug === active;
         return (
