@@ -26,8 +26,8 @@ public record SignupForm(
 
     public static final List<String> ACTIVITIES =
             List.of("trader", "producer", "industrial-consumer", "recycler", "investor", "other");
-    /** The site's metals (config/seed/reference/10-market.yaml). */
-    public static final List<String> METALS = List.of("aluminum", "copper", "brass", "zinc", "lead", "iron", "cast-iron");
+    /** The site's metals in the client's order (config/seed/reference/10-market.yaml). */
+    public static final List<String> METALS = List.of("aluminum", "copper", "zinc", "lead", "brass", "cast-iron", "iron");
     /** Iran's 31 provinces. */
     public static final List<String> PROVINCES = List.of(
             "alborz", "ardabil", "azerbaijan-east", "azerbaijan-west", "bushehr", "chaharmahal-bakhtiari", "fars", "gilan",

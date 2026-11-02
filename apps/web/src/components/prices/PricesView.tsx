@@ -3,6 +3,7 @@ import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/lib/api";
 import { getPrices } from "@/lib/prices";
+import { getMetals } from "@/lib/content";
 import { PriceTable } from "@/components/prices/PriceTable";
 import { Movers } from "@/components/prices/Movers";
 import { LiveDot } from "@/components/prices/LiveDot";
@@ -25,18 +26,20 @@ export async function PricesView({ locale, metal, query, title, subtitle }: { lo
   const tl = await getTranslations("lock");
 
   const lang = { params: { header: { "Accept-Language": locale } }, next: { revalidate: 300 } } as const;
-  const [all, filtered, markets, cats] = await Promise.all([
+  const [all, filtered, markets, cats, metalList] = await Promise.all([
     getPrices(locale),
     getPrices(locale, metal, category, market),
     api.GET("/v1/markets", lang),
     api.GET("/v1/categories", lang),
+    getMetals(locale),
   ]);
   if (!all || !filtered) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
   }
 
   // Tabs from what the caller can see (names come localized from the API).
-  const metals = unique(all.items.map((r) => r.series.metal));
+  // All seven metals in the client's order (2026-11-02), also those with no price yet (their table is empty until then).
+  const metals: Tab[] = metalList.length ? metalList.map((m) => ({ slug: m.slug, name: m.name })) : unique(all.items.map((r) => r.series.metal));
   const categories: Tab[] = cats.data?.items ?? unique(all.items.map((r) => r.series.category));
   const rows = filtered.items;
   const latest = rows.map((r) => r.observedAt).filter(Boolean).sort().at(-1);

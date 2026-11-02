@@ -330,7 +330,8 @@
     "compareEmpty": "To compare, pick products from «+ Add a product» or the boxes beside the chart.",
     "compareNote": "Every product starts at 0% at the start of the range; a higher line rose more over it. Point at the chart to see each product's change on that day.",
     "compareFree": "Comparing world prices is free; the other prices need the {plan} plan.",
-    "lockedHistory": "The chart and history of this price come with the {plan} plan"
+    "lockedHistory": "The chart and history of this price come with the {plan} plan",
+    "metalNoData": "{metal} (no prices yet)"
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",
@@ -759,7 +760,8 @@
       "rawMoisture": "Concentrates and raw materials usually hold water; enter the lab's or the contract's moisture.",
       "rawRecoveryLabel": "Metal grade (%)",
       "rawRecovery": "The metal grade of the dry material, from the assay or the contract."
-    }
+    },
+    "noProducts": "No priced product for this metal yet; type your own price in the custom price box."
   },
   "alerts": {
     "title": "SMS price alerts",

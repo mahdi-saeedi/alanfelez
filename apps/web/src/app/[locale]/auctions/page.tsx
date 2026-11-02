@@ -40,13 +40,12 @@ export default async function AuctionsPage({ params, searchParams }: Params) {
   const page = Math.max(1, Math.min(1000, Number.parseInt(sp.page ?? "1", 10) || 1));
   const [list, all, metals] = await Promise.all([
     getAuctions(locale, { metal: sp.metal, category, status, limit: PAGE, offset: (page - 1) * PAGE }),
-    // Every auction (titles only): which metals to offer and how many there are of each status.
+    // Every auction (titles only): how many there are of each status. All seven metals are offered (client, 2026-11-02).
     getAuctions(locale, { limit: 100 }),
     getMetals(locale),
   ]);
   if (!list) return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
   const plan = list.requiredPlan ?? "gold";
-  const usedMetals = new Set((all?.items ?? []).map((a) => a.metal.slug));
   const count = (s: string) => (all?.items ?? []).filter((a) => a.status === s).length;
   const current = { metal: sp.metal, category, status };
   const href = (patch: Partial<typeof current> & { page?: number }) => ({
@@ -58,7 +57,7 @@ export default async function AuctionsPage({ params, searchParams }: Params) {
   const chip = (on: boolean) =>
     `rounded-full border px-4 py-1.5 text-sm ${on ? "border-graphite bg-graphite font-bold text-white" : "border-border bg-surface text-text-2 hover:border-gold"}`;
   const filters = [
-    { label: t("filter.metal"), items: [{ v: undefined, name: t("all") }, ...metals.filter((m) => usedMetals.has(m.slug) || m.slug === sp.metal).map((m) => ({ v: m.slug, name: m.name }))], key: "metal" as const },
+    { label: t("filter.metal"), items: [{ v: undefined, name: t("all") }, ...metals.map((m) => ({ v: m.slug, name: m.name }))], key: "metal" as const },
     { label: t("filter.category"), items: [{ v: undefined, name: t("all") }, ...CATEGORIES.map((c) => ({ v: c, name: t(`category.${c}`) }))], key: "category" as const },
     { label: t("filter.status"), items: [{ v: undefined, name: t("all") }, ...STATUSES.map((s) => ({ v: s, name: `${t(`status.${s}`)} (${formatNumber(count(s), locale)})` }))], key: "status" as const },
   ];

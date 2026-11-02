@@ -13,7 +13,7 @@ import { LivePrice, LiveUpdated } from "@/components/prices/LivePrice";
 import { AutoSubmitSelect } from "@/components/AutoSubmitSelect";
 import { Locked, LockIcon } from "@/components/Locked";
 import { InsightCard } from "@/components/content/InsightCard";
-import { getArticles } from "@/lib/content";
+import { getArticles, getMetals } from "@/lib/content";
 import { PhoneFold } from "@/components/PhoneFold";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +42,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
   const t = await getTranslations("chart");
   const tl = await getTranslations("lock");
 
-  const [prices, ent] = await Promise.all([getPrices(locale), getEntitlements()]);
+  const [prices, ent, metalList] = await Promise.all([getPrices(locale), getEntitlements(), getMetals(locale)]);
   const rows = prices?.items ?? [];
   if (rows.length === 0) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
@@ -55,6 +55,8 @@ export default async function ChartPage({ params, searchParams }: Params) {
   // The picker narrows step by step (client, 2026-10-25): metal → category (global price, intermediate, scrap, raw)
   // → product. Each select submits the form; a choice that no longer fits the earlier ones falls back to the first.
   const metals = uniqueBy(all.map((r) => r.series.metal), (m) => m.slug);
+  // Every metal is listed (client, 2026-11-02); one without any price yet can't be charted, so it's shown disabled.
+  const pickerMetals = metalList.length ? metalList.map((m) => ({ ...m, empty: !metals.some((x) => x.slug === m.slug) })) : metals.map((m) => ({ ...m, empty: false }));
   // Free plans chart world prices only (client, 2026-10-28), so their default is a world price.
   const chartsAll = ent?.features["chart.full"] === true;
   const fallback = chartsAll ? rows.find((r) => r.series.slug === "copper-red-free") : rows.find((r) => r.series.market.scope === "global");
@@ -236,7 +238,7 @@ export default async function ChartPage({ params, searchParams }: Params) {
             <input type="hidden" name="range" value={range} />
             {SLOTS.map((k, i) => <input key={k} type="hidden" name={k} value={picked[i]} />)}
             <AutoSubmitSelect name="metal" value={metal} label={t("metal")}>
-              {metals.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
+              {pickerMetals.map((m) => <option key={m.slug} value={m.slug} disabled={m.empty}>{m.empty ? t("metalNoData", { metal: m.name }) : m.name}</option>)}
             </AutoSubmitSelect>
             <AutoSubmitSelect name="cat" value={cat} label={t("category")}>
               {cats.map((c) => <option key={c} value={c}>{t(`categories.${c}`)}</option>)}
