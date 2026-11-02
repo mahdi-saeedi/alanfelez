@@ -134,7 +134,17 @@
       "plans": "See the plans",
       "prices": "See the prices"
     },
-    "metalPages": "Each metal's price today"
+    "metalPages": "Each metal's price today",
+    "heroSoon": "soon",
+    "upgrade": {
+      "sectionTitle": "Your plan",
+      "current": "Your plan: Silver · {days} days left",
+      "currentNoDate": "Your plan: Silver",
+      "title": "One step to <gold>Gold</gold>",
+      "text": "You have the prices and charts. Gold adds the experts' analysis and forecasts, the auctions and price SMS.",
+      "cta": "Upgrade to Gold",
+      "credit": "The unused Silver days are credited, so you pay the difference only."
+    }
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
@@ -516,7 +526,7 @@
       "lockedCount": "{n} analyses by members; reading and posting them is for Silver and Gold members.",
       "lockedCta": "Upgrade →",
       "form": {
-        "open": "+ Post your analysis",
+        "open": "Post your analysis",
         "title": "Title",
         "titlePh": "e.g. Copper at the $9,600 support",
         "body": "Your analysis",
@@ -547,7 +557,13 @@
       },
       "report": "Report",
       "reportConfirm": "Is this analysis unsuitable (advertising, promises of profit, insults…)? Your report goes to the Alan Felez team.",
-      "reported": "Reported ✓"
+      "reported": "Reported ✓",
+      "teaser": {
+        "button": "Post your analysis",
+        "title": "Posting is for {plan} and Gold members",
+        "text": "With Silver you post your own analysis for other traders, get ratings and read their comments.",
+        "cta": "See the plans"
+      }
     }
   },
   "faq": {
@@ -819,5 +835,88 @@
     "choosePrompt": "Pick your main metal to start receiving price SMS.",
     "phone": "SMS go to:",
     "noPhone": "This account has no mobile number, so no SMS can be sent. Sign in with an account whose username is a mobile number."
+  },
+  "strategy": {
+    "badge": "Strategy map",
+    "title": "<gold>Alan Felez</gold> · الان‌فلز",
+    "horizon": "Horizon 2026–2029 · the reference for prices, analysis and information on Iran's metals market",
+    "lanes": {
+      "vision": "Vision and mission",
+      "finance": "Finance",
+      "customer": "Customers",
+      "process": "Internal processes",
+      "learning": "Learning and growth",
+      "values": "Core values"
+    },
+    "vision": {
+      "label": "Vision",
+      "text": "Iran's leading source of metal prices and market information, and in time a bridge between buyers and sellers"
+    },
+    "mission": {
+      "label": "Mission",
+      "text": "Making the metals market transparent with live data and careful analysis, and introducing buyers and sellers to each other, without Alan Felez being a party to any trade"
+    },
+    "goals": {
+      "finance": {
+        "1": "Higher profitability",
+        "2": "Better subscription margins",
+        "3": "More revenue",
+        "4": "More sources of revenue",
+        "5": "Cost control"
+      },
+      "customer": {
+        "1": "Customer trust and satisfaction",
+        "2": "A stronger brand",
+        "3": "More active users",
+        "4": "New metals and regions"
+      },
+      "process": {
+        "1": "More accurate, faster price updates",
+        "2": "Better infrastructure and data security",
+        "3": "Analysis tools and AI",
+        "4": "Easier sign-up and identity checks",
+        "5": "Better review and quality control of content",
+        "6": "More price data sources"
+      },
+      "learning": {
+        "1": "Technical and market-analysis skills",
+        "2": "Hiring and keeping specialists",
+        "3": "Data and technology infrastructure",
+        "4": "A culture of transparency"
+      }
+    },
+    "values": {
+      "1": {
+        "letter": "ا",
+        "name": "Trust"
+      },
+      "2": {
+        "letter": "ل",
+        "name": "Real-time information"
+      },
+      "3": {
+        "letter": "ا",
+        "name": "Accurate information"
+      },
+      "4": {
+        "letter": "ن",
+        "name": "Innovation"
+      },
+      "5": {
+        "letter": "ف",
+        "name": "Usefulness"
+      },
+      "6": {
+        "letter": "ل",
+        "name": "Constant growth"
+      },
+      "7": {
+        "letter": "ز",
+        "name": "Clarity and transparency"
+      }
+    },
+    "valuesWord": "The values' first letters in Persian spell الان‌فلز",
+    "date": "Drawn up: 17 September 2025",
+    "version": "Alan Felez · version 1"
   }
 }

@@ -44,6 +44,9 @@
   --animate-flash-up: flash-up 1.2s ease-out;
   --animate-flash-down: flash-down 1.2s ease-out;
   --animate-fade-in: fade-in 400ms ease-out; /* home hero chart switching to the next metal */
+  --animate-slide-in: slide-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1); /* the next metal arriving in the home hero card */
+  --animate-progress: progress linear forwards; /* time left until the next metal (duration set inline) */
+  --animate-glow: glow 2.2s ease-in-out infinite; /* «تحلیل خودت را بگذار»: dims and brightens to draw the eye */
 
   @keyframes ticker-scroll {
     from { transform: translateX(0); }
@@ -62,10 +65,22 @@
   @keyframes fade-in {
     from { opacity: 0; }
   }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(var(--slide-from, 32px)); }
+  }
+  @keyframes progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(201 162 39 / 0.55), 0 6px 18px rgb(201 162 39 / 0.35); filter: brightness(1); }
+    50% { box-shadow: 0 0 0 10px rgb(201 162 39 / 0), 0 8px 28px rgb(201 162 39 / 0.55); filter: brightness(1.12); }
+  }
 }
 
 /* The ticker scrolls toward the reading direction's end; users who prefer less motion get a static bar. */
-[dir="rtl"] { --ticker-shift: 50%; }
+[dir="rtl"] { --ticker-shift: 50%; --slide-from: -32px; }
 @media (prefers-reduced-motion: reduce) {
-  .animate-ticker, .animate-draw { animation: none !important; }
+  .animate-ticker, .animate-draw, .animate-slide-in, .animate-glow { animation: none !important; }
+  .animate-progress { animation: none !important; transform: scaleX(1); }
 }

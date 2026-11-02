@@ -1,5 +1,6 @@
 "use client";
 
+import { POST_BUTTON } from "./post-button";
 import { useRef, useState, useTransition } from "react";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -29,9 +30,8 @@ export function PostAnalysisForm({ metals, left, labels }: { metals: { slug: str
   if (!open) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={() => setOpen(true)} disabled={left === 0}
-          className="min-h-11 rounded-lg bg-info px-5 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50">
-          {labels.open}
+        <button type="button" onClick={() => setOpen(true)} disabled={left === 0} className={`${POST_BUTTON} disabled:animate-none disabled:opacity-50`}>
+          <span aria-hidden>✍️</span> {labels.open}
         </button>
         <span className="text-xs text-text-3">{left > 0 ? labels.left.replace("{n}", left.toLocaleString(locale === "fa" ? "fa-IR" : "en-US")) : labels.none}</span>
         {msg && <span role="status" className={`text-sm ${msg.tone === "ok" ? "text-up" : "text-down"}`}>{msg.text}</span>}
