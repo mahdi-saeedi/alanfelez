@@ -56,7 +56,7 @@ export function HeroCarousel({ items, changeLabel, showLabel, soonLabel }: { ite
       onBlur={() => setPaused(false)}
     >
       {/* The metal's glow behind the card; it changes colour with the metal. */}
-      <span aria-hidden className="pointer-events-none absolute -end-24 -top-24 h-64 w-64 rounded-full opacity-40 blur-3xl transition-colors duration-700" style={{ backgroundColor: look.front }} />
+      <span aria-hidden className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full opacity-50 blur-3xl transition-colors duration-700" style={{ backgroundColor: look.glow ?? look.front }} />
       <Link
         key={cur.metal}
         href={{ pathname: "/chart", query: { series: c.slug } }}
@@ -98,7 +98,7 @@ export function HeroCarousel({ items, changeLabel, showLabel, soonLabel }: { ite
                 aria-label={`${showLabel} ${it.name}`}
                 aria-pressed={on}
                 className={`w-full rounded-md px-1 py-1.5 transition-colors duration-500 ${on ? "" : it.chart ? "cursor-pointer hover:bg-graphite-3/40" : "cursor-default opacity-60"}`}
-                style={on ? { backgroundColor: `${l.front}55`, boxShadow: `inset 0 -2px 0 ${l.line}` } : undefined}
+                style={on ? { backgroundColor: `${l.glow ?? l.front}66`, boxShadow: `inset 0 -2px 0 ${l.line}` } : undefined}
               >
                 <div className={on ? "font-bold text-white" : "text-silver-light"}>{it.name}</div>
                 {it.chart ? (
