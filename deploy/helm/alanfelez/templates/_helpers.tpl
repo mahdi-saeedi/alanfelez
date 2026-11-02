@@ -51,6 +51,7 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 - name: KEYCLOAK_ADMIN_CLIENT_SECRET
   valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakApiAdmin }}, key: client-secret, optional: true } }
 - { name: PUBLIC_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
+- { name: API_SITE_ONLY, value: {{ .Values.api.siteOnly | quote }} }
 - { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }
 {{- with .Values.api.trustedProxies }}

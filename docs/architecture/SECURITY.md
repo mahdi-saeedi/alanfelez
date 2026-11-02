@@ -29,6 +29,7 @@
 | T10 | Secrets leakage | No secrets in git (gitleaks in CI + pre-commit). Secrets in GitHub Environments → server `.env` (mode 600). Rotated on staff change |
 | T11 | Vulnerable dependencies and images | Renovate, govulncheck, `pnpm audit`, Trivy image scan (CI fails on HIGH/CRITICAL with a fix available). Distroless base images |
 | T12 | DoS / traffic floods | Arvan CDN/WAF in front. Caddy and API rate limits. SSE connection caps per IP and per user |
+| T13 | Other sites or bots wired to the prices | `/v1` on the public API host needs a staff token (`API_SITE_ONLY`, ADR-0029); the website's live stream answers its own pages only |
 | T13 | Data loss or ransomware | Backups off-server (Object Storage, versioned, separate credentials), restore drills (OPERATIONS §5) |
 
 ## 3. Authentication (Keycloak)

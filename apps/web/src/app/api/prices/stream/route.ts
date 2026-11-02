@@ -7,6 +7,9 @@ import { API_URL, accessToken } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  // Only this site's own pages (client, 2026-11-02: no other site or bot wired to the live prices). Browsers mark
+  // their requests; a request from another site or a script without the mark gets nothing.
+  if (req.headers.get("sec-fetch-site") !== "same-origin") return new Response(null, { status: 403 });
   const series = new URL(req.url).searchParams.get("series");
   const upstream = new URL("/v1/prices/stream", API_URL);
   if (series) upstream.searchParams.set("series", series);

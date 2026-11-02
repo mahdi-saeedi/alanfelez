@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -162,7 +163,16 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	defer stopStreams()
 	hub := live.NewHub(rdb, log)
 	go hub.Run(streams)
-	api.Mount(router, server, verifier, hub, log, trusted)
+	siteOnly := ""
+	if cfg.SiteOnly {
+		u, err := url.Parse(cfg.PublicURL)
+		if err != nil || u.Hostname() == "" {
+			return fmt.Errorf("API_SITE_ONLY needs a PUBLIC_URL with a host: %q", cfg.PublicURL)
+		}
+		siteOnly = u.Hostname()
+		log.Info("public API closed to all but staff", "host", siteOnly)
+	}
+	api.Mount(router, server, verifier, hub, log, trusted, siteOnly)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,

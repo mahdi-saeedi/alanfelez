@@ -39,6 +39,9 @@ type Config struct {
 	Payments        Payments      `envPrefix:"PAYMENTS_"`
 	// PublicURL is the API as browsers reach it (the mock gateway page is served there).
 	PublicURL string `env:"PUBLIC_URL" envDefault:"http://localhost:8080"`
+	// SiteOnly closes /v1 on PublicURL's host to everyone but staff (client, 2026-11-02): the website reaches the API
+	// inside the cluster and the admin signs in as staff, so nobody else can wire a site or a bot to the API.
+	SiteOnly bool `env:"API_SITE_ONLY" envDefault:"false"`
 	// WebURL is the public website (links in SMS, payment callback default).
 	WebURL        string        `env:"WEB_URL" envDefault:"http://localhost:3000"`
 	SMSProvider   string        `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | smsir

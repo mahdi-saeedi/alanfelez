@@ -44,6 +44,7 @@ api:
     templates: ""
   redisUrl: ""                     # default: the alanfelez-data Redis service
   corsOrigins: []                  # defaults to the web origin
+  siteOnly: true                   # /v1 on the public API host for staff (admin) only; the website calls it in-cluster (client, 2026-11-02)
   # Who may set X-Forwarded-For (client IP for rate limits). Empty = the app default (private ranges: ingress, website, pods).
   # Production behind the Arvan CDN: add the CDN's published edge ranges, or every visitor shares the edge IP (DEPLOYMENT §6).
   trustedProxies: []

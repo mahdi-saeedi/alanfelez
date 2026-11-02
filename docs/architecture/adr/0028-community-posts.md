@@ -1,6 +1,7 @@
 # ADR-0028: Members' analyses, published at once, images in Postgres
 
-- **Status:** Accepted (owner OK'd 2026-10-30)
+- **Status:** Accepted (owner OK'd 2026-10-30). Amended 2026-11-02 (client): posts and comments wait for staff review
+  before they show, and readers rate and comment (migration 00027, `internal/api/discussion.go`)
 - **Date:** 2026-10-30
 
 ## Context
