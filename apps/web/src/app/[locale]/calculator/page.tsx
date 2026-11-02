@@ -9,6 +9,8 @@ import { Calculator } from "@/components/gold/Calculator";
 import { EMPTY_FORM, type CalcForm, type CalcProduct } from "@/components/gold/calc-form";
 import { LockIcon } from "@/components/Locked";
 import { Link } from "@/i18n/navigation";
+import { notFound } from "next/navigation";
+import { calculatorEnabled } from "@/lib/features";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  * the same form disabled, with the upgrade box (the API refuses estimates for them anyway).
  */
 export default async function CalculatorPage({ params, searchParams }: Params) {
+  if (!calculatorEnabled()) notFound(); // hidden on the main site until its formulas are final (client, 2026-11-02)
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);

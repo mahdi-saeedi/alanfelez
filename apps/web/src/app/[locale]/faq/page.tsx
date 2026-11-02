@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { calculatorEnabled } from "@/lib/features";
 import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
@@ -22,7 +23,8 @@ export default async function FaqPage({ params }: Params) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("faq");
-  const categories = await getFaq(locale);
+  // The calculator's questions only where the calculator is on (hidden on the main site, client 2026-11-02).
+  const categories = (await getFaq(locale))?.filter((c) => c.slug !== "calculator" || calculatorEnabled()) ?? null;
   if (!categories) {
     return <p className="mx-auto max-w-3xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
   }

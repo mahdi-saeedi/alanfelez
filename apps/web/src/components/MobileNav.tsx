@@ -14,12 +14,12 @@ import { LocaleSwitch } from "./LocaleSwitch";
  * Desktop header nav (lg and up). Client only to read the current path: the page you're on is bold, white and
  * underlined in gold, so it's clear where you are.
  */
-export function DesktopNav() {
+export function DesktopNav({ hide = [] }: { hide?: string[] }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   return (
     <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
-      {MAIN_NAV.map(([key, href]) => {
+      {MAIN_NAV.filter(([key]) => !hide.includes(key)).map(([key, href]) => {
         const on = isActive(pathname, href);
         return (
           <Link
@@ -36,7 +36,7 @@ export function DesktopNav() {
   );
 }
 
-export function MobileMenu({ locale }: { locale?: { label: string; ariaLabel: string } }) {
+export function MobileMenu({ locale, hide = [] }: { locale?: { label: string; ariaLabel: string }; hide?: string[] }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -87,12 +87,12 @@ export function MobileMenu({ locale }: { locale?: { label: string; ariaLabel: st
             aria-label={t("menu")}
             className="absolute inset-y-0 start-0 flex w-72 max-w-[85vw] flex-col gap-1 overflow-y-auto bg-graphite p-4 text-white shadow-card"
           >
-            {[...MAIN_NAV, ...MORE_NAV].map(([key, href], i) => (
+            {[...MAIN_NAV.filter(([key]) => !hide.includes(key)), ...MORE_NAV].map(([key, href], i, all) => (
               <Link
                 key={key}
                 href={href}
                 aria-current={isActive(pathname, href) ? "page" : undefined}
-                className={`rounded-lg px-3 py-2.5 text-sm ${i === MAIN_NAV.length ? "mt-3 border-t border-graphite-3 pt-4" : ""} ${isActive(pathname, href) ? "bg-gold font-bold text-graphite" : "text-silver-light hover:bg-graphite-2 hover:text-white"}`}
+                className={`rounded-lg px-3 py-2.5 text-sm ${i === all.length - MORE_NAV.length ? "mt-3 border-t border-graphite-3 pt-4" : ""} ${isActive(pathname, href) ? "bg-gold font-bold text-graphite" : "text-silver-light hover:bg-graphite-2 hover:text-white"}`}
               >
                 {t(key)}
               </Link>

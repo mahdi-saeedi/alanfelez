@@ -146,6 +146,7 @@ services:
         NODE_IMAGE: ${NODE_IMAGE:-node:24-alpine}
     environment:
       API_INTERNAL_URL: http://api:8080
+      FEATURE_CALCULATOR: "true" # on locally and on staging; off on the main site until its formulas are final
       AUTH_SECRET: ${AUTH_SECRET:-local-only-auth-secret-change-me-0123456789}
       AUTH_URL: http://localhost:${WEB_PORT:-3000}
       AUTH_KEYCLOAK_ID: alanfelez-web
