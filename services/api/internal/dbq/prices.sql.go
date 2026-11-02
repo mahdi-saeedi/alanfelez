@@ -1550,3 +1550,31 @@ func (q *Queries) UpsertLatest(ctx context.Context, arg UpsertLatestParams) erro
 	)
 	return err
 }
+
+const voidPointsInRange = `-- name: VoidPointsInRange :execrows
+UPDATE market.price_points SET status = 'rejected', reviewed_by = $1::uuid, reviewed_at = now()
+WHERE series_id = $2 AND status = 'published'
+  AND ($3::timestamptz IS NULL OR observed_at >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR observed_at < $4::timestamptz)
+`
+
+type VoidPointsInRangeParams struct {
+	Actor    pgtype.UUID
+	SeriesID int32
+	FromAt   pgtype.Timestamptz
+	ToAt     pgtype.Timestamptz
+}
+
+// Bulk void (client, 2026-11-02): every published point of a series, or those in [from, to). Kept as rejected.
+func (q *Queries) VoidPointsInRange(ctx context.Context, arg VoidPointsInRangeParams) (int64, error) {
+	result, err := q.db.Exec(ctx, voidPointsInRange,
+		arg.Actor,
+		arg.SeriesID,
+		arg.FromAt,
+		arg.ToAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}

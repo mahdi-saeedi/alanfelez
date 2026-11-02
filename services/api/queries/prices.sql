@@ -328,3 +328,10 @@ WHERE p.slug = sqlc.arg(slug)
 
 -- name: ProductExists :one
 SELECT EXISTS (SELECT 1 FROM market.products WHERE slug = $1);
+
+-- name: VoidPointsInRange :execrows
+-- Bulk void (client, 2026-11-02): every published point of a series, or those in [from, to). Kept as rejected.
+UPDATE market.price_points SET status = 'rejected', reviewed_by = sqlc.narg(actor)::uuid, reviewed_at = now()
+WHERE series_id = sqlc.arg(series_id) AND status = 'published'
+  AND (sqlc.narg(from_at)::timestamptz IS NULL OR observed_at >= sqlc.narg(from_at)::timestamptz)
+  AND (sqlc.narg(to_at)::timestamptz IS NULL OR observed_at < sqlc.narg(to_at)::timestamptz);

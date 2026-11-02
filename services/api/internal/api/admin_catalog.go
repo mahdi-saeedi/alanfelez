@@ -484,3 +484,28 @@ func (s *Server) AdminDeleteSeries(ctx context.Context, req AdminDeleteSeriesReq
 	}
 	return AdminDeleteSeries204Response{}, nil
 }
+
+// AdminVoidSeriesRange voids a whole price row, or one period of it (client, 2026-11-02), e.g. placeholder prices.
+func (s *Server) AdminVoidSeriesRange(ctx context.Context, req AdminVoidSeriesRangeRequestObject) (AdminVoidSeriesRangeResponseObject, error) {
+	type bad = AdminVoidSeriesRangedefaultApplicationProblemPlusJSONResponse
+	p, pr := requireRoles(ctx, rolesPriceWrite...)
+	if pr != nil {
+		return fail[bad](*pr), nil
+	}
+	b := req.Body
+	if b.From != nil && b.To != nil && !b.To.After(*b.From) {
+		return fail[bad](badRequest(ctx, "to must be after from")), nil
+	}
+	reason := ""
+	if b.Reason != nil {
+		reason = strings.TrimSpace(*b.Reason)
+	}
+	n, err := s.prices.VoidRange(ctx, req.Slug, b.From, b.To, reason, actorOf(ctx, p))
+	if errors.Is(err, prices.ErrNotFound) {
+		return fail[bad](notFound(ctx, "price row")), nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("void range: %w", err)
+	}
+	return AdminVoidSeriesRange200JSONResponse{Voided: int(n)}, nil
+}
