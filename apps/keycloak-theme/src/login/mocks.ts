@@ -14,7 +14,7 @@ export const { getKcContextMock } = createGetKcContextMock({
       values: { fullName: "", company: "", activity: "", metals: [], province: "", city: "", address: "" },
       fieldErrors: {},
       activities: ["trader", "producer", "industrial-consumer", "recycler", "investor", "other"],
-      metalOptions: ["aluminum", "copper", "brass", "zinc", "lead", "iron", "cast-iron"],
+      metalOptions: ["aluminum", "copper", "zinc", "lead", "brass", "cast-iron", "iron"],
       provinces: ["alborz", "ardabil", "azerbaijan-east", "azerbaijan-west", "bushehr", "chaharmahal-bakhtiari", "fars", "gilan", "golestan", "hamadan", "hormozgan", "ilam", "isfahan", "kerman", "kermanshah", "khorasan-north", "khorasan-razavi", "khorasan-south", "khuzestan", "kohgiluyeh-boyerahmad", "kurdistan", "lorestan", "markazi", "mazandaran", "qazvin", "qom", "semnan", "sistan-baluchestan", "tehran", "yazd", "zanjan"],
       termsUrl: "https://alanfelez.ir/terms",
       privacyUrl: "https://alanfelez.ir/privacy",

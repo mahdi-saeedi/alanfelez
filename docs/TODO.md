@@ -52,6 +52,9 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-02 All seven metals everywhere, in the client's order (آلومینیوم، مس، روی، سرب، برنج، چدن، آهن; migration 00026):
+  the prices page, chart picker (a metal without prices is listed, disabled), calculator (works with a typed price) and
+  auctions filter list every metal, not only those with prices.
 - 2026-11-01 Sign-up form (client, owner OK): the sign-in details (phone, password, repeat) in their own box, «مشخصات شما»
   under a gold divider; full name (no longer "or company") and a separate optional company name; «توزیع و پخش» no
   longer offered; at least one specialty metal required (tick boxes); password minimum 4 (was 10), set on running

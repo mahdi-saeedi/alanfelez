@@ -17,7 +17,7 @@ type Saved = Schemas["SavedCalculation"];
  * The load-value calculator (SCOPE §8, design 11). Every change asks the Go API (debounced): the arithmetic lives
  * in one place (internal/calculator) and the result is labeled an estimate. Disabled (a preview) without Gold.
  */
-export function Calculator({ products, initial, allowed, saved: initialSaved }: { products: CalcProduct[]; initial: CalcForm; allowed: boolean; saved: Saved[] }) {
+export function Calculator({ products, metals: allMetals = [], initial, allowed, saved: initialSaved }: { products: CalcProduct[]; metals?: { slug: string; name: string }[]; initial: CalcForm; allowed: boolean; saved: Saved[] }) {
   const t = useTranslations("calculator");
   const locale = useLocale() as Locale;
   const [form, setForm] = useState<CalcForm>(initial);
@@ -32,7 +32,8 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
   const product = products.find((p) => p.series === form.series);
   const [metal, setMetal] = useState(product?.metal.slug ?? products[0]?.metal.slug ?? "");
   const [category, setCategory] = useState(product?.category.slug ?? "");
-  const metals = useMemo(() => unique(products.map((p) => p.metal)), [products]);
+  // All seven metals (client, 2026-11-02); one with no priced product yet still works with a price typed in by hand.
+  const metals = useMemo(() => (allMetals.length ? allMetals : unique(products.map((p) => p.metal))), [allMetals, products]);
   const categories = useMemo(() => unique(products.filter((p) => p.metal.slug === metal).map((p) => p.category)), [products, metal]);
   const choices = products.filter((p) => p.metal.slug === metal && (!category || p.category.slug === category));
 
@@ -137,6 +138,7 @@ export function Calculator({ products, initial, allowed, saved: initialSaved }: 
           </div>
         </div>
 
+        {metal && choices.length === 0 && <p className="rounded-control bg-surface-2 px-4 py-3 text-sm text-text-2">{t("noProducts")}</p>}
         <label className="block space-y-1.5 text-sm">
           <span className="font-bold">{t("product")}</span>
           <select value={form.series} onChange={(e) => set("series", e.target.value)} className={field}>

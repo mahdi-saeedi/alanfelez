@@ -2,13 +2,14 @@ version: 1
 datasets:
   - name: metals
     rows:
+      # The client's order (2026-11-02; migration 00026 for existing databases).
       - { slug: aluminum,  name_fa: آلومینیوم, name_en: Aluminum,  sort: 1 }
       - { slug: copper,    name_fa: مس,        name_en: Copper,    sort: 2 }
-      - { slug: brass,     name_fa: برنج,      name_en: Brass,     sort: 3 }
-      - { slug: zinc,      name_fa: روی,       name_en: Zinc,      sort: 4 }
-      - { slug: lead,      name_fa: سرب,       name_en: Lead,      sort: 5 }
-      - { slug: iron,      name_fa: آهن,       name_en: Iron,      sort: 6 }
-      - { slug: cast-iron, name_fa: چدن,       name_en: Cast iron, sort: 7 }
+      - { slug: zinc,      name_fa: روی,       name_en: Zinc,      sort: 3 }
+      - { slug: lead,      name_fa: سرب,       name_en: Lead,      sort: 4 }
+      - { slug: brass,     name_fa: برنج,      name_en: Brass,     sort: 5 }
+      - { slug: cast-iron, name_fa: چدن,       name_en: Cast iron, sort: 6 }
+      - { slug: iron,      name_fa: آهن,       name_en: Iron,      sort: 7 }
 
   - name: product_categories
     rows:

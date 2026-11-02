@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { getBasePrices, getEntitlements, getPrices, type PriceRow } from "@/lib/prices";
 import { getMyCalculations } from "@/lib/gold";
+import { getMetals } from "@/lib/content";
 import { Calculator } from "@/components/gold/Calculator";
 import { EMPTY_FORM, type CalcForm, type CalcProduct } from "@/components/gold/calc-form";
 import { LockIcon } from "@/components/Locked";
@@ -32,7 +33,7 @@ export default async function CalculatorPage({ params, searchParams }: Params) {
   const ent = await getEntitlements();
   const allowed = ent?.features["calculator.use"] === true;
   // Gold sees every domestic product; the preview only needs the free base products.
-  const [prices, saved] = await Promise.all([allowed ? getPrices(locale) : getBasePrices(locale), allowed ? getMyCalculations() : []]);
+  const [prices, saved, metals] = await Promise.all([allowed ? getPrices(locale) : getBasePrices(locale), allowed ? getMyCalculations() : [], getMetals(locale)]);
   const products = (prices?.items ?? []).filter((r) => r.series.currency === "IRR").map(toProduct);
   const initial: CalcForm = {
     ...EMPTY_FORM,
@@ -56,7 +57,7 @@ export default async function CalculatorPage({ params, searchParams }: Params) {
           <span className="shrink-0 rounded-lg bg-gold px-3 py-2 text-xs font-bold text-graphite">{t("lockedCta", { plan: tl("plan.gold") })}</span>
         </Link>
       )}
-      <Calculator products={products} initial={initial} allowed={allowed} saved={saved} />
+      <Calculator products={products} metals={metals.map((m) => ({ slug: m.slug, name: m.name }))} initial={initial} allowed={allowed} saved={saved} />
     </div>
   );
 }
