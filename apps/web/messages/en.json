@@ -144,7 +144,8 @@
       "text": "You have the prices and charts. Gold adds the experts' analysis and forecasts, the auctions and price SMS.",
       "cta": "Upgrade to Gold",
       "credit": "The unused Silver days are credited, so you pay the difference only."
-    }
+    },
+    "globalSoon": "World price soon"
   },
   "plans": {
     "title": "Choose the plan that fits your activity",
