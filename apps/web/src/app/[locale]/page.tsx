@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { MetalIcon } from "@/components/prices/MetalIcon";
 import { displayAmount, formatBp, formatDate, formatPriceValue, priceUnitLabel } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { getBasePrices, getHistory } from "@/lib/prices";
@@ -139,9 +140,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
           </div>
           {live.length ? (
             <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-              {live.map((r) => (
-                <li key={r.series.slug}><PriceCard row={r} /></li>
-              ))}
+              {/* All seven metals (client, 2026-11-02); a metal without a world price yet gets a «به‌زودی» card. */}
+              {(heroMetals.length ? heroMetals : uniqueMetals(live)).map((m) => {
+                const r = live.find((x) => x.series.metal.slug === m.slug && x.price);
+                return (
+                  <li key={m.slug}>
+                    {r ? (
+                      <PriceCard row={r} />
+                    ) : (
+                      <div className="flex h-full flex-col rounded-card border border-dashed border-border bg-surface-2 p-4">
+                        <div className="flex items-center gap-2 text-sm text-text-2"><MetalIcon slug={m.slug} className="h-10 w-10 opacity-60" />{m.name}</div>
+                        <div className="mt-2 text-xl font-extrabold text-text-3">—</div>
+                        <div className="mt-auto pt-3 text-xs text-text-3">{t("home.globalSoon")}</div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="mt-6 text-down">{t("error.apiDown")}</p>
@@ -166,6 +181,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
           <p className="mt-2 mb-5 text-sm text-text-2">{t("home.globalChartSubtitle")}</p>
           <GlobalChartCarousel
             items={chartItems}
+            metals={(heroMetals.length ? heroMetals : uniqueMetals(heroRows)).map((m) => ({ slug: m.slug, name: m.name }))}
+            soonLabel={t("home.heroSoon")}
             locale={locale}
             labels={{ change: t("home.heroChange"), source: t.raw("chart.source") as string, full: t("home.globalChartFull") }}
           />

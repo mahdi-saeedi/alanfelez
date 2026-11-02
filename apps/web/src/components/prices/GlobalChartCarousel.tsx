@@ -27,7 +27,7 @@ const ROTATE_MS = 8000;
  * 2026-10-26). Pauses while the pointer or focus is on it (the crosshair is in use), never rotates with reduced
  * motion, and the tabs pick a metal by hand. Source and last update always show next to the price.
  */
-export function GlobalChartCarousel({ items, locale, labels }: { items: GlobalChartItem[]; locale: Locale; labels: { change: string; source: string; full: string } }) {
+export function GlobalChartCarousel({ items, metals = [], soonLabel = "", locale, labels }: { items: GlobalChartItem[]; metals?: { slug: string; name: string }[]; soonLabel?: string; locale: Locale; labels: { change: string; source: string; full: string } }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
@@ -49,18 +49,22 @@ export function GlobalChartCarousel({ items, locale, labels }: { items: GlobalCh
       {/* Tabs with a line between metals; the metal on show is larger, bold, on a gold tint and underlined in gold
           (client, 2026-11-02: the change from one metal to the next must be plain to see). */}
       <div role="tablist" className="flex overflow-x-auto border-b border-border px-3 pt-3 [scrollbar-width:none]">
-        {items.map((it, k) => {
-          const on = k === i % items.length;
+        {/* All seven metals (client, 2026-11-02); one without a world price yet is listed, disabled, «به‌زودی». */}
+        {(metals.length ? metals : items.map((it) => ({ slug: it.metal, name: it.name }))).map((m) => {
+          const k = items.findIndex((it) => it.metal === m.slug);
+          const on = k >= 0 && k === i % items.length;
           return (
             <button
-              key={it.slug}
+              key={m.slug}
               type="button"
               role="tab"
               aria-selected={on}
+              disabled={k < 0}
               onClick={() => setI(k)}
-              className={`shrink-0 cursor-pointer border-s border-border px-4 py-2.5 transition-colors first:border-s-0 ${on ? "rounded-t-lg bg-gold/10 text-base font-extrabold text-text shadow-[inset_0_-3px_0_var(--color-gold)]" : "text-sm text-text-2 hover:text-text"}`}
+              className={`shrink-0 border-s border-border px-4 py-2.5 transition-colors first:border-s-0 ${on ? "rounded-t-lg bg-gold/10 text-base font-extrabold text-text shadow-[inset_0_-3px_0_var(--color-gold)]" : k < 0 ? "cursor-default text-sm text-text-3" : "cursor-pointer text-sm text-text-2 hover:text-text"}`}
             >
-              {it.name}
+              {m.name}
+              {k < 0 && <span className="ms-1 text-[10px]">({soonLabel})</span>}
             </button>
           );
         })}

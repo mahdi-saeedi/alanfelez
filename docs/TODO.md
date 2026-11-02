@@ -55,6 +55,8 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-02 Home: the world prices block and the world chart tabs list all seven metals («قیمت جهانی به‌زودی» /
+  «به‌زودی» until a metal's world price is entered in the admin).
 - 2026-11-02 Members' analyses wait for review in the admin («تحلیل کاربران» → «در انتظار تأیید», publish/reject) and
   their author sees them marked pending; star ratings (1–5) and comments on members' analyses (Silver, Gold, staff) and
   on the experts' articles (by the article's own plan: analyses Gold); members' comments are reviewed too (admin tab
