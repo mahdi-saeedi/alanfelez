@@ -540,6 +540,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/series/{slug}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void every published price of a row, or those observed from `from` up to (not including) `to`. Roles editor, admin; audited
+         * @description The points are kept as rejected; the newest one left becomes the latest price (none left = the row leaves the site).
+         */
+        post: operations["adminVoidSeriesRange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/series/{slug}/points": {
         parameters: {
             query?: never;
@@ -3704,6 +3724,41 @@ export interface operations {
             403: components["responses"]["Problem"];
             404: components["responses"]["Problem"];
             409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminVoidSeriesRange: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: date-time */
+                    from?: string;
+                    /** Format: date-time */
+                    to?: string;
+                    reason?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description How many prices were voided */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        voided: number;
+                    };
+                };
+            };
             default: components["responses"]["Problem"];
         };
     };

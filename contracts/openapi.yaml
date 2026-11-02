@@ -750,6 +750,37 @@ paths:
         '409': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/series/{slug}/void:
+    post:
+      operationId: adminVoidSeriesRange
+      tags: [admin]
+      summary: Void every published price of a row, or those observed from `from` up to (not including) `to`. Roles editor, admin; audited
+      description: The points are kept as rejected; the newest one left becomes the latest price (none left = the row leaves the site).
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from: { type: string, format: date-time }
+                to: { type: string, format: date-time }
+                reason: { type: string, maxLength: 300 }
+      responses:
+        '200':
+          description: How many prices were voided
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [voided]
+                properties:
+                  voided: { type: integer }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/series/{slug}/points:
     get:
       operationId: adminSeriesPoints

@@ -303,6 +303,8 @@ type Querier interface {
 	VisitTotals(ctx context.Context, since pgtype.Date) ([]VisitTotalsRow, error)
 	// The signed-in visitors of one day, with their name, mobile and the plan they hold now.
 	VisitUsers(ctx context.Context, day pgtype.Date) ([]VisitUsersRow, error)
+	// Bulk void (client, 2026-11-02): every published point of a series, or those in [from, to). Kept as rejected.
+	VoidPointsInRange(ctx context.Context, arg VoidPointsInRangeParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

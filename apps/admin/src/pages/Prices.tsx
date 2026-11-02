@@ -264,6 +264,60 @@ function TableEntry({ rows }: { rows: Series[] }) {
 
 type Point = Schemas["AdminPoint"];
 
+/**
+ * «باطل کردن گروهی» (client, 2026-11-02): every price of this row, or those in a period, off the site in one go, for
+ * example placeholder prices. They stay in history as voided; the newest price left becomes the row's price.
+ */
+function BulkVoid({ series }: { series: Series }) {
+  const t = useTranslate();
+  const locale = useGetLocale()() as Locale;
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"all" | "range">("all");
+  const [from, setFrom] = useState(() => new Date(Date.now() - 30 * 86_400_000).toISOString());
+  const [to, setTo] = useState(() => new Date().toISOString());
+  const run = useMutation({
+    mutationFn: async () =>
+      unwrap(await api.POST("/v1/admin/series/{slug}/void", {
+        params: { path: { slug: series.slug } },
+        body: mode === "all" ? { reason: "bulk" } : { from: from || undefined, to: to || undefined, reason: "bulk" },
+      })),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin"] }),
+  });
+  const confirmText = mode === "all" ? t("prices.bulkConfirmAll", { name: series.productFa }) : t("prices.bulkConfirmRange", { name: series.productFa });
+  if (!open) {
+    return (
+      <div className="mb-3">
+        <Button type="button" tone="danger" onClick={() => setOpen(true)}>{t("prices.bulkOpen")}</Button>
+      </div>
+    );
+  }
+  return (
+    <div className="mb-3 space-y-3 rounded-lg border border-down/30 bg-down-bg/30 p-3 text-sm">
+      <p className="font-bold">{t("prices.bulkTitle")}</p>
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2"><input type="radio" checked={mode === "all"} onChange={() => setMode("all")} />{t("prices.bulkAll")}</label>
+        <label className="flex items-center gap-2"><input type="radio" checked={mode === "range"} onChange={() => setMode("range")} />{t("prices.bulkRange")}</label>
+      </div>
+      {mode === "range" && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div><span className="mb-1 block text-xs text-text-2">{t("prices.bulkFrom")}</span><ObservedAtPicker value={from} onChange={setFrom} locale={locale} /></div>
+          <div><span className="mb-1 block text-xs text-text-2">{t("prices.bulkTo")}</span><ObservedAtPicker value={to} onChange={setTo} locale={locale} /></div>
+        </div>
+      )}
+      <p className="text-xs text-text-2">{t("prices.bulkHint")}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" tone="danger" disabled={run.isPending} onClick={() => window.confirm(confirmText) && run.mutate()}>
+          {run.isPending ? t("common.saving") : t("prices.bulkRun")}
+        </Button>
+        <Button type="button" tone="ghost" onClick={() => { setOpen(false); run.reset(); }}>{t("common.cancel")}</Button>
+        {run.data && <Notice tone="ok">{t("prices.bulkDone", { n: run.data.voided.toLocaleString(locale === "fa" ? "fa" : "en") })}</Notice>}
+        {run.error && <Notice tone="error">{errorText(run.error, t)}</Notice>}
+      </div>
+    </div>
+  );
+}
+
 /** The recent points of one series: when, how much, from what, who entered or voided it; "void" for a wrong one. */
 function HistoryDialog({ series, writable, onClose }: { series: Series; writable: boolean; onClose: () => void }) {
   const t = useTranslate();
@@ -292,6 +346,7 @@ function HistoryDialog({ series, writable, onClose }: { series: Series; writable
           <Button type="button" tone="ghost" onClick={onClose}>{t("common.close")}</Button>
         </div>
         {voidIt.error && <Notice tone="error">{errorText(voidIt.error, t, { CONFLICT: "prices.voidConflict" })}</Notice>}
+        {writable && <BulkVoid series={series} />}
         {points.isLoading && <p className="text-sm">{t("table.loading")}</p>}
         <ul className="grid gap-2">
           {points.data?.map((p) => (

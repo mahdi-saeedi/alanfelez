@@ -432,6 +432,83 @@ func (s *Service) Void(ctx context.Context, id int64, reason string, actor audit
 	return out, nil
 }
 
+// VoidRange takes every published point of a series off the site, or those observed in [from, to) when given
+// (client, 2026-11-02: clear a price row, or one period of it, in one go). The points are kept, as rejected; the
+// newest point left becomes the latest price. Returns how many were voided; one audit entry for the whole batch.
+func (s *Service) VoidRange(ctx context.Context, seriesSlug string, from, to *time.Time, reason string, actor audit.Actor) (int64, error) {
+	var n int64
+	var ev *Event
+	err := inTx(ctx, s.pool, func(q *dbq.Queries) error {
+		sr, err := q.GetSeriesBySlug(ctx, seriesSlug)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("get series: %w", err)
+		}
+		// Lock the latest row first, as Void does, so a concurrent ingest waits for this batch.
+		if _, err := q.LockLatest(ctx, sr.ID); err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("lock latest: %w", err)
+		}
+		arg := dbq.VoidPointsInRangeParams{SeriesID: sr.ID, Actor: actor.ID}
+		if from != nil {
+			arg.FromAt = ts(*from)
+		}
+		if to != nil {
+			arg.ToAt = ts(*to)
+		}
+		if n, err = q.VoidPointsInRange(ctx, arg); err != nil {
+			return fmt.Errorf("void range: %w", err)
+		}
+		if n == 0 {
+			return nil
+		}
+		data := map[string]any{"series": sr.Slug, "count": n, "reason": reason}
+		if from != nil {
+			data["from"] = from.UTC()
+		}
+		if to != nil {
+			data["to"] = to.UTC()
+		}
+		if err := audit.Write(ctx, q, actor, audit.Entry{Action: "price.void_range", Entity: "price_series", EntityID: sr.Slug, Data: data}); err != nil {
+			return err
+		}
+		next, err := q.LatestPublishedPoint(ctx, sr.ID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return q.DeleteLatest(ctx, sr.ID) // nothing left: the row leaves the site until its next price
+		}
+		if err != nil {
+			return fmt.Errorf("latest published: %w", err)
+		}
+		var prevClose *int64
+		pc, err := q.LastCloseBefore(ctx, dbq.LastCloseBeforeParams{SeriesID: sr.ID, ObservedAt: ts(TehranDayStart(next.ObservedAt.Time))})
+		switch {
+		case err == nil:
+			prevClose = &pc
+		case !errors.Is(err, pgx.ErrNoRows):
+			return fmt.Errorf("previous close: %w", err)
+		}
+		if err := q.UpsertLatest(ctx, dbq.UpsertLatestParams{
+			SeriesID: sr.ID, PointID: next.ID, PriceMinor: next.PriceMinor, ObservedAt: next.ObservedAt,
+			SourceID: next.SourceID, PrevCloseMinor: int8p(prevClose),
+		}); err != nil {
+			return fmt.Errorf("upsert latest: %w", err)
+		}
+		ev = &Event{
+			PointID: next.ID, SeriesID: sr.ID, Series: sr.Slug, IsBase: sr.IsBase, Currency: sr.Currency, Unit: sr.Unit,
+			Price: next.PriceMinor, ObservedAt: next.ObservedAt.Time.UTC(), PrevClose: prevClose,
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	if ev != nil {
+		s.publish(ctx, []Event{*ev})
+	}
+	return n, nil
+}
+
 // publish is best effort: the data is committed, and clients re-sync from the REST snapshot on reconnect.
 func (s *Service) publish(ctx context.Context, events []Event) {
 	if s.pub == nil || len(events) == 0 {
