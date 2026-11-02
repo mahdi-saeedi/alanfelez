@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { MetalIcon } from "./MetalIcon";
+import { MetalTile } from "./MetalTile";
 import { LOOKS, NEUTRAL } from "./metal-colors";
 
 export type HeroItem = {
@@ -64,7 +64,7 @@ export function HeroCarousel({ items, changeLabel, showLabel, soonLabel }: { ite
         aria-live="polite"
       >
         <div className="flex items-center gap-3">
-          <MetalIcon slug={cur.metal} className="h-12 w-12" />
+          <MetalTile slug={cur.metal} className="h-12 w-12" />
           <div className="min-w-0">
             <div className="text-2xl font-extrabold">{cur.name}</div>
             <div className="text-xs text-silver-light" dir="ltr">{c.unit}</div>
