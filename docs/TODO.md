@@ -32,6 +32,8 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
+- [ ] Calculator on the main site: CMS text still mentions it (FAQ «الان‌فلز چیست؟» and «اشتراک طلایی», About, Terms §7);
+      edit in the production admin, or wait until the calculator returns.
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
@@ -52,6 +54,9 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-02 Calculator hidden on the main site, kept on staging (`FEATURE_CALCULATOR`, web.extraEnv in staging/local):
+  no menu/footer link, no page (404), no plan row, no «چرا الان‌فلز؟» card, no FAQ category. «چرا الان‌فلز؟» in plan
+  order (2 free, 2 Silver, then Gold). Compare chart's third colour pink instead of violet.
 - 2026-11-02 All seven metals everywhere, in the client's order (آلومینیوم، مس، روی، سرب، برنج، چدن، آهن; migration 00026):
   the prices page, chart picker (a metal without prices is listed, disabled), calculator (works with a typed price) and
   auctions filter list every metal, not only those with prices.

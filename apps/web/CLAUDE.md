@@ -12,6 +12,7 @@ page in the browser pane at http://localhost:3000 (after `task web:reload`), in 
 | `src/lib/api.ts` | `api` (anonymous, cacheable) and `callerApi()` (with the user's token when signed in) |
 | `src/components/` | Shared UI: `prices/*` (ticker, cards, table, charts), `content/*`, `gold/*`, `Locked`, `Header`, `Footer`, `MobileNav` |
 | `messages/fa.json`, `messages/en.json` | **All UI text**, by namespace (`prices`, `auctions`, `lock`, …). Add every key to both files |
+| `src/lib/features.ts` | Per-environment switches from env vars (`FEATURE_CALCULATOR`: the calculator is on locally and on staging, hidden on the main site) |
 | `src/proxy.ts` | Next "proxy" (middleware): session refresh, `/en` redirect while English is off, locale routing, CSP nonce |
 | `src/lib/security-headers.ts` | CSP and security headers. A new external origin (a form target, an image host) must be added here |
 | `src/app/sitemap.ts`, `robots.ts` | SEO. **A new public page goes into `PAGES` in sitemap.ts** |

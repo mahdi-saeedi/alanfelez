@@ -23,6 +23,7 @@ api:
   smsProvider: console             # SMS written to the worker log
 web:
   replicas: 2
+  extraEnv: { FEATURE_CALCULATOR: "true" }
 keycloak:
   strategy: Recreate   # 1 replica on a small node: don't wait for surge capacity
   otp: { smsProvider: console, consoleAllowed: true }

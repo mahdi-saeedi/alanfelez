@@ -6,7 +6,7 @@ import { formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/lib/api";
 import { getMe } from "@/lib/account";
-import { PlanCards, PLAN_FEATURES as FEATURES } from "@/components/PlanCards";
+import { PlanCards, planFeatures } from "@/components/PlanCards";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +70,7 @@ export default async function PlansPage({ params, searchParams }: Params) {
             </tr>
           </thead>
           <tbody>
-            {FEATURES.map((f) => (
+            {planFeatures().map((f) => (
               <tr key={f} className="border-t border-border">
                 <td className="px-5 py-3">{t(`features.${f.replace(".", "_")}`)}</td>
                 {data.items.map((plan) => {

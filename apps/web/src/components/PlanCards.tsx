@@ -3,6 +3,7 @@ import type { Schemas } from "@alanfelez/api-client";
 import { formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { TierBadge } from "@/components/Locked";
+import { calculatorEnabled } from "@/lib/features";
 
 type Period = Schemas["BillingPeriod"];
 type PlanList = { items: Schemas["Plan"][]; purchasable: boolean };
@@ -14,6 +15,9 @@ export const PLAN_FEATURES = [
   "prices.base", "chart.basic", "prices.full", "chart.full", "news.read",
   "community.read", "auctions.read", "analysis.read", "calculator.use", "alerts.sms",
 ] as const;
+
+/** The plan rows this environment shows: the calculator's only where it is on (client, 2026-11-02). */
+export const planFeatures = () => PLAN_FEATURES.filter((f) => f !== "calculator.use" || calculatorEnabled());
 
 /** The three plan cards (plans page and home page), from GET /v1/plans. */
 export async function PlanCards({ plans: data, me, period, locale }: { plans: PlanList; me: { tier?: string } | null; period: Period; locale: Locale }) {
@@ -40,7 +44,7 @@ export async function PlanCards({ plans: data, me, period, locale }: { plans: Pl
               <p className="mt-5 text-3xl font-extrabold tabular-nums">{price ? toman(price.price.amount) : formatNumber(0, locale)}</p>
               <p className="text-xs text-text-3">{t(`plans.unit.${price ? period : "month"}`)}</p>
               <ul className="mt-5 flex-1 space-y-2 text-sm">
-                {PLAN_FEATURES.map((f) =>
+                {planFeatures().map((f) =>
                   plan.features[f] ? (
                     <li key={f} className="flex gap-2">
                       <span className="text-up" aria-hidden>✓</span>

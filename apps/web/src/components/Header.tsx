@@ -11,6 +11,7 @@ import { getSite } from "@/lib/content";
 import { accessToken } from "@/lib/api";
 import { DesktopNav, MobileMenu } from "./MobileNav";
 import { StickyHeader } from "./StickyHeader";
+import { hiddenNav } from "@/lib/features";
 import { getEntitlements } from "@/lib/prices";
 import { getMe } from "@/lib/account";
 import { formatNumber } from "@alanfelez/ui/format";
@@ -77,12 +78,12 @@ export async function Header() {
     <StickyHeader>
       {/* Phone widths (360 px) are tight: logo, language switch, log in and sign up must fit on one row. */}
       <div className="mx-auto flex max-w-7xl items-center gap-1.5 px-4 py-3 transition-[padding] group-data-[compact]:py-1.5 sm:gap-3 lg:gap-6">
-        <MobileMenu locale={showLocale ? { label: t("locale.switch"), ariaLabel: t("locale.switchLabel") } : undefined} />
+        <MobileMenu hide={hiddenNav()} locale={showLocale ? { label: t("locale.switch"), ariaLabel: t("locale.switchLabel") } : undefined} />
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-extrabold text-white">
           {/* The wide logo without its dark square (client, 2026-11-01): the name in it is the brand name, so no text beside it. */}
           <Logo name={t("brand.logo")} latin={t("brand.latin")} className="[--logo-h:40px] group-data-[compact]:[--logo-h:32px] sm:[--logo-h:48px] lg:[--logo-h:56px] lg:group-data-[compact]:[--logo-h:40px]" />
         </Link>
-        <DesktopNav />
+        <DesktopNav hide={hiddenNav()} />
         <div className="ms-auto flex items-center gap-1.5 sm:gap-2 lg:ms-0">
           <Link href="/search" aria-label={t("search.open")} title={t("search.open")} className="grid h-9 w-8 shrink-0 sm:w-9 place-items-center rounded-lg text-silver-light hover:bg-graphite-2 hover:text-white">
             <SearchIcon />

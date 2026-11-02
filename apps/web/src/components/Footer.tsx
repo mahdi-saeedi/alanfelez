@@ -4,6 +4,7 @@ import { Logo } from "./Logo";
 import { getSite } from "@/lib/content";
 import { EnamadBadge } from "./EnamadBadge";
 import type { Locale } from "@/lib/prices";
+import { hiddenNav } from "@/lib/features";
 
 // The footer's link columns (client, 2026-10-27).
 const QUICK = [
@@ -98,7 +99,7 @@ export async function Footer() {
           <nav aria-label={t("footer.quick")}>
             <h2 className={heading}>{t("footer.quick")}</h2>
             <ul className="space-y-2.5">
-              {QUICK.map(([key, href]) => <li key={key}><Link href={href} className={link}>{t(`nav.${key}`)}</Link></li>)}
+              {QUICK.filter(([key]) => !hiddenNav().includes(key)).map(([key, href]) => <li key={key}><Link href={href} className={link}>{t(`nav.${key}`)}</Link></li>)}
             </ul>
           </nav>
           <nav aria-label={t("footer.company")}>

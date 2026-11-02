@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 import { api } from "@/lib/api";
 import { SITE_URL, englishEnabled } from "@/lib/site";
+import { calculatorEnabled } from "@/lib/features";
 
 // Rendered on request, never at build time (it needs the API); the API calls below are cached for 10 minutes.
 export const dynamic = "force-dynamic";
 
-const PAGES = ["/", "/prices", "/chart", "/analysis", "/auctions", "/calculator", "/plans", "/faq", "/about", "/contact", "/terms", "/privacy"];
+const PAGES_ALL = ["/", "/prices", "/chart", "/analysis", "/auctions", "/calculator", "/plans", "/faq", "/about", "/contact", "/terms", "/privacy"];
 
 /**
  * sitemap.xml (NFR SEO-2): every public page, each metal's price page and published article, with the English alternate when the English
@@ -22,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!res || page * res.limit >= res.total) break;
   }
   const metals = await api.GET("/v1/metals", { next: { revalidate: 600 } }).then((r) => r.data?.items ?? [], () => []);
+  const PAGES = PAGES_ALL.filter((p) => p !== "/calculator" || calculatorEnabled());
   const paths = [...PAGES, ...metals.map((m) => `/prices/${m.slug}`), ...(site?.licensesPage ? ["/licenses"] : [])];
   const entry = (path: string, lastModified?: string): MetadataRoute.Sitemap[number] => {
     const clean = path === "/" ? "" : path;

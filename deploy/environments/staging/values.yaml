@@ -28,6 +28,8 @@ keycloak:
   otp: {smsProvider: smsir, consoleAllowed: false, smsir: {templateId: "972517"}}
 web:
   replicas: 1 # small staging server (2 CPU / 4 GB)
+  # The calculator stays on staging while its formulas are worked out; the main site hides it (client, 2026-11-02).
+  extraEnv: { FEATURE_CALCULATOR: "true" }
 ingress:
   basicAuth: {enabled: false} # no shared password: anyone with the address can open staging (pages stay noindex)
 # Image pulls on staging have failed on a brief DNS hiccup («lookup registry… Try again», 2026-10-28): the pull is
