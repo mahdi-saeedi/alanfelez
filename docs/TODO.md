@@ -7,7 +7,8 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 
 ## Now (in progress)
-- [ ] World prices of brass, iron and cast iron: enter them in the admin (rows exist) so the hero shows all seven.
+- [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
+      show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
