@@ -9,10 +9,10 @@ global:
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "sha-44175cb70418"}
-  web: {repository: web, tag: "sha-44175cb70418"}
-  keycloak: {repository: keycloak, tag: "sha-44175cb70418"}
-  admin: {repository: admin, tag: "sha-44175cb70418"}
+  api: {repository: api, tag: "sha-bf1de344eaa0"}
+  web: {repository: web, tag: "sha-bf1de344eaa0"}
+  keycloak: {repository: keycloak, tag: "sha-bf1de344eaa0"}
+  admin: {repository: admin, tag: "sha-bf1de344eaa0"}
 api:
   replicas: 1 # small staging server (2 CPU / 4 GB)
   seedProfiles: reference,demo
@@ -29,7 +29,7 @@ keycloak:
 web:
   replicas: 1 # small staging server (2 CPU / 4 GB)
   # The calculator stays on staging while its formulas are worked out; the main site hides it (client, 2026-11-02).
-  extraEnv: { FEATURE_CALCULATOR: "true" }
+  extraEnv: {FEATURE_CALCULATOR: "true"}
 ingress:
   basicAuth: {enabled: false} # no shared password: anyone with the address can open staging (pages stay noindex)
 # Image pulls on staging have failed on a brief DNS hiccup («lookup registry… Try again», 2026-10-28): the pull is
