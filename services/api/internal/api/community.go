@@ -20,7 +20,8 @@ import (
 )
 
 // Members' analyses («تحلیل کاربران», client 2026-10-30). Silver and Gold read and post (community.read/.post);
-// a post is published at once, staff can hide it, its author can delete it. Free callers get the count only.
+// a new post waits for staff review before it shows (2026-11-02; its author sees it marked pending), staff can hide
+// it, its author can delete it. Free callers get the count only. Ratings and comments: discussion.go.
 
 // ListCommunityPosts returns one page of published posts, or the count only when the caller's plan doesn't include them.
 func (s *Server) ListCommunityPosts(ctx context.Context, req ListCommunityPostsRequestObject) (ListCommunityPostsResponseObject, error) {
@@ -67,7 +68,8 @@ func (s *Server) ListCommunityPosts(ctx context.Context, req ListCommunityPostsR
 			Id: r.ID.Bytes, Title: r.Title, Body: r.Body, AuthorName: r.AuthorName, HasImage: r.HasImage,
 			Mine: caller != nil && caller.ID == r.UserID, CreatedAt: r.CreatedAt.Time.UTC(),
 			Metal: localizedRef(lang, r.MetalSlug, r.MetalFa, r.MetalEn), Outlook: outlookOf(r.Outlook),
-			ReportedByMe: &r.ReportedByMe,
+			ReportedByMe: &r.ReportedByMe, Pending: ptr(r.Status == "pending"),
+			RatingAvg: ptr(float32(r.RatingAvg)), RatingCount: ptr(int(r.RatingCount)), CommentCount: ptr(int(r.CommentCount)),
 		})
 	}
 	if caller != nil && access.Allowed(cur.Tier, access.CommunityPost) {
@@ -136,7 +138,7 @@ func (s *Server) CreateCommunityPost(ctx context.Context, req CreateCommunityPos
 	}
 	lang := langOf((*string)(req.Params.AcceptLanguage))
 	out := CommunityPost{Id: row.ID.Bytes, Title: title, Body: body, AuthorName: arg.AuthorName, Mine: true,
-		CreatedAt: row.CreatedAt.Time.UTC(), Outlook: in.Outlook}
+		CreatedAt: row.CreatedAt.Time.UTC(), Outlook: in.Outlook, Pending: ptr(true)}
 	if in.Metal != nil {
 		out.Metal = s.metalRef(ctx, lang, *in.Metal)
 	}
@@ -176,7 +178,15 @@ func (s *Server) DeleteCommunityPost(ctx context.Context, req DeleteCommunityPos
 	if p == nil {
 		return fail[bad](unauthenticated(ctx)), nil
 	}
-	n, err := s.q.DeleteCommunityPost(ctx, dbq.DeleteCommunityPostParams{ID: pgtype.UUID{Bytes: req.Id, Valid: true}, UserID: p.ID})
+	id := pgtype.UUID{Bytes: req.Id, Valid: true}
+	var n int64
+	err := s.tx(ctx, func(q *dbq.Queries) error {
+		var err error
+		if n, err = q.DeleteCommunityPost(ctx, dbq.DeleteCommunityPostParams{ID: id, UserID: p.ID}); err != nil || n == 0 {
+			return err
+		}
+		return q.DeleteDiscussion(ctx, dbq.DeleteDiscussionParams{TargetKind: "post", TargetID: id})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("delete community post: %w", err)
 	}
@@ -265,7 +275,9 @@ func (s *Server) GetCommunityPostImage(ctx context.Context, req GetCommunityPost
 	if !access.Allowed(cur.Tier, access.CommunityRead) && !p.HasRole(auth.RoleStaff) {
 		return fail[bad](lockedProblem(ctx, access.CommunityRead)), nil
 	}
-	b, err := s.q.GetCommunityPostImage(ctx, pgtype.UUID{Bytes: req.Id, Valid: true})
+	b, err := s.q.GetCommunityPostImage(ctx, dbq.GetCommunityPostImageParams{
+		ID: pgtype.UUID{Bytes: req.Id, Valid: true}, AnyStatus: p.HasRole(auth.RoleStaff), Caller: p.ID,
+	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return fail[bad](notFound(ctx, "image")), nil
 	}
@@ -305,10 +317,15 @@ func (s *Server) AdminListCommunityPosts(ctx context.Context, req AdminListCommu
 	}
 	n := int(open)
 	out.ReportedOpen = &n
+	pending, err := s.q.CountPendingCommunityPosts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("count pending posts: %w", err)
+	}
+	out.Pending = ptr(int(pending))
 	return out, nil
 }
 
-// AdminSetCommunityPostStatus hides a post (or shows it again); audited.
+// AdminSetCommunityPostStatus publishes a post after review, hides it, or shows it again; audited.
 func (s *Server) AdminSetCommunityPostStatus(ctx context.Context, req AdminSetCommunityPostStatusRequestObject) (AdminSetCommunityPostStatusResponseObject, error) {
 	type bad = AdminSetCommunityPostStatusdefaultApplicationProblemPlusJSONResponse
 	p, pr := requireRoles(ctx, rolesContentWrite...)

@@ -5,18 +5,23 @@ import type { CommunityPost } from "@/lib/community";
 import { ExpandableText } from "./ExpandableText";
 import { DeletePostButton } from "./DeletePostButton";
 import { ReportPostButton } from "./ReportPostButton";
+import { DiscussionBox } from "./DiscussionBox";
 
 /**
  * A member's analysis (client, 2026-10-30), only ever rendered for Silver and Gold (the API sends no posts to others).
  * The byline is blue «تحلیل توسط <name>», unlike the gold «تحلیل توسط تحلیل‌گران الان‌فلز» on the team's analyses,
- * so it's always clear who wrote what; each card repeats that it's the member's own view.
+ * so it's always clear who wrote what; each card repeats that it's the member's own view. Stars and comments under it
+ * (DiscussionBox); the author's own post waiting for review is marked so.
  */
 export async function CommunityCard({ p, locale }: { p: CommunityPost; locale: Locale }) {
   const t = await getTranslations("analysis.community");
   return (
     <article className="flex flex-col gap-2 rounded-card border border-info/30 bg-surface p-4 shadow-soft">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-bold text-info">{t("badge")}</span>
+        <span className="flex items-center gap-1.5">
+          <span className="rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-bold text-info">{t("badge")}</span>
+          {p.pending && <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-bold text-gold-dark">{t("pending")}</span>}
+        </span>
         {p.metal && (
           <span className="inline-flex items-center gap-1.5 text-xs text-text-2">
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: metalTone(p.metal.slug) }} aria-hidden />
@@ -44,6 +49,12 @@ export async function CommunityCard({ p, locale }: { p: CommunityPost; locale: L
         )}
       </div>
       <p className="text-[11px] leading-5 text-text-3">{t("ownView")}</p>
+      {/* Waiting for review: only its author sees it, and there is nothing to rate or discuss yet (client, 2026-11-02). */}
+      {p.pending ? (
+        <p className="rounded-lg bg-gold/10 p-2 text-xs text-gold-dark">{t("pendingNote")}</p>
+      ) : (
+        <DiscussionBox kind="post" id={p.id} rating={{ avg: p.ratingAvg ?? 0, count: p.ratingCount ?? 0 }} comments={p.commentCount ?? 0} />
+      )}
     </article>
   );
 }

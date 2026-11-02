@@ -7,8 +7,6 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 
 ## Now (in progress)
-- [ ] Members' analyses: approval in the admin before they show, star ratings and comments (comments approved too)
-      by Silver, Gold and staff; experts' analyses rated and commented by Gold and staff only.
 - [ ] World prices of brass, iron and cast iron: enter them in the admin (rows exist) so the hero shows all seven.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
@@ -57,6 +55,10 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-02 Members' analyses wait for review in the admin («تحلیل کاربران» → «در انتظار تأیید», publish/reject) and
+  their author sees them marked pending; star ratings (1–5) and comments on members' analyses (Silver, Gold, staff) and
+  on the experts' articles (by the article's own plan: analyses Gold); members' comments are reviewed too (admin tab
+  «نظرها»), staff comments go live at once under «الان‌فلز». Migration 00027, `/v1/discussions/*`, `/v1/admin/comments`.
 - 2026-11-02 Home and About (client): hero chart with all seven metals («به‌زودی» until a metal has a world price), each in
   its own colour, sliding in with a progress bar; world-chart tabs with separators and a bold active metal; plans by
   tier (visitors/free: three cards; Silver: what Gold adds with the upgrade button; Gold: nothing); the strategy map on

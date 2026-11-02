@@ -1028,7 +1028,7 @@ export interface paths {
         get: operations["listCommunityPosts"];
         put?: never;
         /**
-         * Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+         * Post an analysis; it waits for staff review before it shows. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
          * @description Plain text only. Promises of profit or "certain" prices are refused (400). Add the chart image after with PUT …/image.
          */
         post: operations["createCommunityPost"];
@@ -1097,7 +1097,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Members' analyses for moderation, newest first (hidden ones included). Roles staff */
+        /** Members' analyses for review, waiting ones first (hidden ones included). Roles staff */
         get: operations["adminListCommunityPosts"];
         put?: never;
         post?: never;
@@ -1115,8 +1115,96 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Hide a member's analysis (or show it again). Roles editor, admin; audited */
+        /** Publish a member's analysis after review, or hide it (or show it again). Roles editor, admin; audited */
         put: operations["adminSetCommunityPostStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/discussions/{kind}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rating and comments of a member's analysis (post) or a team article. Locked (no comments) unless the caller may read it
+         * @description Members' analyses need community.read (Silver), the team's analyses and forecasts their own feature (Gold); staff always.
+         */
+        get: operations["getDiscussion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/discussions/{kind}/{id}/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Give 1–5 stars (again = change them). Same access as reading; not your own post → 400 */
+        put: operations["rateDiscussion"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/discussions/{kind}/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comment (2–1000 characters). Same access as reading; waits for staff review, except staff's own; at most 20 a day → 429 */
+        post: operations["commentDiscussion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comments for review, waiting ones first. Roles staff */
+        get: operations["adminListComments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/comments/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Publish a comment after review, or hide it. Roles editor, admin; audited */
+        put: operations["adminSetCommentStatus"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2162,6 +2250,11 @@ export interface components {
             requiredPlan?: components["schemas"]["Tier"];
         };
         Article: components["schemas"]["ArticleSummary"] & {
+            /**
+             * Format: uuid
+             * @description For its rating and comments (the article discussion)
+             */
+            id?: string;
             /** @description Sanitized HTML. Absent when locked */
             body?: string;
             author?: string;
@@ -2321,6 +2414,13 @@ export interface components {
             reportedByMe?: boolean;
             /** Format: date-time */
             createdAt: string;
+            /** @description The caller's own post */
+            pending?: boolean;
+            /** @description Average stars 1–5 (0 = no rating yet) */
+            ratingAvg?: number;
+            ratingCount?: number;
+            /** @description Published comments */
+            commentCount?: number;
         };
         CommunityPostList: {
             items: components["schemas"]["CommunityPost"][];
@@ -2337,13 +2437,65 @@ export interface components {
         };
         AdminCommunityPost: components["schemas"]["CommunityPost"] & {
             /** @enum {string} */
-            status: "published" | "hidden";
+            status: "pending" | "published" | "hidden";
             /** Format: uuid */
             userId: string;
             /** Format: date-time */
             hiddenAt?: string;
             /** @description How many members reported it */
             reports?: number;
+        };
+        /**
+         * @description post = a member's analysis, article = a team article
+         * @enum {string}
+         */
+        DiscussionKind: "post" | "article";
+        RatingSummary: {
+            /** @description Average stars (0 = none yet) */
+            avg: number;
+            count: number;
+            /** @description The caller's stars (0 = not rated) */
+            mine: number;
+        };
+        Comment: {
+            /** Format: uuid */
+            id: string;
+            authorName: string;
+            /** @description Written by the Alan Felez team */
+            staff: boolean;
+            /** @description Plain text */
+            body: string;
+            /** Format: date-time */
+            createdAt: string;
+            mine: boolean;
+            /** @description The caller's own comment */
+            pending: boolean;
+        };
+        Discussion: {
+            rating: components["schemas"]["RatingSummary"];
+            comments: components["schemas"]["Comment"][];
+            /** @description Signed in */
+            canRate: boolean;
+            canComment: boolean;
+            /** @description The caller's plan doesn't include this; comments are left out */
+            locked: boolean;
+            requiredPlan?: components["schemas"]["Tier"];
+        };
+        AdminComment: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["DiscussionKind"];
+            /** Format: uuid */
+            targetId: string;
+            targetTitle: string;
+            articleSlug?: string;
+            authorName: string;
+            staff: boolean;
+            body: string;
+            /** @enum {string} */
+            status: "pending" | "published" | "hidden";
+            /** Format: date-time */
+            createdAt: string;
         };
         Ticket: {
             /** Format: uuid */
@@ -4535,7 +4687,7 @@ export interface operations {
     adminListCommunityPosts: {
         parameters: {
             query?: {
-                status?: "published" | "hidden";
+                status?: "pending" | "published" | "hidden";
                 /** @description Only posts someone reported */
                 reported?: boolean;
                 q?: string;
@@ -4556,6 +4708,8 @@ export interface operations {
                         items: components["schemas"]["AdminCommunityPost"][];
                         /** @description Published posts with at least one report */
                         reportedOpen?: number;
+                        /** @description Posts waiting for review */
+                        pending?: number;
                     };
                 };
             };
@@ -4563,6 +4717,144 @@ export interface operations {
         };
     };
     adminSetCommunityPostStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "published" | "hidden";
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getDiscussion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["DiscussionKind"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The discussion */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Discussion"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    rateDiscussion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["DiscussionKind"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    stars: number;
+                };
+            };
+        };
+        responses: {
+            /** @description The new rating */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingSummary"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    commentDiscussion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["DiscussionKind"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved (pending until reviewed, or published for staff) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListComments: {
+        parameters: {
+            query?: {
+                status?: "pending" | "published" | "hidden";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comments */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminComment"][];
+                        pending: number;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetCommentStatus: {
         parameters: {
             query?: never;
             header?: never;

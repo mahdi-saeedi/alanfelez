@@ -39,6 +39,26 @@ func TestCommunityPosts(t *testing.T) {
 		t.Fatalf("forbidden claim: %d %v", st, b)
 	}
 
+	// It waits for review (client, 2026-11-02): only its author sees it, marked pending; staff publish it.
+	if _, b, raw := e.call(http.MethodGet, "/v1/community/posts", "silver", nil); b["total"].(float64) != 0 || len(b["items"].([]any)) != 0 {
+		t.Fatalf("pending post shown to others: %s", raw)
+	}
+	if _, b, raw := e.call(http.MethodGet, "/v1/community/posts", "gold", nil); len(b["items"].([]any)) != 1 || b["items"].([]any)[0].(map[string]any)["pending"] != true {
+		t.Fatalf("author's pending post: %s", raw)
+	}
+	if _, b, raw := e.call(http.MethodGet, "/v1/admin/community/posts?status=pending", "support", nil); len(b["items"].([]any)) != 1 || b["pending"].(float64) != 1 {
+		t.Fatalf("admin pending: %s", raw)
+	}
+	if st, _, _ := e.call(http.MethodPut, "/v1/admin/community/posts/"+id+"/status", "support", map[string]any{"status": "published"}); st != 403 {
+		t.Fatalf("support publish: %d", st)
+	}
+	if st, _, raw := e.call(http.MethodPut, "/v1/admin/community/posts/"+id+"/status", "editor", map[string]any{"status": "published"}); st != 204 {
+		t.Fatalf("publish: %d %s", st, raw)
+	}
+	if n := e.count(`SELECT count(*) FROM app.audit_log WHERE action = 'community.post.published'`); n != 1 {
+		t.Fatalf("publish audit rows = %d", n)
+	}
+
 	// The image: only the author may add it; it's stored as a JPEG.
 	var img bytes.Buffer
 	_ = png.Encode(&img, image.NewRGBA(image.Rect(0, 0, 2000, 800)))
@@ -106,7 +126,7 @@ func TestCommunityPosts(t *testing.T) {
 	}() {
 		t.Fatalf("reportedByMe missing: %v", b)
 	}
-	_, b, _ = e.call(http.MethodGet, "/v1/admin/community/posts", "support", nil)
+	_, b, _ = e.call(http.MethodGet, "/v1/admin/community/posts?status=published", "support", nil)
 	if first := b["items"].([]any)[0].(map[string]any); first["id"] != id || first["reports"].(float64) != 1 || b["reportedOpen"].(float64) != 1 {
 		t.Fatalf("admin reported first: %v", b)
 	}
@@ -124,7 +144,7 @@ func TestCommunityPosts(t *testing.T) {
 	if n := e.count(`SELECT count(*) FROM app.audit_log WHERE action = 'community.post.hidden'`); n != 1 {
 		t.Fatalf("audit rows = %d", n)
 	}
-	if _, b, _ := e.call(http.MethodGet, "/v1/community/posts", "silver", nil); b["total"].(float64) != 2 {
+	if _, b, _ := e.call(http.MethodGet, "/v1/community/posts", "silver", nil); b["total"].(float64) != 0 { // the other two wait for review
 		t.Fatalf("hidden still listed: %v", b["total"])
 	}
 	if st, _, _ := e.rawCall(http.MethodGet, "/v1/community/posts/"+id+"/image", "silver", "", nil); st != 404 {

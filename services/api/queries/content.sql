@@ -179,16 +179,20 @@ INSERT INTO app.feature_flags (key, enabled) VALUES ($1, $2)
 ON CONFLICT (key) DO UPDATE SET enabled = EXCLUDED.enabled
 RETURNING key, enabled, updated_at;
 
--- Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
+-- Members' analyses («تحلیل کاربران», migration 00021). The feed shows published posts, plus the caller's own posts
+-- that wait for review (migration 00027), marked so on their card.
 
 -- name: ListCommunityPosts :many
-SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at,
+SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at, p.status,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
        EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
-       EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id AND r.user_id = sqlc.narg(caller)::uuid) AS reported_by_me
+       EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id AND r.user_id = sqlc.narg(caller)::uuid) AS reported_by_me,
+       COALESCE((SELECT avg(rt.stars) FROM app.ratings rt WHERE rt.target_kind = 'post' AND rt.target_id = p.id), 0)::float8 AS rating_avg,
+       (SELECT count(*) FROM app.ratings rt WHERE rt.target_kind = 'post' AND rt.target_id = p.id) AS rating_count,
+       (SELECT count(*) FROM app.comments c WHERE c.target_kind = 'post' AND c.target_id = p.id AND c.status = 'published') AS comment_count
 FROM app.community_posts p
 LEFT JOIN market.metals m ON m.id = p.metal_id
-WHERE p.status = 'published'
+WHERE (p.status = 'published' OR (p.status = 'pending' AND p.user_id = sqlc.narg(caller)::uuid))
   AND (sqlc.narg(metal)::text IS NULL OR m.slug = sqlc.narg(metal)::text)
 ORDER BY p.created_at DESC, p.id
 LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
@@ -222,12 +226,13 @@ ON CONFLICT (post_id) DO UPDATE SET width = EXCLUDED.width, height = EXCLUDED.he
   size_bytes = EXCLUDED.size_bytes, content = EXCLUDED.content;
 
 -- name: GetCommunityPostImage :one
+-- Members see published posts' images; staff (any_status) also those waiting for review or hidden; the author their own.
 SELECT i.content FROM app.community_post_images i
 JOIN app.community_posts p ON p.id = i.post_id
-WHERE i.post_id = $1 AND p.status = 'published';
+WHERE i.post_id = sqlc.arg(id) AND (p.status = 'published' OR sqlc.arg(any_status)::bool OR p.user_id = sqlc.narg(caller)::uuid);
 
 -- name: AdminListCommunityPosts :many
--- Reported published posts first (most reports first), then the rest newest first.
+-- Posts waiting for review first (oldest first), then reported published ones (most reports first), then the rest.
 SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.status, p.hidden_at, p.created_at,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
        EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
@@ -237,7 +242,9 @@ LEFT JOIN market.metals m ON m.id = p.metal_id
 WHERE (sqlc.narg(status)::text IS NULL OR p.status = sqlc.narg(status)::text)
   AND (NOT sqlc.arg(reported_only)::bool OR EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id))
   AND (sqlc.arg(q)::text = '' OR p.title ILIKE '%' || sqlc.arg(q)::text || '%' OR p.author_name ILIKE '%' || sqlc.arg(q)::text || '%')
-ORDER BY (p.status = 'published' AND EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id)) DESC,
+ORDER BY (p.status = 'pending') DESC,
+         CASE WHEN p.status = 'pending' THEN p.created_at END ASC,
+         (p.status = 'published' AND EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id)) DESC,
          reports DESC, p.created_at DESC
 LIMIT 200;
 
@@ -251,5 +258,63 @@ JOIN app.community_posts p ON p.id = r.post_id WHERE p.status = 'published';
 -- name: SetCommunityPostStatus :execrows
 UPDATE app.community_posts SET status = sqlc.arg(status),
   hidden_by = CASE WHEN sqlc.arg(status)::text = 'hidden' THEN sqlc.narg(actor)::uuid END,
-  hidden_at = CASE WHEN sqlc.arg(status)::text = 'hidden' THEN now() END
+  hidden_at = CASE WHEN sqlc.arg(status)::text = 'hidden' THEN now() END,
+  reviewed_by = sqlc.narg(actor)::uuid, reviewed_at = now()
 WHERE id = sqlc.arg(id);
+
+-- name: CountPendingCommunityPosts :one
+SELECT count(*) FROM app.community_posts WHERE status = 'pending';
+
+-- Ratings and comments (migration 00027) on members' analyses ('post') and the team's articles ('article').
+
+-- name: GetArticleForDiscussion :one
+SELECT type, status FROM app.articles WHERE id = $1;
+
+-- name: UpsertRating :exec
+INSERT INTO app.ratings (target_kind, target_id, user_id, stars) VALUES ($1, $2, $3, $4)
+ON CONFLICT (target_kind, target_id, user_id) DO UPDATE SET stars = EXCLUDED.stars, updated_at = now();
+
+-- name: RatingSummary :one
+SELECT COALESCE(avg(stars), 0)::float8 AS avg, count(*) AS count,
+       COALESCE(max(stars) FILTER (WHERE user_id = sqlc.narg(caller)::uuid), 0)::int AS mine
+FROM app.ratings WHERE target_kind = sqlc.arg(target_kind) AND target_id = sqlc.arg(target_id);
+
+-- name: InsertComment :one
+INSERT INTO app.comments (target_kind, target_id, user_id, author_name, staff, body, status)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, created_at;
+
+-- name: ListComments :many
+-- Published comments, plus the caller's own that wait for review; oldest first, like a conversation.
+SELECT id, user_id, author_name, staff, body, status, created_at
+FROM app.comments
+WHERE target_kind = sqlc.arg(target_kind) AND target_id = sqlc.arg(target_id)
+  AND (status = 'published' OR (status = 'pending' AND user_id = sqlc.narg(caller)::uuid))
+ORDER BY created_at, id
+LIMIT 200;
+
+-- name: CountUserCommentsSince :one
+SELECT count(*) FROM app.comments WHERE user_id = $1 AND created_at > $2;
+
+-- name: AdminListComments :many
+-- For review: waiting ones first (oldest first), then the rest newest first; with the title of what was commented on.
+SELECT c.id, c.target_kind, c.target_id, c.author_name, c.staff, c.body, c.status, c.created_at,
+       COALESCE(p.title, a.title_fa, '')::text AS target_title, a.slug AS article_slug
+FROM app.comments c
+LEFT JOIN app.community_posts p ON c.target_kind = 'post' AND p.id = c.target_id
+LEFT JOIN app.articles a ON c.target_kind = 'article' AND a.id = c.target_id
+WHERE (sqlc.narg(status)::text IS NULL OR c.status = sqlc.narg(status)::text)
+ORDER BY (c.status = 'pending') DESC, CASE WHEN c.status = 'pending' THEN c.created_at END ASC, c.created_at DESC
+LIMIT 200;
+
+-- name: SetCommentStatus :execrows
+UPDATE app.comments SET status = sqlc.arg(status), reviewed_by = sqlc.narg(actor)::uuid, reviewed_at = now()
+WHERE id = sqlc.arg(id);
+
+-- name: CountPendingComments :one
+SELECT count(*) FROM app.comments WHERE status = 'pending';
+
+-- name: DeleteDiscussion :exec
+-- With a deleted post: its ratings and comments go too.
+WITH r AS (DELETE FROM app.ratings rt WHERE rt.target_kind = $1 AND rt.target_id = $2)
+DELETE FROM app.comments c WHERE c.target_kind = $1 AND c.target_id = $2;

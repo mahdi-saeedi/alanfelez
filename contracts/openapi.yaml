@@ -1413,7 +1413,7 @@ paths:
     post:
       operationId: createCommunityPost
       tags: [community]
-      summary: Post an analysis. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
+      summary: Post an analysis; it waits for staff review before it shows. Needs community.post (Silver) → 403 FEATURE_LOCKED; at most 3 a day → 429 RATE_LIMITED
       description: Plain text only. Promises of profit or "certain" prices are refused (400). Add the chart image after with PUT …/image.
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1489,10 +1489,10 @@ paths:
     get:
       operationId: adminListCommunityPosts
       tags: [admin]
-      summary: Members' analyses for moderation, newest first (hidden ones included). Roles staff
+      summary: Members' analyses for review, waiting ones first (hidden ones included). Roles staff
       security: [{ bearerAuth: [] }]
       parameters:
-        - { name: status, in: query, required: false, schema: { type: string, enum: [published, hidden] } }
+        - { name: status, in: query, required: false, schema: { type: string, enum: [pending, published, hidden] } }
         - { name: reported, in: query, required: false, schema: { type: boolean }, description: Only posts someone reported }
         - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
       responses:
@@ -1508,13 +1508,127 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/AdminCommunityPost' }
                   reportedOpen: { type: integer, description: Published posts with at least one report }
+                  pending: { type: integer, description: Posts waiting for review }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/community/posts/{id}/status:
     put:
       operationId: adminSetCommunityPostStatus
       tags: [admin]
-      summary: Hide a member's analysis (or show it again). Roles editor, admin; audited
+      summary: Publish a member's analysis after review, or hide it (or show it again). Roles editor, admin; audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [published, hidden] }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/discussions/{kind}/{id}:
+    get:
+      operationId: getDiscussion
+      tags: [community]
+      summary: Rating and comments of a member's analysis (post) or a team article. Locked (no comments) unless the caller may read it
+      description: Members' analyses need community.read (Silver), the team's analyses and forecasts their own feature (Gold); staff always.
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/DiscussionKind' } }
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The discussion
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Discussion' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/discussions/{kind}/{id}/rating:
+    put:
+      operationId: rateDiscussion
+      tags: [community]
+      summary: Give 1–5 stars (again = change them). Same access as reading; not your own post → 400
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/DiscussionKind' } }
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stars]
+              properties:
+                stars: { type: integer, minimum: 1, maximum: 5 }
+      responses:
+        '200':
+          description: The new rating
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RatingSummary' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/discussions/{kind}/{id}/comments:
+    post:
+      operationId: commentDiscussion
+      tags: [community]
+      summary: Comment (2–1000 characters). Same access as reading; waits for staff review, except staff's own; at most 20 a day → 429
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { $ref: '#/components/schemas/DiscussionKind' } }
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string, minLength: 2, maxLength: 1000 }
+      responses:
+        '201':
+          description: Saved (pending until reviewed, or published for staff)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Comment' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/comments:
+    get:
+      operationId: adminListComments
+      tags: [admin]
+      summary: Comments for review, waiting ones first. Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, required: false, schema: { type: string, enum: [pending, published, hidden] } }
+      responses:
+        '200':
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, pending]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminComment' }
+                  pending: { type: integer }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/comments/{id}/status:
+    put:
+      operationId: adminSetCommentStatus
+      tags: [admin]
+      summary: Publish a comment after review, or hide it. Roles editor, admin; audited
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -2935,6 +3049,7 @@ components:
         - type: object
           required: [updatedAt]
           properties:
+            id: { type: string, format: uuid, description: "For its rating and comments (the article discussion)" }
             body: { type: string, description: Sanitized HTML. Absent when locked }
             author: { type: string }
             updatedAt: { type: string, format: date-time }
@@ -3113,6 +3228,10 @@ components:
         mine: { type: boolean, description: The caller wrote it (may delete it) }
         reportedByMe: { type: boolean, description: The caller already reported it }
         createdAt: { type: string, format: date-time }
+        pending: { type: boolean, description: The caller's own post, waiting for staff review (only its author sees it) }
+        ratingAvg: { type: number, description: Average stars 1–5 (0 = no rating yet) }
+        ratingCount: { type: integer }
+        commentCount: { type: integer, description: Published comments }
 
     CommunityPostList:
       type: object
@@ -3135,10 +3254,63 @@ components:
         - type: object
           required: [status, userId]
           properties:
-            status: { type: string, enum: [published, hidden] }
+            status: { type: string, enum: [pending, published, hidden] }
             userId: { type: string, format: uuid }
             hiddenAt: { type: string, format: date-time }
             reports: { type: integer, description: How many members reported it }
+
+    DiscussionKind:
+      type: string
+      enum: [post, article]
+      description: post = a member's analysis, article = a team article
+
+    RatingSummary:
+      type: object
+      required: [avg, count, mine]
+      properties:
+        avg: { type: number, description: Average stars (0 = none yet) }
+        count: { type: integer }
+        mine: { type: integer, description: The caller's stars (0 = not rated) }
+
+    Comment:
+      type: object
+      required: [id, authorName, staff, body, createdAt, mine, pending]
+      properties:
+        id: { type: string, format: uuid }
+        authorName: { type: string }
+        staff: { type: boolean, description: Written by the Alan Felez team }
+        body: { type: string, description: Plain text }
+        createdAt: { type: string, format: date-time }
+        mine: { type: boolean }
+        pending: { type: boolean, description: The caller's own comment, waiting for review }
+
+    Discussion:
+      type: object
+      required: [rating, comments, canRate, canComment, locked]
+      properties:
+        rating: { $ref: '#/components/schemas/RatingSummary' }
+        comments:
+          type: array
+          items: { $ref: '#/components/schemas/Comment' }
+        canRate: { type: boolean, description: Signed in, allowed, and not the author }
+        canComment: { type: boolean }
+        locked: { type: boolean, description: The caller's plan doesn't include this; comments are left out }
+        requiredPlan: { $ref: '#/components/schemas/Tier' }
+
+    AdminComment:
+      type: object
+      required: [id, kind, targetId, targetTitle, authorName, staff, body, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: '#/components/schemas/DiscussionKind' }
+        targetId: { type: string, format: uuid }
+        targetTitle: { type: string }
+        articleSlug: { type: string }
+        authorName: { type: string }
+        staff: { type: boolean }
+        body: { type: string }
+        status: { type: string, enum: [pending, published, hidden] }
+        createdAt: { type: string, format: date-time }
 
     Ticket:
       type: object

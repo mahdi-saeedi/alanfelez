@@ -70,6 +70,20 @@ type AppCalculation struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type AppComment struct {
+	ID         pgtype.UUID
+	TargetKind string
+	TargetID   pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Staff      bool
+	Body       string
+	Status     string
+	ReviewedBy pgtype.UUID
+	ReviewedAt pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+}
+
 type AppCommunityPost struct {
 	ID         pgtype.UUID
 	UserID     pgtype.UUID
@@ -82,6 +96,8 @@ type AppCommunityPost struct {
 	HiddenBy   pgtype.UUID
 	HiddenAt   pgtype.Timestamptz
 	CreatedAt  pgtype.Timestamptz
+	ReviewedBy pgtype.UUID
+	ReviewedAt pgtype.Timestamptz
 }
 
 type AppCommunityPostImage struct {
@@ -277,6 +293,15 @@ type AppPriceAlert struct {
 type AppPriceUpdateCursor struct {
 	MetalID         int16
 	NotifiedThrough pgtype.Timestamptz
+}
+
+type AppRating struct {
+	TargetKind string
+	TargetID   pgtype.UUID
+	UserID     pgtype.UUID
+	Stars      int16
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
 }
 
 type AppRefund struct {
