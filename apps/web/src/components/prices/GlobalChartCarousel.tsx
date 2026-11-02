@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { AreaChart, type ChartPoint } from "./AreaChart";
+import { MetalIcon } from "./MetalIcon";
 
 export type GlobalChartItem = {
   slug: string;
@@ -45,23 +46,29 @@ export function GlobalChartCarousel({ items, locale, labels }: { items: GlobalCh
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-border px-3 pt-3">
-        {items.map((it, k) => (
-          <button
-            key={it.slug}
-            type="button"
-            role="tab"
-            aria-selected={k === i % items.length}
-            onClick={() => setI(k)}
-            className={`shrink-0 cursor-pointer rounded-t-md px-3 py-2 text-sm ${k === i % items.length ? "border-b-2 border-gold font-bold text-text" : "text-text-2 hover:text-text"}`}
-          >
-            {it.name}
-          </button>
-        ))}
+      {/* Tabs with a line between metals; the metal on show is larger, bold, on a gold tint and underlined in gold
+          (client, 2026-11-02: the change from one metal to the next must be plain to see). */}
+      <div role="tablist" className="flex overflow-x-auto border-b border-border px-3 pt-3 [scrollbar-width:none]">
+        {items.map((it, k) => {
+          const on = k === i % items.length;
+          return (
+            <button
+              key={it.slug}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => setI(k)}
+              className={`shrink-0 cursor-pointer border-s border-border px-4 py-2.5 transition-colors first:border-s-0 ${on ? "rounded-t-lg bg-gold/10 text-base font-extrabold text-text shadow-[inset_0_-3px_0_var(--color-gold)]" : "text-sm text-text-2 hover:text-text"}`}
+            >
+              {it.name}
+            </button>
+          );
+        })}
       </div>
       <div className="p-5" role="tabpanel" aria-live="polite">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-          <div className="text-xl font-extrabold tabular-nums">
+          <div key={cur.slug} className="flex items-center gap-3 text-xl font-extrabold tabular-nums motion-safe:animate-fade-in">
+            <MetalIcon slug={cur.metal} className="h-10 w-10" />
             {cur.name} <span className="mx-1 text-text-3">—</span> {cur.price}
             <span className="ms-2 text-xs font-normal text-text-3" dir="ltr">{cur.unit}</span>
           </div>

@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<Partial<Record<keyof CalcForm, string>>> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  if (!calculatorEnabled()) notFound();
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "calculator" });
   return seo(locale, "/calculator", { title: t("title"), description: t("subtitle") });

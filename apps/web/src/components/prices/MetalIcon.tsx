@@ -1,22 +1,10 @@
+import { LOOKS, NEUTRAL } from "./metal-colors";
+
 /**
  * Symbolic picture of a metal: an ingot in the metal's colour with its chemical symbol. Drawn inline (no image
  * request, nothing hosted abroad) and decorative only: the metal's name is always written next to it.
  * A metal added later in the admin, without an entry here, gets a neutral grey ingot without a symbol.
  */
-type Look = { top: string; front: string; edge: string; ink: string; symbol?: string };
-
-const LOOKS: Record<string, Look> = {
-  aluminum: { top: "#eef1f4", front: "#c9ced6", edge: "#a3abb6", ink: "#3d4450", symbol: "Al" },
-  copper: { top: "#e39a6c", front: "#b8693d", edge: "#8a4723", ink: "#fff7f0", symbol: "Cu" },
-  brass: { top: "#ecd27a", front: "#c9a43a", edge: "#94741c", ink: "#3a2d06", symbol: "CuZn" },
-  zinc: { top: "#d3dfe7", front: "#9fb3c2", edge: "#738898", ink: "#1f2c36", symbol: "Zn" },
-  lead: { top: "#9aa0aa", front: "#6e7480", edge: "#4b505a", ink: "#f2f4f7", symbol: "Pb" },
-  iron: { top: "#a59990", front: "#7a6f68", edge: "#564c46", ink: "#f7f3f0", symbol: "Fe" },
-  "cast-iron": { top: "#767b83", front: "#4b4f55", edge: "#2f3236", ink: "#e9ebee", symbol: "FeC" },
-};
-
-const NEUTRAL: Look = { top: "#dfe2e6", front: "#b4bac2", edge: "#8d949d", ink: "#3d4450" };
-
 export function MetalIcon({ slug, className = "h-10 w-10" }: { slug: string; className?: string }) {
   const look = LOOKS[slug] ?? NEUTRAL;
   const small = (look.symbol?.length ?? 0) > 2;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PostAnalysisTeaser } from "@/components/community/PostAnalysisTeaser";
 import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatDate, formatNumber, formatPriceValue, priceUnitLabel, type Locale } from "@alanfelez/ui/format";
@@ -46,6 +47,7 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
   const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("analysis");
+  const tl = await getTranslations("lock");
   const view: View = sp.type === "insights" || sp.type === "news" ? sp.type : "all";
   const page = Math.max(1, Math.min(1000, Number(sp.page) || 1));
   const filter = { metal: sp.metal, category: sp.category };
@@ -140,7 +142,7 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
 
           {/* Technical analyses first: they're what the page is named for (client, 2026-10-30). The team's and members'
               in one list, newest first; the byline's color tells them apart. */}
-          {view !== "news" && (feed.length > 0 || lockedMembers > 0 || members?.canPost) && (
+          {view !== "news" && (
             <section>
               <h2 className="mb-1 text-xl font-extrabold">{t("insights")}</h2>
               <p className="mb-4 text-sm text-text-2">{t("insightsSub")}</p>
@@ -151,6 +153,12 @@ export default async function AnalysisPage({ params, searchParams }: Params) {
                     left={members.postsLeftToday ?? 0}
                     labels={Object.fromEntries(FORM_KEYS.map((k) => [k, k === "left" ? t("community.form.left", { n: "{n}" }) : t(`community.form.${k}`)])) as Record<(typeof FORM_KEYS)[number], string>}
                   />
+                </div>
+              )}
+              {/* Visitors and free members see the same button; it explains that posting needs Silver (client, 2026-11-02). */}
+              {!members?.canPost && (
+                <div className="mb-4">
+                  <PostAnalysisTeaser plan={tl("plan.silver")} />
                 </div>
               )}
               {lockedMembers > 0 && (

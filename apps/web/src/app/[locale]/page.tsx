@@ -9,6 +9,7 @@ import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
 import { PlanCards } from "@/components/PlanCards";
 import { WhyAlanFelez } from "@/components/WhyAlanFelez";
+import { SilverUpgrade } from "@/components/SilverUpgrade";
 import { LatestAuctions } from "@/components/auctions/LatestAuctions";
 import { LatestInsights } from "@/components/content/LatestInsights";
 import { getMetals } from "@/lib/content";
@@ -30,23 +31,30 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   // The live prices block shows global (LME) prices only (client, 2026-10-25); the domestic ones until any exist.
   const global = base.filter((r) => r.series.market.scope === "global");
   const live = global.length ? global : base;
-  // Hero card: the global prices' 1-month charts in turn (client, 2026-10-25); the domestic ones while none exist.
+  // Hero card: the world prices' 1-month charts in turn (client, 2026-10-25), the domestic ones while none exist; all
+  // seven metals in the tabs (2026-11-02), a metal without a price yet marked «به‌زودی».
   const heroRows = (global.length ? global : domestic).filter((r) => r.price);
+  const heroMetals = await getMetals(locale);
   const heroItems: HeroItem[] = await Promise.all(
-    heroRows.map(async (r) => {
+    (heroMetals.length ? heroMetals : uniqueMetals(heroRows)).map(async (m) => {
+      const r = heroRows.find((x) => x.series.metal.slug === m.slug);
+      if (!r) return { metal: m.slug, name: m.name };
       const h = await getHistory(locale, r.series.slug, "1M");
       const points = "data" in h && h.data ? h.data.points.map((p) => Number(p.amount)) : [];
       const bp = points.length > 1 ? Math.trunc(((points.at(-1)! - points[0]!) * 10_000) / points[0]!) : undefined;
       return {
-        slug: r.series.slug,
-        name: r.series.metal.name,
-        price: formatPriceValue(r.price!, locale),
-        unit: priceUnitLabel(r.series, locale),
-        change: bp !== undefined ? formatBp(bp, locale) : undefined,
-        up: (bp ?? 0) >= 0,
-        dayChange: r.change ? formatBp(r.change.bp, locale) : undefined,
-        dayUp: (r.change?.bp ?? 0) >= 0,
-        points,
+        metal: m.slug,
+        name: m.name,
+        chart: {
+          slug: r.series.slug,
+          price: formatPriceValue(r.price!, locale),
+          unit: priceUnitLabel(r.series, locale),
+          change: bp !== undefined ? formatBp(bp, locale) : undefined,
+          up: (bp ?? 0) >= 0,
+          dayChange: r.change ? formatBp(r.change.bp, locale) : undefined,
+          dayUp: (r.change?.bp ?? 0) >= 0,
+          points,
+        },
       };
     }),
   );
@@ -117,7 +125,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             </Link>
           </div>
           </div>
-          {heroItems.length > 0 && <HeroCarousel items={heroItems} changeLabel={t("home.heroChange")} showLabel={t("home.heroShow")} />}
+          {heroItems.some((it) => it.chart) && <HeroCarousel items={heroItems} changeLabel={t("home.heroChange")} showLabel={t("home.heroShow")} soonLabel={t("home.heroSoon")} />}
         </div>
       </section>
 
@@ -164,16 +172,27 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
         </section>
       )}
 
-      {plans && (
+      {/* Plans by who is looking (client, 2026-11-02): visitors and free members see the three cards, Silver members what
+          Gold adds, Gold members nothing. An ended subscription makes the account free again, so the cards come back. */}
+      {plans && me?.tier !== "gold" && (
         <section className="mt-12 bg-surface py-12">
           <div className="mx-auto max-w-6xl px-4">
-            <h2 className="text-center text-2xl font-extrabold sm:text-3xl">{t("home.plansTitle")}</h2>
-            <p className="mt-2 text-center text-text-2">{t("plans.subtitle")}</p>
-            <PlanCards plans={plans} me={me} period="month" locale={locale} />
-            <p className="mt-6 text-center text-sm">
-              <Link href="/plans" className="font-bold text-gold-dark hover:text-gold">{t("home.plansCta")}</Link>
-              <span className="ms-2 text-text-3">{t("home.plansPeriods")}</span>
-            </p>
+            {me?.tier === "silver" ? (
+              <>
+                <h2 className="text-center text-2xl font-extrabold sm:text-3xl">{t("home.upgrade.sectionTitle")}</h2>
+                <SilverUpgrade plans={plans.items} endsAt={me.current?.endsAt} purchasable={plans.purchasable} locale={locale} />
+              </>
+            ) : (
+              <>
+                <h2 className="text-center text-2xl font-extrabold sm:text-3xl">{t("home.plansTitle")}</h2>
+                <p className="mt-2 text-center text-text-2">{t("plans.subtitle")}</p>
+                <PlanCards plans={plans} me={me} period="month" locale={locale} />
+                <p className="mt-6 text-center text-sm">
+                  <Link href="/plans" className="font-bold text-gold-dark hover:text-gold">{t("home.plansCta")}</Link>
+                  <span className="ms-2 text-text-3">{t("home.plansPeriods")}</span>
+                </p>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -184,4 +203,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
       <FinalCta locale={locale} signedIn={!!me} />
     </>
   );
+}
+
+/** The metals of some price rows, once each, in order (when the metal list isn't available). */
+function uniqueMetals(rows: { series: { metal: { slug: string; name: string } } }[]) {
+  return [...new Map(rows.map((r) => [r.series.metal.slug, r.series.metal])).values()];
 }

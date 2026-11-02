@@ -7,6 +7,9 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 
 ## Now (in progress)
+- [ ] Members' analyses: approval in the admin before they show, star ratings and comments (comments approved too)
+      by Silver, Gold and staff; experts' analyses rated and commented by Gold and staff only.
+- [ ] World prices of brass, iron and cast iron: enter them in the admin (rows exist) so the hero shows all seven.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
 - [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
 
@@ -54,6 +57,11 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-02 Home and About (client): hero chart with all seven metals («به‌زودی» until a metal has a world price), each in
+  its own colour, sliding in with a progress bar; world-chart tabs with separators and a bold active metal; plans by
+  tier (visitors/free: three cards; Silver: what Gold adds with the upgrade button; Gold: nothing); the strategy map on
+  /about (wording: Alan Felez informs and later introduces buyers and sellers, never a party to a trade); a glowing
+  «تحلیل خودت را بگذار» button that free visitors see too (it points to the plans).
 - 2026-11-02 Calculator hidden on the main site, kept on staging (`FEATURE_CALCULATOR`, web.extraEnv in staging/local):
   no menu/footer link, no page (404), no plan row, no «چرا الان‌فلز؟» card, no FAQ category. «چرا الان‌فلز؟» in plan
   order (2 free, 2 Silver, then Gold). Compare chart's third colour pink instead of violet.
