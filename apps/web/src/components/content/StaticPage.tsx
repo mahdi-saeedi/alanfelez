@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { calculatorEnabled } from "@/lib/features";
+import { withoutCalculator } from "@/lib/hide-calculator";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -32,7 +34,7 @@ export async function StaticPage({ locale, slug, withContact = false, children }
         {slug !== "about" && <p className="mt-2 text-xs text-text-3">{t("pages.updated", { date: formatDate(page.updatedAt, locale) })}</p>}
       </header>
       <div className="rounded-card border border-border bg-surface p-5 shadow-soft sm:p-8">
-        <RichText html={page.body} />
+        <RichText html={calculatorEnabled() ? page.body : withoutCalculator(page.body)} />
       </div>
       {withContact && site && <ContactBlock site={site} />}
       {children}

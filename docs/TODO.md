@@ -34,8 +34,7 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
-- [ ] Calculator on the main site: CMS text still mentions it (FAQ «الان‌فلز چیست؟» and «اشتراک طلایی», About, Terms §7);
-      edit in the production admin, or wait until the calculator returns.
+- [ ] **The client's SEO prompt** (said 2026-10-27 they'd give it once the site is complete): ask for it now.
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
@@ -56,6 +55,8 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-02 Where the calculator is off (main site), the CMS texts that name it are edited on the way to the page
+  (`lib/hide-calculator.ts`: FAQ answers, About, Terms §7 dropped and renumbered); staging shows them whole.
 - 2026-11-02 Bulk void per price row (admin price history: all prices, or a date range; audited once;
   `POST /v1/admin/series/{slug}/void`), e.g. for the placeholder world prices.
 - 2026-11-02 Home: the world prices block and the world chart tabs list all seven metals («قیمت جهانی به‌زودی» /

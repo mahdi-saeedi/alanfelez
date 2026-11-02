@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { calculatorEnabled } from "@/lib/features";
+import { withoutCalculator } from "@/lib/hide-calculator";
 import { seo } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
@@ -24,7 +25,12 @@ export default async function FaqPage({ params }: Params) {
   setRequestLocale(locale);
   const t = await getTranslations("faq");
   // The calculator's questions only where the calculator is on (hidden on the main site, client 2026-11-02).
-  const categories = (await getFaq(locale))?.filter((c) => c.slug !== "calculator" || calculatorEnabled()) ?? null;
+  // Where it is hidden, its questions go and the answers that name it are edited (lib/hide-calculator.ts).
+  const calc = calculatorEnabled();
+  const categories =
+    (await getFaq(locale))
+      ?.filter((c) => c.slug !== "calculator" || calc)
+      .map((c) => (calc ? c : { ...c, items: c.items.map((i) => ({ ...i, answer: withoutCalculator(i.answer) })) })) ?? null;
   if (!categories) {
     return <p className="mx-auto max-w-3xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
   }
