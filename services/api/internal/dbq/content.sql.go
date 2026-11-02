@@ -77,6 +77,62 @@ func (q *Queries) AdminListArticles(ctx context.Context, arg AdminListArticlesPa
 	return items, nil
 }
 
+const adminListComments = `-- name: AdminListComments :many
+SELECT c.id, c.target_kind, c.target_id, c.author_name, c.staff, c.body, c.status, c.created_at,
+       COALESCE(p.title, a.title_fa, '')::text AS target_title, a.slug AS article_slug
+FROM app.comments c
+LEFT JOIN app.community_posts p ON c.target_kind = 'post' AND p.id = c.target_id
+LEFT JOIN app.articles a ON c.target_kind = 'article' AND a.id = c.target_id
+WHERE ($1::text IS NULL OR c.status = $1::text)
+ORDER BY (c.status = 'pending') DESC, CASE WHEN c.status = 'pending' THEN c.created_at END ASC, c.created_at DESC
+LIMIT 200
+`
+
+type AdminListCommentsRow struct {
+	ID          pgtype.UUID
+	TargetKind  string
+	TargetID    pgtype.UUID
+	AuthorName  string
+	Staff       bool
+	Body        string
+	Status      string
+	CreatedAt   pgtype.Timestamptz
+	TargetTitle string
+	ArticleSlug pgtype.Text
+}
+
+// For review: waiting ones first (oldest first), then the rest newest first; with the title of what was commented on.
+func (q *Queries) AdminListComments(ctx context.Context, status pgtype.Text) ([]AdminListCommentsRow, error) {
+	rows, err := q.db.Query(ctx, adminListComments, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminListCommentsRow{}
+	for rows.Next() {
+		var i AdminListCommentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TargetKind,
+			&i.TargetID,
+			&i.AuthorName,
+			&i.Staff,
+			&i.Body,
+			&i.Status,
+			&i.CreatedAt,
+			&i.TargetTitle,
+			&i.ArticleSlug,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const adminListCommunityPosts = `-- name: AdminListCommunityPosts :many
 SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.status, p.hidden_at, p.created_at,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
@@ -87,7 +143,9 @@ LEFT JOIN market.metals m ON m.id = p.metal_id
 WHERE ($1::text IS NULL OR p.status = $1::text)
   AND (NOT $2::bool OR EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id))
   AND ($3::text = '' OR p.title ILIKE '%' || $3::text || '%' OR p.author_name ILIKE '%' || $3::text || '%')
-ORDER BY (p.status = 'published' AND EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id)) DESC,
+ORDER BY (p.status = 'pending') DESC,
+         CASE WHEN p.status = 'pending' THEN p.created_at END ASC,
+         (p.status = 'published' AND EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id)) DESC,
          reports DESC, p.created_at DESC
 LIMIT 200
 `
@@ -115,7 +173,7 @@ type AdminListCommunityPostsRow struct {
 	Reports    int64
 }
 
-// Reported published posts first (most reports first), then the rest newest first.
+// Posts waiting for review first (oldest first), then reported published ones (most reports first), then the rest.
 func (q *Queries) AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error) {
 	rows, err := q.db.Query(ctx, adminListCommunityPosts, arg.Status, arg.ReportedOnly, arg.Q)
 	if err != nil {
@@ -164,6 +222,28 @@ func (q *Queries) CountCommunityPosts(ctx context.Context, metal pgtype.Text) (i
 	return count, err
 }
 
+const countPendingComments = `-- name: CountPendingComments :one
+SELECT count(*) FROM app.comments WHERE status = 'pending'
+`
+
+func (q *Queries) CountPendingComments(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countPendingComments)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countPendingCommunityPosts = `-- name: CountPendingCommunityPosts :one
+SELECT count(*) FROM app.community_posts WHERE status = 'pending'
+`
+
+func (q *Queries) CountPendingCommunityPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countPendingCommunityPosts)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countPublishedArticles = `-- name: CountPublishedArticles :one
 SELECT count(*) FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
@@ -194,6 +274,22 @@ JOIN app.community_posts p ON p.id = r.post_id WHERE p.status = 'published'
 
 func (q *Queries) CountReportedCommunityPosts(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countReportedCommunityPosts)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserCommentsSince = `-- name: CountUserCommentsSince :one
+SELECT count(*) FROM app.comments WHERE user_id = $1 AND created_at > $2
+`
+
+type CountUserCommentsSinceParams struct {
+	UserID    pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) CountUserCommentsSince(ctx context.Context, arg CountUserCommentsSinceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countUserCommentsSince, arg.UserID, arg.CreatedAt)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -450,6 +546,22 @@ func (q *Queries) DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPo
 	return result.RowsAffected(), nil
 }
 
+const deleteDiscussion = `-- name: DeleteDiscussion :exec
+WITH r AS (DELETE FROM app.ratings rt WHERE rt.target_kind = $1 AND rt.target_id = $2)
+DELETE FROM app.comments c WHERE c.target_kind = $1 AND c.target_id = $2
+`
+
+type DeleteDiscussionParams struct {
+	TargetKind string
+	TargetID   pgtype.UUID
+}
+
+// With a deleted post: its ratings and comments go too.
+func (q *Queries) DeleteDiscussion(ctx context.Context, arg DeleteDiscussionParams) error {
+	_, err := q.db.Exec(ctx, deleteDiscussion, arg.TargetKind, arg.TargetID)
+	return err
+}
+
 const deleteFaqItem = `-- name: DeleteFaqItem :execrows
 DELETE FROM app.faq_items WHERE id = $1
 `
@@ -529,14 +641,39 @@ func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow
 	return i, err
 }
 
+const getArticleForDiscussion = `-- name: GetArticleForDiscussion :one
+
+SELECT type, status FROM app.articles WHERE id = $1
+`
+
+type GetArticleForDiscussionRow struct {
+	Type   string
+	Status string
+}
+
+// Ratings and comments (migration 00027) on members' analyses ('post') and the team's articles ('article').
+func (q *Queries) GetArticleForDiscussion(ctx context.Context, id pgtype.UUID) (GetArticleForDiscussionRow, error) {
+	row := q.db.QueryRow(ctx, getArticleForDiscussion, id)
+	var i GetArticleForDiscussionRow
+	err := row.Scan(&i.Type, &i.Status)
+	return i, err
+}
+
 const getCommunityPostImage = `-- name: GetCommunityPostImage :one
 SELECT i.content FROM app.community_post_images i
 JOIN app.community_posts p ON p.id = i.post_id
-WHERE i.post_id = $1 AND p.status = 'published'
+WHERE i.post_id = $1 AND (p.status = 'published' OR $2::bool OR p.user_id = $3::uuid)
 `
 
-func (q *Queries) GetCommunityPostImage(ctx context.Context, postID pgtype.UUID) ([]byte, error) {
-	row := q.db.QueryRow(ctx, getCommunityPostImage, postID)
+type GetCommunityPostImageParams struct {
+	ID        pgtype.UUID
+	AnyStatus bool
+	Caller    pgtype.UUID
+}
+
+// Members see published posts' images; staff (any_status) also those waiting for review or hidden; the author their own.
+func (q *Queries) GetCommunityPostImage(ctx context.Context, arg GetCommunityPostImageParams) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getCommunityPostImage, arg.ID, arg.AnyStatus, arg.Caller)
 	var content []byte
 	err := row.Scan(&content)
 	return content, err
@@ -701,6 +838,42 @@ func (q *Queries) GetSettings(ctx context.Context, keys []string) ([]GetSettings
 	return items, nil
 }
 
+const insertComment = `-- name: InsertComment :one
+INSERT INTO app.comments (target_kind, target_id, user_id, author_name, staff, body, status)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, created_at
+`
+
+type InsertCommentParams struct {
+	TargetKind string
+	TargetID   pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Staff      bool
+	Body       string
+	Status     string
+}
+
+type InsertCommentRow struct {
+	ID        pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) InsertComment(ctx context.Context, arg InsertCommentParams) (InsertCommentRow, error) {
+	row := q.db.QueryRow(ctx, insertComment,
+		arg.TargetKind,
+		arg.TargetID,
+		arg.UserID,
+		arg.AuthorName,
+		arg.Staff,
+		arg.Body,
+		arg.Status,
+	)
+	var i InsertCommentRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
+
 const listArticleCategories = `-- name: ListArticleCategories :many
 
 SELECT id, slug, name_fa, name_en, sort FROM app.article_categories ORDER BY sort, id
@@ -741,15 +914,72 @@ func (q *Queries) ListArticleCategories(ctx context.Context) ([]ListArticleCateg
 	return items, nil
 }
 
+const listComments = `-- name: ListComments :many
+SELECT id, user_id, author_name, staff, body, status, created_at
+FROM app.comments
+WHERE target_kind = $1 AND target_id = $2
+  AND (status = 'published' OR (status = 'pending' AND user_id = $3::uuid))
+ORDER BY created_at, id
+LIMIT 200
+`
+
+type ListCommentsParams struct {
+	TargetKind string
+	TargetID   pgtype.UUID
+	Caller     pgtype.UUID
+}
+
+type ListCommentsRow struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Staff      bool
+	Body       string
+	Status     string
+	CreatedAt  pgtype.Timestamptz
+}
+
+// Published comments, plus the caller's own that wait for review; oldest first, like a conversation.
+func (q *Queries) ListComments(ctx context.Context, arg ListCommentsParams) ([]ListCommentsRow, error) {
+	rows, err := q.db.Query(ctx, listComments, arg.TargetKind, arg.TargetID, arg.Caller)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCommentsRow{}
+	for rows.Next() {
+		var i ListCommentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.AuthorName,
+			&i.Staff,
+			&i.Body,
+			&i.Status,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCommunityPosts = `-- name: ListCommunityPosts :many
 
-SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at,
+SELECT p.id, p.user_id, p.author_name, p.outlook, p.title, p.body, p.created_at, p.status,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en,
        EXISTS (SELECT 1 FROM app.community_post_images i WHERE i.post_id = p.id) AS has_image,
-       EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id AND r.user_id = $1::uuid) AS reported_by_me
+       EXISTS (SELECT 1 FROM app.community_post_reports r WHERE r.post_id = p.id AND r.user_id = $1::uuid) AS reported_by_me,
+       COALESCE((SELECT avg(rt.stars) FROM app.ratings rt WHERE rt.target_kind = 'post' AND rt.target_id = p.id), 0)::float8 AS rating_avg,
+       (SELECT count(*) FROM app.ratings rt WHERE rt.target_kind = 'post' AND rt.target_id = p.id) AS rating_count,
+       (SELECT count(*) FROM app.comments c WHERE c.target_kind = 'post' AND c.target_id = p.id AND c.status = 'published') AS comment_count
 FROM app.community_posts p
 LEFT JOIN market.metals m ON m.id = p.metal_id
-WHERE p.status = 'published'
+WHERE (p.status = 'published' OR (p.status = 'pending' AND p.user_id = $1::uuid))
   AND ($2::text IS NULL OR m.slug = $2::text)
 ORDER BY p.created_at DESC, p.id
 LIMIT $4 OFFSET $3
@@ -770,14 +1000,19 @@ type ListCommunityPostsRow struct {
 	Title        string
 	Body         string
 	CreatedAt    pgtype.Timestamptz
+	Status       string
 	MetalSlug    pgtype.Text
 	MetalFa      pgtype.Text
 	MetalEn      pgtype.Text
 	HasImage     bool
 	ReportedByMe bool
+	RatingAvg    float64
+	RatingCount  int64
+	CommentCount int64
 }
 
-// Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
+// Members' analyses («تحلیل کاربران», migration 00021). The feed shows published posts, plus the caller's own posts
+// that wait for review (migration 00027), marked so on their card.
 func (q *Queries) ListCommunityPosts(ctx context.Context, arg ListCommunityPostsParams) ([]ListCommunityPostsRow, error) {
 	rows, err := q.db.Query(ctx, listCommunityPosts,
 		arg.Caller,
@@ -800,11 +1035,15 @@ func (q *Queries) ListCommunityPosts(ctx context.Context, arg ListCommunityPosts
 			&i.Title,
 			&i.Body,
 			&i.CreatedAt,
+			&i.Status,
 			&i.MetalSlug,
 			&i.MetalFa,
 			&i.MetalEn,
 			&i.HasImage,
 			&i.ReportedByMe,
+			&i.RatingAvg,
+			&i.RatingCount,
+			&i.CommentCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1115,6 +1354,31 @@ func (q *Queries) PutSetting(ctx context.Context, arg PutSettingParams) error {
 	return err
 }
 
+const ratingSummary = `-- name: RatingSummary :one
+SELECT COALESCE(avg(stars), 0)::float8 AS avg, count(*) AS count,
+       COALESCE(max(stars) FILTER (WHERE user_id = $1::uuid), 0)::int AS mine
+FROM app.ratings WHERE target_kind = $2 AND target_id = $3
+`
+
+type RatingSummaryParams struct {
+	Caller     pgtype.UUID
+	TargetKind string
+	TargetID   pgtype.UUID
+}
+
+type RatingSummaryRow struct {
+	Avg   float64
+	Count int64
+	Mine  int32
+}
+
+func (q *Queries) RatingSummary(ctx context.Context, arg RatingSummaryParams) (RatingSummaryRow, error) {
+	row := q.db.QueryRow(ctx, ratingSummary, arg.Caller, arg.TargetKind, arg.TargetID)
+	var i RatingSummaryRow
+	err := row.Scan(&i.Avg, &i.Count, &i.Mine)
+	return i, err
+}
+
 const reportCommunityPost = `-- name: ReportCommunityPost :exec
 INSERT INTO app.community_post_reports (post_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING
 `
@@ -1146,10 +1410,30 @@ func (q *Queries) SavePageRevision(ctx context.Context, arg SavePageRevisionPara
 	return err
 }
 
+const setCommentStatus = `-- name: SetCommentStatus :execrows
+UPDATE app.comments SET status = $1, reviewed_by = $2::uuid, reviewed_at = now()
+WHERE id = $3
+`
+
+type SetCommentStatusParams struct {
+	Status string
+	Actor  pgtype.UUID
+	ID     pgtype.UUID
+}
+
+func (q *Queries) SetCommentStatus(ctx context.Context, arg SetCommentStatusParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setCommentStatus, arg.Status, arg.Actor, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const setCommunityPostStatus = `-- name: SetCommunityPostStatus :execrows
 UPDATE app.community_posts SET status = $1,
   hidden_by = CASE WHEN $1::text = 'hidden' THEN $2::uuid END,
-  hidden_at = CASE WHEN $1::text = 'hidden' THEN now() END
+  hidden_at = CASE WHEN $1::text = 'hidden' THEN now() END,
+  reviewed_by = $2::uuid, reviewed_at = now()
 WHERE id = $3
 `
 
@@ -1437,4 +1721,26 @@ func (q *Queries) UpdatePage(ctx context.Context, arg UpdatePageParams) (UpdateP
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const upsertRating = `-- name: UpsertRating :exec
+INSERT INTO app.ratings (target_kind, target_id, user_id, stars) VALUES ($1, $2, $3, $4)
+ON CONFLICT (target_kind, target_id, user_id) DO UPDATE SET stars = EXCLUDED.stars, updated_at = now()
+`
+
+type UpsertRatingParams struct {
+	TargetKind string
+	TargetID   pgtype.UUID
+	UserID     pgtype.UUID
+	Stars      int16
+}
+
+func (q *Queries) UpsertRating(ctx context.Context, arg UpsertRatingParams) error {
+	_, err := q.db.Exec(ctx, upsertRating,
+		arg.TargetKind,
+		arg.TargetID,
+		arg.UserID,
+		arg.Stars,
+	)
+	return err
 }

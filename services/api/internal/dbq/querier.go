@@ -16,7 +16,9 @@ type Querier interface {
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
 	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
-	// Reported published posts first (most reports first), then the rest newest first.
+	// For review: waiting ones first (oldest first), then the rest newest first; with the title of what was commented on.
+	AdminListComments(ctx context.Context, status pgtype.Text) ([]AdminListCommentsRow, error)
+	// Posts waiting for review first (oldest first), then reported published ones (most reports first), then the rest.
 	AdminListCommunityPosts(ctx context.Context, arg AdminListCommunityPostsParams) ([]AdminListCommunityPostsRow, error)
 	AdminListContactMessages(ctx context.Context, status pgtype.Text) ([]AdminListContactMessagesRow, error)
 	AdminListGroups(ctx context.Context) ([]AdminListGroupsRow, error)
@@ -51,10 +53,13 @@ type Querier interface {
 	CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error)
 	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error)
+	CountPendingComments(ctx context.Context) (int64, error)
+	CountPendingCommunityPosts(ctx context.Context) (int64, error)
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
 	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
 	CountReportedCommunityPosts(ctx context.Context) (int64, error)
 	CountUserAlerts(ctx context.Context, userID pgtype.UUID) (int32, error)
+	CountUserCommentsSince(ctx context.Context, arg CountUserCommentsSinceParams) (int64, error)
 	// Deleted posts don't come back here, so the daily limit counts what's left; hidden ones still count.
 	CountUserCommunityPostsSince(ctx context.Context, arg CountUserCommunityPostsSinceParams) (int64, error)
 	CreateArticle(ctx context.Context, arg CreateArticleParams) (pgtype.UUID, error)
@@ -73,6 +78,8 @@ type Querier interface {
 	DeleteAuctionFile(ctx context.Context, auctionID pgtype.UUID) (int64, error)
 	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
 	DeleteCommunityPost(ctx context.Context, arg DeleteCommunityPostParams) (int64, error)
+	// With a deleted post: its ratings and comments go too.
+	DeleteDiscussion(ctx context.Context, arg DeleteDiscussionParams) error
 	DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, error)
 	// Its products become ungrouped (ON DELETE SET NULL).
 	DeleteGroup(ctx context.Context, id int16) (int64, error)
@@ -97,8 +104,11 @@ type Querier interface {
 	FindOrderByKey(ctx context.Context, arg FindOrderByKeyParams) (AppOrder, error)
 	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
 	GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error)
+	// Ratings and comments (migration 00027) on members' analyses ('post') and the team's articles ('article').
+	GetArticleForDiscussion(ctx context.Context, id pgtype.UUID) (GetArticleForDiscussionRow, error)
 	GetAuctionFile(ctx context.Context, auctionID pgtype.UUID) (GetAuctionFileRow, error)
-	GetCommunityPostImage(ctx context.Context, postID pgtype.UUID) ([]byte, error)
+	// Members see published posts' images; staff (any_status) also those waiting for review or hidden; the author their own.
+	GetCommunityPostImage(ctx context.Context, arg GetCommunityPostImageParams) ([]byte, error)
 	GetCommunityPostOwner(ctx context.Context, id pgtype.UUID) (GetCommunityPostOwnerRow, error)
 	// The calculator's base price: the latest published point of one series, with its source.
 	GetLatestPrice(ctx context.Context, seriesID int32) (GetLatestPriceRow, error)
@@ -125,6 +135,7 @@ type Querier interface {
 	InsertAuction(ctx context.Context, arg InsertAuctionParams) (pgtype.UUID, error)
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
 	InsertCalculation(ctx context.Context, arg InsertCalculationParams) (InsertCalculationRow, error)
+	InsertComment(ctx context.Context, arg InsertCommentParams) (InsertCommentRow, error)
 	// Support (internal/support): contact form messages and user tickets.
 	InsertContactMessage(ctx context.Context, arg InsertContactMessageParams) (InsertContactMessageRow, error)
 	// No row back = the metal or category doesn't exist; a unique violation = the name is taken in that metal and category.
@@ -166,7 +177,10 @@ type Querier interface {
 	// Saved calculations are kept for 3 months (client, 2026-10-31): older ones are deleted when the user lists or saves.
 	ListCalculations(ctx context.Context, userID pgtype.UUID) ([]ListCalculationsRow, error)
 	ListCategories(ctx context.Context) ([]ListCategoriesRow, error)
-	// Members' analyses («تحلیل کاربران», migration 00021). The feed only shows published posts.
+	// Published comments, plus the caller's own that wait for review; oldest first, like a conversation.
+	ListComments(ctx context.Context, arg ListCommentsParams) ([]ListCommentsRow, error)
+	// Members' analyses («تحلیل کاربران», migration 00021). The feed shows published posts, plus the caller's own posts
+	// that wait for review (migration 00027), marked so on their card.
 	ListCommunityPosts(ctx context.Context, arg ListCommunityPostsParams) ([]ListCommunityPostsRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
 	ListFaqCategories(ctx context.Context) ([]ListFaqCategoriesRow, error)
@@ -219,6 +233,7 @@ type Querier interface {
 	PutAuctionFile(ctx context.Context, arg PutAuctionFileParams) (int64, error)
 	PutCommunityPostImage(ctx context.Context, arg PutCommunityPostImageParams) error
 	PutSetting(ctx context.Context, arg PutSettingParams) error
+	RatingSummary(ctx context.Context, arg RatingSummaryParams) (RatingSummaryRow, error)
 	// Paid-feature usage (refund rule) -----------------------------------------------------------------------------
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
 	RecordVisit(ctx context.Context, arg RecordVisitParams) error
@@ -238,6 +253,7 @@ type Querier interface {
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
 	// Re-activating re-arms the alert, so it fires on the next crossing.
 	SetAlertActive(ctx context.Context, arg SetAlertActiveParams) (int64, error)
+	SetCommentStatus(ctx context.Context, arg SetCommentStatusParams) (int64, error)
 	SetCommunityPostStatus(ctx context.Context, arg SetCommunityPostStatusParams) (int64, error)
 	// Upsert: a flag missing from an environment's seed is created on first switch.
 	SetFlag(ctx context.Context, arg SetFlagParams) (SetFlagRow, error)
@@ -272,6 +288,7 @@ type Querier interface {
 	// category NULL keeps the current one; an unknown category slug updates nothing (the handler answers 404).
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (int64, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
+	UpsertRating(ctx context.Context, arg UpsertRatingParams) error
 	// 0 rows: unknown metal slug.
 	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under

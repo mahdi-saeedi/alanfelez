@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/google/uuid"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -100,7 +102,7 @@ func (s *Server) GetArticle(ctx context.Context, req GetArticleRequestObject) (G
 	}
 	lang := langOf((*string)(req.Params.AcceptLanguage))
 	a := Article{
-		Slug: r.Slug, Type: ArticleType(r.Type), Title: localized(lang, r.TitleFa, r.TitleEn),
+		Id: ptr(uuid.UUID(r.ID.Bytes)), Slug: r.Slug, Type: ArticleType(r.Type), Title: localized(lang, r.TitleFa, r.TitleEn),
 		Summary: localized(lang, r.SummaryFa, r.SummaryEn), Featured: r.Featured, CoverUrl: textp(r.CoverUrl),
 		Keywords:    keywordsOf(lang, r.KeywordsFa, r.KeywordsEn),
 		ReadMinutes: int(r.ReadMinutes), PublishedAt: r.PublishedAt.Time.UTC(), UpdatedAt: r.UpdatedAt.Time.UTC(),

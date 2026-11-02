@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DiscussionBox } from "@/components/community/DiscussionBox";
 import { seo } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -96,6 +97,13 @@ export default async function ArticlePage({ params }: Params) {
       </div>
 
       {insight && <p className="mt-8 rounded-card border border-border bg-surface-2 p-4 text-xs leading-6 text-text-2">{t("analysis.disclaimer")}</p>}
+      {/* Stars and comments for readers of the article (client, 2026-11-02): the experts' analyses are Gold. */}
+      {a.id && !a.locked && (
+        <section className="mt-8 rounded-card border border-border bg-surface p-4 shadow-soft">
+          <h2 className="mb-2 font-extrabold">{t("discussion.title")}</h2>
+          <DiscussionBox kind="article" id={a.id} open />
+        </section>
+      )}
       {Date.parse(a.updatedAt) - Date.parse(a.publishedAt) > 3_600_000 && ( // edited after publishing
         <p className="mt-4 text-xs text-text-3">{t("pages.updated", { date: formatDate(a.updatedAt, locale) })}</p>
       )}

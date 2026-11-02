@@ -546,7 +546,7 @@
         "left": "You can post {n} more today.",
         "none": "You've reached 3 analyses today; try again tomorrow.",
         "disclaimer": "Your analysis is published under your sign-up name («Analysis by …»). Promises of profit or a “certain” price aren't accepted. It's your view, not a recommendation to buy or sell, and you're responsible for it; the Alan Felez team may hide unsuitable posts.",
-        "posted": "Your analysis is published.",
+        "posted": "Your analysis is saved and shows on the site once our team has reviewed it.",
         "imageFailed": "Published, but the image couldn't be uploaded; it must be PNG, JPG or WebP under 5 MB.",
         "imageTooBig": "The image must be under 5 MB.",
         "invalid": "The title must be 3–150 and the text 10–3000 characters.",
@@ -563,7 +563,9 @@
         "title": "Posting is for {plan} and Gold members",
         "text": "With Silver you post your own analysis for other traders, get ratings and read their comments.",
         "cta": "See the plans"
-      }
+      },
+      "pending": "Waiting for review",
+      "pendingNote": "Only you see this analysis; it shows to everyone once our team has reviewed it."
     }
   },
   "faq": {
@@ -918,5 +920,31 @@
     "valuesWord": "The values' first letters in Persian spell الان‌فلز",
     "date": "Drawn up: 17 September 2025",
     "version": "Alan Felez · version 1"
+  },
+  "discussion": {
+    "ratingLine": "{avg} of 5 ({n} ratings)",
+    "noRating": "No ratings yet",
+    "comments": "{n} comments",
+    "loading": "Loading…",
+    "locked": "Rating and reading the comments is for members who can read this.",
+    "plans": "See the plans",
+    "yourRating": "Your rating:",
+    "starsLabel": "{n} stars",
+    "rated": "Your rating is saved.",
+    "none": "No comments yet.",
+    "team": "Alan Felez team",
+    "pending": "Waiting for review",
+    "write": "Write a comment…",
+    "reviewNote": "Your comment shows once our team has reviewed it.",
+    "send": "Send",
+    "sending": "Sending…",
+    "pendingSent": "Your comment is saved and shows after review.",
+    "sent": "Your comment is published.",
+    "signIn": "Sign in to rate and comment.",
+    "invalid": "A comment is 2 to 1000 characters.",
+    "claim": "A comment can't promise profit or a certain price.",
+    "limited": "At most 20 comments a day.",
+    "failed": "Not saved; please try again.",
+    "title": "Ratings and comments"
   }
 }
