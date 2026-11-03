@@ -182,6 +182,12 @@ type AppFeatureFlag struct {
 	UpdatedAt   pgtype.Timestamptz
 }
 
+type AppMetalViewsDaily struct {
+	Day   pgtype.Date
+	Metal string
+	Views int32
+}
+
 type AppNotification struct {
 	ID        pgtype.UUID
 	UserID    pgtype.UUID
@@ -239,6 +245,18 @@ type AppPageRevision struct {
 	BodyEn    pgtype.Text
 	CreatedBy pgtype.UUID
 	CreatedAt pgtype.Timestamptz
+}
+
+type AppPageView struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	Day        pgtype.Date
+	At         pgtype.Timestamptz
+	Path       string
+	Section    string
+	Metal      pgtype.Text
+	SeriesSlug pgtype.Text
+	Seconds    int32
 }
 
 type AppPayment struct {
@@ -397,10 +415,26 @@ type AppUser struct {
 	Company    pgtype.Text
 }
 
+type AppUserActivityDaily struct {
+	UserID  pgtype.UUID
+	Day     pgtype.Date
+	Section string
+	Metal   string
+	Views   int32
+	Seconds int32
+}
+
 type AppVisitSalt struct {
 	Day       pgtype.Date
 	Salt      pgtype.UUID
 	CreatedAt pgtype.Timestamptz
+}
+
+type AppVisitTotal struct {
+	Day       pgtype.Date
+	Visitors  int32
+	SignedIn  int32
+	Pageviews int32
 }
 
 type MarketAuction struct {

@@ -78,4 +78,7 @@ LIMIT 200;
 
 -- name: SupportCounts :one
 SELECT (SELECT count(*) FROM app.tickets WHERE status = 'open')::int AS open_tickets,
-       (SELECT count(*) FROM app.contact_messages WHERE status = 'new')::int AS new_messages;
+       (SELECT count(*) FROM app.contact_messages WHERE status = 'new')::int AS new_messages,
+       ((SELECT count(*) FROM app.community_posts WHERE status = 'pending')
+        + (SELECT count(*) FROM app.comments WHERE status = 'pending'))::int AS pending_community,
+       (SELECT count(*) FROM market.price_points WHERE status = 'quarantined')::int AS quarantined;

@@ -29,7 +29,8 @@ func (s *Server) AdminSupportSummary(ctx context.Context, _ AdminSupportSummaryR
 	if err != nil {
 		return nil, fmt.Errorf("support counts: %w", err)
 	}
-	return AdminSupportSummary200JSONResponse{OpenTickets: int(c.OpenTickets), NewMessages: int(c.NewMessages)}, nil
+	return AdminSupportSummary200JSONResponse{OpenTickets: int(c.OpenTickets), NewMessages: int(c.NewMessages),
+		PendingCommunity: int(c.PendingCommunity), Quarantined: int(c.Quarantined)}, nil
 }
 
 // AdminListContactMessages lists contact form messages.

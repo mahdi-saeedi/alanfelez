@@ -467,18 +467,28 @@ func (q *Queries) SetTicketStatus(ctx context.Context, arg SetTicketStatusParams
 
 const supportCounts = `-- name: SupportCounts :one
 SELECT (SELECT count(*) FROM app.tickets WHERE status = 'open')::int AS open_tickets,
-       (SELECT count(*) FROM app.contact_messages WHERE status = 'new')::int AS new_messages
+       (SELECT count(*) FROM app.contact_messages WHERE status = 'new')::int AS new_messages,
+       ((SELECT count(*) FROM app.community_posts WHERE status = 'pending')
+        + (SELECT count(*) FROM app.comments WHERE status = 'pending'))::int AS pending_community,
+       (SELECT count(*) FROM market.price_points WHERE status = 'quarantined')::int AS quarantined
 `
 
 type SupportCountsRow struct {
-	OpenTickets int32
-	NewMessages int32
+	OpenTickets      int32
+	NewMessages      int32
+	PendingCommunity int32
+	Quarantined      int32
 }
 
 func (q *Queries) SupportCounts(ctx context.Context) (SupportCountsRow, error) {
 	row := q.db.QueryRow(ctx, supportCounts)
 	var i SupportCountsRow
-	err := row.Scan(&i.OpenTickets, &i.NewMessages)
+	err := row.Scan(
+		&i.OpenTickets,
+		&i.NewMessages,
+		&i.PendingCommunity,
+		&i.Quarantined,
+	)
 	return i, err
 }
 

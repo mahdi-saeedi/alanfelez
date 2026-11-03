@@ -494,10 +494,15 @@ paths:
     get:
       operationId: adminListUsers
       tags: [admin]
-      summary: Search users by mobile, name or id (max 50)
+      summary: Users, filtered (mobile, name, company or id; plan held now; a sign-up metal, activity, province), 50 a page
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/UserPlanFilter' }
+        - { name: metal, in: query, required: false, schema: { type: string, maxLength: 40 }, description: A metal slug the user chose at sign-up }
+        - { $ref: '#/components/parameters/UserActivityFilter' }
+        - { name: province, in: query, required: false, schema: { type: string, maxLength: 60 } }
+        - { $ref: '#/components/parameters/PageNumber' }
       responses:
         '200':
           description: Users
@@ -505,11 +510,16 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required: [items, total, provinces]
                 properties:
                   items:
                     type: array
                     items: { $ref: '#/components/schemas/AdminUser' }
+                  total: { type: integer, description: Matching users (all pages) }
+                  provinces:
+                    type: array
+                    items: { type: string }
+                    description: The provinces users chose (the filter's options)
         '401': { $ref: '#/components/responses/Problem' }
         '403': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
@@ -529,6 +539,116 @@ paths:
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
       responses:
         '204': { description: Deleted }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/users/export:
+    get:
+      operationId: adminExportUsers
+      tags: [admin]
+      summary: The users list as a CSV file for Excel (same filters, every page, up to 20,000 rows). Audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/UserPlanFilter' }
+        - { name: metal, in: query, required: false, schema: { type: string, maxLength: 40 } }
+        - { $ref: '#/components/parameters/UserActivityFilter' }
+        - { name: province, in: query, required: false, schema: { type: string, maxLength: 60 } }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: UTF-8 CSV with a byte order mark (opens in Excel with Persian text)
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/dashboard:
+    get:
+      operationId: adminDashboard
+      tags: [admin]
+      summary: The admin home page for one day (default today in Tehran; visitors, sign-ups, plans, metals viewed) and what waits for staff now
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: day, in: query, required: false, schema: { type: string, format: date } }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: Dashboard
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminDashboard' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/activity:
+    get:
+      operationId: adminActivity
+      tags: [admin]
+      summary: Signed-in users' activity between two days (time on the site, sections, metals), filtered, 50 a page
+      description: >
+        Only signed-in users are named; anonymous visitors are never recorded per person. Default range: the last 30 days
+        (Tehran). With `metal`, only users who opened pages about it, most views first.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { name: metal, in: query, required: false, schema: { type: string, maxLength: 40 } }
+        - { $ref: '#/components/parameters/UserPlanFilter' }
+        - { $ref: '#/components/parameters/UserActivityFilter' }
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/PageNumber' }
+      responses:
+        '200':
+          description: Users with their activity
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActivityList' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/activity/export:
+    get:
+      operationId: adminExportActivity
+      tags: [admin]
+      summary: The activity list as a CSV file for Excel (one column per metal), or with userId one user's page views. Audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { name: metal, in: query, required: false, schema: { type: string, maxLength: 40 } }
+        - { $ref: '#/components/parameters/UserPlanFilter' }
+        - { $ref: '#/components/parameters/UserActivityFilter' }
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: userId, in: query, required: false, schema: { type: string, format: uuid } }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: UTF-8 CSV with a byte order mark
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/activity/{id}:
+    get:
+      operationId: adminUserActivity
+      tags: [admin]
+      summary: One user's activity between two days, per metal, section, product and day, and the pages of one day
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { name: day, in: query, required: false, schema: { type: string, format: date }, description: 'The day whose pages are listed (default: the last day with activity in the range)' }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: Activity
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUserActivity' }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/orders:
@@ -1293,7 +1413,20 @@ paths:
               type: object
               required: [path]
               properties:
-                path: { type: string, maxLength: 300 }
+                path: { type: string, maxLength: 300, description: 'Path and query string (e.g. /prices?metal=copper)' }
+                view:
+                  type: string
+                  format: uuid
+                  description: >
+                    Made by the browser for this page view. With it, a signed-in user's page view is recorded for the admin
+                    «رفتار کاربران» (section, metal, product); a repeat of the same id is ignored.
+                seconds:
+                  type: integer
+                  minimum: 1
+                  maximum: 1800
+                  description: >
+                    Time the page was in view since the last report (the user left or hid it). With it, the call only adds
+                    time to the view `view` (the caller's own) and counts nothing.
       responses:
         '204': { description: Counted (or ignored) }
         default: { $ref: '#/components/responses/Problem' }
@@ -2024,10 +2157,12 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [openTickets, newMessages]
+                required: [openTickets, newMessages, pendingCommunity, quarantined]
                 properties:
                   openTickets: { type: integer }
                   newMessages: { type: integer }
+                  pendingCommunity: { type: integer, description: Members' analyses and comments waiting for review }
+                  quarantined: { type: integer, description: Price points held by the outlier gate }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/contact-messages:
@@ -2516,6 +2651,36 @@ components:
       in: header
       required: false
       schema: { type: string, enum: [fa, en], default: fa }
+    PageNumber:
+      name: page
+      in: query
+      required: false
+      description: Page number, from 1 (50 rows a page)
+      schema: { type: integer, minimum: 1, maximum: 10000, default: 1 }
+    UserPlanFilter:
+      name: plan
+      in: query
+      required: false
+      description: The plan the user holds now
+      schema: { $ref: '#/components/schemas/Tier' }
+    UserActivityFilter:
+      name: activity
+      in: query
+      required: false
+      description: Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other)
+      schema: { type: string, maxLength: 40 }
+    ActivityFrom:
+      name: from
+      in: query
+      required: false
+      description: 'First day, Tehran (default: 29 days before `to`). At most 2 years before `to`'
+      schema: { type: string, format: date }
+    ActivityTo:
+      name: to
+      in: query
+      required: false
+      description: 'Last day, Tehran (default: today)'
+      schema: { type: string, format: date }
 
   responses:
     Problem:
@@ -3219,6 +3384,140 @@ components:
               firstAt: { type: string, format: date-time }
               lastAt: { type: string, format: date-time }
               pageviews: { type: integer }
+
+    AdminDashboard:
+      type: object
+      required: [day, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups7d, signupsPrev7d, silver, gold, expiring7d, pending, missingPrices, metals]
+      properties:
+        day: { type: string, format: date }
+        today: { type: boolean, description: The day is today (Tehran); plan counts are then as of now, else as of the day's end }
+        visitors: { type: integer }
+        signedIn: { type: integer }
+        pageviews: { type: integer }
+        prevVisitors: { type: integer, description: The day before }
+        prevSignedIn: { type: integer }
+        signups7d: { type: integer, description: Sign-ups in the 7 days up to the day }
+        signupsPrev7d: { type: integer, description: Sign-ups in the 7 days before those }
+        silver: { type: integer, description: Users holding Silver (as of the day) }
+        gold: { type: integer }
+        expiring7d: { type: integer, description: Paid plans ending within 7 days of the day, not renewed }
+        pending:
+          type: object
+          description: What waits for staff now (not per day)
+          required: [posts, comments, tickets, messages, quarantined]
+          properties:
+            posts: { type: integer }
+            comments: { type: integer }
+            tickets: { type: integer }
+            messages: { type: integer }
+            quarantined: { type: integer }
+        missingPrices:
+          type: array
+          description: Domestic price rows priced in the 14 days before the day but not on it
+          items:
+            type: object
+            required: [series, name, market]
+            properties:
+              series: { type: string }
+              name: { type: string }
+              market: { type: string }
+        metals:
+          type: array
+          description: Every visitor's page views about each metal on the day, most first
+          items: { $ref: '#/components/schemas/ActivityMetal' }
+
+    ActivityMetal:
+      type: object
+      required: [metal, views, seconds]
+      properties:
+        metal: { type: string, description: Metal slug }
+        views: { type: integer }
+        seconds: { type: integer }
+
+    ActivitySection:
+      type: object
+      required: [section, views, seconds]
+      properties:
+        section: { type: string, description: 'home, prices, chart, auctions, analysis, calculator, plans, account, faq, about, contact, search, other' }
+        views: { type: integer }
+        seconds: { type: integer }
+
+    AdminActivityRow:
+      type: object
+      required: [userId, username, plan, days, views, seconds, metals, sections]
+      properties:
+        userId: { type: string, format: uuid }
+        username: { type: string }
+        phone: { type: string }
+        name: { type: string }
+        company: { type: string }
+        activity: { type: string }
+        plan: { $ref: '#/components/schemas/Tier' }
+        days: { type: integer, description: Days with at least one page in the range }
+        views: { type: integer, description: Pages opened }
+        seconds: { type: integer, description: Time the pages were in view }
+        lastAt: { type: string, format: date-time }
+        metals: { type: array, items: { $ref: '#/components/schemas/ActivityMetal' }, description: Most viewed first }
+        sections: { type: array, items: { $ref: '#/components/schemas/ActivitySection' }, description: Longest first }
+
+    AdminActivityList:
+      type: object
+      required: [from, to, items, total]
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        items: { type: array, items: { $ref: '#/components/schemas/AdminActivityRow' } }
+        total: { type: integer }
+
+    AdminUserActivity:
+      type: object
+      required: [user, from, to, day, days, views, seconds, metals, sections, products, daily, pages]
+      properties:
+        user: { $ref: '#/components/schemas/AdminUser' }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        day: { type: string, format: date, description: The day `pages` lists }
+        days: { type: integer }
+        views: { type: integer }
+        seconds: { type: integer }
+        firstAt: { type: string, format: date-time }
+        lastAt: { type: string, format: date-time }
+        metals: { type: array, items: { $ref: '#/components/schemas/ActivityMetal' } }
+        sections: { type: array, items: { $ref: '#/components/schemas/ActivitySection' } }
+        products:
+          type: array
+          description: Most viewed price rows (top 5)
+          items:
+            type: object
+            required: [series, name, metal, views]
+            properties:
+              series: { type: string }
+              name: { type: string }
+              metal: { type: string }
+              views: { type: integer }
+        daily:
+          type: array
+          description: Every day of the range with activity, oldest first
+          items:
+            type: object
+            required: [day, views, seconds]
+            properties:
+              day: { type: string, format: date }
+              views: { type: integer }
+              seconds: { type: integer }
+        pages:
+          type: array
+          description: The pages of `day`, in order
+          items:
+            type: object
+            required: [at, path, section, seconds]
+            properties:
+              at: { type: string, format: date-time }
+              path: { type: string }
+              section: { type: string }
+              metal: { type: string }
+              product: { type: string }
+              seconds: { type: integer }
 
     ContactInput:
       type: object
