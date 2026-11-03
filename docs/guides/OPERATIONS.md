@@ -17,7 +17,7 @@
 | Traces | OpenTelemetry → Tempo | ⏳ phase 2+ |
 | Errors (browser) | **GlitchTip** (Sentry-compatible) | ⏳ |
 | Uptime from outside | A check outside our servers (the blackbox exporter runs on the same server) | ⏳ |
-| Product analytics | Built-in daily visitors (admin «آمار بازدید»); user events next | ⏳ |
+| Product analytics | Built-in daily visitors (admin «آمار بازدید»), the dashboard, and signed-in users' activity (admin «رفتار کاربران», CSV export); funnels next | ✅ |
 
 **When something is wrong:** Grafana → dashboard **«Alan Felez»** (top to bottom: is the site up → errors → deploys → server
 → database → logs). In «Errors» click a line and «Same request» to see the whole request; in «Kubernetes warnings» you see

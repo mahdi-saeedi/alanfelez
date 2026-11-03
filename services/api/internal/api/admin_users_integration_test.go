@@ -48,6 +48,8 @@ func TestAdminDeleteUser(t *testing.T) {
 		`INSERT INTO app.sms_prefs (user_id, enabled) VALUES ($1, true)`,
 		`INSERT INTO app.notifications (user_id, channel, template, recipient, body, provider, dedupe_key)
 		 VALUES ($1, 'sms', 'price_update', '+989120000001', 'x', 'console', 'k1')`,
+		`INSERT INTO app.page_views (id, user_id, day, path, section) VALUES (gen_random_uuid(), $1, current_date, '/prices', 'prices')`,
+		`INSERT INTO app.user_activity_daily (user_id, day, section, views) VALUES ($1, current_date, 'prices', 1)`,
 	} {
 		if _, err := e.pool.Exec(t.Context(), sql, id); err != nil {
 			t.Fatal(err)
@@ -76,6 +78,8 @@ func TestAdminDeleteUser(t *testing.T) {
 	for sql, want := range map[string]int{
 		`SELECT count(*) FROM app.users WHERE username = 'deleted' AND phone_e164 IS NULL AND activity IS NULL AND metals IS NULL AND deleted_at IS NOT NULL`: 1,
 		`SELECT count(*) FROM app.sms_prefs`:                                                           0,
+		`SELECT count(*) FROM app.page_views`:                                                          0,
+		`SELECT count(*) FROM app.user_activity_daily`:                                                 0,
 		`SELECT count(*) FROM app.notifications WHERE recipient = ''`:                                  1,
 		`SELECT count(*) FROM app.audit_log WHERE action = 'user.delete' AND entity_id = '` + id + `'`: 1,
 	} {

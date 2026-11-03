@@ -241,12 +241,14 @@ const deleteUserPrivateData = `-- name: DeleteUserPrivateData :exec
 WITH prefs AS (DELETE FROM app.sms_prefs sp WHERE sp.user_id = $1),
      alerts AS (DELETE FROM app.price_alerts pa WHERE pa.user_id = $1),
      calcs AS (DELETE FROM app.calculations c WHERE c.user_id = $1),
-     sms AS (UPDATE app.notifications n SET recipient = '' WHERE n.user_id = $1)
+     sms AS (UPDATE app.notifications n SET recipient = '' WHERE n.user_id = $1),
+     views AS (DELETE FROM app.page_views pv WHERE pv.user_id = $1),
+     activity AS (DELETE FROM app.user_activity_daily ad WHERE ad.user_id = $1)
 UPDATE app.contact_messages cm SET name = 'deleted', phone = '', email = NULL, ip = NULL, user_agent = NULL
 WHERE cm.user_id = $1
 `
 
-// What only the user had: SMS choice, price alerts, saved calculations; the SMS log keeps cost and status without the
+// What only the user had: SMS choice, price alerts, saved calculations, the pages they opened (activity); the SMS log keeps cost and status without the
 // number; contact-form messages they sent while signed in keep the text without name, number, email and address.
 func (q *Queries) DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteUserPrivateData, userID)

@@ -2,9 +2,11 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 
@@ -16,14 +18,23 @@ import (
 
 // RecordVisit counts a page view for the daily visitor stats (the website sends it for every page). Signed-in
 // visitors count by user id; anonymous ones by a one-way daily id (the IP isn't stored); robots are ignored.
+// The page's metal adds to the per-metal daily totals (anyone, nameless). For a signed-in user with a view id, the
+// page is also recorded for the admin «رفتار کاربران». A report with seconds only adds time to the user's own view.
 func (s *Server) RecordVisit(ctx context.Context, req RecordVisitRequestObject) (RecordVisitResponseObject, error) {
 	c := httpx.ClientFrom(ctx)
 	if visits.IsRobot(c.UserAgent) || len(req.Body.Path) > 300 {
 		return RecordVisit204Response{}, nil
 	}
+	p := auth.FromContext(ctx)
+	if req.Body.Seconds != nil {
+		if p == nil || req.Body.View == nil {
+			return RecordVisit204Response{}, nil
+		}
+		return RecordVisit204Response{}, s.addViewSeconds(ctx, p.ID, pgtype.UUID{Bytes: *req.Body.View, Valid: true}, *req.Body.Seconds)
+	}
 	day := pgtype.Date{Time: visits.Day(time.Now()), Valid: true}
 	arg := dbq.RecordVisitParams{Day: day}
-	if p := auth.FromContext(ctx); p != nil {
+	if p != nil {
 		// Keeps the account row (name, mobile, last seen) current, so the stats can say who came.
 		if _, err := s.touchUser(ctx, p); err != nil {
 			return nil, err
@@ -43,7 +54,86 @@ func (s *Server) RecordVisit(ctx context.Context, req RecordVisitRequestObject) 
 	if err := s.q.RecordVisit(ctx, arg); err != nil {
 		return nil, fmt.Errorf("record visit: %w", err)
 	}
+	page, metal, err := s.resolvePage(ctx, req.Body.Path)
+	if err != nil {
+		return nil, err
+	}
+	err = s.tx(ctx, func(q *dbq.Queries) error {
+		if metal != "" {
+			if err := q.AddMetalView(ctx, dbq.AddMetalViewParams{Day: day, Metal: metal}); err != nil {
+				return err
+			}
+		}
+		if p == nil || req.Body.View == nil {
+			return nil
+		}
+		n, err := q.InsertPageView(ctx, dbq.InsertPageViewParams{
+			ID: pgtype.UUID{Bytes: *req.Body.View, Valid: true}, UserID: p.ID, Day: day, Path: req.Body.Path,
+			Section: page.Section, Metal: textOf(metal), SeriesSlug: textOf(page.Series),
+		})
+		if err != nil || n == 0 {
+			return err
+		}
+		return q.AddActivityView(ctx, dbq.AddActivityViewParams{UserID: p.ID, Day: day, Section: page.Section, Metal: metal})
+	})
+	if err != nil {
+		return nil, fmt.Errorf("record page view: %w", err)
+	}
 	return RecordVisit204Response{}, nil
+}
+
+// resolvePage reads the section, metal and price row of a website path and checks the slugs against the catalog
+// (an unknown slug is dropped). The metal comes from the page itself, else its price row, else its article.
+func (s *Server) resolvePage(ctx context.Context, path string) (visits.Page, string, error) {
+	page := visits.ParsePage(path)
+	metal := ""
+	if page.Metal != "" {
+		ok, err := s.q.MetalSlugExists(ctx, page.Metal)
+		if err != nil {
+			return page, "", fmt.Errorf("page metal: %w", err)
+		}
+		if ok {
+			metal = page.Metal
+		}
+	}
+	if page.Series != "" {
+		m, err := s.q.PageMetalOfSeries(ctx, page.Series)
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			page.Series = ""
+		case err != nil:
+			return page, "", fmt.Errorf("page series: %w", err)
+		case metal == "":
+			metal = m
+		}
+	}
+	if metal == "" && page.Article != "" {
+		m, err := s.q.PageMetalOfArticle(ctx, page.Article)
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return page, "", fmt.Errorf("page article: %w", err)
+		}
+		metal = m
+	}
+	return page, metal, nil
+}
+
+// addViewSeconds adds the time a page was in view to the caller's own page view and the day's summary.
+func (s *Server) addViewSeconds(ctx context.Context, user, view pgtype.UUID, seconds int) error {
+	secs := int32(max(1, min(seconds, visits.MaxReportSeconds))) //nolint:gosec // bounded by MaxReportSeconds
+	err := s.tx(ctx, func(q *dbq.Queries) error {
+		row, err := q.AddPageViewSeconds(ctx, dbq.AddPageViewSecondsParams{ID: view, UserID: user, Seconds: secs})
+		if errors.Is(err, pgx.ErrNoRows) || (err == nil && row.Added <= 0) {
+			return nil // not this user's view (or not recorded), or the page already hit its cap
+		}
+		if err != nil {
+			return err
+		}
+		return q.AddActivitySeconds(ctx, dbq.AddActivitySecondsParams{UserID: user, Day: row.Day, Section: row.Section, Metal: row.Metal, Seconds: row.Added})
+	})
+	if err != nil {
+		return fmt.Errorf("page view seconds: %w", err)
+	}
+	return nil
 }
 
 // AdminVisits returns the last 30 days' visitor counts and one day's signed-in visitors (staff).

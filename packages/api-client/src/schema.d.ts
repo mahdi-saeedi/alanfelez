@@ -372,7 +372,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search users by mobile, name or id (max 50) */
+        /** Users, filtered (mobile, name, company or id; plan held now; a sign-up metal, activity, province), 50 a page */
         get: operations["adminListUsers"];
         put?: never;
         post?: never;
@@ -400,6 +400,94 @@ export interface paths {
          *     roles away in Keycloak first) or your own; UPSTREAM_UNAVAILABLE when the API has no Keycloak service account.
          */
         delete: operations["adminDeleteUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The users list as a CSV file for Excel (same filters, every page, up to 20,000 rows). Audited */
+        get: operations["adminExportUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The admin home page for one day (default today in Tehran; visitors, sign-ups, plans, metals viewed) and what waits for staff now */
+        get: operations["adminDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Signed-in users' activity between two days (time on the site, sections, metals), filtered, 50 a page
+         * @description Only signed-in users are named; anonymous visitors are never recorded per person. Default range: the last 30 days (Tehran). With `metal`, only users who opened pages about it, most views first.
+         */
+        get: operations["adminActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/activity/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The activity list as a CSV file for Excel (one column per metal), or with userId one user's page views. Audited */
+        get: operations["adminExportActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/activity/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One user's activity between two days, per metal, section, product and day, and the pages of one day */
+        get: operations["adminUserActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2394,6 +2482,130 @@ export interface components {
                 pageviews: number;
             }[];
         };
+        AdminDashboard: {
+            /** Format: date */
+            day: string;
+            /** @description The day is today (Tehran); plan counts are then as of now */
+            today: boolean;
+            visitors: number;
+            signedIn: number;
+            pageviews: number;
+            /** @description The day before */
+            prevVisitors: number;
+            prevSignedIn: number;
+            /** @description Sign-ups in the 7 days up to the day */
+            signups7d: number;
+            /** @description Sign-ups in the 7 days before those */
+            signupsPrev7d: number;
+            /** @description Users holding Silver (as of the day) */
+            silver: number;
+            gold: number;
+            /** @description Paid plans ending within 7 days of the day */
+            expiring7d: number;
+            /** @description What waits for staff now (not per day) */
+            pending: {
+                posts: number;
+                comments: number;
+                tickets: number;
+                messages: number;
+                quarantined: number;
+            };
+            /** @description Domestic price rows priced in the 14 days before the day but not on it */
+            missingPrices: {
+                series: string;
+                name: string;
+                market: string;
+            }[];
+            /** @description Every visitor's page views about each metal on the day, most first */
+            metals: components["schemas"]["ActivityMetal"][];
+        };
+        ActivityMetal: {
+            /** @description Metal slug */
+            metal: string;
+            views: number;
+            seconds: number;
+        };
+        ActivitySection: {
+            /** @description home, prices, chart, auctions, analysis, calculator, plans, account, faq, about, contact, search, other */
+            section: string;
+            views: number;
+            seconds: number;
+        };
+        AdminActivityRow: {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            phone?: string;
+            name?: string;
+            company?: string;
+            activity?: string;
+            plan: components["schemas"]["Tier"];
+            /** @description Days with at least one page in the range */
+            days: number;
+            /** @description Pages opened */
+            views: number;
+            /** @description Time the pages were in view */
+            seconds: number;
+            /** Format: date-time */
+            lastAt?: string;
+            /** @description Most viewed first */
+            metals: components["schemas"]["ActivityMetal"][];
+            /** @description Longest first */
+            sections: components["schemas"]["ActivitySection"][];
+        };
+        AdminActivityList: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            items: components["schemas"]["AdminActivityRow"][];
+            total: number;
+        };
+        AdminUserActivity: {
+            user: components["schemas"]["AdminUser"];
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /**
+             * Format: date
+             * @description The day `pages` lists
+             */
+            day: string;
+            days: number;
+            views: number;
+            seconds: number;
+            /** Format: date-time */
+            firstAt?: string;
+            /** Format: date-time */
+            lastAt?: string;
+            metals: components["schemas"]["ActivityMetal"][];
+            sections: components["schemas"]["ActivitySection"][];
+            /** @description Most viewed price rows (top 5) */
+            products: {
+                series: string;
+                name: string;
+                metal: string;
+                views: number;
+            }[];
+            /** @description Every day of the range with activity, oldest first */
+            daily: {
+                /** Format: date */
+                day: string;
+                views: number;
+                seconds: number;
+            }[];
+            /** @description The pages of `day`, in order */
+            pages: {
+                /** Format: date-time */
+                at: string;
+                path: string;
+                section: string;
+                metal?: string;
+                product?: string;
+                seconds: number;
+            }[];
+        };
         ContactInput: {
             name: string;
             /** @description Persian digits are accepted */
@@ -2899,6 +3111,16 @@ export interface components {
     };
     parameters: {
         AcceptLanguage: "fa" | "en";
+        /** @description Page number, from 1 (50 rows a page) */
+        PageNumber: number;
+        /** @description The plan the user holds now */
+        UserPlanFilter: components["schemas"]["Tier"];
+        /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
+        UserActivityFilter: string;
+        /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+        ActivityFrom: string;
+        /** @description Last day, Tehran (default: today) */
+        ActivityTo: string;
     };
     requestBodies: never;
     headers: never;
@@ -3444,6 +3666,15 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
+                /** @description The plan the user holds now */
+                plan?: components["parameters"]["UserPlanFilter"];
+                /** @description A metal slug the user chose at sign-up */
+                metal?: string;
+                /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
+                activity?: components["parameters"]["UserActivityFilter"];
+                province?: string;
+                /** @description Page number, from 1 (50 rows a page) */
+                page?: components["parameters"]["PageNumber"];
             };
             header?: never;
             path?: never;
@@ -3459,6 +3690,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["AdminUser"][];
+                        /** @description Matching users (all pages) */
+                        total: number;
+                        /** @description The provinces users chose (the filter's options) */
+                        provinces: string[];
                     };
                 };
             };
@@ -3484,6 +3719,165 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminExportUsers: {
+        parameters: {
+            query?: {
+                q?: string;
+                /** @description The plan the user holds now */
+                plan?: components["parameters"]["UserPlanFilter"];
+                metal?: string;
+                /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
+                activity?: components["parameters"]["UserActivityFilter"];
+                province?: string;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UTF-8 CSV with a byte order mark (opens in Excel with Persian text) */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDashboard: {
+        parameters: {
+            query?: {
+                day?: string;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dashboard */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDashboard"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminActivity: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+                metal?: string;
+                /** @description The plan the user holds now */
+                plan?: components["parameters"]["UserPlanFilter"];
+                /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
+                activity?: components["parameters"]["UserActivityFilter"];
+                q?: string;
+                /** @description Page number, from 1 (50 rows a page) */
+                page?: components["parameters"]["PageNumber"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Users with their activity */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminActivityList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminExportActivity: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+                metal?: string;
+                /** @description The plan the user holds now */
+                plan?: components["parameters"]["UserPlanFilter"];
+                /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
+                activity?: components["parameters"]["UserActivityFilter"];
+                q?: string;
+                userId?: string;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UTF-8 CSV with a byte order mark */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUserActivity: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+                /** @description The day whose pages are listed (default: the last day with activity in the range) */
+                day?: string;
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Activity */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserActivity"];
+                };
             };
             default: components["responses"]["Problem"];
         };
@@ -4417,7 +4811,15 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description Path and query string (e.g. /prices?metal=copper) */
                     path: string;
+                    /**
+                     * Format: uuid
+                     * @description Made by the browser for this page view. With it, a signed-in user's page view is recorded for the admin «رفتار کاربران» (section, metal, product); a repeat of the same id is ignored.
+                     */
+                    view?: string;
+                    /** @description Time the page was in view since the last report (the user left or hid it). With it, the call only adds time to the view `view` (the caller's own) and counts nothing. */
+                    seconds?: number;
                 };
             };
         };
@@ -5400,6 +5802,10 @@ export interface operations {
                     "application/json": {
                         openTickets: number;
                         newMessages: number;
+                        /** @description Members' analyses and comments waiting for review */
+                        pendingCommunity: number;
+                        /** @description Price points held by the outlier gate */
+                        quarantined: number;
                     };
                 };
             };

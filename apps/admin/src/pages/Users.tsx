@@ -2,20 +2,44 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetLocale, useTranslate } from "@refinedev/core";
 import { Link, useSearchParams } from "react-router";
-import { formatDate, type Locale } from "@alanfelez/ui/format";
+import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
 import { api, canGrant, currentRoles, ensureOk, errorText, unwrap } from "../api";
-import { Badge, Button, Card, Input, Notice, Page, Td, Th } from "./ui";
+import { Badge, Button, Card, Input, Notice, Page, Select, Td, Th } from "./ui";
+import { ACTIVITIES, METALS, downloadCsv } from "./dates";
 
-/** Users, searchable by mobile (Persian or Latin digits), name or id. Identities themselves live in Keycloak. */
+type Plan = "free" | "silver" | "gold";
+
+/**
+ * Users, searchable by mobile (Persian or Latin digits), name, company or id, and filtered by the plan they hold, a
+ * metal or activity from the sign-up form, or province; 50 a page; the filtered list as an Excel (CSV) file.
+ * Identities themselves live in Keycloak.
+ */
 export function UsersPage() {
   const t = useTranslate();
   const locale = useGetLocale()() as Locale;
   const [params] = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? ""); // ?q= from the visitor stats
-  const list = useQuery({
-    queryKey: ["admin", "users", q],
-    queryFn: async () => unwrap(await api.GET("/v1/admin/users", { params: { query: q ? { q } : {} } })).items,
+  const [f, setF] = useState({ plan: "" as Plan | "", metal: "", activity: "", province: "" });
+  const [page, setPage] = useState(1);
+  const [exportError, setExportError] = useState<unknown>(null);
+  const filter = (patch: Partial<typeof f>) => { setF({ ...f, ...patch }); setPage(1); };
+  const query = { ...(q ? { q } : {}), ...(f.plan ? { plan: f.plan } : {}), ...(f.metal ? { metal: f.metal } : {}),
+    ...(f.activity ? { activity: f.activity } : {}), ...(f.province ? { province: f.province } : {}) };
+  const res = useQuery({
+    queryKey: ["admin", "users", query, page],
+    queryFn: async () => unwrap(await api.GET("/v1/admin/users", { params: { query: { ...query, page } } })),
   });
+  const list = { data: res.data?.items };
+  const pages = Math.max(1, Math.ceil((res.data?.total ?? 0) / 50));
+  const n = (v: number) => formatNumber(v, locale);
+  const exportCsv = async () => {
+    setExportError(null);
+    try {
+      await downloadCsv("/v1/admin/users/export", query, "users.csv");
+    } catch (e) {
+      setExportError(e);
+    }
+  };
   const roles = useQuery({ queryKey: ["roles"], queryFn: currentRoles });
   const qc = useQueryClient();
   // Admin only: deletes the Keycloak account and the personal details; orders and payments stay, without a name.
@@ -25,7 +49,28 @@ export function UsersPage() {
   });
   return (
     <Page title={t("users.title")} hint={t("users.hint")}>
-      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("users.search")} className="w-80" />
+      <div className="flex flex-wrap items-center gap-2">
+        <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder={t("users.search")} className="w-72" />
+        <Select value={f.plan} onChange={(e) => filter({ plan: e.target.value as Plan | "" })} aria-label={t("subs.plan")}>
+          <option value="">{t("act.allPlans")}</option>
+          {(["free", "silver", "gold"] as const).map((p) => <option key={p} value={p}>{t(`plan.${p}`)}</option>)}
+        </Select>
+        <Select value={f.metal} onChange={(e) => filter({ metal: e.target.value })} aria-label={t("users.metal")}>
+          <option value="">{t("users.allMetals")}</option>
+          {METALS.map((m) => <option key={m} value={m}>{t(`signup.metal.${m}`)}</option>)}
+        </Select>
+        <Select value={f.activity} onChange={(e) => filter({ activity: e.target.value })} aria-label={t("act.activity")}>
+          <option value="">{t("act.allActivities")}</option>
+          {ACTIVITIES.map((a) => <option key={a} value={a}>{t(`signup.activity.${a}`)}</option>)}
+        </Select>
+        <Select value={f.province} onChange={(e) => filter({ province: e.target.value })} aria-label={t("users.province")}>
+          <option value="">{t("users.allProvinces")}</option>
+          {res.data?.provinces.map((p) => <option key={p} value={p}>{p}</option>)}
+        </Select>
+        <span className="flex-1" />
+        <Button type="button" tone="gold" onClick={exportCsv}>⬇ {t("act.export")}</Button>
+      </div>
+      {exportError != null && <Notice tone="error">{errorText(exportError, t)}</Notice>}
       {remove.isSuccess && <Notice tone="ok">{t("users.deleted")}</Notice>}
       {remove.isError && (
         <Notice tone="error">
@@ -66,6 +111,7 @@ export function UsersPage() {
                 <Td className="text-xs text-text-2">{formatDate(u.lastSeenAt, locale, true)}</Td>
                 <Td>
                   <div className="flex gap-3 text-xs">
+                    <Link to={`/activity/${u.id}`} className="font-bold text-gold-dark hover:underline">{t("users.activity")}</Link>
                     <Link to={`/subscriptions?user=${u.id}`} className="text-gold-dark hover:underline">{t("users.grant")}</Link>
                     <Link to={`/orders?user=${u.id}`} className="text-text-2 hover:underline">{t("users.orders")}</Link>
                     {!u.deletedAt && canGrant(roles.data ?? []) && (
@@ -85,6 +131,15 @@ export function UsersPage() {
           </tbody>
         </table>
       </Card>
+      {res.data && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-text-2">{t("users.total", { n: n(res.data.total) })}</span>
+          <span className="flex-1" />
+          <Button type="button" tone="ghost" disabled={page <= 1} onClick={() => setPage(page - 1)}>{t("page.prev")}</Button>
+          <span className="tabular-nums">{t("page.of", { page: n(page), pages: n(pages) })}</span>
+          <Button type="button" tone="ghost" disabled={page >= pages} onClick={() => setPage(page + 1)}>{t("page.next")}</Button>
+        </div>
+      )}
     </Page>
   );
 }

@@ -1,17 +1,24 @@
 import { useGetIdentity, useLogout, useTranslate, useSetLocale, useGetLocale } from "@refinedev/core";
-import { NavLink, Outlet } from "react-router";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
+import { formatNumber } from "@alanfelez/ui/format";
 import { api, unwrap } from "../api";
 
 // Grouped menu. `badge` names a count from /v1/admin/support/summary.
-const NAV: { group: string; items: { to: string; key: string; badge?: "openTickets" | "newMessages" }[] }[] = [
-  { group: "nav.group.main", items: [{ to: "/", key: "nav.dashboard" }, { to: "/visits", key: "nav.visits" }, { to: "/sms", key: "nav.sms" }] },
+type BadgeKey = "openTickets" | "newMessages" | "pendingCommunity" | "quarantined";
+
+const NAV: { group: string; items: { to: string; key: string; badge?: BadgeKey }[] }[] = [
+  {
+    group: "nav.group.main",
+    items: [{ to: "/", key: "nav.dashboard" }, { to: "/activity", key: "nav.activity" }, { to: "/visits", key: "nav.visits" }, { to: "/sms", key: "nav.sms" }],
+  },
   {
     group: "nav.group.market",
     items: [
       { to: "/prices", key: "nav.prices" },
       { to: "/prices/bulk", key: "nav.bulk" },
-      { to: "/prices/quarantine", key: "nav.quarantine" },
+      { to: "/prices/quarantine", key: "nav.quarantine", badge: "quarantined" },
       { to: "/catalog", key: "nav.catalog" },
       { to: "/auctions", key: "nav.auctions" },
       { to: "/sources", key: "nav.sources" },
@@ -21,7 +28,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: "openTicke
     group: "nav.group.content",
     items: [
       { to: "/content/articles", key: "nav.articles" },
-      { to: "/content/community", key: "nav.community" },
+      { to: "/content/community", key: "nav.community", badge: "pendingCommunity" },
       { to: "/content/categories", key: "nav.categories" },
       { to: "/content/faq", key: "nav.faq" },
       { to: "/content/pages", key: "nav.pages" },
@@ -66,9 +73,15 @@ export function Layout() {
     refetchInterval: 60_000,
   });
 
+  // Phones: the menu folds away behind a button and closes after a choice (client 2026-11-03).
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => setOpen(false), [pathname]);
+
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 shrink-0 bg-graphite p-4 text-white">
+      {open && <button type="button" aria-label={t("nav.close")} onClick={() => setOpen(false)} className="fixed inset-0 z-30 bg-graphite/50 md:hidden" />}
+      <aside className={`fixed inset-y-0 start-0 z-40 w-64 shrink-0 overflow-y-auto bg-graphite p-4 text-white transition-transform md:static md:w-60 md:translate-x-0! ${open ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"}`}>
         <div className="mb-8 flex items-center gap-2 font-extrabold">
           <img src="/logo.png" alt="" className="h-8 w-8 rounded-lg" />
           {t("app.title")}
@@ -89,7 +102,7 @@ export function Layout() {
                     }
                   >
                     {t(n.key)}
-                    {count > 0 && <span className="rounded-full bg-down px-1.5 text-[11px] font-bold text-white tabular-nums">{count}</span>}
+                    {count > 0 && <span className="rounded-full bg-down px-1.5 text-[11px] font-bold text-white tabular-nums">{formatNumber(count, locale === "en" ? "en" : "fa")}</span>}
                   </NavLink>
                 );
               })}
@@ -97,9 +110,11 @@ export function Layout() {
           ))}
         </nav>
       </aside>
-      <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-end gap-3 border-b border-border bg-surface px-6 py-3 text-sm">
-          <span dir="ltr" className="text-text-2">{identity?.name}</span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-end gap-3 border-b border-border bg-surface px-4 py-3 text-sm md:px-6">
+          <button type="button" onClick={() => setOpen(true)} aria-label={t("nav.open")} aria-expanded={open}
+            className="me-auto rounded-lg border border-border px-3 py-1.5 font-bold md:hidden">☰ {t("nav.menu")}</button>
+          <span dir="ltr" className="hidden text-text-2 sm:inline">{identity?.name}</span>
           <button onClick={() => setLocale(locale === "fa" ? "en" : "fa")} className="rounded-lg border border-border px-3 py-1.5 hover:border-gold">
             {t("app.language")}
           </button>
@@ -107,7 +122,7 @@ export function Layout() {
             {t("auth.logout")}
           </button>
         </header>
-        <main className="flex-1 p-6">
+        <main className="min-w-0 flex-1 p-4 md:p-6">
           <Outlet />
         </main>
       </div>

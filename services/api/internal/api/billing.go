@@ -280,24 +280,32 @@ func (s *Server) AdminListUsers(ctx context.Context, req AdminListUsersRequestOb
 		}
 		return AdminListUsers403ApplicationProblemPlusJSONResponse(*pr), nil
 	}
-	q := ""
-	if req.Params.Q != nil {
-		q = normalizeSearch(*req.Params.Q)
-	}
-	rows, err := s.q.SearchUsers(ctx, q)
+	rows, err := s.q.AdminUsersPage(ctx, dbq.AdminUsersPageParams{
+		Q: searchTerm(req.Params.Q), Plan: planOf(req.Params.Plan), Metal: str(req.Params.Metal), Activity: str(req.Params.Activity),
+		Province: str(req.Params.Province), Off: offsetOf(req.Params.Page), Lim: pageSize,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("search users: %w", err)
 	}
-	out := make([]AdminUser, 0, len(rows))
-	for _, r := range rows {
-		out = append(out, AdminUser{
-			Id: uuid.UUID(r.ID.Bytes), Username: r.Username, Phone: textp(r.PhoneE164), FirstName: textp(r.FirstName),
-			LastName: textp(r.LastName), Email: textp(r.Email), CreatedAt: r.CreatedAt.Time.UTC(), LastSeenAt: r.LastSeenAt.Time.UTC(),
-			Blocked: r.BlockedAt.Valid, CurrentPlan: Tier(r.CurrentPlan), CurrentEndsAt: timep(r.CurrentEndsAt),
-			Activity: textp(r.Activity), Metals: slicep(r.Metals), Province: textp(r.Province), Company: textp(r.Company), DeletedAt: timep(r.DeletedAt),
-		})
+	provinces, err := s.q.UserProvinces(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("user provinces: %w", err)
 	}
-	return AdminListUsers200JSONResponse{Items: out}, nil
+	out := AdminListUsers200JSONResponse{Items: make([]AdminUser, 0, len(rows)), Provinces: provinces}
+	for _, r := range rows {
+		out.Items = append(out.Items, adminUserOf(r))
+		out.Total = int(r.Total)
+	}
+	return out, nil
+}
+
+func adminUserOf(r dbq.AdminUsersPageRow) AdminUser {
+	return AdminUser{
+		Id: uuid.UUID(r.ID.Bytes), Username: r.Username, Phone: textp(r.PhoneE164), FirstName: textp(r.FirstName),
+		LastName: textp(r.LastName), Email: textp(r.Email), CreatedAt: r.CreatedAt.Time.UTC(), LastSeenAt: r.LastSeenAt.Time.UTC(),
+		Blocked: r.BlockedAt.Valid, CurrentPlan: Tier(r.CurrentPlan), CurrentEndsAt: timep(r.CurrentEndsAt),
+		Activity: textp(r.Activity), Metals: slicep(r.Metals), Province: textp(r.Province), Company: textp(r.Company), DeletedAt: timep(r.DeletedAt),
+	}
 }
 
 // AdminListOrders lists orders for staff.
