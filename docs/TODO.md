@@ -4,9 +4,16 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-01 (product groups, prices page filters, ticker)
+Last updated: 2026-11-03 (admin dashboard, user activity, users filters and export)
 
 ## Now (in progress)
+- [ ] **User activity → staging, then the main site** (2026-11-03): on branch `claude/new-session-i1teqj`, waiting for the
+      client's «بفرست روی staging». Before the main site: the client approves the privacy text (F19) and it's pasted in the
+      admin (صفحات ثابت → حریم خصوصی).
+- [ ] **Staff accounts from the admin** (client 2026-11-03: sales staff should sign in with a username and password the
+      client gives them): today staff are made only in the Keycloak console. Proposed: an admin-only «پرسنل» page (create,
+      reset password, disable, roles incl. a new read-only `sales` role; TOTP stays required). Touches auth/Keycloak →
+      needs the owner's OK before building.
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
@@ -55,6 +62,14 @@ Last updated: 2026-11-01 (product groups, prices page filters, ticker)
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-03 Admin (client, owner OK by phone): a real **dashboard** for any day (visitors with the change on the day before,
+  sign-ups, Silver/Gold held, plans ending in 7 days, what waits for staff, domestic prices not entered that day, which
+  metals visitors viewed); **«رفتار کاربران»**: each signed-in user's days, time on the site, sections and metals for any
+  date range (Jalali picker), a profile per user (metals, top products, sections, a bar per day, the pages of a chosen
+  day, a hint for the sales staff) and Excel (CSV) exports, audited; **users** list filters (plan, sign-up metal,
+  activity, province), paging and export; menu badges for members' analyses/comments and the price queue; a fold-out
+  menu on phones. Website: `VisitBeacon` sends a view id and the seconds in view (only metal/price-row query keys).
+  Migration 00029 (page views 1 year, daily summary 2 years, totals kept). All staff roles can read it.
 - 2026-11-02 Where the calculator is off (main site), the CMS texts that name it are edited on the way to the page
   (`lib/hide-calculator.ts`: FAQ answers, About, Terms §7 dropped and renumbered); staging shows them whole.
 - 2026-11-02 Bulk void per price row (admin price history: all prices, or a date range; audited once;

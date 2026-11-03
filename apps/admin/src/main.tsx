@@ -18,6 +18,7 @@ import { SubscriptionsPage } from "./pages/Subscriptions";
 import { OrdersPage } from "./pages/Orders";
 import { UsersPage } from "./pages/Users";
 import { VisitsPage } from "./pages/Visits";
+import { ActivityPage, ActivityUserPage } from "./pages/Activity";
 import { ArticlesPage, ArticleEditPage } from "./pages/Articles";
 import { ArticleCategoriesPage } from "./pages/Categories";
 import { FaqPage } from "./pages/Faq";
@@ -68,6 +69,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/visits" element={<VisitsPage />} />
+            <Route path="/activity" element={<ActivityPage />} />
+            <Route path="/activity/:id" element={<ActivityUserPage />} />
             <Route path="/sms" element={<SmsLogPage />} />
             <Route path="/content/community" element={<CommunityPage />} />
             <Route path="/content/articles" element={<ArticlesPage />} />

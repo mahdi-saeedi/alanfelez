@@ -184,6 +184,10 @@ func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) err
 	}
 	w.Log.InfoContext(ctx, "old source runs deleted", "rows", n)
 	q, today := dbq.New(w.Pool), visits.Day(time.Now())
+	// The day totals stay (no personal data), so the dashboard can show any past day.
+	if _, err := q.SaveVisitTotals(ctx, pgtype.Date{Time: today, Valid: true}); err != nil {
+		return fmt.Errorf("save visit totals: %w", err)
+	}
 	nv, err := q.DeleteOldVisits(ctx, pgtype.Date{Time: today.Add(-visits.Retention), Valid: true})
 	if err != nil {
 		return fmt.Errorf("cleanup visits: %w", err)
@@ -194,6 +198,16 @@ func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) err
 		return fmt.Errorf("cleanup visit salts: %w", err)
 	}
 	w.Log.InfoContext(ctx, "old visits deleted", "rows", nv, "salts", ns)
+	// User activity (admin «رفتار کاربران»): page views 1 year, the daily summary 2 years.
+	npv, err := q.DeleteOldPageViews(ctx, pgtype.Date{Time: today.Add(-visits.PageViewRetention), Valid: true})
+	if err != nil {
+		return fmt.Errorf("cleanup page views: %w", err)
+	}
+	na, err := q.DeleteOldActivity(ctx, pgtype.Date{Time: today.Add(-visits.ActivityRetention), Valid: true})
+	if err != nil {
+		return fmt.Errorf("cleanup activity: %w", err)
+	}
+	w.Log.InfoContext(ctx, "old user activity deleted", "page_views", npv, "daily", na)
 	return nil
 }
 

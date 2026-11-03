@@ -14,6 +14,27 @@ type Querier interface {
 	// Subscriptions and the audit log.
 	// The highest-ranked plan the user holds right now.
 	ActiveSubscription(ctx context.Context, userID pgtype.UUID) (ActiveSubscriptionRow, error)
+	// One user's views and seconds per day between from and to.
+	ActivityDays(ctx context.Context, arg ActivityDaysParams) ([]ActivityDaysRow, error)
+	// The last day (up to to) the user opened a page, for the profile's default day.
+	ActivityLastDay(ctx context.Context, arg ActivityLastDayParams) (pgtype.Date, error)
+	// Views and seconds per user and metal (only pages about a metal) between from and to.
+	ActivityMetals(ctx context.Context, arg ActivityMetalsParams) ([]ActivityMetalsRow, error)
+	// One user's most viewed price rows (products) between from and to.
+	ActivityProducts(ctx context.Context, arg ActivityProductsParams) ([]ActivityProductsRow, error)
+	// One user's first and last page view between from and to (NULL when none).
+	ActivityRange(ctx context.Context, arg ActivityRangeParams) (ActivityRangeRow, error)
+	// Views and seconds per user and section between from and to.
+	ActivitySections(ctx context.Context, arg ActivitySectionsParams) ([]ActivitySectionsRow, error)
+	// Signed-in users with activity between from and to (Tehran days), with filters; busiest first, or with the most
+	// views of the chosen metal first. total = the number of matching users (for paging).
+	ActivityUsers(ctx context.Context, arg ActivityUsersParams) ([]ActivityUsersRow, error)
+	AddActivitySeconds(ctx context.Context, arg AddActivitySecondsParams) error
+	AddActivityView(ctx context.Context, arg AddActivityViewParams) error
+	AddMetalView(ctx context.Context, arg AddMetalViewParams) error
+	// Time the page was in view, added when the user leaves or hides it (only the user's own view; ≤ 4 h per page).
+	// added = what was really added after the cap.
+	AddPageViewSeconds(ctx context.Context, arg AddPageViewSecondsParams) (AddPageViewSecondsRow, error)
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
 	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
 	// For review: waiting ones first (oldest first), then the rest newest first; with the title of what was commented on.
@@ -37,6 +58,10 @@ type Querier interface {
 	// Recent points of one series in every status, newest first, with the staff names from the audit log and the
 	// published price before each point (so the admin can show "from → to").
 	AdminSeriesPoints(ctx context.Context, arg AdminSeriesPointsParams) ([]AdminSeriesPointsRow, error)
+	// One user for the activity profile, with the plan they hold now and when it ends.
+	AdminUserByID(ctx context.Context, id pgtype.UUID) (AdminUserByIDRow, error)
+	// The admin users list with filters (plan held now, a metal from the sign-up form, activity, province) and paging.
+	AdminUsersPage(ctx context.Context, arg AdminUsersPageParams) ([]AdminUsersPageRow, error)
 	// Active alerts on series that have a price, with what the SMS needs. The worker checks the user's plan in Go
 	// (internal/access), so a lapsed Gold plan simply stops sending.
 	AlertCandidates(ctx context.Context) ([]AlertCandidatesRow, error)
@@ -72,6 +97,11 @@ type Querier interface {
 	CurrentPlanPrice(ctx context.Context, arg CurrentPlanPriceParams) (CurrentPlanPriceRow, error)
 	// Billing uses the database clock, so "starts now" and "is active now" (now() in SQL) can never disagree.
 	DBNow(ctx context.Context) (pgtype.Timestamptz, error)
+	// The dashboard's numbers for the day ending at day_end (now, for today): sign-ups in the 7 days before, plans held
+	// at day_end and ending in the 7 days after it, and what waits for staff now.
+	DashboardCounts(ctx context.Context, dayEnd pgtype.Timestamptz) (DashboardCountsRow, error)
+	// Domestic price rows that had a price in the 14 days before the day but none on it (day_start..day_end).
+	DashboardMissingPrices(ctx context.Context, arg DashboardMissingPricesParams) ([]DashboardMissingPricesRow, error)
 	DecideRefund(ctx context.Context, arg DecideRefundParams) error
 	DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64, error)
 	DeleteAuction(ctx context.Context, id pgtype.UUID) (string, error)
@@ -85,14 +115,16 @@ type Querier interface {
 	DeleteGroup(ctx context.Context, id int16) (int64, error)
 	DeleteLatest(ctx context.Context, seriesID int32) error
 	DeleteMetal(ctx context.Context, slug string) (int64, error)
+	DeleteOldActivity(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldCalculations(ctx context.Context, userID pgtype.UUID) error
+	DeleteOldPageViews(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteProduct(ctx context.Context, slug string) (int64, error)
 	DeleteProductSeries(ctx context.Context, slug string) error
 	DeleteSeries(ctx context.Context, slug string) (int64, error)
-	// What only the user had: SMS choice, price alerts, saved calculations; the SMS log keeps cost and status without the
+	// What only the user had: SMS choice, price alerts, saved calculations, the pages they opened (activity); the SMS log keeps cost and status without the
 	// number; contact-form messages they sent while signed in keep the text without name, number, email and address.
 	DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error
 	ExpirePendingOrders(ctx context.Context) (int64, error)
@@ -146,6 +178,8 @@ type Querier interface {
 	InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOrder, error)
 	// Subscriptions ---------------------------------------------------------------------------------------------
 	InsertOrderSubscription(ctx context.Context, arg InsertOrderSubscriptionParams) (InsertOrderSubscriptionRow, error)
+	// A signed-in user's page view. The id comes from the browser; a repeat (same id) is ignored.
+	InsertPageView(ctx context.Context, arg InsertPageViewParams) (int64, error)
 	// Payments --------------------------------------------------------------------------------------------------
 	InsertPayment(ctx context.Context, arg InsertPaymentParams) (AppPayment, error)
 	// ON CONFLICT DO NOTHING makes re-ingesting the same quote a no-op (no row returned).
@@ -219,11 +253,23 @@ type Querier interface {
 	MetalHasProducts(ctx context.Context, slug string) (bool, error)
 	// Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
 	MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error)
+	MetalSlugExists(ctx context.Context, slug string) (bool, error)
 	// Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
 	MetalSmsSubscribers(ctx context.Context, metalID pgtype.Int2) ([]MetalSmsSubscribersRow, error)
+	// Every visitor's metal page views on one day (dashboard), most viewed first.
+	MetalViewsOfDay(ctx context.Context, day pgtype.Date) ([]MetalViewsOfDayRow, error)
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
 	// SMS of one template sent to a user since a time (daily caps).
 	NotificationsSentSince(ctx context.Context, arg NotificationsSentSinceParams) (int32, error)
+	// The metal an article is about (analysis pages); NULL when it has none.
+	PageMetalOfArticle(ctx context.Context, slug string) (string, error)
+	// User activity (admin «رفتار کاربران») and the dashboard. Migration 00029.
+	// The metal of a price row (chart, calculator links); no row when the slug is unknown.
+	PageMetalOfSeries(ctx context.Context, slug string) (string, error)
+	// One user's page views between from and to (the profile's Excel export).
+	PageViewsForExport(ctx context.Context, arg PageViewsForExportParams) ([]PageViewsForExportRow, error)
+	// One user's page views on one day, in order.
+	PageViewsOfDay(ctx context.Context, arg PageViewsOfDayParams) ([]PageViewsOfDayRow, error)
 	// The published price nearest to a moment, for the outlier gate of a back-dated quote: the last one before it, or
 	// (when there is none) the first one after it. No row = the series has no published price at all.
 	PriceAround(ctx context.Context, arg PriceAroundParams) (int64, error)
@@ -245,6 +291,8 @@ type Querier interface {
 	SMSCostSince(ctx context.Context, since pgtype.Timestamptz) (int64, error)
 	// Keeps the text that is about to be replaced.
 	SavePageRevision(ctx context.Context, arg SavePageRevisionParams) error
+	// Copies the daily totals of past days (before today) into visit_totals, before the per-visitor rows are deleted.
+	SaveVisitTotals(ctx context.Context, today pgtype.Date) (int64, error)
 	// Admin search by mobile, name or id prefix, newest first, with the plan they hold now.
 	SearchUsers(ctx context.Context, q_ string) ([]SearchUsersRow, error)
 	SeriesHasPrices(ctx context.Context, slug string) (bool, error)
@@ -297,10 +345,14 @@ type Querier interface {
 	// Returns no row for a deleted account.
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
 	UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
+	// The provinces users chose (the users page filter).
+	UserProvinces(ctx context.Context) ([]string, error)
 	// The day's salt for anonymous visitor ids, made on first use.
 	VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error)
 	// Per day since from: unique visitors, signed-in visitors and page views.
 	VisitTotals(ctx context.Context, since pgtype.Date) ([]VisitTotalsRow, error)
+	// One day's visitor totals: from the per-visitor rows while they're kept (90 days), else from the saved totals.
+	VisitTotalsOfDay(ctx context.Context, day pgtype.Date) (VisitTotalsOfDayRow, error)
 	// The signed-in visitors of one day, with their name, mobile and the plan they hold now.
 	VisitUsers(ctx context.Context, day pgtype.Date) ([]VisitUsersRow, error)
 	// Bulk void (client, 2026-11-02): every published point of a series, or those in [from, to). Kept as rejected.
