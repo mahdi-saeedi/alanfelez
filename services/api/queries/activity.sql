@@ -47,7 +47,8 @@ ON CONFLICT (user_id, day, section, metal) DO UPDATE SET seconds = app.user_acti
 
 -- name: ActivityUsers :many
 -- Signed-in users with activity between from and to (Tehran days), with filters; busiest first, or with the most
--- views of the chosen metal first. total = the number of matching users (for paging).
+-- views of the chosen metal first. upgradable = only Free and Silver users (the sales opportunities); min_days = at
+-- least that many days with a page. total = the number of matching users (for paging).
 WITH agg AS (
   SELECT a.user_id, count(DISTINCT a.day)::int AS days, sum(a.views)::int AS views, sum(a.seconds)::bigint AS seconds,
          coalesce(sum(a.views) FILTER (WHERE a.metal = sqlc.arg(metal)::text), 0)::int AS metal_views,
@@ -57,7 +58,7 @@ WITH agg AS (
   GROUP BY a.user_id
 )
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.company, u.activity, u.metals, u.province,
-       coalesce(cur.plan_code, 'free')::text AS current_plan,
+       coalesce(cur.plan_code, 'free')::text AS current_plan, coalesce(sl.stage, '')::text AS lead_stage,
        agg.days, agg.views, agg.seconds, agg.metal_views,
        (SELECT max(pv.at) FROM app.page_views pv WHERE pv.user_id = u.id AND pv.day <= sqlc.arg(to_day)::date)::timestamptz AS last_at,
        count(*) OVER ()::int AS total
@@ -68,7 +69,10 @@ LEFT JOIN LATERAL (
   WHERE s.user_id = u.id AND s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now()
   ORDER BY p.rank DESC LIMIT 1
 ) cur ON true
+LEFT JOIN app.sales_leads sl ON sl.user_id = u.id
 WHERE u.deleted_at IS NULL
+  AND agg.days >= sqlc.arg(min_days)::int
+  AND (NOT sqlc.arg(upgradable)::bool OR coalesce(cur.plan_code, 'free') IN ('free', 'silver'))
   AND (sqlc.arg(metal)::text = '' OR agg.metal_views > 0)
   AND (sqlc.arg(plan)::text = '' OR coalesce(cur.plan_code, 'free') = sqlc.arg(plan)::text)
   AND (sqlc.arg(activity)::text = '' OR u.activity = sqlc.arg(activity)::text)

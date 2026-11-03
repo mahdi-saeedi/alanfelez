@@ -335,6 +335,27 @@ type AppRefund struct {
 	UpdatedAt  pgtype.Timestamptz
 }
 
+type AppSalesLead struct {
+	UserID    pgtype.UUID
+	Stage     string
+	OwnerID   pgtype.UUID
+	OwnerName pgtype.Text
+	NextAt    pgtype.Date
+	UpdatedAt pgtype.Timestamptz
+	UpdatedBy string
+}
+
+type AppSalesNote struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorID   pgtype.UUID
+	AuthorName string
+	Kind       string
+	Outcome    pgtype.Text
+	Body       string
+	CreatedAt  pgtype.Timestamptz
+}
+
 type AppSeedRun struct {
 	Profile   string
 	File      string

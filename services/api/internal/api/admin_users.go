@@ -20,6 +20,13 @@ import (
 type Identity interface {
 	RealmRoles(ctx context.Context, userID string) ([]string, error)
 	DeleteUser(ctx context.Context, userID string) error
+	// Staff accounts (staff.go).
+	ListStaff(ctx context.Context) ([]identity.StaffMember, error)
+	CreateStaff(ctx context.Context, username, first, last, password string, temporary bool, roles []string) (string, error)
+	SetStaffRoles(ctx context.Context, userID string, roles []string) error
+	UpdateStaff(ctx context.Context, userID, first, last string, enabled bool) error
+	SetPassword(ctx context.Context, userID, password string, temporary bool) error
+	DisplayName(ctx context.Context, userID string) (string, error)
 }
 
 // WithIdentity connects user deletion to Keycloak (default: none, deleting answers UPSTREAM_UNAVAILABLE).

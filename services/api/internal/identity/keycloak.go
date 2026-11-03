@@ -1,9 +1,11 @@
-// Package identity talks to Keycloak's Admin API for the few account actions the API does itself (deleting a user).
-// It signs in as the alanfelez-api-admin client: a service account whose only roles are realm-management's
-// manage-users and view-users (created by the keycloak-profile job, secret alanfelez-keycloak-api-admin).
+// Package identity talks to Keycloak's Admin API for the few account actions the API does itself: deleting a user,
+// and staff accounts (staff.go). It signs in as the alanfelez-api-admin client: a service account whose only roles are
+// realm-management's manage-users, view-users and view-realm (created by the keycloak-profile job, secret
+// alanfelez-keycloak-api-admin).
 package identity
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -80,15 +82,26 @@ func (k *Keycloak) DeleteUser(ctx context.Context, userID string) error {
 	return statusError("delete user", res)
 }
 
-// do sends an authorised Admin API request; path is relative to /admin/realms/{realm}.
-func (k *Keycloak) do(ctx context.Context, method, path string) (*http.Response, error) {
+// do sends an authorised Admin API request; path is relative to /admin/realms/{realm}. body (optional) is sent as JSON.
+func (k *Keycloak) do(ctx context.Context, method, path string, body ...any) (*http.Response, error) {
 	tok, err := k.token(ctx)
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, method, k.base+"/admin/realms/"+url.PathEscape(k.realm)+path, nil)
+	var rd io.Reader
+	if len(body) > 0 {
+		b, err := json.Marshal(body[0])
+		if err != nil {
+			return nil, fmt.Errorf("identity: %w", err)
+		}
+		rd = bytes.NewReader(b)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, k.base+"/admin/realms/"+url.PathEscape(k.realm)+path, rd)
 	if err != nil {
 		return nil, fmt.Errorf("identity: %w", err)
+	}
+	if rd != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
 	req.Header.Set("Authorization", "Bearer "+tok)
 	res, err := k.hc.Do(req)

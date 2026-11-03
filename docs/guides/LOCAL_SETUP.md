@@ -65,6 +65,7 @@ Test users (local only, file `deploy/local/keycloak/alanfelez-users-0.json`). Us
 |---|---|---|---|
 | `local-admin` | `local-admin-pass` | admin (staff) | Staff must set up **TOTP 2FA** on first login (scan with any authenticator app) |
 | `local-editor` | `local-editor-pass` | editor (staff) | same |
+| `local-sales` | `local-sales-pass` | sales (staff) | same; reads the admin, writes only sales notes |
 | `09120000001` | `local-user-pass` | normal user | or log in with OTP |
 
 **Try a purchase:** http://localhost:3000/plans → «انتخاب طلایی» → sign in as `09120000001` → accept the terms → pay. The **mock

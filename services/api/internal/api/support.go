@@ -105,7 +105,7 @@ func (s *Server) SendContactMessage(ctx context.Context, req SendContactMessageR
 
 func validContactSubject(s ContactSubject) bool {
 	switch s {
-	case General, Support, Billing, Partnership, Feedback, Other:
+	case ContactSubjectGeneral, ContactSubjectSupport, ContactSubjectBilling, ContactSubjectPartnership, ContactSubjectFeedback, ContactSubjectOther:
 		return true
 	}
 	return false

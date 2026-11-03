@@ -64,6 +64,16 @@
             "staff"
           ]
         }
+      },
+      {
+        "name": "sales",
+        "description": "Sales staff: reads the admin, writes only sales notes and follow-ups",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "staff"
+          ]
+        }
       }
     ]
   },

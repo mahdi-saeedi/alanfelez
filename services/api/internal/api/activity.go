@@ -91,6 +91,14 @@ func searchTerm(q *string) string {
 	return v
 }
 
+// minDaysOf is the "at least n days with a page" filter (0 = none).
+func minDaysOf(n *int) int32 {
+	if n == nil || *n < 1 {
+		return 0
+	}
+	return int32(min(*n, 730)) //nolint:gosec // bounded by 730
+}
+
 func offsetOf(page *int) int32 {
 	if page == nil || *page < 1 {
 		return 0
@@ -147,12 +155,16 @@ func (s *Server) AdminDashboard(ctx context.Context, req AdminDashboardRequestOb
 	if err != nil {
 		return nil, fmt.Errorf("dashboard metals: %w", err)
 	}
+	followups, err := s.q.CountFollowupsDue(ctx, pgDate(day))
+	if err != nil {
+		return nil, fmt.Errorf("dashboard follow-ups: %w", err)
+	}
 	en := req.Params.AcceptLanguage != nil && *req.Params.AcceptLanguage == "en"
 	out := AdminDashboard200JSONResponse{
 		Day: openapi_types.Date{Time: day}, Today: day.Equal(today),
 		Visitors: int(cur.Visitors), SignedIn: int(cur.SignedIn), Pageviews: int(cur.Pageviews),
 		PrevVisitors: int(prev.Visitors), PrevSignedIn: int(prev.SignedIn),
-		Signups7d: int(c.Signups7d), SignupsPrev7d: int(c.SignupsPrev7d), Silver: int(c.Silver), Gold: int(c.Gold), Expiring7d: int(c.Expiring7d),
+		Signups7d: int(c.Signups7d), SignupsPrev7d: int(c.SignupsPrev7d), Silver: int(c.Silver), Gold: int(c.Gold), Expiring7d: int(c.Expiring7d), FollowupsDue: int(followups),
 		MissingPrices: make([]missingPrice, 0, len(missing)), Metals: make([]ActivityMetal, 0, len(metals)),
 	}
 	out.Pending.Posts, out.Pending.Comments, out.Pending.Tickets = int(c.PendingPosts), int(c.PendingComments), int(c.OpenTickets)
@@ -186,6 +198,7 @@ func (s *Server) AdminActivity(ctx context.Context, req AdminActivityRequestObje
 	rows, err := s.activityRows(ctx, dbq.ActivityUsersParams{
 		FromDay: pgDate(from), ToDay: pgDate(to), Metal: str(req.Params.Metal), Plan: planOf(req.Params.Plan),
 		Activity: str(req.Params.Activity), Q: searchTerm(req.Params.Q), Off: offsetOf(req.Params.Page), Lim: pageSize,
+		Upgradable: req.Params.Upgradable != nil && *req.Params.Upgradable, MinDays: minDaysOf(req.Params.MinDays),
 	})
 	if err != nil {
 		return nil, err
@@ -231,6 +244,10 @@ func (s *Server) activityRows(ctx context.Context, arg dbq.ActivityUsersParams) 
 		}
 		if name := fullName(u.FirstName, u.LastName); name != "" {
 			row.Name = &name
+		}
+		if u.LeadStage != "" {
+			st := LeadStage(u.LeadStage)
+			row.LeadStage = &st
 		}
 		out.items = append(out.items, row)
 		out.total = int(u.Total)

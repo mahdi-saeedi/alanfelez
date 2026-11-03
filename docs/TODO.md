@@ -4,16 +4,15 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-03 (admin dashboard, user activity, users filters and export)
+Last updated: 2026-11-03 (sales tools: staff accounts, follow-ups, calls, opportunities, sales report)
 
 ## Now (in progress)
-- [ ] **User activity → staging, then the main site** (2026-11-03): on branch `claude/new-session-i1teqj`, waiting for the
-      client's «بفرست روی staging». Before the main site: the client approves the privacy text (F19) and it's pasted in the
-      admin (صفحات ثابت → حریم خصوصی).
-- [ ] **Staff accounts from the admin** (client 2026-11-03: sales staff should sign in with a username and password the
-      client gives them): today staff are made only in the Keycloak console. Proposed: an admin-only «پرسنل» page (create,
-      reset password, disable, roles incl. a new read-only `sales` role; TOTP stays required). Touches auth/Keycloak →
-      needs the owner's OK before building.
+- [ ] **Privacy text (F19)** for user activity and the sales calls: written (OPEN_QUESTIONS F19); to be pasted in the
+      admin of the main site (صفحات ثابت → حریم خصوصی). User activity is live since v0.31.0.
+- [ ] **Sales tools → staging** (2026-11-03): staff accounts, sales follow-up, calls, opportunities, sales report, on branch
+      `claude/new-session-i1teqj`; waiting for the client's «بفرست روی staging». After deploy check the keycloak-profile
+      job log (role `sales` created, service account given `view-realm`).
+- [ ] Sales report: real numbers once the payment gateway (F13) is live; nothing to change in the report itself.
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
@@ -62,6 +61,13 @@ Last updated: 2026-11-03 (admin dashboard, user activity, users filters and expo
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-03 Admin sales tools (client, owner OK by phone for staff accounts): **«پرسنل»** (admins create staff in Keycloak
+  with a username and password, roles incl. the new read-only `sales`, disable, new password; TOTP stays required; job
+  creates the role, service account gains `view-realm`); **sales follow-up** on each profile (stage, owner, next call,
+  notes and calls; migration 00030); **«پیگیری و تماس‌ها»** (today's follow-ups, plans ending in 2–4 days, plans bought
+  14–16 days ago, log a call in place); **«فرصت‌های فروش»** (Free/Silver users who come often); **«گزارش فروش»**
+  (day/week/Jalali month, by plan and kind, refunds, CSV); dashboard follow-ups count; «فعال‌سازی اشتراک» on the profile.
+- 2026-11-03 Released v0.31.0: admin dashboard by day, user activity, users filters and exports.
 - 2026-11-03 Admin (client, owner OK by phone): a real **dashboard** for any day (visitors with the change on the day before,
   sign-ups, Silver/Gold held, plans ending in 7 days, what waits for staff, domestic prices not entered that day, which
   metals visitors viewed); **«رفتار کاربران»**: each signed-in user's days, time on the site, sections and metals for any

@@ -249,14 +249,14 @@ func (q *Queries) ActivitySections(ctx context.Context, arg ActivitySectionsPara
 const activityUsers = `-- name: ActivityUsers :many
 WITH agg AS (
   SELECT a.user_id, count(DISTINCT a.day)::int AS days, sum(a.views)::int AS views, sum(a.seconds)::bigint AS seconds,
-         coalesce(sum(a.views) FILTER (WHERE a.metal = $2::text), 0)::int AS metal_views,
+         coalesce(sum(a.views) FILTER (WHERE a.metal = $4::text), 0)::int AS metal_views,
          max(a.day)::date AS last_day
   FROM app.user_activity_daily a
-  WHERE a.day BETWEEN $8::date AND $1::date
+  WHERE a.day BETWEEN $10::date AND $1::date
   GROUP BY a.user_id
 )
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.company, u.activity, u.metals, u.province,
-       coalesce(cur.plan_code, 'free')::text AS current_plan,
+       coalesce(cur.plan_code, 'free')::text AS current_plan, coalesce(sl.stage, '')::text AS lead_stage,
        agg.days, agg.views, agg.seconds, agg.metal_views,
        (SELECT max(pv.at) FROM app.page_views pv WHERE pv.user_id = u.id AND pv.day <= $1::date)::timestamptz AS last_at,
        count(*) OVER ()::int AS total
@@ -267,28 +267,33 @@ LEFT JOIN LATERAL (
   WHERE s.user_id = u.id AND s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now()
   ORDER BY p.rank DESC LIMIT 1
 ) cur ON true
+LEFT JOIN app.sales_leads sl ON sl.user_id = u.id
 WHERE u.deleted_at IS NULL
-  AND ($2::text = '' OR agg.metal_views > 0)
-  AND ($3::text = '' OR coalesce(cur.plan_code, 'free') = $3::text)
-  AND ($4::text = '' OR u.activity = $4::text)
-  AND ($5::text = ''
-       OR u.username ILIKE '%' || $5::text || '%'
-       OR u.phone_e164 ILIKE '%' || $5::text || '%'
-       OR (coalesce(u.first_name, '') || ' ' || coalesce(u.last_name, '') || ' ' || coalesce(u.company, '')) ILIKE '%' || $5::text || '%'
-       OR u.id::text LIKE $5::text || '%')
+  AND agg.days >= $2::int
+  AND (NOT $3::bool OR coalesce(cur.plan_code, 'free') IN ('free', 'silver'))
+  AND ($4::text = '' OR agg.metal_views > 0)
+  AND ($5::text = '' OR coalesce(cur.plan_code, 'free') = $5::text)
+  AND ($6::text = '' OR u.activity = $6::text)
+  AND ($7::text = ''
+       OR u.username ILIKE '%' || $7::text || '%'
+       OR u.phone_e164 ILIKE '%' || $7::text || '%'
+       OR (coalesce(u.first_name, '') || ' ' || coalesce(u.last_name, '') || ' ' || coalesce(u.company, '')) ILIKE '%' || $7::text || '%'
+       OR u.id::text LIKE $7::text || '%')
 ORDER BY agg.metal_views DESC, agg.seconds DESC, agg.views DESC, u.id
-LIMIT $7::int OFFSET $6::int
+LIMIT $9::int OFFSET $8::int
 `
 
 type ActivityUsersParams struct {
-	ToDay    pgtype.Date
-	Metal    string
-	Plan     string
-	Activity string
-	Q        string
-	Off      int32
-	Lim      int32
-	FromDay  pgtype.Date
+	ToDay      pgtype.Date
+	MinDays    int32
+	Upgradable bool
+	Metal      string
+	Plan       string
+	Activity   string
+	Q          string
+	Off        int32
+	Lim        int32
+	FromDay    pgtype.Date
 }
 
 type ActivityUsersRow struct {
@@ -302,6 +307,7 @@ type ActivityUsersRow struct {
 	Metals      []string
 	Province    pgtype.Text
 	CurrentPlan string
+	LeadStage   string
 	Days        int32
 	Views       int32
 	Seconds     int64
@@ -311,10 +317,13 @@ type ActivityUsersRow struct {
 }
 
 // Signed-in users with activity between from and to (Tehran days), with filters; busiest first, or with the most
-// views of the chosen metal first. total = the number of matching users (for paging).
+// views of the chosen metal first. upgradable = only Free and Silver users (the sales opportunities); min_days = at
+// least that many days with a page. total = the number of matching users (for paging).
 func (q *Queries) ActivityUsers(ctx context.Context, arg ActivityUsersParams) ([]ActivityUsersRow, error) {
 	rows, err := q.db.Query(ctx, activityUsers,
 		arg.ToDay,
+		arg.MinDays,
+		arg.Upgradable,
 		arg.Metal,
 		arg.Plan,
 		arg.Activity,
@@ -341,6 +350,7 @@ func (q *Queries) ActivityUsers(ctx context.Context, arg ActivityUsersParams) ([
 			&i.Metals,
 			&i.Province,
 			&i.CurrentPlan,
+			&i.LeadStage,
 			&i.Days,
 			&i.Views,
 			&i.Seconds,

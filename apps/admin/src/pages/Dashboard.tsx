@@ -30,6 +30,7 @@ export function Dashboard() {
   };
   const maxMetal = Math.max(1, ...(d?.metals.map((m) => m.views) ?? []));
   const pending: [string, number, string][] = d ? [
+    ["dash.followups", d.followupsDue, "/sales/calls"],
     ["dash.pendingPosts", d.pending.posts, "/content/community"],
     ["dash.pendingComments", d.pending.comments, "/content/community"],
     ["dash.tickets", d.pending.tickets, "/support/tickets"],

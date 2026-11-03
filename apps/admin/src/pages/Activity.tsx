@@ -5,6 +5,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { formatDate, formatNumber, formatTime, type Locale } from "@alanfelez/ui/format";
 import { api, errorText, unwrap } from "../api";
 import { Badge, Button, Card, Input, Notice, Page, Select, Td, Th } from "./ui";
+import { SalesBox, StageBadge } from "./Sales";
 import { ACTIVITIES, Bar, METALS, RangePicker, type Range, addDays, downloadCsv, duration, lastDays, metalColor, noonOf } from "./dates";
 
 type Plan = "free" | "silver" | "gold";
@@ -16,11 +17,11 @@ function useFilters() {
   const f = {
     from: params.get("from") ?? def.from, to: params.get("to") ?? def.to,
     metal: params.get("metal") ?? "", plan: (params.get("plan") ?? "") as Plan | "", activity: params.get("activity") ?? "",
-    q: params.get("q") ?? "", page: Number(params.get("page") ?? "1") || 1,
+    q: params.get("q") ?? "", page: Number(params.get("page") ?? "1") || 1, minDays: Number(params.get("minDays") ?? "0") || 0,
   };
   const set = (patch: Partial<typeof f>) => {
     const next = { ...f, page: 1, ...patch };
-    setParams(Object.fromEntries(Object.entries(next).filter(([, v]) => v !== "" && v !== 1).map(([k, v]) => [k, String(v)])), { replace: true });
+    setParams(Object.fromEntries(Object.entries(next).filter(([k, v]) => v !== "" && !(k === "page" && v === 1) && !(k === "minDays" && v === 0)).map(([k, v]) => [k, String(v)])), { replace: true });
   };
   return [f, set] as const;
 }
@@ -31,16 +32,19 @@ const planTone = (p: Plan) => (p === "gold" ? "gold" : "gray");
  * «رفتار کاربران» (client 2026-11-03): each signed-in user's time on the site, the sections they used and the metals
  * they looked at, for any range of days; an Excel (CSV) export for the sales staff. Anonymous visitors are never named.
  */
-export function ActivityPage() {
+export function ActivityPage({ opportunities = false }: { opportunities?: boolean }) {
   const t = useTranslate();
   const locale = useGetLocale()() as Locale;
   const [f, set] = useFilters();
+  // Sales opportunities (client 2026-11-03): Free and Silver users who come often, most active first.
+  const minDays = opportunities ? f.minDays || 3 : f.minDays;
   const [q, setQ] = useState(f.q);
   const [exporting, setExporting] = useState<unknown>(null);
   const list = useQuery({
-    queryKey: ["admin", "activity", f],
+    queryKey: ["admin", "activity", f, opportunities],
     queryFn: async () => unwrap(await api.GET("/v1/admin/activity", {
       params: { query: { from: f.from, to: f.to, page: f.page, ...(f.metal ? { metal: f.metal } : {}), ...(f.plan ? { plan: f.plan } : {}),
+        ...(opportunities ? { upgradable: true } : {}), ...(minDays ? { minDays } : {}),
         ...(f.activity ? { activity: f.activity } : {}), ...(f.q ? { q: f.q } : {}) } },
     })),
   });
@@ -59,7 +63,7 @@ export function ActivityPage() {
   };
 
   return (
-    <Page title={t("act.title")} hint={t("act.hint")}>
+    <Page title={t(opportunities ? "opp.title" : "act.title")} hint={t(opportunities ? "opp.hint" : "act.hint")}>
       <RangePicker value={range} onChange={(r) => set(r)} locale={locale} />
       <div className="flex flex-wrap items-center gap-2">
         <Select value={f.metal} onChange={(e) => set({ metal: e.target.value })} aria-label={t("act.metal")}>
@@ -68,8 +72,13 @@ export function ActivityPage() {
         </Select>
         <Select value={f.plan} onChange={(e) => set({ plan: e.target.value as Plan | "" })} aria-label={t("subs.plan")}>
           <option value="">{t("act.allPlans")}</option>
-          {(["free", "silver", "gold"] as const).map((p) => <option key={p} value={p}>{t(`plan.${p}`)}</option>)}
+          {(opportunities ? (["free", "silver"] as const) : (["free", "silver", "gold"] as const)).map((p) => <option key={p} value={p}>{t(`plan.${p}`)}</option>)}
         </Select>
+        {opportunities && (
+          <Select value={minDays} onChange={(e) => set({ minDays: Number(e.target.value) })} aria-label={t("opp.minDays")}>
+            {[1, 3, 5, 10, 20].map((d) => <option key={d} value={d}>{t("opp.atLeast", { n: formatNumber(d, locale) })}</option>)}
+          </Select>
+        )}
         <Select value={f.activity} onChange={(e) => set({ activity: e.target.value })} aria-label={t("act.activity")}>
           <option value="">{t("act.allActivities")}</option>
           {ACTIVITIES.map((a) => <option key={a} value={a}>{t(`signup.activity.${a}`)}</option>)}
@@ -89,7 +98,7 @@ export function ActivityPage() {
           <thead className="bg-surface-2">
             <tr>
               <Th>{t("act.user")}</Th><Th>{t("act.name")}</Th><Th>{t("subs.plan")}</Th><Th>{t("act.days")}</Th><Th>{t("act.time")}</Th>
-              <Th>{t("act.topSection")}</Th><Th>{t("act.metals")}</Th><Th>{t("act.last")}</Th>
+              <Th>{t("act.topSection")}</Th><Th>{t("act.metals")}</Th><Th>{t("act.last")}</Th><Th>{t("sales.stage")}</Th>
             </tr>
           </thead>
           <tbody>
@@ -121,6 +130,7 @@ export function ActivityPage() {
                   </div>
                 </Td>
                 <Td className="text-xs text-text-2">{u.lastAt ? formatDate(u.lastAt, locale, true) : "—"}</Td>
+                <Td><StageBadge stage={u.leadStage} /></Td>
               </tr>
             ))}
           </tbody>
@@ -207,8 +217,10 @@ export function ActivityUserPage() {
               {u.metals?.length ? <div className="text-xs text-text-2">{t("act.signupMetals")}: {u.metals.map((m) => t(`signup.metal.${m}`, m)).join(locale === "fa" ? "، " : ", ")}</div> : null}
             </div>
             <Link to={`/orders?user=${u.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:border-gold">{t("users.orders")}</Link>
+            <Link to={`/subscriptions?user=${u.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:border-gold">{t("users.grant")}</Link>
             <Button type="button" tone="gold" onClick={exportCsv}>⬇ {t("act.exportUser")}</Button>
           </Card>
+          <SalesBox userId={u.id} />
           <RangePicker value={range} onChange={setRange} locale={locale} />
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

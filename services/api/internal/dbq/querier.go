@@ -27,7 +27,8 @@ type Querier interface {
 	// Views and seconds per user and section between from and to.
 	ActivitySections(ctx context.Context, arg ActivitySectionsParams) ([]ActivitySectionsRow, error)
 	// Signed-in users with activity between from and to (Tehran days), with filters; busiest first, or with the most
-	// views of the chosen metal first. total = the number of matching users (for paging).
+	// views of the chosen metal first. upgradable = only Free and Silver users (the sales opportunities); min_days = at
+	// least that many days with a page. total = the number of matching users (for paging).
 	ActivityUsers(ctx context.Context, arg ActivityUsersParams) ([]ActivityUsersRow, error)
 	AddActivitySeconds(ctx context.Context, arg AddActivitySecondsParams) error
 	AddActivityView(ctx context.Context, arg AddActivityViewParams) error
@@ -78,6 +79,7 @@ type Querier interface {
 	CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error)
 	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error)
+	CountFollowupsDue(ctx context.Context, day pgtype.Date) (int32, error)
 	CountPendingComments(ctx context.Context) (int64, error)
 	CountPendingCommunityPosts(ctx context.Context) (int64, error)
 	CountPoints(ctx context.Context, seriesID int32) (int64, error)
@@ -124,7 +126,7 @@ type Querier interface {
 	DeleteProduct(ctx context.Context, slug string) (int64, error)
 	DeleteProductSeries(ctx context.Context, slug string) error
 	DeleteSeries(ctx context.Context, slug string) (int64, error)
-	// What only the user had: SMS choice, price alerts, saved calculations, the pages they opened (activity); the SMS log keeps cost and status without the
+	// What only the user had: SMS choice, price alerts, saved calculations, the pages they opened (activity), the sales staff's notes about them; the SMS log keeps cost and status without the
 	// number; contact-form messages they sent while signed in keep the text without name, number, email and address.
 	DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error
 	ExpirePendingOrders(ctx context.Context) (int64, error)
@@ -132,6 +134,9 @@ type Querier interface {
 	// Paid or granted plans ending in the window with nothing queued after them, and a phone to remind.
 	ExpiringSubscriptions(ctx context.Context, arg ExpiringSubscriptionsParams) ([]ExpiringSubscriptionsRow, error)
 	FeatureEnabled(ctx context.Context, key string) (bool, error)
+	// Plans (Silver, Gold) that started between from_at and to_at: the "how is it going?" call list. last_call = the
+	// latest feedback call since the plan started.
+	FeedbackCalls(ctx context.Context, arg FeedbackCallsParams) ([]FeedbackCallsRow, error)
 	// Orders ----------------------------------------------------------------------------------------------------
 	FindOrderByKey(ctx context.Context, arg FindOrderByKeyParams) (AppOrder, error)
 	FirstPointAt(ctx context.Context, seriesID int32) (pgtype.Timestamptz, error)
@@ -148,6 +153,8 @@ type Querier interface {
 	GetPage(ctx context.Context, slug string) (GetPageRow, error)
 	GetPublishedArticle(ctx context.Context, slug string) (GetPublishedArticleRow, error)
 	GetRefundByOrder(ctx context.Context, orderID pgtype.UUID) (AppRefund, error)
+	// Sales follow-up (admin), call lists and the sales report. Migration 00030.
+	GetSalesLead(ctx context.Context, userID pgtype.UUID) (AppSalesLead, error)
 	GetSeriesByID(ctx context.Context, id int32) (GetSeriesByIDRow, error)
 	GetSeriesBySlug(ctx context.Context, slug string) (GetSeriesBySlugRow, error)
 	// Resolves slugs for ingestion. Inactive series are included so the caller can report them.
@@ -188,6 +195,7 @@ type Querier interface {
 	InsertProduct(ctx context.Context, arg InsertProductParams) (int16, error)
 	// Refunds ---------------------------------------------------------------------------------------------------
 	InsertRefund(ctx context.Context, arg InsertRefundParams) (AppRefund, error)
+	InsertSalesNote(ctx context.Context, arg InsertSalesNoteParams) (InsertSalesNoteRow, error)
 	// New series are base (free) in global markets (LME, «بازار جهانی») and on the IME (بورس کالا): the client's plan
 	// table (2026-10-26). Domestic day prices (free market, Iran iron market) are Silver and Gold.
 	// No row back = the slug or the product × market × currency × unit combination is taken, or a reference is unknown.
@@ -233,6 +241,7 @@ type Querier interface {
 	ListPublishedArticles(ctx context.Context, arg ListPublishedArticlesParams) ([]ListPublishedArticlesRow, error)
 	// Review of quarantined points -----------------------------------------------------------------------------
 	ListQuarantined(ctx context.Context) ([]ListQuarantinedRow, error)
+	ListSalesNotes(ctx context.Context, userID pgtype.UUID) ([]ListSalesNotesRow, error)
 	// Sources ----------------------------------------------------------------------------------------------------
 	ListSources(ctx context.Context) ([]ListSourcesRow, error)
 	ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListSubscriptionsRow, error)
@@ -284,11 +293,20 @@ type Querier interface {
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
 	RecordVisit(ctx context.Context, arg RecordVisitParams) error
 	RenameMetal(ctx context.Context, arg RenameMetalParams) (int64, error)
+	// Paid plans (Silver, Gold) ending between from_at and to_at that nothing continues (no later active plan starting by
+	// then): the renewal call list. last_call = the latest renewal call in the 30 days before the end.
+	RenewalCalls(ctx context.Context, arg RenewalCallsParams) ([]RenewalCallsRow, error)
 	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
 	ReportCommunityPost(ctx context.Context, arg ReportCommunityPostParams) error
 	// Total SMS spend since a time (the daily budget circuit breaker, SECURITY §4).
 	SMSCostSince(ctx context.Context, since pgtype.Timestamptz) (int64, error)
+	// Customers whose next follow-up is due by the given day (overdue first), optionally only one staff member's.
+	SalesFollowups(ctx context.Context, arg SalesFollowupsParams) ([]SalesFollowupsRow, error)
+	// Orders paid between from_at and to_at (refunded ones included: the refund is reported on its own day).
+	SalesOrders(ctx context.Context, arg SalesOrdersParams) ([]SalesOrdersRow, error)
+	// Refunds approved between from_at and to_at.
+	SalesRefunds(ctx context.Context, arg SalesRefundsParams) ([]SalesRefundsRow, error)
 	// Keeps the text that is about to be replaced.
 	SavePageRevision(ctx context.Context, arg SavePageRevisionParams) error
 	// Copies the daily totals of past days (before today) into visit_totals, before the per-visitor rows are deleted.
@@ -337,6 +355,7 @@ type Querier interface {
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (int64, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
 	UpsertRating(ctx context.Context, arg UpsertRatingParams) error
+	UpsertSalesLead(ctx context.Context, arg UpsertSalesLeadParams) (AppSalesLead, error)
 	// 0 rows: unknown metal slug.
 	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
@@ -345,6 +364,7 @@ type Querier interface {
 	// Returns no row for a deleted account.
 	UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error)
 	UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
+	UserExists(ctx context.Context, id pgtype.UUID) (bool, error)
 	// The provinces users chose (the users page filter).
 	UserProvinces(ctx context.Context) ([]string, error)
 	// The day's salt for anonymous visitor ids, made on first use.

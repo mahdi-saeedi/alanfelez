@@ -21,8 +21,8 @@ export function Th({ children }: { children?: ReactNode }) {
   return <th className="px-3 py-2.5 text-start text-xs font-semibold text-text-2">{children}</th>;
 }
 
-export function Td({ children, className = "", dir }: { children?: ReactNode; className?: string; dir?: "ltr" | "rtl" }) {
-  return <td dir={dir} className={`px-3 py-2.5 align-middle ${className}`}>{children}</td>;
+export function Td({ children, className = "", dir, colSpan }: { children?: ReactNode; className?: string; dir?: "ltr" | "rtl"; colSpan?: number }) {
+  return <td dir={dir} colSpan={colSpan} className={`px-3 py-2.5 align-middle ${className}`}>{children}</td>;
 }
 
 export function Button({ children, tone = "dark", ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { tone?: "dark" | "gold" | "ghost" | "danger" }) {

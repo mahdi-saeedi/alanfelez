@@ -56,3 +56,5 @@ export const canGrant = (roles: string[]) => roles.includes("admin");
 export const canWriteContent = canWritePrices; // editor or admin (SCOPE §10)
 export const canAnswerSupport = (roles: string[]) => roles.includes("support") || roles.includes("admin");
 export const canEditSettings = canGrant;
+/** Sales notes, stages and follow-ups: sales staff and admins (the API checks the same). */
+export const canSell = (roles: string[]) => roles.includes("sales") || roles.includes("admin");

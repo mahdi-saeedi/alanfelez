@@ -22,6 +22,7 @@ const (
 	RoleAdmin   = "admin"
 	RoleEditor  = "editor"
 	RoleSupport = "support"
+	RoleSales   = "sales" // reads the admin; writes only sales notes and follow-ups (2026-11-03)
 )
 
 // Principal is the authenticated caller.

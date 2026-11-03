@@ -597,6 +597,8 @@ paths:
         - { $ref: '#/components/parameters/UserPlanFilter' }
         - { $ref: '#/components/parameters/UserActivityFilter' }
         - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: upgradable, in: query, required: false, schema: { type: boolean }, description: 'Only Free and Silver users (the sales opportunities)' }
+        - { name: minDays, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 730 }, description: 'At least this many days with a page in the range' }
         - { $ref: '#/components/parameters/PageNumber' }
       responses:
         '200':
@@ -649,6 +651,245 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/AdminUserActivity' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/staff:
+    get:
+      operationId: adminListStaff
+      tags: [admin]
+      summary: Staff accounts (Keycloak users with a staff role). Any staff member may read the list (to assign customers)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Staff
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/StaffMember' } }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: adminCreateStaff
+      tags: [admin]
+      summary: Create a staff account with a username and password. Role, admin. Audited
+      description: >
+        The account signs in to the admin with the username and password, then sets up the code app (two-step sign-in is
+        required for staff). CONFLICT when the username is taken; UPSTREAM_UNAVAILABLE without the Keycloak service account.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StaffInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StaffMember' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/staff/{id}:
+    put:
+      operationId: adminUpdateStaff
+      tags: [admin]
+      summary: Change a staff account's name, roles or whether it may sign in. Role, admin. Audited. Not your own roles or access
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StaffUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StaffMember' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/staff/{id}/password:
+    post:
+      operationId: adminSetStaffPassword
+      tags: [admin]
+      summary: Set a new password for a staff account. Role, admin. Audited (without the password)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, minLength: 10, maxLength: 128 }
+                temporary: { type: boolean, description: Must be changed at the next sign-in }
+      responses:
+        '204': { description: Set }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/sales/followups:
+    get:
+      operationId: adminSalesFollowups
+      tags: [admin]
+      summary: Customers whose next sales follow-up is due by a day (default today, overdue included)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: day, in: query, required: false, schema: { type: string, format: date } }
+        - { name: owner, in: query, required: false, schema: { type: string, format: uuid }, description: Only this staff member's customers }
+      responses:
+        '200':
+          description: Follow-ups
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/SalesFollowup' } }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/sales/calls:
+    get:
+      operationId: adminSalesCalls
+      tags: [admin]
+      summary: Call lists. renewal = paid plans ending in minDays–maxDays days (default 2–4); feedback = plans bought minDays–maxDays days ago (default 14–16)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: kind, in: query, required: true, schema: { type: string, enum: [renewal, feedback] } }
+        - { name: minDays, in: query, required: false, schema: { type: integer, minimum: 0, maximum: 365 } }
+        - { name: maxDays, in: query, required: false, schema: { type: integer, minimum: 0, maximum: 365 } }
+      responses:
+        '200':
+          description: Calls to make
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, minDays, maxDays]
+                properties:
+                  minDays: { type: integer }
+                  maxDays: { type: integer }
+                  items: { type: array, items: { $ref: '#/components/schemas/SalesCall' } }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/sales/{id}:
+    get:
+      operationId: adminSalesCard
+      tags: [admin]
+      summary: A customer's sales card (stage, owner, next follow-up) and the notes and calls about them
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Sales card
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [notes]
+                properties:
+                  lead: { $ref: '#/components/schemas/SalesLead' }
+                  notes: { type: array, items: { $ref: '#/components/schemas/SalesNote' } }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/sales/{id}/lead:
+    put:
+      operationId: adminSetSalesLead
+      tags: [admin]
+      summary: Set a customer's stage, owner and next follow-up. Roles, sales, admin. Audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stage]
+              properties:
+                stage: { $ref: '#/components/schemas/LeadStage' }
+                ownerId: { type: string, format: uuid, description: A staff member (none = nobody) }
+                nextAt: { type: string, format: date, description: The next follow-up, Tehran day (none = no follow-up) }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SalesLead' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/sales/{id}/notes:
+    post:
+      operationId: adminAddSalesNote
+      tags: [admin]
+      summary: Add a note or a call to a customer. Roles, sales, admin. Audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind]
+              properties:
+                kind: { $ref: '#/components/schemas/SalesNoteKind' }
+                outcome: { $ref: '#/components/schemas/CallOutcome' }
+                body: { type: string, maxLength: 2000 }
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SalesNote' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/reports/sales:
+    get:
+      operationId: adminSalesReport
+      tags: [admin]
+      summary: Sales between two Tehran days, per day, week (from Saturday) or Jalali month; by plan, period and kind; refunds
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { name: group, in: query, required: false, schema: { type: string, enum: [day, week, month], default: day } }
+      responses:
+        '200':
+          description: Report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SalesReport' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/reports/sales/export:
+    get:
+      operationId: adminExportSales
+      tags: [admin]
+      summary: The paid orders between two days as a CSV file for Excel. Audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: UTF-8 CSV with a byte order mark
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/orders:
@@ -3387,7 +3628,7 @@ components:
 
     AdminDashboard:
       type: object
-      required: [day, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups7d, signupsPrev7d, silver, gold, expiring7d, pending, missingPrices, metals]
+      required: [day, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups7d, signupsPrev7d, silver, gold, expiring7d, followupsDue, pending, missingPrices, metals]
       properties:
         day: { type: string, format: date }
         today: { type: boolean, description: The day is today (Tehran); plan counts are then as of now, else as of the day's end }
@@ -3401,6 +3642,7 @@ components:
         silver: { type: integer, description: Users holding Silver (as of the day) }
         gold: { type: integer }
         expiring7d: { type: integer, description: Paid plans ending within 7 days of the day, not renewed }
+        followupsDue: { type: integer, description: Sales follow-ups due by the day (overdue included) }
         pending:
           type: object
           description: What waits for staff now (not per day)
@@ -3453,6 +3695,7 @@ components:
         company: { type: string }
         activity: { type: string }
         plan: { $ref: '#/components/schemas/Tier' }
+        leadStage: { $ref: '#/components/schemas/LeadStage' }
         days: { type: integer, description: Days with at least one page in the range }
         views: { type: integer, description: Pages opened }
         seconds: { type: integer, description: Time the pages were in view }
@@ -3518,6 +3761,165 @@ components:
               metal: { type: string }
               product: { type: string }
               seconds: { type: integer }
+
+    StaffRole:
+      type: string
+      enum: [admin, editor, support, sales]
+      description: 'admin = everything; editor = prices and content; support = tickets and messages; sales = reads everything, writes only sales notes'
+
+    StaffMember:
+      type: object
+      required: [id, username, enabled, roles, totp]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        enabled: { type: boolean, description: May sign in }
+        roles: { type: array, items: { $ref: '#/components/schemas/StaffRole' } }
+        totp: { type: boolean, description: The code app (two-step sign-in) is set up }
+        createdAt: { type: string, format: date-time }
+
+    StaffInput:
+      type: object
+      required: [username, firstName, password, roles]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 40, pattern: '^[a-z0-9._-]+$', description: 'Latin lower-case letters, digits, dot, dash, underscore' }
+        firstName: { type: string, minLength: 1, maxLength: 60 }
+        lastName: { type: string, maxLength: 60 }
+        password: { type: string, minLength: 10, maxLength: 128 }
+        temporary: { type: boolean, description: Must be changed at the first sign-in }
+        roles: { type: array, minItems: 1, items: { $ref: '#/components/schemas/StaffRole' } }
+
+    StaffUpdate:
+      type: object
+      required: [firstName, roles, enabled]
+      properties:
+        firstName: { type: string, minLength: 1, maxLength: 60 }
+        lastName: { type: string, maxLength: 60 }
+        roles: { type: array, minItems: 1, items: { $ref: '#/components/schemas/StaffRole' } }
+        enabled: { type: boolean }
+
+    LeadStage:
+      type: string
+      enum: [new, contacted, interested, not_interested, customer]
+
+    SalesNoteKind:
+      type: string
+      enum: [note, call, renewal_call, feedback_call]
+
+    CallOutcome:
+      type: string
+      enum: [answered, no_answer, call_back]
+
+    SalesLead:
+      type: object
+      required: [stage, updatedAt, updatedBy]
+      properties:
+        stage: { $ref: '#/components/schemas/LeadStage' }
+        ownerId: { type: string, format: uuid }
+        ownerName: { type: string }
+        nextAt: { type: string, format: date }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: string }
+
+    SalesNote:
+      type: object
+      required: [id, kind, body, author, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: '#/components/schemas/SalesNoteKind' }
+        outcome: { $ref: '#/components/schemas/CallOutcome' }
+        body: { type: string }
+        author: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    SalesFollowup:
+      type: object
+      required: [userId, username, plan, stage, nextAt]
+      properties:
+        userId: { type: string, format: uuid }
+        username: { type: string }
+        name: { type: string }
+        company: { type: string }
+        plan: { $ref: '#/components/schemas/Tier' }
+        stage: { $ref: '#/components/schemas/LeadStage' }
+        ownerName: { type: string }
+        nextAt: { type: string, format: date }
+        last: { $ref: '#/components/schemas/SalesNote' }
+
+    SalesCall:
+      type: object
+      required: [subscriptionId, userId, username, plan, startsAt, endsAt, paid]
+      properties:
+        subscriptionId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        username: { type: string }
+        name: { type: string }
+        company: { type: string }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        paid: { type: boolean, description: Bought (an order), not granted by staff }
+        stage: { $ref: '#/components/schemas/LeadStage' }
+        ownerName: { type: string }
+        lastCall:
+          type: object
+          description: The latest call of this kind (renewal - in the 30 days before the end; feedback - since the start)
+          required: [at, author]
+          properties:
+            at: { type: string, format: date-time }
+            author: { type: string }
+            outcome: { $ref: '#/components/schemas/CallOutcome' }
+            body: { type: string }
+
+    SalesReport:
+      type: object
+      required: [from, to, group, totals, periods, byPlan, byKind]
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        group: { type: string, enum: [day, week, month] }
+        totals: { $ref: '#/components/schemas/SalesFigures' }
+        periods:
+          type: array
+          description: Every period of the range, oldest first (empty ones included)
+          items:
+            type: object
+            required: [start, end, figures]
+            properties:
+              start: { type: string, format: date }
+              end: { type: string, format: date, description: Last day of the period }
+              figures: { $ref: '#/components/schemas/SalesFigures' }
+        byPlan:
+          type: array
+          items:
+            type: object
+            required: [plan, period, orders, amount]
+            properties:
+              plan: { $ref: '#/components/schemas/PaidPlan' }
+              period: { $ref: '#/components/schemas/BillingPeriod' }
+              orders: { type: integer }
+              amount: { $ref: '#/components/schemas/Money' }
+        byKind:
+          type: array
+          items:
+            type: object
+            required: [kind, orders, amount]
+            properties:
+              kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+              orders: { type: integer }
+              amount: { $ref: '#/components/schemas/Money' }
+
+    SalesFigures:
+      type: object
+      required: [orders, revenue, refunds, refundAmount, net]
+      properties:
+        orders: { type: integer, description: Paid orders }
+        revenue: { $ref: '#/components/schemas/Money' }
+        refunds: { type: integer, description: Approved refunds }
+        refundAmount: { $ref: '#/components/schemas/Money' }
+        net: { $ref: '#/components/schemas/Money' }
 
     ContactInput:
       type: object

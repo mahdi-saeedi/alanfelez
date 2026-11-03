@@ -67,12 +67,17 @@ Every limit is configurable. Defaults:
 - API rate limits (M6, `internal/api/ratelimit.go`): 300 req/min per signed-in user, 120 req/min per client IP for anonymous
   callers; staff and the website server (trusted proxy without a forwarded client) are exempt; the SSE stream isn't counted.
   A history-range limit per request comes from the tier (chart.history_days).
-- No bulk export endpoints for users. Chart history is paginated by range.
+- User data leaves only through the admin's Excel (CSV) exports (users, user activity, sales; 2026-11-03, client and owner OK): staff roles only, every export audited (`users.export`, `activity.export`, `sales.export`, with the row count). Chart history is paginated by range.
 - **Deleting a user** (owner, 2026-10-27): admin role only, confirmed and audited (`user.delete`, no personal data in the
-  entry). The API calls Keycloak's Admin API as the service account `alanfelez-api-admin` (realm-management `manage-users`
-  and `view-users` only; secret `alanfelez-keycloak-api-admin`, sealed, only in the API pods and the profile job) to delete
+  entry). The API calls Keycloak's Admin API as the service account `alanfelez-api-admin` (realm-management `manage-users`,
+  `view-users` and `view-realm` only; secret `alanfelez-keycloak-api-admin`, sealed, only in the API pods and the profile job) to delete
   the account and its sessions; then name, mobile, email, sign-up answers, SMS choice, alerts and saved calculations go.
   Orders, payments, subscriptions and tickets stay without a name. Staff accounts and your own can't be deleted this way.
+- **Staff accounts** (admin «پرسنل», client 2026-11-03, owner OK by phone): admins create staff in Keycloak through the same
+  service account (now also `view-realm`, to list who holds a staff role): username + password (10+ characters, can be made
+  temporary), roles admin / editor / support / sales (each a composite of `staff`, so TOTP stays mandatory). Admins can't
+  change their own roles or disable themselves; customers' accounts are never changed here (404). Audited without the
+  password (`staff.create`, `staff.update`, `staff.password`). The `sales` role reads the admin and writes only sales notes.
 - **Concurrent session limit** (owner, 2026-10-27): at most 2 devices signed in per account, for **every** account; signing in on a
   third signs out the oldest (Keycloak «User Session Count Limiter» in the browser flow, `keycloak.sessionLimit`). Paid-only would
   need a Java extension. Seeing and revoking devices on the account page is not built yet.

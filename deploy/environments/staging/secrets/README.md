@@ -47,7 +47,7 @@ in `../data-values.yaml`. Keys never go into a chat or git in plain text.
 
 ## Keycloak service account for the API (`alanfelez-keycloak-api-admin`)
 Key `client-secret`: a random value nobody needs to know. The keycloak-profile job creates the client
-`alanfelez-api-admin` (roles manage-users and view-users only) with this secret; the API uses it to delete users from the
+`alanfelez-api-admin` (roles manage-users, view-users and view-realm only) with this secret; the API uses it to manage staff accounts (admin «پرسنل») and to delete users from the
 admin. Made without anyone seeing it (to rotate, run again and commit; the next deploy applies it):
 
 ```bash

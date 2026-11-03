@@ -493,6 +493,180 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff accounts (Keycloak users with a staff role). Any staff member may read the list (to assign customers) */
+        get: operations["adminListStaff"];
+        put?: never;
+        /**
+         * Create a staff account with a username and password. Role, admin. Audited
+         * @description The account signs in to the admin with the username and password, then sets up the code app (two-step sign-in is required for staff). CONFLICT when the username is taken; UPSTREAM_UNAVAILABLE without the Keycloak service account.
+         */
+        post: operations["adminCreateStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a staff account's name, roles or whether it may sign in. Role, admin. Audited. Not your own roles or access */
+        put: operations["adminUpdateStaff"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{id}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set a new password for a staff account. Role, admin. Audited (without the password) */
+        post: operations["adminSetStaffPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sales/followups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Customers whose next sales follow-up is due by a day (default today, overdue included) */
+        get: operations["adminSalesFollowups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sales/calls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Call lists. renewal = paid plans ending in minDays–maxDays days (default 2–4); feedback = plans bought minDays–maxDays days ago (default 14–16) */
+        get: operations["adminSalesCalls"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sales/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A customer's sales card (stage, owner, next follow-up) and the notes and calls about them */
+        get: operations["adminSalesCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sales/{id}/lead": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set a customer's stage, owner and next follow-up. Roles, sales, admin. Audited */
+        put: operations["adminSetSalesLead"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sales/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a note or a call to a customer. Roles, sales, admin. Audited */
+        post: operations["adminAddSalesNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales between two Tehran days, per day, week (from Saturday) or Jalali month; by plan, period and kind; refunds */
+        get: operations["adminSalesReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reports/sales/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The paid orders between two days as a CSV file for Excel. Audited */
+        get: operations["adminExportSales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/orders": {
         parameters: {
             query?: never;
@@ -2502,6 +2676,8 @@ export interface components {
             gold: number;
             /** @description Paid plans ending within 7 days of the day */
             expiring7d: number;
+            /** @description Sales follow-ups due by the day (overdue included) */
+            followupsDue: number;
             /** @description What waits for staff now (not per day) */
             pending: {
                 posts: number;
@@ -2540,6 +2716,7 @@ export interface components {
             company?: string;
             activity?: string;
             plan: components["schemas"]["Tier"];
+            leadStage?: components["schemas"]["LeadStage"];
             /** @description Days with at least one page in the range */
             days: number;
             /** @description Pages opened */
@@ -2605,6 +2782,148 @@ export interface components {
                 product?: string;
                 seconds: number;
             }[];
+        };
+        /**
+         * @description admin = everything; editor = prices and content; support = tickets and messages; sales = reads everything, writes only sales notes
+         * @enum {string}
+         */
+        StaffRole: "admin" | "editor" | "support" | "sales";
+        StaffMember: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            firstName?: string;
+            lastName?: string;
+            /** @description May sign in */
+            enabled: boolean;
+            roles: components["schemas"]["StaffRole"][];
+            /** @description The code app (two-step sign-in) is set up */
+            totp: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        StaffInput: {
+            /** @description Latin lower-case letters, digits, dot, dash, underscore */
+            username: string;
+            firstName: string;
+            lastName?: string;
+            password: string;
+            /** @description Must be changed at the first sign-in */
+            temporary?: boolean;
+            roles: components["schemas"]["StaffRole"][];
+        };
+        StaffUpdate: {
+            firstName: string;
+            lastName?: string;
+            roles: components["schemas"]["StaffRole"][];
+            enabled: boolean;
+        };
+        /** @enum {string} */
+        LeadStage: "new" | "contacted" | "interested" | "not_interested" | "customer";
+        /** @enum {string} */
+        SalesNoteKind: "note" | "call" | "renewal_call" | "feedback_call";
+        /** @enum {string} */
+        CallOutcome: "answered" | "no_answer" | "call_back";
+        SalesLead: {
+            stage: components["schemas"]["LeadStage"];
+            /** Format: uuid */
+            ownerId?: string;
+            ownerName?: string;
+            /** Format: date */
+            nextAt?: string;
+            /** Format: date-time */
+            updatedAt: string;
+            updatedBy: string;
+        };
+        SalesNote: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["SalesNoteKind"];
+            outcome?: components["schemas"]["CallOutcome"];
+            body: string;
+            author: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SalesFollowup: {
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            name?: string;
+            company?: string;
+            plan: components["schemas"]["Tier"];
+            stage: components["schemas"]["LeadStage"];
+            ownerName?: string;
+            /** Format: date */
+            nextAt: string;
+            last?: components["schemas"]["SalesNote"];
+        };
+        SalesCall: {
+            /** Format: uuid */
+            subscriptionId: string;
+            /** Format: uuid */
+            userId: string;
+            username: string;
+            name?: string;
+            company?: string;
+            plan: components["schemas"]["PaidPlan"];
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** @description Bought (an order) */
+            paid: boolean;
+            stage?: components["schemas"]["LeadStage"];
+            ownerName?: string;
+            /** @description The latest call of this kind (renewal - in the 30 days before the end; feedback - since the start) */
+            lastCall?: {
+                /** Format: date-time */
+                at: string;
+                author: string;
+                outcome?: components["schemas"]["CallOutcome"];
+                body?: string;
+            };
+        };
+        SalesReport: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** @enum {string} */
+            group: "day" | "week" | "month";
+            totals: components["schemas"]["SalesFigures"];
+            /** @description Every period of the range, oldest first (empty ones included) */
+            periods: {
+                /** Format: date */
+                start: string;
+                /**
+                 * Format: date
+                 * @description Last day of the period
+                 */
+                end: string;
+                figures: components["schemas"]["SalesFigures"];
+            }[];
+            byPlan: {
+                plan: components["schemas"]["PaidPlan"];
+                period: components["schemas"]["BillingPeriod"];
+                orders: number;
+                amount: components["schemas"]["Money"];
+            }[];
+            byKind: {
+                /** @enum {string} */
+                kind: "new" | "renewal" | "upgrade" | "downgrade";
+                orders: number;
+                amount: components["schemas"]["Money"];
+            }[];
+        };
+        SalesFigures: {
+            /** @description Paid orders */
+            orders: number;
+            revenue: components["schemas"]["Money"];
+            /** @description Approved refunds */
+            refunds: number;
+            refundAmount: components["schemas"]["Money"];
+            net: components["schemas"]["Money"];
         };
         ContactInput: {
             name: string;
@@ -3793,6 +4112,10 @@ export interface operations {
                 /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
                 activity?: components["parameters"]["UserActivityFilter"];
                 q?: string;
+                /** @description Only Free and Silver users (the sales opportunities) */
+                upgradable?: boolean;
+                /** @description At least this many days with a page in the range */
+                minDays?: number;
                 /** @description Page number, from 1 (50 rows a page) */
                 page?: components["parameters"]["PageNumber"];
             };
@@ -3877,6 +4200,318 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUserActivity"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Staff */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StaffMember"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMember"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMember"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetStaffPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    password: string;
+                    /** @description Must be changed at the next sign-in */
+                    temporary?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Set */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSalesFollowups: {
+        parameters: {
+            query?: {
+                day?: string;
+                /** @description Only this staff member's customers */
+                owner?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Follow-ups */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesFollowup"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSalesCalls: {
+        parameters: {
+            query: {
+                kind: "renewal" | "feedback";
+                minDays?: number;
+                maxDays?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Calls to make */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        minDays: number;
+                        maxDays: number;
+                        items: components["schemas"]["SalesCall"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSalesCard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sales card */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        lead?: components["schemas"]["SalesLead"];
+                        notes: components["schemas"]["SalesNote"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetSalesLead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    stage: components["schemas"]["LeadStage"];
+                    /**
+                     * Format: uuid
+                     * @description A staff member (none = nobody)
+                     */
+                    ownerId?: string;
+                    /**
+                     * Format: date
+                     * @description The next follow-up
+                     */
+                    nextAt?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesLead"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminAddSalesNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    kind: components["schemas"]["SalesNoteKind"];
+                    outcome?: components["schemas"]["CallOutcome"];
+                    body?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesNote"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSalesReport: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+                group?: "day" | "week" | "month";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReport"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminExportSales: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UTF-8 CSV with a byte order mark */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             default: components["responses"]["Problem"];

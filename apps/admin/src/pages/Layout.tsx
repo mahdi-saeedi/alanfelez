@@ -42,6 +42,14 @@ const NAV: { group: string; items: { to: string; key: string; badge?: BadgeKey }
     ],
   },
   {
+    group: "nav.group.sales",
+    items: [
+      { to: "/sales/calls", key: "nav.calls" },
+      { to: "/sales/opportunities", key: "nav.opportunities" },
+      { to: "/reports/sales", key: "nav.salesReport" },
+    ],
+  },
+  {
     group: "nav.group.commerce",
     items: [
       { to: "/users", key: "nav.users" },
@@ -53,6 +61,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: BadgeKey }
     group: "nav.group.settings",
     items: [
       { to: "/settings", key: "nav.settings" },
+      { to: "/staff", key: "nav.staff" },
       { to: "/flags", key: "nav.flags" },
       { to: "/markets", key: "nav.markets" },
       { to: "/plans", key: "nav.plans" },

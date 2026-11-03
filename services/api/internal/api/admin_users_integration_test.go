@@ -4,6 +4,7 @@ package api_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"slices"
 	"testing"
@@ -14,11 +15,19 @@ import (
 )
 
 // fakeIdentity is Keycloak with the test principals as its users.
-type fakeIdentity struct{ deleted []string }
+type fakeIdentity struct {
+	deleted, passwords []string
+	created            []identity.StaffMember
+}
 
 func (f *fakeIdentity) RealmRoles(_ context.Context, id string) ([]string, error) {
 	if slices.Contains(f.deleted, id) {
 		return nil, identity.ErrUserNotFound
+	}
+	for _, m := range f.created {
+		if m.ID == id {
+			return append([]string{auth.RoleStaff}, m.Roles...), nil
+		}
 	}
 	for _, p := range principals {
 		if p.ID.Valid && uuidOf(p) == id {
@@ -31,6 +40,66 @@ func (f *fakeIdentity) RealmRoles(_ context.Context, id string) ([]string, error
 func (f *fakeIdentity) DeleteUser(_ context.Context, id string) error {
 	f.deleted = append(f.deleted, id)
 	return nil
+}
+
+// Staff accounts: the test principals with a staff role, plus the accounts created in the test.
+func (f *fakeIdentity) ListStaff(context.Context) ([]identity.StaffMember, error) {
+	var out []identity.StaffMember
+	for _, p := range principals {
+		var roles []string
+		for _, r := range p.Roles {
+			if slices.Contains(identity.StaffRoles, r) {
+				roles = append(roles, r)
+			}
+		}
+		if len(roles) > 0 {
+			out = append(out, identity.StaffMember{ID: uuidOf(p), Username: p.Username, Enabled: true, Roles: roles})
+		}
+	}
+	return append(out, f.created...), nil
+}
+
+func (f *fakeIdentity) CreateStaff(_ context.Context, username, first, last, _ string, _ bool, roles []string) (string, error) {
+	for _, m := range f.created {
+		if m.Username == username {
+			return "", identity.ErrConflict
+		}
+	}
+	id := fmt.Sprintf("00000000-0000-0000-0000-0000000000f%d", len(f.created))
+	f.created = append(f.created, identity.StaffMember{ID: id, Username: username, FirstName: first, LastName: last, Enabled: true, Roles: roles})
+	return id, nil
+}
+
+func (f *fakeIdentity) SetStaffRoles(_ context.Context, id string, roles []string) error {
+	for i := range f.created {
+		if f.created[i].ID == id {
+			f.created[i].Roles = roles
+		}
+	}
+	return nil
+}
+
+func (f *fakeIdentity) UpdateStaff(_ context.Context, id, first, last string, enabled bool) error {
+	for i := range f.created {
+		if f.created[i].ID == id {
+			f.created[i].FirstName, f.created[i].LastName, f.created[i].Enabled = first, last, enabled
+		}
+	}
+	return nil
+}
+
+func (f *fakeIdentity) SetPassword(_ context.Context, id, _ string, _ bool) error {
+	f.passwords = append(f.passwords, id)
+	return nil
+}
+
+func (f *fakeIdentity) DisplayName(_ context.Context, id string) (string, error) {
+	for _, m := range f.created {
+		if m.ID == id {
+			return m.FirstName + " " + m.LastName, nil
+		}
+	}
+	return "", identity.ErrUserNotFound
 }
 
 func uuidOf(p *auth.Principal) string {

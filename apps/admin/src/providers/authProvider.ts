@@ -2,7 +2,7 @@ import type { AuthProvider } from "@refinedev/core";
 import { UserManager, WebStorageStateStore, type User } from "oidc-client-ts";
 import { config } from "../config";
 
-export const STAFF_ROLES = ["admin", "editor", "support"] as const;
+export const STAFF_ROLES = ["admin", "editor", "support", "sales"] as const;
 
 /** OIDC Authorization Code + PKCE against Keycloak (ADR-0005). Tokens live in session storage only. */
 export const userManager = new UserManager({
@@ -51,7 +51,7 @@ export const authProvider: AuthProvider = {
   getIdentity: async () => {
     const user = await userManager.getUser();
     if (!user) return null;
-    return { name: user.profile.preferred_username, roles: rolesOf(user) };
+    return { id: user.profile.sub, name: user.profile.preferred_username, roles: rolesOf(user) };
   },
   getPermissions: async () => rolesOf(await userManager.getUser()),
   onError: async (error: { status?: number }) => (error.status === 401 ? { logout: true } : {}),
