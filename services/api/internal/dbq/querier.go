@@ -339,7 +339,7 @@ type Querier interface {
 	// When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
 	SubscriptionBoughtAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
 	SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UUID) (bool, error)
-	// Plans bought (origin order) since a time whose thank-you SMS hasn't gone out, with the buyer's mobile.
+	// Plans bought or granted by staff since a time whose thank-you SMS hasn't gone out, with the member's mobile.
 	SubscriptionsToThank(ctx context.Context, since pgtype.Timestamptz) ([]SubscriptionsToThankRow, error)
 	SupportCounts(ctx context.Context) (SupportCountsRow, error)
 	// How many of a metal's changed prices in one market (since its cursor) the user hasn't had a move alert for since

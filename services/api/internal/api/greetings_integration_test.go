@@ -8,17 +8,17 @@ import (
 	"testing"
 )
 
-// The welcome SMS goes once per mobile number ever; the thank-you SMS once per plan bought (client, 2026-11-04).
+// The welcome SMS goes once per mobile number ever; the thank-you SMS once per plan bought or granted (client, 2026-11-04).
 func TestGreetingSMS(t *testing.T) {
 	e := setup(t)
 	for _, tok := range []string{"user", "gold"} {
 		e.call(http.MethodGet, "/v1/me", tok, nil) // new accounts with their phones
 	}
-	e.grantGold() // a staff grant (origin manual): no thank-you
+	e.grantGold() // a staff grant gets the thank-you too (client, 2026-11-04)
 	sms := &fakeSMS{}
 	n, err := e.billing.SendGreetings(t.Context(), sms)
 	all := strings.Join(sms.sent, "\n")
-	if err != nil || n != 2 || !strings.Contains(all, "+989120000001 welcome") || !strings.Contains(all, "به الان\u200cفلز خوش آمدید") || strings.Contains(all, "purchase_thanks") {
+	if err != nil || n != 3 || !strings.Contains(all, "+989120000003 purchase_thanks") || !strings.Contains(all, "+989120000001 welcome") || !strings.Contains(all, "به الان\u200cفلز خوش آمدید") {
 		t.Fatalf("welcome: %d %v\n%s", n, err, all)
 	}
 	if n, _ := e.billing.SendGreetings(t.Context(), sms); n != 0 {
@@ -26,7 +26,7 @@ func TestGreetingSMS(t *testing.T) {
 	}
 
 	// The account is deleted and the same number signs up again: no second welcome.
-	if _, err := e.pool.Exec(t.Context(), `DELETE FROM app.notifications; DELETE FROM app.subscriptions WHERE user_id = '00000000-0000-0000-0000-000000000001'`); err != nil {
+	if _, err := e.pool.Exec(t.Context(), `DELETE FROM app.notifications WHERE template = 'welcome'; DELETE FROM app.subscriptions WHERE user_id = '00000000-0000-0000-0000-000000000001'`); err != nil {
 		t.Fatal(err)
 	}
 	if n, _ := e.billing.SendGreetings(t.Context(), sms); n != 0 {

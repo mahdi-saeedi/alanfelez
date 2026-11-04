@@ -668,7 +668,7 @@
     "category": {
       "intermediate": "Ingots and intermediate products",
       "scrap": "Scrap",
-      "raw": "Raw materials"
+      "raw": "Mineral raw materials"
     },
     "status": {
       "open": "In progress",
@@ -825,7 +825,7 @@
     "title": "Price SMS",
     "subtitle": "Choose the metals whose price changes we should text you about.",
     "locked": "Price SMS are for {plan} subscribers.",
-    "metal": "SMS metals",
+    "metal": "Your metals for SMS",
     "enabled": "Send me price SMS",
     "rule": {
       "ime": "IME prices updated: for the metals chosen above and your sign-up metals.",
@@ -839,7 +839,7 @@
     "choosePrompt": "Choose your SMS metals to get every price SMS.",
     "phone": "SMS go to:",
     "noPhone": "This account has no mobile number, so no SMS can be sent. Sign in with an account whose username is a mobile number.",
-    "metalHint": "You can choose several metals.",
+    "metalHint": "Choose your metal or metals to hear about their price updates and sharp moves. You can choose one or several.",
     "signupMetals": "Your metals from sign-up: {metals}. They get the “IME prices updated” SMS; choose them above too to get every SMS.",
     "banner": "Your Gold plan is active. Choose your price-SMS metals to get update and price-alert SMS.",
     "bannerCta": "Choose metals"

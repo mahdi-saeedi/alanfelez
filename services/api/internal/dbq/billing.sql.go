@@ -1157,7 +1157,7 @@ const subscriptionsToThank = `-- name: SubscriptionsToThank :many
 SELECT sub.id, sub.plan_code, sub.ends_at, u.id AS user_id, u.phone_e164, u.first_name, u.last_name, u.locale
 FROM app.subscriptions sub
 JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.deleted_at IS NULL
-WHERE sub.origin = 'order' AND sub.status = 'active' AND sub.created_at >= $1
+WHERE sub.status = 'active' AND sub.created_at >= $1
   AND NOT EXISTS (SELECT 1 FROM app.notifications n WHERE n.dedupe_key = 'purchase_thanks:' || sub.id::text)
 ORDER BY sub.created_at
 `
@@ -1173,7 +1173,7 @@ type SubscriptionsToThankRow struct {
 	Locale    string
 }
 
-// Plans bought (origin order) since a time whose thank-you SMS hasn't gone out, with the buyer's mobile.
+// Plans bought or granted by staff since a time whose thank-you SMS hasn't gone out, with the member's mobile.
 func (q *Queries) SubscriptionsToThank(ctx context.Context, since pgtype.Timestamptz) ([]SubscriptionsToThankRow, error) {
 	rows, err := q.db.Query(ctx, subscriptionsToThank, since)
 	if err != nil {

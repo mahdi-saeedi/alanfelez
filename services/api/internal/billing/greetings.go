@@ -39,7 +39,7 @@ var greetDefaults = map[string]map[string]string{
 }
 
 // SendGreetings sends the welcome SMS, once per mobile number ever (app.welcomed_phones), and a thank-you SMS for
-// each plan bought (Silver or Gold). Safe to run every minute: the claim and the dedupe keys keep each to once.
+// each plan bought or granted by staff (Silver or Gold). Safe to run every minute: the claim and the dedupe keys keep each to once.
 func (s *Service) SendGreetings(ctx context.Context, sms notify.SMS) (int, error) {
 	q := dbq.New(s.pool)
 	now, err := dbNow(ctx, q)

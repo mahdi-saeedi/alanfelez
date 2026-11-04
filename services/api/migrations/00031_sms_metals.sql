@@ -4,7 +4,7 @@
 --   price_update "market prices updated" (the free market, not IME, not world): for the metals chosen for SMS only
 --   price_move   ±10 % against the previous day (IME and market): for the metals chosen for SMS only
 -- The choice after buying is now several metals (app.sms_metals); app.sms_prefs keeps only the on/off switch, its
--- metal_id is no longer read. No daily cap on the "updated" SMS any more (client); the daily SMS budget stays.
+-- metal_id is no longer read and is not copied: everyone chooses again (client, 2026-11-04). No daily cap on the "updated" SMS any more (client); the daily SMS budget stays.
 
 CREATE TABLE app.sms_metals (
   user_id  uuid     NOT NULL REFERENCES app.users (id) ON DELETE CASCADE,
@@ -12,7 +12,6 @@ CREATE TABLE app.sms_metals (
   PRIMARY KEY (user_id, metal_id)
 );
 CREATE INDEX sms_metals_metal_idx ON app.sms_metals (metal_id);
-INSERT INTO app.sms_metals (user_id, metal_id) SELECT user_id, metal_id FROM app.sms_prefs WHERE metal_id IS NOT NULL;
 
 -- One cursor per metal and market (ime, free): the two "updated" SMS are announced separately.
 ALTER TABLE app.price_update_cursor ADD COLUMN market text NOT NULL DEFAULT 'free';

@@ -241,10 +241,10 @@ INSERT INTO app.welcomed_phones (phone_sha256) VALUES (sha256(convert_to(sqlc.ar
 ON CONFLICT DO NOTHING;
 
 -- name: SubscriptionsToThank :many
--- Plans bought (origin order) since a time whose thank-you SMS hasn't gone out, with the buyer's mobile.
+-- Plans bought or granted by staff since a time whose thank-you SMS hasn't gone out, with the member's mobile.
 SELECT sub.id, sub.plan_code, sub.ends_at, u.id AS user_id, u.phone_e164, u.first_name, u.last_name, u.locale
 FROM app.subscriptions sub
 JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.deleted_at IS NULL
-WHERE sub.origin = 'order' AND sub.status = 'active' AND sub.created_at >= sqlc.arg(since)
+WHERE sub.status = 'active' AND sub.created_at >= sqlc.arg(since)
   AND NOT EXISTS (SELECT 1 FROM app.notifications n WHERE n.dedupe_key = 'purchase_thanks:' || sub.id::text)
 ORDER BY sub.created_at;

@@ -70,10 +70,11 @@ Last updated: 2026-11-04 (SMS by metal, welcome and thank-you SMS, article pictu
 ## Done (last 30 days)
 - 2026-11-04 Gold SMS by metal (client, owner OK): several SMS metals instead of one main metal (migration 00031,
   `app.sms_metals`); three SMS: IME updated (sign-up metals and SMS metals), market updated and ±10 % alerts (SMS
-  metals only); no 3-a-day cap (the daily budget stays). A «choose your SMS metals» bar for 7 days after buying Gold.
-  Welcome SMS once per mobile number ever (00032, hashed numbers) and a thank-you SMS per plan bought. Articles: an
+  metals only); no 3-a-day cap (the daily budget stays); the old main metal is not carried over. A «choose your SMS
+  metals» bar for 7 days after buying Gold.
+  Welcome SMS once per mobile number ever (00032, hashed numbers) and a thank-you SMS per plan bought or granted. Articles: an
   uploaded picture (00033, Postgres like post images) and an Aparat video link shown as the picture with a play
-  button (CSP frame-src Aparat only). Home page plans with the 1/3/12-month tabs; «مواد اولیه معدنی» (00030);
+  button (CSP frame-src Aparat only). Home page plans with the 1/3/12-month tabs; «مواد اولیه معدنی» everywhere (00030);
   «اخبار و تحلیل‌های بنیادی» instead of «فاندامنتال»; the admin SMS log shows the last 1000.
 - 2026-11-03 Admin (client, owner OK by phone): a real **dashboard** for any day (visitors with the change on the day before,
   sign-ups, Silver/Gold held, plans ending in 7 days, what waits for staff, domestic prices not entered that day, which
