@@ -147,7 +147,7 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	opts := []api.Option{api.WithLimiter(ratelimit.NewRedis(rdb)), api.WithLogger(log), api.WithGateway(gw.Name())}
 	kc := cfg.KeycloakAdmin
 	if k := identity.NewKeycloak(kc.URL, kc.Realm, kc.ClientID, kc.ClientSecret); k != nil {
-		opts = append(opts, api.WithIdentity(k))
+		opts = append(opts, api.WithIdentity(k), api.WithStaffDirectory(k))
 	} else {
 		log.Info("user deletion is off: no KEYCLOAK_ADMIN_CLIENT_SECRET")
 	}

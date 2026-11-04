@@ -53,6 +53,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: BadgeKey }
     group: "nav.group.settings",
     items: [
       { to: "/settings", key: "nav.settings" },
+      { to: "/staff", key: "nav.staff" },
       { to: "/flags", key: "nav.flags" },
       { to: "/markets", key: "nav.markets" },
       { to: "/plans", key: "nav.plans" },

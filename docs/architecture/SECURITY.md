@@ -69,9 +69,12 @@ Every limit is configurable. Defaults:
   A history-range limit per request comes from the tier (chart.history_days).
 - No bulk export endpoints for users. Chart history is paginated by range.
 - **Deleting a user** (owner, 2026-10-27): admin role only, confirmed and audited (`user.delete`, no personal data in the
-  entry). The API calls Keycloak's Admin API as the service account `alanfelez-api-admin` (realm-management `manage-users`
-  and `view-users` only; secret `alanfelez-keycloak-api-admin`, sealed, only in the API pods and the profile job) to delete
+  entry). The API calls Keycloak's Admin API as the service account `alanfelez-api-admin` (realm-management `manage-users`,
+  `view-users`, `query-users` and `view-realm` only; secret `alanfelez-keycloak-api-admin`, sealed, only in the API pods and the profile job) to delete
   the account and its sessions; then name, mobile, email, sign-up answers, SMS choice, alerts and saved calculations go.
+  The same account creates staff accounts from the admin («کارکنان», admin role only, audited, never one's own account,
+  never a customer): a temporary password (at least 10 characters) and the required actions «update password» and
+  «configure TOTP», so every staff member chooses their own password and has TOTP from the first sign-in.
   Orders, payments, subscriptions and tickets stay without a name. Staff accounts and your own can't be deleted this way.
 - **Concurrent session limit** (owner, 2026-10-27): at most 2 devices signed in per account, for **every** account; signing in on a
   third signs out the oldest (Keycloak «User Session Count Limiter» in the browser flow, `keycloak.sessionLimit`). Paid-only would

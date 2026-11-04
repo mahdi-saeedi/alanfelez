@@ -46,8 +46,9 @@ spec:
                   $kcadm create "clients/$cid/protocol-mappers/models" -r alanfelez -f "$f" --config $cfg && echo "token mapper $name added"
                 done
               }
-              # The API's service account for deleting users (internal/identity): client alanfelez-api-admin, only
-              # realm-management's manage-users and view-users. Its secret comes from the sealed secret every time, so
+              # The API's service account (internal/identity): deleting users, and staff accounts from the admin (client
+              # and owner, 2026-11-04). Client alanfelez-api-admin with realm-management's manage-users, view-users,
+              # query-users and view-realm (reading the realm roles to give one). Its secret comes from the sealed secret every time, so
               # replacing that secret is enough to rotate it. Without the secret: nothing to do.
               add_api_admin_client() {
                 local cid
@@ -62,7 +63,7 @@ spec:
                 printf '{"secret":"%s"}' "$API_ADMIN_SECRET" > /tmp/api-admin.json
                 $kcadm update "clients/$cid" -r alanfelez -f /tmp/api-admin.json --config $cfg; rm -f /tmp/api-admin.json
                 $kcadm add-roles -r alanfelez --uusername service-account-alanfelez-api-admin --cclientid realm-management \
-                  --rolename manage-users --rolename view-users --config $cfg
+                  --rolename manage-users --rolename view-users --rolename query-users --rolename view-realm --config $cfg
               }
               # Grafana's sign-in (<admin host>/grafana, deploy/observability): client alanfelez-grafana, with a realm-roles
               # mapper so Grafana sees `roles` (admin → Grafana Admin, other staff → Viewer, everyone else refused).

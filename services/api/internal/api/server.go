@@ -39,6 +39,7 @@ type Server struct {
 	gateway  string         // payment gateway name (mock, none, …): the flags screen won't switch payments on without a real one
 	identity Identity       // Keycloak Admin API for deleting users; nil = not set up here
 	store    *storage.Store // article videos; nil = not set up here (upload answers NOT_CONFIGURED)
+	staff    StaffDirectory // staff accounts in Keycloak; nil = not set up here
 }
 
 // WithStorage connects the object storage for uploaded videos (default: none).
