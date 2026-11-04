@@ -36,3 +36,13 @@ func (c Console) Send(ctx context.Context, to string, m Message) (int, error) {
 	c.Log.InfoContext(ctx, "SMS (console provider, not sent)", "to", to, "template", m.Template, "body", m.Body)
 	return 0, nil
 }
+
+// Configured reports whether s can send template t: sms.ir only sends templates that have an approved id
+// (SMSIR_TEMPLATES); other providers send anything. Jobs skip an unconfigured template instead of logging a failure,
+// so a new SMS kind can ship before its sms.ir template is approved.
+func Configured(s SMS, t string) bool {
+	if c, ok := s.(interface{ Has(template string) bool }); ok {
+		return c.Has(t)
+	}
+	return true
+}

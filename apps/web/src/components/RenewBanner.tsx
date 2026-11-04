@@ -7,9 +7,16 @@ import { RENEW_HIDE_COOKIE } from "./renew-cookie";
 /**
  * «اشتراک شما … روز دیگر تمام می‌شود — تمدید» under the header (client, 2026-10-29), for a paid plan ending within 7
  * days with no renewal queued. × hides it until the user signs in again: it sets a session cookie, which the header
- * reads (no flash on the next page) and which logging in or out deletes.
+ * reads (no flash on the next page) and which logging in or out deletes. Also the "choose your SMS metals" notice
+ * (client, 2026-11-04), with its own cookie.
  */
-export function RenewBanner({ text, renew, hide, href }: { text: string; renew: string; hide: string; href: { pathname: string; query: Record<string, string> } }) {
+export function RenewBanner({ text, renew, hide, href, cookie = RENEW_HIDE_COOKIE }: {
+  text: string;
+  renew: string;
+  hide: string;
+  href: { pathname: string; query?: Record<string, string>; hash?: string };
+  cookie?: string;
+}) {
   const [shown, setShown] = useState(true);
   if (!shown) return null;
   return (
@@ -22,7 +29,7 @@ export function RenewBanner({ text, renew, hide, href }: { text: string; renew: 
           aria-label={hide}
           title={hide}
           onClick={() => {
-            document.cookie = `${RENEW_HIDE_COOKIE}=1; path=/; SameSite=Lax`;
+            document.cookie = `${cookie}=1; path=/; SameSite=Lax`;
             setShown(false);
           }}
           className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-lg leading-none text-silver-light hover:bg-graphite-2 hover:text-white"

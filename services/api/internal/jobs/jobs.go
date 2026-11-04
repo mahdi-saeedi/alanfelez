@@ -3,7 +3,9 @@
 //	prices.fetch            every source's fetch_interval_s: fetch → ingest (outlier gate) → publish
 //	source_runs.cleanup     daily: delete fetch history older than 90 days (DATA_MODEL §4)
 //	orders.expire           every 5 min: pending orders past their deadline → expired
-//	subscriptions.remind    hourly: SMS 3 days before a plan ends (once per subscription)
+//	subscriptions.remind    hourly: SMS 7, 3 and 1 days before a plan ends and on the day (once each per subscription)
+//	alerts.check            every minute: Gold price SMS (IME updated, market updated, ±10 % alerts)
+//	users.greet             every minute: the welcome SMS (once per number) and the thank-you SMS after a purchase
 //
 // Periodic jobs are built from market.sources when the worker starts; restart the worker (a rollout)
 // after adding or re-timing a source.
@@ -289,6 +291,33 @@ func (w *AlertsWorker) Work(ctx context.Context, _ *river.Job[AlertsArgs]) error
 	return nil
 }
 
+// GreetArgs sends the welcome SMS (once per mobile number) and the thank-you SMS after a purchase
+// (billing.SendGreetings, client 2026-11-04).
+type GreetArgs struct{}
+
+// Kind implements river.JobArgs.
+func (GreetArgs) Kind() string { return "users.greet" }
+
+// GreetWorker runs GreetArgs.
+type GreetWorker struct {
+	river.WorkerDefaults[GreetArgs]
+	Billing *billing.Service
+	SMS     notify.SMS
+	Log     *slog.Logger
+}
+
+// Work implements river.Worker.
+func (w *GreetWorker) Work(ctx context.Context, _ *river.Job[GreetArgs]) error {
+	n, err := w.Billing.SendGreetings(ctx, w.SMS)
+	if err != nil {
+		return err //nolint:wrapcheck // billing errors say where they come from
+	}
+	if n > 0 {
+		w.Log.InfoContext(ctx, "greeting SMS sent", "sms", n)
+	}
+	return nil
+}
+
 // Config wires the River client.
 type Config struct {
 	Pool     *pgxpool.Pool
@@ -312,6 +341,7 @@ func NewClient(ctx context.Context, c Config) (*river.Client[pgx.Tx], error) {
 	river.AddWorker(workers, &RemindWorker{Billing: c.Billing, SMS: c.SMS, PlansURL: c.PlansURL, Log: c.Log})
 	if c.SMS != nil {
 		river.AddWorker(workers, &AlertsWorker{Alerts: alerts.NewService(c.Pool, c.SMS, c.WebURL, c.Log), Log: c.Log})
+		river.AddWorker(workers, &GreetWorker{Billing: c.Billing, SMS: c.SMS, Log: c.Log})
 	}
 
 	sources, err := dbq.New(c.Pool).ListSources(ctx)
@@ -334,6 +364,10 @@ func NewClient(ctx context.Context, c Config) (*river.Client[pgx.Tx], error) {
 		periodic = append(periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Minute), func() (river.JobArgs, *river.InsertOpts) {
 			return AlertsArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: time.Minute}}
 		}, &river.PeriodicJobOpts{ID: "alerts.check", RunOnStart: true}))
+		// A welcome or a thank-you within a minute of signing up or paying.
+		periodic = append(periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Minute), func() (river.JobArgs, *river.InsertOpts) {
+			return GreetArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: time.Minute}}
+		}, &river.PeriodicJobOpts{ID: "users.greet", RunOnStart: true}))
 	}
 	for _, s := range sources {
 		if !s.Active || s.Provider == source.ProviderManual {

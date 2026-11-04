@@ -135,7 +135,7 @@ func (s *Server) AdminUpdateArticle(ctx context.Context, req AdminUpdateArticleR
 		Outlook: c.Outlook, Featured: c.Featured, TitleFa: c.TitleFa, TitleEn: c.TitleEn, SummaryFa: c.SummaryFa,
 		SummaryEn: c.SummaryEn, KeywordsFa: c.KeywordsFa, KeywordsEn: c.KeywordsEn,
 		BodyFa: c.BodyFa, BodyEn: c.BodyEn, AuthorFa: c.AuthorFa, AuthorEn: c.AuthorEn,
-		CoverUrl: c.CoverUrl, ReadMinutes: c.ReadMinutes, PublishedAt: c.PublishedAt, Actor: c.Actor,
+		CoverUrl: c.CoverUrl, VideoUrl: c.VideoUrl, ReadMinutes: c.ReadMinutes, PublishedAt: c.PublishedAt, Actor: c.Actor,
 	}
 	err = s.tx(ctx, func(q *dbq.Queries) error {
 		if _, err := q.UpdateArticle(ctx, arg); err != nil {
@@ -193,6 +193,14 @@ func (s *Server) articleParams(ctx context.Context, in AdminArticleInput, p *aut
 	if cover.Valid && !safeURL(cover.String) {
 		return out, "coverUrl must be https:// or a site path", nil
 	}
+	video := pgtype.Text{}
+	if v := strings.TrimSpace(deref(in.VideoUrl)); v != "" {
+		canonical, ok := content.AparatVideo(v)
+		if !ok || len(v) > 300 {
+			return out, "videoUrl must be an Aparat video link (aparat.com/v/…)", nil
+		}
+		video = pgtype.Text{String: canonical, Valid: true}
+	}
 	category, metal := optText(in.Category), optText(in.Metal)
 	if category.Valid {
 		cats, err := s.q.ListArticleCategories(ctx)
@@ -221,7 +229,7 @@ func (s *Server) articleParams(ctx context.Context, in AdminArticleInput, p *aut
 		Featured: in.Featured, TitleFa: title, TitleEn: optText(in.TitleEn), SummaryFa: summary,
 		SummaryEn: plainOpt(in.SummaryEn), KeywordsFa: strings.Join(content.Keywords(deref(in.KeywordsFa)), "، "),
 		KeywordsEn: keywordsOpt(in.KeywordsEn), BodyFa: body, BodyEn: sanitizedOpt(in.BodyEn),
-		AuthorFa: optText(in.AuthorFa), AuthorEn: optText(in.AuthorEn), CoverUrl: cover,
+		AuthorFa: optText(in.AuthorFa), AuthorEn: optText(in.AuthorEn), CoverUrl: cover, VideoUrl: video,
 		ReadMinutes: int32(content.ReadMinutes(body)), Actor: p.ID, //nolint:gosec // bodies are ≤ 200k chars: ≤ 1,000 minutes
 	}
 	if in.Outlook != nil {
@@ -246,7 +254,7 @@ func adminArticleOf(a dbq.GetArticleRow) AdminArticle {
 		TitleFa: a.TitleFa, TitleEn: textp(a.TitleEn), SummaryFa: a.SummaryFa, SummaryEn: textp(a.SummaryEn),
 		KeywordsFa: &a.KeywordsFa, KeywordsEn: textp(a.KeywordsEn),
 		BodyFa: a.BodyFa, BodyEn: textp(a.BodyEn), AuthorFa: textp(a.AuthorFa), AuthorEn: textp(a.AuthorEn),
-		CoverUrl: textp(a.CoverUrl), ReadMinutes: int(a.ReadMinutes), PublishedAt: timep(a.PublishedAt),
+		CoverUrl: textp(a.CoverUrl), VideoUrl: textp(a.VideoUrl), ReadMinutes: int(a.ReadMinutes), PublishedAt: timep(a.PublishedAt),
 		CreatedAt: a.CreatedAt.Time.UTC(), UpdatedAt: a.UpdatedAt.Time.UTC(),
 	}
 	return out

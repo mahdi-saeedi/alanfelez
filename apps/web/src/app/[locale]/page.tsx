@@ -9,6 +9,7 @@ import { GlobalChartCarousel, type GlobalChartItem } from "@/components/prices/G
 import { LiveDot } from "@/components/prices/LiveDot";
 import { JsonLd } from "@/components/JsonLd";
 import { PlanCards } from "@/components/PlanCards";
+import { PeriodSwitch } from "@/components/PeriodSwitch";
 import { WhyAlanFelez } from "@/components/WhyAlanFelez";
 import { SilverUpgrade } from "@/components/SilverUpgrade";
 import { LatestAuctions } from "@/components/auctions/LatestAuctions";
@@ -203,10 +204,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
               <>
                 <h2 className="text-center text-2xl font-extrabold sm:text-3xl">{t("home.plansTitle")}</h2>
                 <p className="mt-2 text-center text-text-2">{t("plans.subtitle")}</p>
-                <PlanCards plans={plans} me={me} period="month" locale={locale} />
+                <PeriodSwitch
+                  tabs={(["month", "quarter", "year"] as const).map((x) => ({ period: x, label: t(`plans.${x}`), save: x === "month" ? undefined : t(`plans.save.${x}`) }))}
+                  panes={{
+                    month: <PlanCards plans={plans} me={me} period="month" locale={locale} />,
+                    quarter: <PlanCards plans={plans} me={me} period="quarter" locale={locale} />,
+                    year: <PlanCards plans={plans} me={me} period="year" locale={locale} />,
+                  }}
+                />
                 <p className="mt-6 text-center text-sm">
                   <Link href="/plans" className="font-bold text-gold-dark hover:text-gold">{t("home.plansCta")}</Link>
-                  <span className="ms-2 text-text-3">{t("home.plansPeriods")}</span>
                 </p>
               </>
             )}

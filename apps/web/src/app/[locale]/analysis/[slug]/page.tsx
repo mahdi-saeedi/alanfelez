@@ -10,6 +10,7 @@ import { SITE_URL } from "@/lib/site";
 import { getArticle, getArticles } from "@/lib/content";
 import { Cover, KeywordChips, Meta, RichText, TopicChip } from "@/components/content/parts";
 import { Locked } from "@/components/Locked";
+import { VideoPoster } from "@/components/content/VideoPoster";
 import { InsightCard } from "@/components/content/InsightCard";
 import { ShareButtons } from "@/components/content/ShareButtons";
 
@@ -84,7 +85,11 @@ export default async function ArticlePage({ params }: Params) {
         </div>
       </header>
 
-      {a.coverUrl && <Cover a={a} className="mt-6 h-48 rounded-card sm:h-72" />}
+      {a.videoUrl ? (
+        <VideoPoster videoUrl={a.videoUrl} coverUrl={a.coverUrl} title={a.title} play={t("analysis.playVideo")} />
+      ) : (
+        a.coverUrl && <Cover a={a} className="mt-6 aspect-video rounded-card" />
+      )}
 
       <div className="mt-8">
         {a.body ? (

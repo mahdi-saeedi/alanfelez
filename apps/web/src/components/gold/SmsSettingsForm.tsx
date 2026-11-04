@@ -5,9 +5,9 @@ import { Locked } from "@/components/Locked";
 import { saveSmsSettingsAction } from "@/app/[locale]/account/actions";
 
 /**
- * Gold price SMS (client, 2026-10-27): the user picks one main metal; when its domestic and IME prices change they get
- * one «قیمت‌ها به‌روزرسانی شد» SMS (at most 3 a day, none at night), and an alert when a product moves 10 % or more
- * against the day before. On the account page and on the payment result page (`back`).
+ * Gold price SMS (client, 2026-11-04): the metals ticked here get every price SMS (IME updated, market updated, ±10 %
+ * alert); the metals ticked at sign-up only the IME «updated» SMS. None at night. On the account page and on the
+ * payment result page (`back`).
  */
 export async function SmsSettingsForm({ settings, metals, locale, back, status }: {
   settings: SmsSettings | null;
@@ -18,6 +18,7 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
 }) {
   const t = await getTranslations("sms");
   const tl = await getTranslations("lock");
+  const signup = metals.filter((m) => settings?.signupMetals.includes(m.slug)).map((m) => m.name);
   return (
     <section id="sms" className="scroll-mt-24 overflow-hidden rounded-card border border-border bg-surface shadow-soft">
       <div className="border-b border-border px-5 py-4">
@@ -42,19 +43,26 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
             <div className="flex flex-wrap gap-2">
               {metals.map((m) => (
                 <label key={m.slug} className="cursor-pointer">
-                  <input type="radio" name="metal" value={m.slug} defaultChecked={settings.metal === m.slug} required className="peer sr-only" />
-                  <span className="inline-block rounded-full border border-border px-4 py-1.5 text-sm peer-checked:border-graphite peer-checked:bg-graphite peer-checked:font-bold peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-gold">
+                  <input type="checkbox" name="metals" value={m.slug} defaultChecked={settings.metals.includes(m.slug)} className="peer sr-only" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm peer-checked:border-graphite peer-checked:bg-graphite peer-checked:font-bold peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-gold">
                     {m.name}
                   </span>
                 </label>
               ))}
             </div>
+            <p className="mt-2 text-xs text-text-3">{t("metalHint")}</p>
           </fieldset>
+          {signup.length > 0 && (
+            <p className="rounded-lg bg-surface-2 p-3 text-xs leading-6 text-text-2">
+              {t("signupMetals", { metals: signup.join(locale === "fa" ? "، " : ", ") })}
+            </p>
+          )}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="enabled" defaultChecked={settings.enabled} />
             {t("enabled")}
           </label>
           <ul className="list-disc space-y-1 ps-5 text-xs leading-6 text-text-2">
+            <li>{t("rule.ime")}</li>
             <li>{t("rule.update")}</li>
             <li>{t("rule.move")}</li>
             <li>{t("rule.night")}</li>

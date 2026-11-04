@@ -4,9 +4,11 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-03 (admin dashboard, user activity, users filters and export)
+Last updated: 2026-11-04 (SMS by metal, welcome and thank-you SMS, article picture and video, home plan periods)
 
 ## Now (in progress)
+- [ ] **SMS by metal, greetings, article media → staging** (2026-11-04, branch `feat/sms-and-content`): waiting for the
+      client's check on staging, then the main site.
 - [ ] **User activity → staging, then the main site** (2026-11-03): on branch `claude/new-session-i1teqj`, waiting for the
       client's «بفرست روی staging». Before the main site: the client approves the privacy text (F19) and it's pasted in the
       admin (صفحات ثابت → حریم خصوصی).
@@ -41,6 +43,10 @@ Last updated: 2026-11-03 (admin dashboard, user activity, users filters and expo
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
+- [ ] **New sms.ir templates** (2026-11-04): `ime_update` (METAL, COUNT), `welcome` (NAME), `purchase_thanks` (NAME, PLAN,
+      DATE); the client makes them in sms.ir and sends their numbers, then they go into `api.smsir.templates` of
+      staging and production. Until then these three SMS are skipped (not logged as failed). Also reword the existing
+      `price_update` template to say «بازار» (it's now the market-only update).
 - [ ] **The client's SEO prompt** (said 2026-10-27 they'd give it once the site is complete): ask for it now.
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
@@ -62,6 +68,14 @@ Last updated: 2026-11-03 (admin dashboard, user activity, users filters and expo
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-04 Gold SMS by metal (client, owner OK): several SMS metals instead of one main metal (migration 00031,
+  `app.sms_metals`); three SMS: IME updated (sign-up metals and SMS metals), market updated and ±10 % alerts (SMS
+  metals only); no 3-a-day cap (the daily budget stays); the old main metal is not carried over. A «choose your SMS
+  metals» bar for 7 days after buying Gold.
+  Welcome SMS once per mobile number ever (00032, hashed numbers) and a thank-you SMS per plan bought or granted. Articles: an
+  uploaded picture (00033, Postgres like post images) and an Aparat video link shown as the picture with a play
+  button (CSP frame-src Aparat only). Home page plans with the 1/3/12-month tabs; «مواد اولیه معدنی» everywhere (00030);
+  «اخبار و تحلیل‌های بنیادی» instead of «فاندامنتال»; the admin SMS log shows the last 1000.
 - 2026-11-03 Admin (client, owner OK by phone): a real **dashboard** for any day (visitors with the change on the day before,
   sign-ups, Silver/Gold held, plans ending in 7 days, what waits for staff, domestic prices not entered that day, which
   metals visitors viewed); **«رفتار کاربران»**: each signed-in user's days, time on the site, sections and metals for any

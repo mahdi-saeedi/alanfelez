@@ -7,7 +7,7 @@ import { calculatorEnabled } from "@/lib/features";
 
 type Period = Schemas["BillingPeriod"];
 type PlanList = { items: Schemas["Plan"][]; purchasable: boolean };
-// The rows of the client's plan table (2026-10-26), in its order, plus «اخبار فاندامنتال» and «تحلیل کاربران»
+// The rows of the client's plan table (2026-10-26), in its order, plus «اخبار و تحلیل‌های بنیادی» and «تحلیل کاربران»
 // (Silver, 2026-10-30).
 // «تحلیل تکنیکال» is one row: analysis.read and forecast.read unlock together (Gold). What each plan includes still
 // comes from the API.

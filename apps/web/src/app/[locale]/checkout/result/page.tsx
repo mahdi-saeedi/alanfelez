@@ -34,9 +34,9 @@ export default async function ResultPage({ params, searchParams }: Params) {
   const retry = status === "retry" || status === "pending";
   const planName = order ? t(`lock.plan.${order.plan}`) : "";
   const queued = me?.next && order && me.next.plan === order.plan ? me.next : null;
-  // A new Gold subscriber picks their main metal for the price SMS right here (client, 2026-10-27).
+  // A new Gold subscriber picks their SMS metals right here (client, 2026-10-27; several since 2026-11-04).
   const [sms, metals] = paid && order?.plan === "gold" ? await Promise.all([getSmsSettings(), getMetals(locale)]) : [null, []];
-  const askMetal = sms?.allowed && (!sms.metal || q.sms);
+  const askMetal = sms?.allowed && (sms.metals.length === 0 || q.sms);
 
   return (
     <section className="mx-auto max-w-md px-4 py-16 text-center">
@@ -73,7 +73,7 @@ export default async function ResultPage({ params, searchParams }: Params) {
       </div>
       {askMetal && order && (
         <div className="mt-10 text-start">
-          {!sms.metal && <p className="mb-3 text-sm font-bold text-gold-dark">{t("sms.choosePrompt")}</p>}
+          {sms.metals.length === 0 && <p className="mb-3 text-sm font-bold text-gold-dark">{t("sms.choosePrompt")}</p>}
           <SmsSettingsForm settings={sms} metals={metals} locale={locale} back={`/checkout/result?order=${order.id}`} status={q.sms} />
         </div>
       )}

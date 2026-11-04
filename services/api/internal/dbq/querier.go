@@ -35,6 +35,8 @@ type Querier interface {
 	// Time the page was in view, added when the user leaves or hides it (only the user's own view; ≤ 4 h per page).
 	// added = what was really added after the cap.
 	AddPageViewSeconds(ctx context.Context, arg AddPageViewSecondsParams) (AddPageViewSecondsRow, error)
+	// Adds these metals (unknown slugs are ignored); returns how many were added. Call ClearSmsMetals first to replace.
+	AddSmsMetals(ctx context.Context, arg AddSmsMetalsParams) (int64, error)
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
 	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
 	// For review: waiting ones first (oldest first), then the rest newest first; with the title of what was commented on.
@@ -76,6 +78,9 @@ type Querier interface {
 	CancelSubscription(ctx context.Context, id pgtype.UUID) error
 	// Which references of a new product or series exist (to answer 404 rather than 409).
 	CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error)
+	// Marks a number as welcomed; 0 rows: it already was (another run got there first).
+	ClaimWelcome(ctx context.Context, phone string) (int64, error)
+	ClearSmsMetals(ctx context.Context, userID pgtype.UUID) error
 	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error)
 	CountPendingComments(ctx context.Context) (int64, error)
@@ -104,6 +109,7 @@ type Querier interface {
 	DashboardMissingPrices(ctx context.Context, arg DashboardMissingPricesParams) ([]DashboardMissingPricesRow, error)
 	DecideRefund(ctx context.Context, arg DecideRefundParams) error
 	DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64, error)
+	DeleteArticleImage(ctx context.Context, articleID pgtype.UUID) (int64, error)
 	DeleteAuction(ctx context.Context, id pgtype.UUID) (string, error)
 	DeleteAuctionFile(ctx context.Context, auctionID pgtype.UUID) (int64, error)
 	DeleteCalculation(ctx context.Context, arg DeleteCalculationParams) (int64, error)
@@ -138,6 +144,8 @@ type Querier interface {
 	GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error)
 	// Ratings and comments (migration 00027) on members' analyses ('post') and the team's articles ('article').
 	GetArticleForDiscussion(ctx context.Context, id pgtype.UUID) (GetArticleForDiscussionRow, error)
+	// Any article's picture (staff preview in the admin).
+	GetArticleImage(ctx context.Context, articleID pgtype.UUID) ([]byte, error)
 	GetAuctionFile(ctx context.Context, auctionID pgtype.UUID) (GetAuctionFileRow, error)
 	// Members see published posts' images; staff (any_status) also those waiting for review or hidden; the author their own.
 	GetCommunityPostImage(ctx context.Context, arg GetCommunityPostImageParams) ([]byte, error)
@@ -147,6 +155,8 @@ type Querier interface {
 	GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error)
 	GetPage(ctx context.Context, slug string) (GetPageRow, error)
 	GetPublishedArticle(ctx context.Context, slug string) (GetPublishedArticleRow, error)
+	// A published article's picture (public: the title, summary and picture are for everyone).
+	GetPublishedArticleImage(ctx context.Context, articleID pgtype.UUID) ([]byte, error)
 	GetRefundByOrder(ctx context.Context, orderID pgtype.UUID) (AppRefund, error)
 	GetSeriesByID(ctx context.Context, id int32) (GetSeriesByIDRow, error)
 	GetSeriesBySlug(ctx context.Context, slug string) (GetSeriesBySlugRow, error)
@@ -155,13 +165,17 @@ type Querier interface {
 	GetSetting(ctx context.Context, key string) ([]byte, error)
 	GetSettings(ctx context.Context, keys []string) ([]GetSettingsRow, error)
 	GetSiteSetting(ctx context.Context, key string) ([]byte, error)
-	GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (GetSmsPrefsRow, error)
+	// The on/off switch (absent row = on).
+	GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (bool, error)
 	GetSourceBySlug(ctx context.Context, slug string) (GetSourceBySlugRow, error)
 	GetSubscriptionByOrder(ctx context.Context, orderID pgtype.UUID) (GetSubscriptionByOrderRow, error)
 	GetTicket(ctx context.Context, id pgtype.UUID) (GetTicketRow, error)
 	GetTicketForUpdate(ctx context.Context, id pgtype.UUID) (GetTicketForUpdateRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
-	// New metals start "announced up to now", so the first run never sends old changes.
+	// Users with SMS on and a phone who ticked this metal at sign-up or chose it for SMS: the IME "updated" SMS. Plan
+	// checked in Go.
+	ImeSmsSubscribers(ctx context.Context, arg ImeSmsSubscribersParams) ([]ImeSmsSubscribersRow, error)
+	// New metals start "announced up to now" for both markets, so the first run never sends old changes.
 	InitPriceUpdateCursors(ctx context.Context) error
 	InsertAlert(ctx context.Context, arg InsertAlertParams) (InsertAlertRow, error)
 	InsertAuction(ctx context.Context, arg InsertAuctionParams) (pgtype.UUID, error)
@@ -233,6 +247,8 @@ type Querier interface {
 	ListPublishedArticles(ctx context.Context, arg ListPublishedArticlesParams) ([]ListPublishedArticlesRow, error)
 	// Review of quarantined points -----------------------------------------------------------------------------
 	ListQuarantined(ctx context.Context) ([]ListQuarantinedRow, error)
+	// The metals the user chose for price SMS after buying, in the site's metal order.
+	ListSmsMetals(ctx context.Context, userID pgtype.UUID) ([]string, error)
 	// Sources ----------------------------------------------------------------------------------------------------
 	ListSources(ctx context.Context) ([]ListSourcesRow, error)
 	ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListSubscriptionsRow, error)
@@ -251,16 +267,12 @@ type Querier interface {
 	// armed = false after firing (above / below); triggered = true stamps last_triggered_at.
 	MarkAlert(ctx context.Context, arg MarkAlertParams) error
 	MetalHasProducts(ctx context.Context, slug string) (bool, error)
-	// Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
+	// Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
 	MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error)
 	MetalSlugExists(ctx context.Context, slug string) (bool, error)
-	// Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
-	MetalSmsSubscribers(ctx context.Context, metalID pgtype.Int2) ([]MetalSmsSubscribersRow, error)
 	// Every visitor's metal page views on one day (dashboard), most viewed first.
 	MetalViewsOfDay(ctx context.Context, day pgtype.Date) ([]MetalViewsOfDayRow, error)
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
-	// SMS of one template sent to a user since a time (daily caps).
-	NotificationsSentSince(ctx context.Context, arg NotificationsSentSinceParams) (int32, error)
 	// The metal an article is about (analysis pages); NULL when it has none.
 	PageMetalOfArticle(ctx context.Context, slug string) (string, error)
 	// User activity (admin «رفتار کاربران») and the dashboard. Migration 00029.
@@ -301,6 +313,9 @@ type Querier interface {
 	SeriesPoints(ctx context.Context, arg SeriesPointsParams) ([]SeriesPointsRow, error)
 	// Re-activating re-arms the alert, so it fires on the next crossing.
 	SetAlertActive(ctx context.Context, arg SetAlertActiveParams) (int64, error)
+	// Stores an article's picture and points its cover at the website's image route (?v= changes with each upload, so
+	// browsers and caches fetch the new one). 0 rows: no such article.
+	SetArticleImage(ctx context.Context, arg SetArticleImageParams) (int64, error)
 	SetCommentStatus(ctx context.Context, arg SetCommentStatusParams) (int64, error)
 	SetCommunityPostStatus(ctx context.Context, arg SetCommunityPostStatusParams) (int64, error)
 	// Upsert: a flag missing from an environment's seed is created on first switch.
@@ -316,12 +331,19 @@ type Querier interface {
 	SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error)
 	// Also bumps last_message_at when a message was just added (touched = true).
 	SetTicketStatus(ctx context.Context, arg SetTicketStatusParams) (SetTicketStatusRow, error)
+	// Users with SMS on and a phone who chose this metal for SMS after buying (or any metal: metal_id NULL). Their plan is
+	// checked in Go (internal/access).
+	SmsMetalSubscribers(ctx context.Context, metalID pgtype.Int2) ([]SmsMetalSubscribersRow, error)
 	SourceHasPoints(ctx context.Context, sourceID int16) (bool, error)
 	SourceHealth(ctx context.Context) ([]SourceHealthRow, error)
+	// When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
+	SubscriptionBoughtAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
 	SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UUID) (bool, error)
+	// Plans bought or granted by staff since a time whose thank-you SMS hasn't gone out, with the member's mobile.
+	SubscriptionsToThank(ctx context.Context, since pgtype.Timestamptz) ([]SubscriptionsToThankRow, error)
 	SupportCounts(ctx context.Context) (SupportCountsRow, error)
-	// How many of a metal's changed domestic prices (since its cursor) the user hasn't had a move alert for since that
-	// change: a product whose ±10 % alert already went out isn't announced again in "prices updated" (client, 2026-10-27).
+	// How many of a metal's changed prices in one market (since its cursor) the user hasn't had a move alert for since
+	// that change: a product whose ±10 % alert already went out isn't counted again in an "updated" SMS (client, 2026-10-27).
 	UncoveredPriceChanges(ctx context.Context, arg UncoveredPriceChangesParams) (int32, error)
 	// Publishing for the first time stamps published_at (unless one is given, e.g. a scheduled time).
 	UpdateArticle(ctx context.Context, arg UpdateArticleParams) (pgtype.UUID, error)
@@ -337,8 +359,7 @@ type Querier interface {
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (int64, error)
 	UpsertLatest(ctx context.Context, arg UpsertLatestParams) error
 	UpsertRating(ctx context.Context, arg UpsertRatingParams) error
-	// 0 rows: unknown metal slug.
-	UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error)
+	UpsertSmsEnabled(ctx context.Context, arg UpsertSmsEnabledParams) error
 	// Accounts and billing (internal/billing). Money = Rial. Every write that changes what a user holds runs under
 	// LockUserBilling in one transaction, so concurrent checkouts can't overlap subscriptions.
 	// The sign-up answers (activity, metals, province, company) are kept when a token doesn't carry them (staff, older tokens).
@@ -347,6 +368,8 @@ type Querier interface {
 	UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
 	// The provinces users chose (the users page filter).
 	UserProvinces(ctx context.Context) ([]string, error)
+	// Accounts with a mobile created since a time whose number never had the welcome SMS (app.welcomed_phones).
+	UsersToWelcome(ctx context.Context, since pgtype.Timestamptz) ([]UsersToWelcomeRow, error)
 	// The day's salt for anonymous visitor ids, made on first use.
 	VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error)
 	// Per day since from: unique visitors, signed-in visitors and page views.

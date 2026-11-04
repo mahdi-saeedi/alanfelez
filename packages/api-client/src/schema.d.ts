@@ -338,7 +338,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The latest 200 SMS sent or tried (reminders, price SMS), newest first */
+        /** The latest 1000 SMS sent or tried (reminders, price SMS), newest first */
         get: operations["adminListNotifications"];
         put?: never;
         post?: never;
@@ -1356,6 +1356,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/articles/{id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A published article's picture (JPEG, public like its title and summary; the website serves it at /api/articles/{id}/image) */
+        get: operations["getArticleImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/articles/{id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An article's picture, any status (admin preview). Roles staff */
+        get: operations["adminGetArticleImage"];
+        /** Upload or replace an article's picture (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px). Roles editor, admin */
+        put: operations["adminPutArticleImage"];
+        post?: never;
+        /** Remove an article's picture. Roles editor, admin */
+        delete: operations["adminDeleteArticleImage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/article-categories": {
         parameters: {
             query?: never;
@@ -1748,9 +1784,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The user's main metal for price SMS and whether they're on (sent to Gold only) */
+        /** The user's price-SMS metals and whether SMS are on (sent to Gold only) */
         get: operations["getMySmsSettings"];
-        /** Choose the main metal and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED */
+        /** Choose the price-SMS metals and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED */
         put: operations["setMySmsSettings"];
         post?: never;
         delete?: never;
@@ -2365,6 +2401,8 @@ export interface components {
             id?: string;
             /** @description Sanitized HTML. Absent when locked */
             body?: string;
+            /** @description Its Aparat video (https://www.aparat.com/v/HASH). Absent when locked or none */
+            videoUrl?: string;
             author?: string;
             /** Format: date-time */
             updatedAt: string;
@@ -2807,7 +2845,10 @@ export interface components {
             bodyEn?: string;
             authorFa?: string;
             authorEn?: string;
+            /** @description Ignored while a picture is uploaded (PUT …/image sets it) */
             coverUrl?: string;
+            /** @description An Aparat video link (aparat.com/v/…); anything else → 400. Empty = none */
+            videoUrl?: string;
             /**
              * Format: date-time
              * @description Defaults to the first publish time
@@ -3031,9 +3072,17 @@ export interface components {
             /** @description move: daily change in basis points (50–5000) */
             moveBp?: number;
         };
+        /** @description Gold price SMS (client, 2026-11-04). IME "updated" SMS for signupMetals and metals; market "updated" SMS and ±10 % alerts for metals only. */
         SmsSettings: {
-            /** @description The chosen main metal (slug); absent until chosen */
-            metal?: string;
+            /** @description Metal slugs chosen for all price SMS (after buying Gold) */
+            metals: string[];
+            /** @description Metal slugs ticked at sign-up (read only); they get the IME "updated" SMS */
+            signupMetals: string[];
+            /**
+             * Format: date-time
+             * @description Gold bought less than 7 days ago and no metal chosen yet → show the "choose your metals" notice until then
+             */
+            chooseUntil?: string;
             enabled: boolean;
             /** @description The user's plan includes price SMS (Gold) */
             allowed: boolean;
@@ -5441,6 +5490,98 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    getArticleImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The picture */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminGetArticleImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The picture */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminPutArticleImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteArticleImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminListArticleCategories: {
         parameters: {
             query?: never;
@@ -6153,8 +6294,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Metal slug */
-                    metal: string;
+                    /** @description Metal slugs (may be empty); unknown slugs → 400 */
+                    metals: string[];
                     enabled: boolean;
                 };
             };

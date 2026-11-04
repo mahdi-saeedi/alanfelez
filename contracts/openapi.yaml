@@ -456,7 +456,7 @@ paths:
     get:
       operationId: adminListNotifications
       tags: [admin]
-      summary: The latest 200 SMS sent or tried (reminders, price SMS), newest first
+      summary: The latest 1000 SMS sent or tried (reminders, price SMS), newest first
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: status, in: query, required: false, schema: { type: string, enum: [sent, failed] } }
@@ -1885,6 +1885,62 @@ paths:
               schema: { $ref: '#/components/schemas/AdminArticle' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/articles/{id}/image:
+    get:
+      operationId: getArticleImage
+      tags: [content]
+      summary: A published article's picture (JPEG, public like its title and summary; the website serves it at /api/articles/{id}/image)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The picture
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/articles/{id}/image:
+    get:
+      operationId: adminGetArticleImage
+      tags: [admin]
+      summary: An article's picture, any status (admin preview). Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The picture
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: adminPutArticleImage
+      tags: [admin]
+      summary: Upload or replace an article's picture (JPEG, PNG or GIF, at most 5 MB; stored re-encoded as JPEG ≤ 1600 px). Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteArticleImage
+      tags: [admin]
+      summary: Remove an article's picture. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/article-categories:
     get:
       operationId: adminListArticleCategories
@@ -2417,7 +2473,7 @@ paths:
     get:
       operationId: getMySmsSettings
       tags: [gold]
-      summary: The user's main metal for price SMS and whether they're on (sent to Gold only)
+      summary: The user's price-SMS metals and whether SMS are on (sent to Gold only)
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -2429,7 +2485,7 @@ paths:
     put:
       operationId: setMySmsSettings
       tags: [gold]
-      summary: Choose the main metal and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
+      summary: Choose the price-SMS metals and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -2437,9 +2493,13 @@ paths:
           application/json:
             schema:
               type: object
-              required: [metal, enabled]
+              required: [metals, enabled]
               properties:
-                metal: { type: string, maxLength: 60, description: Metal slug }
+                metals:
+                  type: array
+                  maxItems: 20
+                  items: { type: string, maxLength: 60 }
+                  description: Metal slugs (may be empty); unknown slugs → 400
                 enabled: { type: boolean }
       responses:
         '200':
@@ -3247,6 +3307,7 @@ components:
           properties:
             id: { type: string, format: uuid, description: "For its rating and comments (the article discussion)" }
             body: { type: string, description: Sanitized HTML. Absent when locked }
+            videoUrl: { type: string, description: 'Its Aparat video (https://www.aparat.com/v/HASH). Absent when locked or none' }
             author: { type: string }
             updatedAt: { type: string, format: date-time }
 
@@ -3727,7 +3788,8 @@ components:
         bodyEn: { type: string, maxLength: 200000 }
         authorFa: { type: string, maxLength: 100 }
         authorEn: { type: string, maxLength: 100 }
-        coverUrl: { type: string, maxLength: 500 }
+        coverUrl: { type: string, maxLength: 500, description: Ignored while a picture is uploaded (PUT …/image sets it) }
+        videoUrl: { type: string, maxLength: 300, description: 'An Aparat video link (aparat.com/v/…); anything else → 400. Empty = none' }
         publishedAt: { type: string, format: date-time, description: Defaults to the first publish time }
 
     AdminArticle:
@@ -3962,9 +4024,23 @@ components:
 
     SmsSettings:
       type: object
-      required: [enabled, allowed]
+      description: >-
+        Gold price SMS (client, 2026-11-04). IME "updated" SMS for signupMetals and metals; market "updated" SMS and
+        ±10 % alerts for metals only.
+      required: [metals, signupMetals, enabled, allowed]
       properties:
-        metal: { type: string, description: The chosen main metal (slug); absent until chosen }
+        metals:
+          type: array
+          items: { type: string }
+          description: Metal slugs chosen for all price SMS (after buying Gold)
+        signupMetals:
+          type: array
+          items: { type: string }
+          description: Metal slugs ticked at sign-up (read only); they get the IME "updated" SMS
+        chooseUntil:
+          type: string
+          format: date-time
+          description: Gold bought less than 7 days ago and no metal chosen yet → show the "choose your metals" notice until then
         enabled: { type: boolean }
         allowed: { type: boolean, description: The user's plan includes price SMS (Gold) }
         phone: { type: string, description: 'The mobile the SMS go to (E.164); absent when the account has none (no SMS can be sent)' }

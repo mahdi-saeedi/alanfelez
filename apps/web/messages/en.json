@@ -85,7 +85,6 @@
     "globalChartTitle": "Global metal prices chart",
     "globalChartSubtitle": "Global prices over the last month (dollars per ton). The next metal shows every few seconds; tap a name to pick one.",
     "globalChartFull": "Full chart →",
-    "plansPeriods": "Quarterly and yearly plans at a discount",
     "why": {
       "title": "Why Alan Felez?",
       "subtitle": "Alan Felez brings the prices, charts and analysis of Iran's and the world's metals markets together in one place, with their sources, so you can make buying and selling decisions with better information.",
@@ -327,7 +326,7 @@
       "global": "Global price",
       "intermediate": "Intermediate products",
       "scrap": "Scrap",
-      "raw": "Raw materials (domestic)"
+      "raw": "Mineral raw materials (domestic)"
     },
     "lockedOption": "{plan} plan",
     "relatedTitle": "{metal} analysis",
@@ -357,7 +356,7 @@
     "prices_full": "Day prices of products",
     "chart_basic": "Global metal charts",
     "chart_full": "Product charts and history",
-    "news_read": "Fundamental news",
+    "news_read": "News and fundamental analysis",
     "analysis_read": "Technical analysis",
     "forecast_read": "Price forecast scenarios",
     "auctions_read": "Daily auctions",
@@ -495,11 +494,11 @@
     "views": {
       "all": "All",
       "insights": "Technical analysis",
-      "news": "Fundamental news"
+      "news": "News and fundamental analysis"
     },
     "allInsights": "All analyses →",
     "allNews": "All news →",
-    "newsTitle": "Fundamental news",
+    "newsTitle": "News and fundamental analysis",
     "emptyInsights": "No analysis published for this choice yet.",
     "emptyNews": "No news published for this choice yet.",
     "indicatorsLocked": "See prices with {plan}",
@@ -510,7 +509,7 @@
     "shareMore": "Other apps",
     "related": "More about {topic}",
     "lockedNews": "For {plan} members",
-    "lockedBodyNews": "The full fundamental news is shown to Silver and Gold members.",
+    "lockedBodyNews": "The full news and fundamental analysis is shown to Silver and Gold members.",
     "keywords": "Keywords",
     "lockedNewsSilver": "For Silver and Gold members",
     "lockedTitleSilver": "This article is for Silver and Gold members",
@@ -567,7 +566,8 @@
       },
       "pending": "Waiting for review",
       "pendingNote": "Only you see this analysis; it shows to everyone once our team has reviewed it."
-    }
+    },
+    "playVideo": "Play the video"
   },
   "faq": {
     "title": "Frequently asked questions",
@@ -668,7 +668,7 @@
     "category": {
       "intermediate": "Ingots and intermediate products",
       "scrap": "Scrap",
-      "raw": "Raw materials"
+      "raw": "Mineral raw materials"
     },
     "status": {
       "open": "In progress",
@@ -822,22 +822,27 @@
     "code": "Error code"
   },
   "sms": {
-    "title": "Main metal price SMS",
-    "subtitle": "Pick one metal as your main metal and we'll text you about its price changes.",
-    "locked": "Main metal price SMS are for {plan} subscribers.",
-    "metal": "Main metal",
+    "title": "Price SMS",
+    "subtitle": "Choose the metals whose price changes we should text you about.",
+    "locked": "Price SMS are for {plan} subscribers.",
+    "metal": "Your metals for SMS",
     "enabled": "Send me price SMS",
     "rule": {
-      "update": "Each time the day and IME prices of this metal are updated, one “prices updated” SMS (at most 3 a day).",
-      "move": "If a product of this metal moves 10% or more against the day before, up or down, an alert with the new price — right away; that change isn't repeated in the \"prices updated\" SMS.",
-      "night": "Nothing is sent from 22:00 to 08:00; overnight changes are announced in the morning."
+      "ime": "IME prices updated: for the metals chosen above and your sign-up metals.",
+      "update": "Market prices updated: for the metals chosen above only.",
+      "move": "Price alert: if a product of a metal chosen above moves 10% or more against the day before, up or down, an SMS with the new price right away (that change isn't repeated in an “updated” SMS).",
+      "night": "Nothing is sent from 22:00 to 08:00; overnight changes are announced in the morning. World prices aren't texted."
     },
     "save": "Save",
     "saved": "SMS settings saved.",
     "failed": "Couldn't save. Please try again.",
-    "choosePrompt": "Pick your main metal to start receiving price SMS.",
+    "choosePrompt": "Choose your SMS metals to get every price SMS.",
     "phone": "SMS go to:",
-    "noPhone": "This account has no mobile number, so no SMS can be sent. Sign in with an account whose username is a mobile number."
+    "noPhone": "This account has no mobile number, so no SMS can be sent. Sign in with an account whose username is a mobile number.",
+    "metalHint": "Choose your metal or metals to hear about their price updates and sharp moves. You can choose one or several.",
+    "signupMetals": "Your metals from sign-up: {metals}. They get the “IME prices updated” SMS; choose them above too to get every SMS.",
+    "banner": "Your Gold plan is active. Choose your price-SMS metals to get update and price-alert SMS.",
+    "bannerCta": "Choose metals"
   },
   "strategy": {
     "badge": "Strategy map",

@@ -139,41 +139,67 @@ JOIN market.markets mk ON mk.id = s.market_id
 WHERE l.series_id = $1;
 
 -- name: GetSmsPrefs :one
-SELECT m.slug AS metal_slug, p.enabled FROM app.sms_prefs p LEFT JOIN market.metals m ON m.id = p.metal_id WHERE p.user_id = $1;
+-- The on/off switch (absent row = on).
+SELECT p.enabled FROM app.sms_prefs p WHERE p.user_id = $1;
 
--- name: UpsertSmsPrefs :execrows
--- 0 rows: unknown metal slug.
-INSERT INTO app.sms_prefs (user_id, metal_id, enabled)
-SELECT sqlc.arg(user_id), mm.id, sqlc.arg(enabled) FROM market.metals mm WHERE mm.slug = sqlc.arg(metal_slug)::text
-ON CONFLICT (user_id) DO UPDATE SET metal_id = EXCLUDED.metal_id, enabled = EXCLUDED.enabled, updated_at = now();
+-- name: ListSmsMetals :many
+-- The metals the user chose for price SMS after buying, in the site's metal order.
+SELECT m.slug FROM app.sms_metals sm JOIN market.metals m ON m.id = sm.metal_id WHERE sm.user_id = $1 ORDER BY m.sort, m.id;
+
+-- name: UpsertSmsEnabled :exec
+INSERT INTO app.sms_prefs (user_id, enabled) VALUES (sqlc.arg(user_id), sqlc.arg(enabled))
+ON CONFLICT (user_id) DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = now();
+
+-- name: ClearSmsMetals :exec
+DELETE FROM app.sms_metals WHERE user_id = $1;
+
+-- name: AddSmsMetals :execrows
+-- Adds these metals (unknown slugs are ignored); returns how many were added. Call ClearSmsMetals first to replace.
+INSERT INTO app.sms_metals (user_id, metal_id)
+SELECT sqlc.arg(user_id), m.id FROM market.metals m WHERE m.slug = ANY(sqlc.arg(slugs)::text[])
+ON CONFLICT DO NOTHING;
 
 -- name: InitPriceUpdateCursors :exec
--- New metals start "announced up to now", so the first run never sends old changes.
-INSERT INTO app.price_update_cursor (metal_id, notified_through) SELECT m.id, now() FROM market.metals m
-ON CONFLICT (metal_id) DO NOTHING;
+-- New metals start "announced up to now" for both markets, so the first run never sends old changes.
+INSERT INTO app.price_update_cursor (metal_id, market, notified_through)
+SELECT m.id, mk.slug, now() FROM market.metals m CROSS JOIN (VALUES ('ime'), ('free')) AS mk (slug)
+ON CONFLICT (metal_id, market) DO NOTHING;
 
 -- name: MetalPriceChanges :many
--- Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
-SELECT m.id AS metal_id, m.name_fa AS metal_fa, m.name_en AS metal_en,
+-- Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
+SELECT m.id AS metal_id, m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en, mk.slug AS market,
        max(l.updated_at)::timestamptz AS last_change, count(*)::int AS changed
 FROM market.price_latest l
 JOIN market.price_series s ON s.id = l.series_id AND s.active
-JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
+JOIN market.markets mk ON mk.id = s.market_id AND mk.slug IN ('ime', 'free')
 JOIN market.products p ON p.id = s.product_id
 JOIN market.metals m ON m.id = p.metal_id
-JOIN app.price_update_cursor c ON c.metal_id = m.id
+JOIN app.price_update_cursor c ON c.metal_id = m.id AND c.market = mk.slug
 WHERE l.updated_at > c.notified_through
-GROUP BY m.id, m.name_fa, m.name_en;
+GROUP BY m.id, m.slug, m.name_fa, m.name_en, mk.slug;
 
 -- name: SetPriceUpdateCursor :exec
-UPDATE app.price_update_cursor SET notified_through = sqlc.arg(through) WHERE metal_id = sqlc.arg(metal_id);
+UPDATE app.price_update_cursor SET notified_through = sqlc.arg(through)
+WHERE metal_id = sqlc.arg(metal_id) AND market = sqlc.arg(market);
 
--- name: MetalSmsSubscribers :many
--- Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
-SELECT u.id AS user_id, u.phone_e164, u.locale, p.metal_id
-FROM app.sms_prefs p
-JOIN app.users u ON u.id = p.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL
-WHERE p.enabled AND p.metal_id IS NOT NULL AND (sqlc.narg(metal_id)::smallint IS NULL OR p.metal_id = sqlc.narg(metal_id)::smallint);
+-- name: SmsMetalSubscribers :many
+-- Users with SMS on and a phone who chose this metal for SMS after buying (or any metal: metal_id NULL). Their plan is
+-- checked in Go (internal/access).
+SELECT u.id AS user_id, u.phone_e164, u.locale, sm.metal_id
+FROM app.sms_metals sm
+JOIN app.users u ON u.id = sm.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL
+LEFT JOIN app.sms_prefs p ON p.user_id = u.id
+WHERE coalesce(p.enabled, true) AND (sqlc.narg(metal_id)::smallint IS NULL OR sm.metal_id = sqlc.narg(metal_id)::smallint);
+
+-- name: ImeSmsSubscribers :many
+-- Users with SMS on and a phone who ticked this metal at sign-up or chose it for SMS: the IME "updated" SMS. Plan
+-- checked in Go.
+SELECT u.id AS user_id, u.phone_e164, u.locale
+FROM app.users u
+LEFT JOIN app.sms_prefs p ON p.user_id = u.id
+WHERE u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL AND coalesce(p.enabled, true)
+  AND (sqlc.arg(metal_slug)::text = ANY(coalesce(u.metals, '{}'))
+       OR EXISTS (SELECT 1 FROM app.sms_metals sm WHERE sm.user_id = u.id AND sm.metal_id = sqlc.arg(metal_id)::smallint));
 
 -- name: BigDailyMoves :many
 -- Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
@@ -186,23 +212,23 @@ JOIN market.products pr ON pr.id = s.product_id
 WHERE l.prev_close_minor IS NOT NULL AND l.prev_close_minor > 0
   AND abs(l.price_minor - l.prev_close_minor) * 10000 >= sqlc.arg(min_bp)::bigint * l.prev_close_minor;
 
--- name: NotificationsSentSince :one
--- SMS of one template sent to a user since a time (daily caps).
-SELECT count(*)::int FROM app.notifications
-WHERE user_id = $1 AND template = sqlc.arg(template) AND status = 'sent' AND created_at >= sqlc.arg(since);
 
 -- name: UncoveredPriceChanges :one
--- How many of a metal's changed domestic prices (since its cursor) the user hasn't had a move alert for since that
--- change: a product whose ±10 % alert already went out isn't announced again in "prices updated" (client, 2026-10-27).
+-- How many of a metal's changed prices in one market (since its cursor) the user hasn't had a move alert for since
+-- that change: a product whose ±10 % alert already went out isn't counted again in an "updated" SMS (client, 2026-10-27).
 SELECT count(*)::int
 FROM market.price_latest l
 JOIN market.price_series s ON s.id = l.series_id AND s.active
-JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
+JOIN market.markets mk ON mk.id = s.market_id AND mk.slug = sqlc.arg(market)::text
 JOIN market.products p ON p.id = s.product_id AND p.metal_id = sqlc.arg(metal_id)
-JOIN app.price_update_cursor c ON c.metal_id = p.metal_id
+JOIN app.price_update_cursor c ON c.metal_id = p.metal_id AND c.market = mk.slug
 WHERE l.updated_at > c.notified_through
   AND NOT EXISTS (
     SELECT 1 FROM app.notifications n
     WHERE n.user_id = sqlc.arg(user_id) AND n.template = 'price_move' AND n.status = 'sent'
       AND n.dedupe_key LIKE 'price_move:' || sqlc.arg(user_id)::text || ':' || s.id || ':%'
       AND n.created_at >= l.updated_at);
+
+-- name: SubscriptionBoughtAt :one
+-- When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
+SELECT created_at FROM app.subscriptions WHERE id = $1;

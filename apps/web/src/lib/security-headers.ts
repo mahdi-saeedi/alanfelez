@@ -19,7 +19,7 @@ export function newNonce(): string {
  * Content-Security-Policy (SECURITY T6): scripts only with this request's nonce ('strict-dynamic' lets Next's chunk
  * loader add more), no plugins, no framing, no foreign fonts or connections (NFR: nothing loads from abroad at runtime).
  * Styles allow inline because React style attributes (chart colors, metal tones) need it; that's not a script path.
- * Images allow https for CMS cover URLs until media uploads exist.
+ * Images allow https for CMS cover URLs given as links. Frames: only Aparat's video player.
  */
 export function contentSecurityPolicy(nonce: string): string {
   return [
@@ -30,6 +30,8 @@ export function contentSecurityPolicy(nonce: string): string {
     "font-src 'self'",
     `connect-src 'self'${dev ? " ws:" : ""}`,
     "media-src 'self'",
+    // Aparat's player, only after a click on an article's video (VideoPoster; client, 2026-11-04).
+    "frame-src https://www.aparat.com",
     "object-src 'none'",
     "base-uri 'self'",
     `form-action 'self' ${formOrigins.join(" ")}`,
