@@ -17,6 +17,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
 	"github.com/alanfelez/alanfelez/services/api/internal/platform/ratelimit"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
+	"github.com/alanfelez/alanfelez/services/api/internal/storage"
 	"github.com/alanfelez/alanfelez/services/api/internal/subscription"
 	"github.com/alanfelez/alanfelez/services/api/internal/support"
 )
@@ -35,9 +36,13 @@ type Server struct {
 	log      *slog.Logger
 	tiers    *subscription.Resolver
 	now      func() time.Time
-	gateway  string   // payment gateway name (mock, none, …): the flags screen won't switch payments on without a real one
-	identity Identity // Keycloak Admin API for deleting users; nil = not set up here
+	gateway  string         // payment gateway name (mock, none, …): the flags screen won't switch payments on without a real one
+	identity Identity       // Keycloak Admin API for deleting users; nil = not set up here
+	store    *storage.Store // article videos; nil = not set up here (upload answers NOT_CONFIGURED)
 }
+
+// WithStorage connects the object storage for uploaded videos (default: none).
+func WithStorage(st *storage.Store) Option { return func(s *Server) { s.store = st } }
 
 // Option customises a Server.
 type Option func(*Server)

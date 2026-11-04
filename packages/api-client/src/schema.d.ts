@@ -1426,6 +1426,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/articles/{id}/video": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Attach the uploaded video (checks it's in the storage, a video and ≤ 500 MB) and delete the previous one. Roles editor, admin */
+        put: operations["adminSetArticleVideo"];
+        /** Start uploading an article's video (MP4, WebM or MOV, at most 500 MB): returns a signed link the browser PUTs the file to, straight to the object storage. Then PUT here with the key. No storage set up → 503 NOT_CONFIGURED. Roles editor, admin */
+        post: operations["adminStartArticleVideo"];
+        /** Remove an article's uploaded video. Roles editor, admin */
+        delete: operations["adminDeleteArticleVideo"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/article-categories": {
         parameters: {
             query?: never;
@@ -2473,6 +2492,8 @@ export interface components {
             body?: string;
             /** @description Its Aparat video (https://www.aparat.com/v/HASH). Absent when locked or none */
             videoUrl?: string;
+            /** @description Its uploaded video: a signed link valid for a few hours. Absent when locked or none; preferred over videoUrl */
+            videoFileUrl?: string;
             author?: string;
             /** Format: date-time */
             updatedAt: string;
@@ -2928,6 +2949,10 @@ export interface components {
         AdminArticle: components["schemas"]["AdminArticleInput"] & {
             /** Format: uuid */
             id: string;
+            /** @description Video upload is set up here (object storage) */
+            videoUploads: boolean;
+            /** @description The uploaded video (signed link */
+            videoFileUrl?: string;
             readMinutes: number;
             /** Format: date-time */
             createdAt: string;
@@ -5700,6 +5725,93 @@ export interface operations {
         };
     };
     adminDeleteArticleImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetArticleVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Attached */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminStartArticleVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    contentType: "video/mp4" | "video/webm" | "video/quicktime";
+                    /**
+                     * Format: int64
+                     * @description Bytes
+                     */
+                    size: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Upload link */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description PUT the file here (valid 1 hour), with its Content-Type */
+                        uploadUrl: string;
+                        key: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteArticleVideo: {
         parameters: {
             query?: never;
             header?: never;

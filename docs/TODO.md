@@ -4,11 +4,12 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-04 (SMS by metal, welcome and thank-you SMS, article picture and video, home plan periods)
+Last updated: 2026-11-04 (paid SMS metals, SMS limits, «مقالات», uploaded videos)
 
 ## Now (in progress)
-- [ ] **SMS by metal, greetings, article media → staging** (2026-11-04, branch `feat/sms-and-content`): waiting for the
-      client's check on staging, then the main site.
+- [ ] **SMS by metal, greetings, article media** (2026-11-04): on staging; waiting for the client's check, then the main
+      site, together with the next item.
+- [ ] **Paid SMS metals, SMS limits, «مقالات», uploaded videos → staging** (2026-11-04, branch `feat/sms-checkout`).
 - [ ] **User activity → staging, then the main site** (2026-11-03): on branch `claude/new-session-i1teqj`, waiting for the
       client's «بفرست روی staging». Before the main site: the client approves the privacy text (F19) and it's pasted in the
       admin (صفحات ثابت → حریم خصوصی).
@@ -33,6 +34,13 @@ Last updated: 2026-11-04 (SMS by metal, welcome and thank-you SMS, article pictu
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
+- [ ] **Video bucket** (ADR-0030, 2026-11-04): in ArvanCloud Object Storage, one private bucket per environment
+      (e.g. `alanfelez-media-staging`, `alanfelez-media`) with CORS (PUT from the admin host, GET/HEAD from the web host),
+      a key sealed as `alanfelez-media-s3` (ACCESS_KEY_ID, ACCESS_SECRET_KEY), and `storage: {endpoint, bucket}` in the
+      environment's values. Until then the admin says video upload isn't set up (Aparat links still work).
+- [ ] **sms.ir templates on production**: `ime_update=937878,welcome=207508,purchase_thanks=493390` added to
+      `api.smsir.templates` in `deploy/environments/production/values.yaml` (staging has them). A ship branch may not
+      touch production values, so this is a PR for the owner to approve.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
@@ -43,10 +51,6 @@ Last updated: 2026-11-04 (SMS by metal, welcome and thank-you SMS, article pictu
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
-- [ ] **New sms.ir templates** (2026-11-04): `ime_update` (METAL, COUNT), `welcome` (NAME), `purchase_thanks` (NAME, PLAN,
-      DATE); the client makes them in sms.ir and sends their numbers, then they go into `api.smsir.templates` of
-      staging and production. Until then these three SMS are skipped (not logged as failed). Also reword the existing
-      `price_update` template to say «بازار» (it's now the market-only update).
 - [ ] **The client's SEO prompt** (said 2026-10-27 they'd give it once the site is complete): ask for it now.
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
@@ -68,6 +72,12 @@ Last updated: 2026-11-04 (SMS by metal, welcome and thank-you SMS, article pictu
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-04 Paid SMS metals (client, owner OK): 100,000 Toman per metal per month of the Gold plan, chosen on the
+  checkout page with a live total; tied to the subscription (00035), never changed or refunded; more can be added
+  during the plan at the full price of its length (`sms_addon` orders, `/v1/checkout/sms-metals`). Per-member daily SMS
+  limit 50,000 Toman, both limits editable in the admin's Settings. «مقالات»: a free article type (00034, `/articles`,
+  footer, sitemap). Article videos uploaded to ArvanCloud Object Storage (ADR-0030, 00036; on once the bucket exists).
+  sms.ir templates for the IME update, welcome and thanks on staging.
 - 2026-11-04 Gold SMS by metal (client, owner OK): several SMS metals instead of one main metal (migration 00031,
   `app.sms_metals`); three SMS: IME updated (sign-up metals and SMS metals), market updated and ±10 % alerts (SMS
   metals only); no 3-a-day cap (the daily budget stays); the old main metal is not carried over. A «choose your SMS

@@ -37,6 +37,9 @@ type AppArticle struct {
 	KeywordsFa  string
 	KeywordsEn  pgtype.Text
 	VideoUrl    pgtype.Text
+	VideoKey    pgtype.Text
+	VideoBytes  pgtype.Int8
+	VideoType   pgtype.Text
 }
 
 type AppArticleCategory struct {

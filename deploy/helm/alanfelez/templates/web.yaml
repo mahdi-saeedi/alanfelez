@@ -29,6 +29,8 @@ spec:
             # Where forms may go besides the site and Keycloak: the payment gateway (mock = the API itself).
             - name: CSP_FORM_ORIGINS
               value: {{ (default (ternary (list (include "af.url" (dict "root" . "host" "api"))) (list) (eq .Values.api.paymentGateway "mock")) .Values.web.cspFormOrigins) | join "," | quote }}
+            # Uploaded article videos play from the object storage (CSP media-src).
+            - { name: MEDIA_ORIGINS, value: {{ include "af.mediaOrigins" . | quote }} }
             - { name: AUTH_KEYCLOAK_ID, value: alanfelez-web }
             - { name: AUTH_KEYCLOAK_ISSUER, value: "{{ include "af.url" (dict "root" . "host" "auth") }}/realms/alanfelez" }
             # Server-side OIDC calls go straight to the Keycloak service (no hairpin through the ingress/CDN).

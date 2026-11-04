@@ -79,7 +79,7 @@ func (s *Server) AdminGetArticle(ctx context.Context, req AdminGetArticleRequest
 	if err != nil {
 		return nil, fmt.Errorf("get article: %w", err)
 	}
-	return AdminGetArticle200JSONResponse(adminArticleOf(a)), nil
+	return AdminGetArticle200JSONResponse(s.withVideo(ctx, adminArticleOf(a), a.VideoKey)), nil
 }
 
 // AdminCreateArticle creates an article.
@@ -114,7 +114,7 @@ func (s *Server) AdminCreateArticle(ctx context.Context, req AdminCreateArticleR
 	if err != nil {
 		return nil, fmt.Errorf("get article: %w", err)
 	}
-	return AdminCreateArticle201JSONResponse(adminArticleOf(a)), nil
+	return AdminCreateArticle201JSONResponse(s.withVideo(ctx, adminArticleOf(a), a.VideoKey)), nil
 }
 
 // AdminUpdateArticle replaces an article.
@@ -158,7 +158,7 @@ func (s *Server) AdminUpdateArticle(ctx context.Context, req AdminUpdateArticleR
 	if err != nil {
 		return nil, fmt.Errorf("get article: %w", err)
 	}
-	return AdminUpdateArticle200JSONResponse(adminArticleOf(a)), nil
+	return AdminUpdateArticle200JSONResponse(s.withVideo(ctx, adminArticleOf(a), a.VideoKey)), nil
 }
 
 // articleParams validates and sanitizes an article. msg is the 400 detail when the input is invalid.

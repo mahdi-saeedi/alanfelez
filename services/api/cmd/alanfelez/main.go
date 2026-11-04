@@ -52,6 +52,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/source"
 	"github.com/alanfelez/alanfelez/services/api/internal/prices/source/demo"
 	"github.com/alanfelez/alanfelez/services/api/internal/seed"
+	"github.com/alanfelez/alanfelez/services/api/internal/storage"
 	"github.com/alanfelez/alanfelez/services/api/migrations"
 )
 
@@ -149,6 +150,15 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 		opts = append(opts, api.WithIdentity(k))
 	} else {
 		log.Info("user deletion is off: no KEYCLOAK_ADMIN_CLIENT_SECRET")
+	}
+	store, err := storage.New(cfg.Storage)
+	if err != nil {
+		return err
+	}
+	if store != nil {
+		opts = append(opts, api.WithStorage(store))
+	} else {
+		log.Info("video upload is off: no object storage (STORAGE_*)")
 	}
 	server := api.NewServer(pool, prices.NewService(pool, live.NewPublisher(rdb), log), bill, opts...)
 	if mockGW != nil {

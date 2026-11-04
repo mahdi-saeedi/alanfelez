@@ -317,6 +317,8 @@ type Querier interface {
 	// Stores an article's picture and points its cover at the website's image route (?v= changes with each upload, so
 	// browsers and caches fetch the new one). 0 rows: no such article.
 	SetArticleImage(ctx context.Context, arg SetArticleImageParams) (int64, error)
+	// Points an article at its uploaded video (key NULL = none) and returns the key it had, to delete the old file.
+	SetArticleVideoFile(ctx context.Context, arg SetArticleVideoFileParams) (pgtype.Text, error)
 	SetCommentStatus(ctx context.Context, arg SetCommentStatusParams) (int64, error)
 	SetCommunityPostStatus(ctx context.Context, arg SetCommunityPostStatusParams) (int64, error)
 	// Upsert: a flag missing from an environment's seed is created on first switch.

@@ -439,7 +439,6 @@ func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSetting
 // ChooseSmsMetalsDays is how long after buying Gold the site asks for the SMS metals (client, 2026-11-04).
 const ChooseSmsMetalsDays = 7
 
-
 // intOr0 is an optional integer field, 0 when it's left out.
 func intOr0(p *int) int {
 	if p == nil {

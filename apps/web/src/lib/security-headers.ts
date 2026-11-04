@@ -29,7 +29,8 @@ export function contentSecurityPolicy(nonce: string): string {
     "img-src 'self' data: blob: https:",
     "font-src 'self'",
     `connect-src 'self'${dev ? " ws:" : ""}`,
-    "media-src 'self'",
+    // Uploaded article videos are played straight from the object storage (MEDIA_ORIGINS; client, 2026-11-04).
+    `media-src 'self' ${(process.env.MEDIA_ORIGINS ?? "").trim()}`.trim(),
     // Aparat's player, only after a click on an article's video (VideoPoster; client, 2026-11-04).
     "frame-src https://www.aparat.com",
     "object-src 'none'",

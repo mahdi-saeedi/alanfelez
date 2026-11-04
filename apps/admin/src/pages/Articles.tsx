@@ -191,6 +191,13 @@ function ArticleForm({ initial, id }: { initial: Input & { readMinutes?: number 
           <Field plain label={t("articles.f.image")} hint={t("articles.f.imageHint")}>
             {id ? <ArticleImage id={id} hasImage={!!initial.coverUrl?.startsWith("/api/articles/")} writable={writable} /> : <p className="text-xs text-text-3">{t("articles.f.imageAfterSave")}</p>}
           </Field>
+          <Field plain label={t("articles.f.videoFile")} hint={t("articles.f.videoFileHint")}>
+            {id ? (
+              <ArticleVideo id={id} uploads={!!(initial as { videoUploads?: boolean }).videoUploads} fileUrl={(initial as { videoFileUrl?: string }).videoFileUrl} writable={writable} />
+            ) : (
+              <p className="text-xs text-text-3">{t("articles.f.imageAfterSave")}</p>
+            )}
+          </Field>
           <Field label={t("articles.f.video")} hint={t("articles.f.videoHint")}>
             <Input dir="ltr" maxLength={300} value={v.videoUrl ?? ""} onChange={(e) => set("videoUrl", e.target.value)} className="w-full" placeholder="https://www.aparat.com/v/…" />
           </Field>
@@ -264,6 +271,89 @@ function ArticleImage({ id, hasImage, writable }: { id: string; hasImage: boolea
         </div>
       )}
       {(upload.isError || remove.isError) && <Notice tone="error">{errorText(upload.error ?? remove.error, t)}</Notice>}
+    </div>
+  );
+}
+
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"] as const;
+const MAX_VIDEO = 500 * 1024 * 1024;
+
+/**
+ * The article's video file (client, 2026-11-04: on our own storage). The browser uploads it straight to the object
+ * storage with a signed link from the API (with progress), then attaches it. Played on the site with the picture as
+ * its cover. The Aparat link below is the other option.
+ */
+function ArticleVideo({ id, uploads, fileUrl, writable }: { id: string; uploads: boolean; fileUrl?: string; writable: boolean }) {
+  const t = useTranslate();
+  const qc = useQueryClient();
+  const [url, setUrl] = useState(fileUrl);
+  const [progress, setProgress] = useState<number>();
+  const [error, setError] = useState<string>();
+  const reload = async () => {
+    const a = unwrap(await api.GET("/v1/admin/articles/{id}", { params: { path: { id } } }));
+    setUrl((a as { videoFileUrl?: string }).videoFileUrl);
+    void qc.invalidateQueries({ queryKey: ["admin", "articles"] });
+  };
+  const upload = async (file: File) => {
+    setError(undefined);
+    if (!VIDEO_TYPES.includes(file.type as (typeof VIDEO_TYPES)[number])) return setError(t("articles.f.videoType"));
+    if (file.size > MAX_VIDEO) return setError(t("articles.f.videoSize"));
+    try {
+      setProgress(0);
+      const start = unwrap(await api.POST("/v1/admin/articles/{id}/video", {
+        params: { path: { id } },
+        body: { contentType: file.type as (typeof VIDEO_TYPES)[number], size: file.size },
+      }));
+      // XMLHttpRequest, not fetch: it reports upload progress (a video can take minutes).
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", start.uploadUrl);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.upload.onprogress = (e) => e.lengthComputable && setProgress(Math.round((e.loaded / e.total) * 100));
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`upload ${xhr.status}`)));
+        xhr.onerror = () => reject(new Error("upload failed"));
+        xhr.send(file);
+      });
+      ensureOk(await api.PUT("/v1/admin/articles/{id}/video", { params: { path: { id } }, body: { key: start.key } }));
+      await reload();
+    } catch (e) {
+      setError(e instanceof Error && e.message.startsWith("upload") ? t("articles.f.videoUploadFailed") : errorText(e, t));
+    } finally {
+      setProgress(undefined);
+    }
+  };
+  const remove = useMutation({
+    mutationFn: async () => ensureOk(await api.DELETE("/v1/admin/articles/{id}/video", { params: { path: { id } } })),
+    onSuccess: () => void reload(),
+  });
+  if (!uploads) return <p className="text-xs text-text-3">{t("articles.f.videoOff")}</p>;
+  return (
+    <div className="space-y-2">
+      {url ? (
+        <video src={url} controls preload="metadata" className="aspect-video w-full rounded-lg border border-border bg-black" />
+      ) : (
+        <div className="grid aspect-video w-full place-items-center rounded-lg border border-dashed border-border text-xs text-text-3">{t("articles.f.noVideo")}</div>
+      )}
+      {progress !== undefined && (
+        <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+          <div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+      {writable && (
+        <div className="flex flex-wrap gap-2">
+          <label className={`rounded-lg border border-border px-3 py-1.5 text-sm ${progress !== undefined ? "opacity-50" : "cursor-pointer hover:bg-surface-2"}`}>
+            {progress !== undefined ? t("articles.f.videoUploading", { n: progress }) : url ? t("articles.f.replaceVideo") : t("articles.f.uploadVideo")}
+            <input type="file" accept={VIDEO_TYPES.join(",")} className="sr-only" disabled={progress !== undefined}
+              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
+          </label>
+          {url && progress === undefined && (
+            <Button type="button" tone="danger" disabled={remove.isPending} onClick={() => { if (confirm(t("articles.f.removeVideoConfirm"))) remove.mutate(); }}>
+              {t("articles.f.removeVideo")}
+            </Button>
+          )}
+        </div>
+      )}
+      {(error || remove.isError) && <Notice tone="error">{error ?? errorText(remove.error, t)}</Notice>}
     </div>
   );
 }

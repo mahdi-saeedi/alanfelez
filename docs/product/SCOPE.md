@@ -99,7 +99,7 @@ field) and SMS alerts for sharp moves.
 | Daily auctions / IME offerings | ✗ (teaser) | ✗ | ✓ |
 | Price calculator | ✗ (locked preview) | ✗ | ✓ |
 | SMS + price alerts (included in Gold, #19) | ✗ | ✗ | ✓ |
-| Price SMS by metal (2026-11-04, replaces the main metal of 2026-10-27): the metals chosen after buying get every SMS, the sign-up metals only the IME one. «IME prices updated» and «market prices updated» per batch (15 min after the last change, none 22–08, no daily cap), ±10 % day moves on IME or market prices (sent at once; that product is then left out of the next update). World prices never. Welcome SMS once per number; thank-you SMS per plan bought or granted. Manual alerts removed | ✗ | ✗ | ✓ |
+| Price SMS by metal (2026-11-04, replaces the main metal of 2026-10-27): the paid SMS metals (100,000 Toman per metal per month of the plan, chosen at checkout, never changed or refunded, more added during the plan at the full price of its length) get every SMS, the sign-up metals only the IME one; a per-member daily SMS limit of 50,000 Toman. «IME prices updated» and «market prices updated» per batch (15 min after the last change, none 22–08, no daily cap), ±10 % day moves on IME or market prices (sent at once; that product is then left out of the next update). World prices never. Welcome SMS once per number; thank-you SMS per plan bought or granted. Manual alerts removed | ✗ | ✗ | ✓ |
 | Support | ticket | ticket | ticket (priority) |
 
 This lives in `services/api/internal/access` as config (exposed to the UIs via `/v1/me/entitlements`), so when the client corrects it, one file changes.

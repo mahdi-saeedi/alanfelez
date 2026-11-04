@@ -12,8 +12,12 @@ import (
 // metals can't be changed or refunded; more can be added during the plan at the full price of its length.
 func TestPaidSmsMetals(t *testing.T) {
 	e := setup(t)
-	e.enablePayments(true)
 	e.call(http.MethodGet, "/v1/me", "gold", nil)
+	e.enablePayments(false)
+	if st, _, _ := e.callH(http.MethodPost, "/v1/checkout/sms-metals", "gold", map[string]any{"metals": []string{"lead"}}, map[string]string{"Idempotency-Key": "sms-off-1"}); st != 409 {
+		t.Fatalf("payments off: %d", st)
+	}
+	e.enablePayments(true)
 
 	// Quote: Gold 2,000,000 Toman a month + 3 metals × 100,000 = 2,300,000; 3 months: 300,000 per metal.
 	in := map[string]any{"plan": "gold", "period": "month", "smsMetals": []string{"copper", "zinc", "lead", "copper"}}

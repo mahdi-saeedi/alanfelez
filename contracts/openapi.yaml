@@ -1985,6 +1985,68 @@ paths:
         '204': { description: Removed }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/articles/{id}/video:
+    post:
+      operationId: adminStartArticleVideo
+      tags: [admin]
+      summary: >-
+        Start uploading an article's video (MP4, WebM or MOV, at most 500 MB): returns a signed link the browser PUTs the
+        file to, straight to the object storage. Then PUT here with the key. No storage set up → 503 NOT_CONFIGURED. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentType, size]
+              properties:
+                contentType: { type: string, enum: [video/mp4, video/webm, video/quicktime] }
+                size: { type: integer, format: int64, minimum: 1, description: Bytes }
+      responses:
+        '201':
+          description: Upload link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [uploadUrl, key]
+                properties:
+                  uploadUrl: { type: string, description: 'PUT the file here (valid 1 hour), with its Content-Type' }
+                  key: { type: string }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: adminSetArticleVideo
+      tags: [admin]
+      summary: Attach the uploaded video (checks it's in the storage, a video and ≤ 500 MB) and delete the previous one. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key]
+              properties:
+                key: { type: string, maxLength: 200 }
+      responses:
+        '204': { description: Attached }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteArticleVideo
+      tags: [admin]
+      summary: Remove an article's uploaded video. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/article-categories:
     get:
       operationId: adminListArticleCategories
@@ -3376,6 +3438,7 @@ components:
             id: { type: string, format: uuid, description: "For its rating and comments (the article discussion)" }
             body: { type: string, description: Sanitized HTML. Absent when locked }
             videoUrl: { type: string, description: 'Its Aparat video (https://www.aparat.com/v/HASH). Absent when locked or none' }
+            videoFileUrl: { type: string, description: 'Its uploaded video: a signed link valid for a few hours. Absent when locked or none; preferred over videoUrl' }
             author: { type: string }
             updatedAt: { type: string, format: date-time }
 
@@ -3864,9 +3927,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/AdminArticleInput'
         - type: object
-          required: [id, readMinutes, createdAt, updatedAt]
+          required: [id, readMinutes, createdAt, updatedAt, videoUploads]
           properties:
             id: { type: string, format: uuid }
+            videoUploads: { type: boolean, description: Video upload is set up here (object storage) }
+            videoFileUrl: { type: string, description: The uploaded video (signed link, for the preview) }
             readMinutes: { type: integer }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }

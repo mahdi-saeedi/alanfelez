@@ -89,8 +89,8 @@ export async function ArticleView({ locale, slug, section }: { locale: Locale; s
         </div>
       </header>
 
-      {a.videoUrl ? (
-        <VideoPoster videoUrl={a.videoUrl} coverUrl={a.coverUrl} title={a.title} play={t("analysis.playVideo")} />
+      {a.videoFileUrl || a.videoUrl ? (
+        <VideoPoster videoUrl={a.videoUrl} fileUrl={a.videoFileUrl} coverUrl={a.coverUrl} title={a.title} play={t("analysis.playVideo")} />
       ) : (
         a.coverUrl && <Cover a={a} className="mt-6 aspect-video rounded-card" />
       )}

@@ -592,7 +592,7 @@ func (q *Queries) DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, err
 const getArticle = `-- name: GetArticle :one
 SELECT a.id, a.type, a.slug, a.status, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
-       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug, a.video_url
+       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug, a.video_url, a.video_key
 FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
 LEFT JOIN market.metals m ON m.id = a.metal_id
@@ -624,6 +624,7 @@ type GetArticleRow struct {
 	CategorySlug pgtype.Text
 	MetalSlug    pgtype.Text
 	VideoUrl     pgtype.Text
+	VideoKey     pgtype.Text
 }
 
 func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error) {
@@ -654,6 +655,7 @@ func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow
 		&i.CategorySlug,
 		&i.MetalSlug,
 		&i.VideoUrl,
+		&i.VideoKey,
 	)
 	return i, err
 }
@@ -758,7 +760,7 @@ func (q *Queries) GetPage(ctx context.Context, slug string) (GetPageRow, error) 
 const getPublishedArticle = `-- name: GetPublishedArticle :one
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
-       a.video_url,
+       a.video_url, a.video_key,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -788,6 +790,7 @@ type GetPublishedArticleRow struct {
 	PublishedAt  pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 	VideoUrl     pgtype.Text
+	VideoKey     pgtype.Text
 	CategorySlug pgtype.Text
 	CategoryFa   pgtype.Text
 	CategoryEn   pgtype.Text
@@ -820,6 +823,7 @@ func (q *Queries) GetPublishedArticle(ctx context.Context, slug string) (GetPubl
 		&i.PublishedAt,
 		&i.UpdatedAt,
 		&i.VideoUrl,
+		&i.VideoKey,
 		&i.CategorySlug,
 		&i.CategoryFa,
 		&i.CategoryEn,
@@ -1489,6 +1493,33 @@ func (q *Queries) SetArticleImage(ctx context.Context, arg SetArticleImageParams
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const setArticleVideoFile = `-- name: SetArticleVideoFile :one
+WITH old AS (SELECT a.video_key FROM app.articles a WHERE a.id = $4 FOR UPDATE)
+UPDATE app.articles AS a SET video_key = $1, video_bytes = $2, video_type = $3
+FROM old WHERE a.id = $4
+RETURNING old.video_key AS old_key
+`
+
+type SetArticleVideoFileParams struct {
+	VideoKey   pgtype.Text
+	VideoBytes pgtype.Int8
+	VideoType  pgtype.Text
+	ID         pgtype.UUID
+}
+
+// Points an article at its uploaded video (key NULL = none) and returns the key it had, to delete the old file.
+func (q *Queries) SetArticleVideoFile(ctx context.Context, arg SetArticleVideoFileParams) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, setArticleVideoFile,
+		arg.VideoKey,
+		arg.VideoBytes,
+		arg.VideoType,
+		arg.ID,
+	)
+	var old_key pgtype.Text
+	err := row.Scan(&old_key)
+	return old_key, err
 }
 
 const setCommentStatus = `-- name: SetCommentStatus :execrows

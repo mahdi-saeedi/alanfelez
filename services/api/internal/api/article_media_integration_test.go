@@ -82,4 +82,21 @@ func TestArticleMedia(t *testing.T) {
 	if _, body, raw := e.call(http.MethodGet, "/v1/articles/what-is-cathode", "", nil); body["locked"] != false || body["body"] == nil {
 		t.Fatalf("educational article for a visitor: %s", raw)
 	}
+
+	// Uploaded videos: without object storage the admin is told so (503), and nothing changes.
+	if _, body, _ := e.call(http.MethodGet, "/v1/admin/articles/"+id, "editor", nil); body["videoUploads"] != false {
+		t.Fatalf("videoUploads without storage: %v", body["videoUploads"])
+	}
+	up := map[string]any{"contentType": "video/mp4", "size": 1000}
+	for _, c := range []struct {
+		tok  string
+		want int
+	}{{"", 401}, {"support", 403}, {"editor", 503}} {
+		if st, _, _ := e.call(http.MethodPost, "/v1/admin/articles/"+id+"/video", c.tok, up); st != c.want {
+			t.Fatalf("video upload as %q: %d", c.tok, st)
+		}
+	}
+	if st, _, _ := e.call(http.MethodDelete, "/v1/admin/articles/"+id+"/video", "editor", nil); st != 404 {
+		t.Fatalf("delete a video that isn't there: %d", st)
+	}
 }
