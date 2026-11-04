@@ -29,7 +29,8 @@
       "chart": "Chart",
       "analysis": "Analysis"
     },
-    "skip": "Skip to main content"
+    "skip": "Skip to main content",
+    "articles": "Articles"
   },
   "auth": {
     "login": "Log in",
@@ -408,7 +409,10 @@
       "account": "Go to my account",
       "prices": "See prices",
       "tryAgain": "Try again"
-    }
+    },
+    "payNow": "Pay",
+    "smsPrice": "Each metal {price} for the {period} plan.",
+    "smsSignup": "Your sign-up metals: {metals}. They get the IME update SMS for free."
   },
   "account": {
     "title": "My account",
@@ -472,7 +476,8 @@
     "type": {
       "news": "News",
       "analysis": "Market analysis",
-      "forecast": "Price forecast"
+      "forecast": "Price forecast",
+      "article": "Article"
     },
     "outlook": {
       "up": "Bullish",
@@ -823,26 +828,33 @@
   },
   "sms": {
     "title": "Price SMS",
-    "subtitle": "Choose the metals whose price changes we should text you about.",
+    "subtitle": "The metals you paid price SMS for, and adding a new one.",
     "locked": "Price SMS are for {plan} subscribers.",
     "metal": "Your metals for SMS",
     "enabled": "Send me price SMS",
     "rule": {
-      "ime": "IME prices updated: for the metals chosen above and your sign-up metals.",
-      "update": "Market prices updated: for the metals chosen above only.",
-      "move": "Price alert: if a product of a metal chosen above moves 10% or more against the day before, up or down, an SMS with the new price right away (that change isn't repeated in an “updated” SMS).",
+      "ime": "IME prices updated: for your paid metals and your sign-up metals.",
+      "update": "Market prices updated: for your paid metals only.",
+      "move": "Price alert: if a product of a paid metal moves 10% or more against the day before, up or down, an SMS with the new price right away (that change isn't repeated in an update SMS).",
       "night": "Nothing is sent from 22:00 to 08:00; overnight changes are announced in the morning. World prices aren't texted."
     },
     "save": "Save",
     "saved": "SMS settings saved.",
     "failed": "Couldn't save. Please try again.",
-    "choosePrompt": "Choose your SMS metals to get every price SMS.",
+    "choosePrompt": "Add an SMS metal to get every price SMS.",
     "phone": "SMS go to:",
     "noPhone": "This account has no mobile number, so no SMS can be sent. Sign in with an account whose username is a mobile number.",
     "metalHint": "Choose your metal or metals to hear about their price updates and sharp moves. You can choose one or several.",
-    "signupMetals": "Your metals from sign-up: {metals}. They get the “IME prices updated” SMS; choose them above too to get every SMS.",
+    "signupMetals": "Your sign-up metals: {metals}. They get the IME prices updated SMS for free.",
     "banner": "Your Gold plan is active. Choose your price-SMS metals to get update and price-alert SMS.",
-    "bannerCta": "Choose metals"
+    "bannerCta": "Add metals",
+    "paidMetal": "paid",
+    "addTotal": "To add",
+    "addPay": "Add and pay",
+    "addNone": "You haven't picked a metal to add.",
+    "addHint": "Each metal until your plan ends: {price} (the full price of your plan's length, even if part of it has passed).",
+    "noRefund": "Metals you choose and pay for can't be changed or refunded, but you can add and pay for another metal at any time during your plan.",
+    "paymentsOff": "Purchases aren't open yet."
   },
   "strategy": {
     "badge": "Strategy map",
@@ -952,5 +964,14 @@
     "limited": "At most 20 comments a day.",
     "failed": "Not saved; please try again.",
     "title": "Ratings and comments"
+  },
+  "articles": {
+    "title": "Articles",
+    "subtitle": "Practical, educational articles about the metals market; free for everyone.",
+    "empty": "No articles yet.",
+    "back": "Back to articles",
+    "read": "Read the article",
+    "prev": "Previous",
+    "next": "Next"
   }
 }

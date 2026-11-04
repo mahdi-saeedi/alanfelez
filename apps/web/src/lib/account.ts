@@ -41,16 +41,29 @@ export async function getMyOrder(id: string): Promise<Order | null> {
 export async function getQuote(plan: PaidPlan, period: Period): Promise<{ quote?: Quote; status: number }> {
   const client = await signedIn();
   if (!client) return { status: 401 };
-  const res = await client.POST("/v1/checkout/quote", { body: { plan, period }, cache: "no-store" });
+  const res = await client.POST("/v1/checkout/quote", { body: { plan, period }, cache: "no-store" }); // without SMS metals: the page adds them
   return { quote: res.data, status: res.response.status };
 }
 
-export async function startCheckout(plan: PaidPlan, period: Period, idempotencyKey: string, locale: "fa" | "en") {
+export async function startCheckout(plan: PaidPlan, period: Period, smsMetals: string[], idempotencyKey: string, locale: "fa" | "en") {
   const client = await signedIn();
   if (!client) return { status: 401 as const };
   const res = await client.POST("/v1/checkout", {
     params: { header: { "Idempotency-Key": idempotencyKey, "Accept-Language": locale } },
-    body: { plan, period },
+    body: { plan, period, ...(plan === "gold" && smsMetals.length > 0 ? { smsMetals } : {}) },
+    cache: "no-store",
+  });
+  const problem = res.error as Schemas["Problem"] | undefined;
+  return { status: res.response.status, result: res.data, code: problem?.code };
+}
+
+/** Adds SMS metals to the Gold plan held (client, 2026-11-04): an order and its payment page. */
+export async function buySmsMetals(metals: string[], idempotencyKey: string, locale: "fa" | "en") {
+  const client = await signedIn();
+  if (!client) return { status: 401 as const };
+  const res = await client.POST("/v1/checkout/sms-metals", {
+    params: { header: { "Idempotency-Key": idempotencyKey, "Accept-Language": locale } },
+    body: { metals },
     cache: "no-store",
   });
   const problem = res.error as Schemas["Problem"] | undefined;

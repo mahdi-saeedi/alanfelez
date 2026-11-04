@@ -30,6 +30,14 @@ secrets:
                                    # <admin host>/grafana); the profile job creates the client with this secret
   keycloakApiAdmin: alanfelez-keycloak-api-admin  # key: client-secret. Optional: the API's Keycloak service account
                                    # (deleting users); the profile job creates the client with this secret
+  media: alanfelez-media-s3        # keys: ACCESS_KEY_ID, ACCESS_SECRET_KEY. The video bucket's key (storage below)
+
+# Object storage for uploaded article videos (ArvanCloud Object Storage; client 2026-11-04). A private bucket with
+# CORS allowing PUT from the admin host and GET from the web host. Empty bucket = video upload off.
+storage:
+  endpoint: ""                     # e.g. s3.ir-thr-at1.arvanstorage.ir (no https://)
+  region: ir-thr-at1
+  bucket: ""                       # e.g. alanfelez-media-staging
 
 api:
   replicas: 2

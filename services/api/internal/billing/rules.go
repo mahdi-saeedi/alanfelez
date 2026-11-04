@@ -38,6 +38,7 @@ const (
 	KindRenewal   Kind = "renewal"   // same plan held: starts when it ends
 	KindUpgrade   Kind = "upgrade"   // only lower plans held: starts now, their unused paid value is credited
 	KindDowngrade Kind = "downgrade" // a higher plan held: starts when it ends
+	KindSmsAddon  Kind = "sms_addon" // SMS metals added to the Gold plan held (sms_metals.go)
 )
 
 // Held is an active subscription of the user (ends in the future).

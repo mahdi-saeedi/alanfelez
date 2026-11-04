@@ -196,19 +196,20 @@ func (s *Server) QuoteCheckout(ctx context.Context, req QuoteCheckoutRequestObje
 	if p == nil {
 		return QuoteCheckout401ApplicationProblemPlusJSONResponse(unauthenticated(ctx)), nil
 	}
-	q, err := s.billing.Quote(ctx, p.ID, access.Tier(req.Body.Plan), billing.Period(req.Body.Period))
+	q, err := s.billing.Quote(ctx, p.ID, access.Tier(req.Body.Plan), billing.Period(req.Body.Period), smsMetalsOf(req.Body.SmsMetals))
 	switch {
 	case errors.Is(err, billing.ErrNotFound):
 		return QuoteCheckout404ApplicationProblemPlusJSONResponse(notFound(ctx, "plan price")), nil
-	case errors.Is(err, billing.ErrFreePlan), errors.Is(err, billing.ErrUnknownPeriod):
+	case errors.Is(err, billing.ErrFreePlan), errors.Is(err, billing.ErrUnknownPeriod), errors.Is(err, billing.ErrSmsMetalsGoldOnly), errors.Is(err, billing.ErrUnknownMetal):
 		return QuoteCheckout400ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(badRequest(ctx, err.Error()))}, nil
 	case err != nil:
 		return nil, err
 	}
 	return QuoteCheckout200JSONResponse{
 		Plan: req.Body.Plan, Period: req.Body.Period, Kind: CheckoutQuoteKind(q.Kind),
-		Price: rial(q.Price), Credit: rial(q.Credit), Amount: rial(q.Amount),
+		Price: rial(q.Price), Credit: rial(q.Credit), Amount: rial(q.Total),
 		StartsAt: q.Starts.UTC(), EndsAt: q.Ends.UTC(),
+		SmsMetals: q.SmsMetals, SmsPrice: rial(q.SmsRial), SmsMetalPrice: rial(billing.SmsMetalsPrice(1, billing.PeriodMonths(q.Period))),
 	}, nil
 }
 
@@ -230,7 +231,7 @@ func (s *Server) StartCheckout(ctx context.Context, req StartCheckoutRequestObje
 	if req.Params.AcceptLanguage != nil && *req.Params.AcceptLanguage == "en" {
 		locale = "en"
 	}
-	co, err := s.billing.StartCheckout(ctx, u, access.Tier(req.Body.Plan), billing.Period(req.Body.Period), key, locale)
+	co, err := s.billing.StartCheckout(ctx, u, access.Tier(req.Body.Plan), billing.Period(req.Body.Period), smsMetalsOf(req.Body.SmsMetals), key, locale)
 	switch {
 	case errors.Is(err, billing.ErrPaymentsDisabled):
 		return StartCheckout409ApplicationProblemPlusJSONResponse(problem(ctx, http.StatusConflict, codePaymentsDisabled, "Payments are not enabled yet", "")), nil
@@ -238,7 +239,7 @@ func (s *Server) StartCheckout(ctx context.Context, req StartCheckoutRequestObje
 		return StartCheckout403ApplicationProblemPlusJSONResponse(problem(ctx, http.StatusForbidden, codeForbidden, "Account blocked", "")), nil
 	case errors.Is(err, billing.ErrNotFound):
 		return StartCheckout404ApplicationProblemPlusJSONResponse(notFound(ctx, "plan price")), nil
-	case errors.Is(err, billing.ErrFreePlan), errors.Is(err, billing.ErrUnknownPeriod):
+	case errors.Is(err, billing.ErrFreePlan), errors.Is(err, billing.ErrUnknownPeriod), errors.Is(err, billing.ErrSmsMetalsGoldOnly), errors.Is(err, billing.ErrUnknownMetal):
 		return StartCheckout400ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(badRequest(ctx, err.Error()))}, nil
 	case errors.Is(err, payment.ErrUnavailable):
 		return StartCheckout503ApplicationProblemPlusJSONResponse(problem(ctx, http.StatusServiceUnavailable, codeUpstream, "Payment gateway unavailable", "")), nil
@@ -339,6 +340,9 @@ func (s *Server) AdminListOrders(ctx context.Context, req AdminListOrdersRequest
 			CreatedAt: r.CreatedAt.Time.UTC(), PaidAt: timep(r.PaidAt), Gateway: r.Gateway, RefId: textp(r.RefID),
 			RefundReason: textp(r.RefundReason),
 		}
+		if len(r.SmsMetals) > 0 {
+			a.SmsMetals = &r.SmsMetals
+		}
 		if r.RefundID.Valid {
 			id := uuid.UUID(r.RefundID.Bytes)
 			a.RefundId = &id
@@ -391,7 +395,10 @@ func (s *Server) orderOf(ctx context.Context, o dbq.AppOrder, refID, refundStatu
 	out := Order{
 		Id: uuid.UUID(o.ID.Bytes), Plan: PaidPlan(o.PlanCode), Period: BillingPeriod(o.Period), Kind: OrderKind(o.Kind),
 		Price: rial(o.PriceRial), Credit: rial(o.CreditRial), Amount: rial(o.AmountRial), Status: OrderStatus(o.Status),
-		CreatedAt: o.CreatedAt.Time.UTC(), PaidAt: timep(o.PaidAt), RefId: textp(refID),
+		CreatedAt: o.CreatedAt.Time.UTC(), PaidAt: timep(o.PaidAt), RefId: textp(refID), SmsMetals: o.SmsMetals,
+	}
+	if out.SmsMetals == nil {
+		out.SmsMetals = []string{}
 	}
 	if refundStatus.Valid {
 		rs := RefundStatus(refundStatus.String)
@@ -443,4 +450,76 @@ func normalizeSearch(q string) string {
 		q = "0" + q[3:]
 	}
 	return q
+}
+
+// smsMetalsOf reads the optional SMS metals of a checkout (at most 20; the billing service checks each slug).
+func smsMetalsOf(in *[]string) []string {
+	if in == nil {
+		return nil
+	}
+	return (*in)[:min(len(*in), 20)]
+}
+
+// QuoteSmsMetals prices adding SMS metals to the caller's Gold plan.
+func (s *Server) QuoteSmsMetals(ctx context.Context, req QuoteSmsMetalsRequestObject) (QuoteSmsMetalsResponseObject, error) {
+	type bad = QuoteSmsMetalsdefaultApplicationProblemPlusJSONResponse
+	p := auth.FromContext(ctx)
+	if p == nil {
+		return fail[bad](unauthenticated(ctx)), nil
+	}
+	q, err := s.billing.QuoteSmsAddon(ctx, p.ID, smsMetalsOf(&req.Body.Metals))
+	switch {
+	case errors.Is(err, billing.ErrNotGold):
+		return fail[bad](lockedProblem(ctx, access.AlertsSMS)), nil
+	case errors.Is(err, billing.ErrUnknownMetal):
+		return fail[bad](badRequest(ctx, err.Error())), nil
+	case err != nil:
+		return nil, err
+	}
+	return QuoteSmsMetals200JSONResponse{Paid: q.Paid, Adding: q.Adding, Months: q.Months, Amount: rial(q.Amount), EndsAt: q.Ends.UTC()}, nil
+}
+
+// BuySmsMetals creates the order adding SMS metals to the caller's Gold plan and returns the gateway page.
+func (s *Server) BuySmsMetals(ctx context.Context, req BuySmsMetalsRequestObject) (BuySmsMetalsResponseObject, error) {
+	type bad = BuySmsMetalsdefaultApplicationProblemPlusJSONResponse
+	p := auth.FromContext(ctx)
+	if p == nil {
+		return fail[bad](unauthenticated(ctx)), nil
+	}
+	key := strings.TrimSpace(req.Params.IdempotencyKey)
+	if len(key) < 8 || len(key) > 100 {
+		return fail[bad](badRequest(ctx, "Idempotency-Key must be 8–100 characters")), nil
+	}
+	u, err := s.touchUser(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	locale := "fa"
+	if req.Params.AcceptLanguage != nil && *req.Params.AcceptLanguage == "en" {
+		locale = "en"
+	}
+	co, err := s.billing.StartSmsAddon(ctx, u, smsMetalsOf(&req.Body.Metals), key, locale)
+	switch {
+	case errors.Is(err, billing.ErrPaymentsDisabled):
+		return fail[bad](problem(ctx, http.StatusConflict, codePaymentsDisabled, "Payments are not enabled yet", "")), nil
+	case errors.Is(err, billing.ErrBlocked):
+		return fail[bad](problem(ctx, http.StatusForbidden, codeForbidden, "Account blocked", "")), nil
+	case errors.Is(err, billing.ErrNotGold):
+		return fail[bad](lockedProblem(ctx, access.AlertsSMS)), nil
+	case errors.Is(err, billing.ErrUnknownMetal), errors.Is(err, billing.ErrNothingToAdd):
+		return fail[bad](badRequest(ctx, err.Error())), nil
+	case errors.Is(err, payment.ErrUnavailable):
+		return fail[bad](problem(ctx, http.StatusServiceUnavailable, codeUpstream, "Payment gateway unavailable", "")), nil
+	case err != nil:
+		return nil, err
+	}
+	o, err := s.orderOf(ctx, co.Order, pgtype.Text{}, pgtype.Text{})
+	if err != nil {
+		return nil, err
+	}
+	res := CheckoutResult{Order: o}
+	if co.RedirectURL != "" {
+		res.RedirectUrl = &co.RedirectURL
+	}
+	return BuySmsMetals201JSONResponse(res), nil
 }

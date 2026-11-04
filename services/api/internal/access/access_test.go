@@ -18,6 +18,7 @@ var expected = map[Feature]map[Tier]bool{
 	SupportPriority: {Free: false, Silver: false, Gold: true},
 	CommunityRead:   {Free: false, Silver: true, Gold: true},
 	CommunityPost:   {Free: false, Silver: true, Gold: true},
+	ArticlesRead:    {Free: true, Silver: true, Gold: true},
 }
 
 func TestMatrixIsFullySpecified(t *testing.T) {

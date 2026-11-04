@@ -1,13 +1,16 @@
+import { randomUUID } from "node:crypto";
 import { getTranslations } from "next-intl/server";
-import type { Locale } from "@alanfelez/ui/format";
+import { formatNumber, type Locale } from "@alanfelez/ui/format";
 import type { SmsSettings } from "@/lib/gold";
 import { Locked } from "@/components/Locked";
-import { saveSmsSettingsAction } from "@/app/[locale]/account/actions";
+import { buySmsMetalsAction, saveSmsSettingsAction } from "@/app/[locale]/account/actions";
+import { SmsMetalPicker } from "./SmsMetalPicker";
 
 /**
- * Gold price SMS (client, 2026-11-04): the metals ticked here get every price SMS (IME updated, market updated, ±10 %
- * alert); the metals ticked at sign-up only the IME «updated» SMS. None at night. On the account page and on the
- * payment result page (`back`).
+ * Gold price SMS (client, 2026-11-04). The metals are bought: at checkout with the plan, or here during the plan
+ * (each at the full price of the plan's length). Paid metals can't be changed or refunded, so they show ticked and
+ * locked. Paid metals get every price SMS (IME updated, market updated, ±10 % alert); the metals ticked at sign-up
+ * only the IME «updated» SMS. On the account page and on the payment result page (`back`).
  */
 export async function SmsSettingsForm({ settings, metals, locale, back, status }: {
   settings: SmsSettings | null;
@@ -19,6 +22,8 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
   const t = await getTranslations("sms");
   const tl = await getTranslations("lock");
   const signup = metals.filter((m) => settings?.signupMetals.includes(m.slug)).map((m) => m.name);
+  const toman = (rial?: string) => (rial ? `${formatNumber(BigInt(rial) / 10n, locale)} ${locale === "fa" ? "تومان" : "Toman"}` : "");
+  const unpaid = metals.filter((m) => !settings?.metals.includes(m.slug));
   return (
     <section id="sms" className="scroll-mt-24 overflow-hidden rounded-card border border-border bg-surface shadow-soft">
       <div className="border-b border-border px-5 py-4">
@@ -28,9 +33,7 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
       {!settings?.allowed ? (
         <div className="p-5"><Locked plan="gold">{t("locked", { plan: tl("plan.gold") })}</Locked></div>
       ) : (
-        <form action={saveSmsSettingsAction} className="space-y-4 p-5">
-          <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="back" value={back} />
+        <div className="space-y-5 p-5">
           {settings.phone ? (
             <p className="text-xs text-text-2">
               {t("phone")} <span dir="ltr" className="font-bold tabular-nums">{localPhone(settings.phone, locale)}</span>
@@ -38,29 +41,43 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
           ) : (
             <p role="alert" className="rounded-lg bg-down/10 p-3 text-sm text-down">{t("noPhone")}</p>
           )}
-          <fieldset>
-            <legend className="mb-2 text-sm font-bold">{t("metal")}</legend>
-            <div className="flex flex-wrap gap-2">
-              {metals.map((m) => (
-                <label key={m.slug} className="cursor-pointer">
-                  <input type="checkbox" name="metals" value={m.slug} defaultChecked={settings.metals.includes(m.slug)} className="peer sr-only" />
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-sm peer-checked:border-graphite peer-checked:bg-graphite peer-checked:font-bold peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-gold">
-                    {m.name}
-                  </span>
-                </label>
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-text-3">{t("metalHint")}</p>
-          </fieldset>
+
+          <form action={buySmsMetalsAction} className="space-y-3">
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="back" value={back} />
+            <input type="hidden" name="key" value={randomUUID()} />
+            <fieldset>
+              <legend className="mb-1 text-sm font-bold">{t("metal")}</legend>
+              <p className="mb-3 text-xs leading-6 text-text-2">{t("metalHint")}</p>
+              <SmsMetalPicker
+                metals={metals}
+                paid={settings.metals}
+                unitRial={settings.addMetalPrice?.amount ?? "0"}
+                locale={locale}
+                labels={{ paid: t("paidMetal"), total: t("addTotal"), pay: t("addPay"), none: t("addNone"), toman: locale === "fa" ? "تومان" : "Toman" }}
+                withButton={unpaid.length > 0}
+              />
+            </fieldset>
+            {unpaid.length > 0 && <p className="text-xs leading-6 text-text-3">{t("addHint", { price: toman(settings.addMetalPrice?.amount) })}</p>}
+            <p className="rounded-lg bg-gold/10 p-3 text-xs leading-6 text-gold-dark">{t("noRefund")}</p>
+          </form>
+
           {signup.length > 0 && (
             <p className="rounded-lg bg-surface-2 p-3 text-xs leading-6 text-text-2">
               {t("signupMetals", { metals: signup.join(locale === "fa" ? "، " : ", ") })}
             </p>
           )}
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="enabled" defaultChecked={settings.enabled} />
-            {t("enabled")}
-          </label>
+
+          <form action={saveSmsSettingsAction} className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="back" value={back} />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="enabled" defaultChecked={settings.enabled} />
+              {t("enabled")}
+            </label>
+            <button className="rounded-lg border border-border px-4 py-1.5 text-sm font-bold hover:border-gold">{t("save")}</button>
+          </form>
+
           <ul className="list-disc space-y-1 ps-5 text-xs leading-6 text-text-2">
             <li>{t("rule.ime")}</li>
             <li>{t("rule.update")}</li>
@@ -68,9 +85,10 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
             <li>{t("rule.night")}</li>
           </ul>
           {status === "saved" && <p role="status" className="text-sm text-up">{t("saved")}</p>}
+          {status === "pick" && <p role="alert" className="text-sm text-down">{t("addNone")}</p>}
+          {status === "payments" && <p role="alert" className="text-sm text-down">{t("paymentsOff")}</p>}
           {status === "failed" && <p role="alert" className="text-sm text-down">{t("failed")}</p>}
-          <button className="rounded-lg bg-gold px-5 py-2 text-sm font-bold text-graphite hover:bg-gold-light">{t("save")}</button>
-        </form>
+        </div>
       )}
     </section>
   );

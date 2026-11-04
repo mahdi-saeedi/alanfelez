@@ -143,21 +143,17 @@ WHERE l.series_id = $1;
 SELECT p.enabled FROM app.sms_prefs p WHERE p.user_id = $1;
 
 -- name: ListSmsMetals :many
--- The metals the user chose for price SMS after buying, in the site's metal order.
-SELECT m.slug FROM app.sms_metals sm JOIN market.metals m ON m.id = sm.metal_id WHERE sm.user_id = $1 ORDER BY m.sort, m.id;
+-- The metals the user paid SMS for, of the subscriptions active now (internal/billing), in the site's metal order.
+SELECT DISTINCT m.slug, m.sort, m.id
+FROM app.subscription_sms_metals ssm
+JOIN app.subscriptions sub ON sub.id = ssm.subscription_id AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+JOIN market.metals m ON m.id = ssm.metal_id
+WHERE sub.user_id = $1
+ORDER BY m.sort, m.id;
 
 -- name: UpsertSmsEnabled :exec
 INSERT INTO app.sms_prefs (user_id, enabled) VALUES (sqlc.arg(user_id), sqlc.arg(enabled))
 ON CONFLICT (user_id) DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = now();
-
--- name: ClearSmsMetals :exec
-DELETE FROM app.sms_metals WHERE user_id = $1;
-
--- name: AddSmsMetals :execrows
--- Adds these metals (unknown slugs are ignored); returns how many were added. Call ClearSmsMetals first to replace.
-INSERT INTO app.sms_metals (user_id, metal_id)
-SELECT sqlc.arg(user_id), m.id FROM market.metals m WHERE m.slug = ANY(sqlc.arg(slugs)::text[])
-ON CONFLICT DO NOTHING;
 
 -- name: InitPriceUpdateCursors :exec
 -- New metals start "announced up to now" for both markets, so the first run never sends old changes.
@@ -183,23 +179,26 @@ UPDATE app.price_update_cursor SET notified_through = sqlc.arg(through)
 WHERE metal_id = sqlc.arg(metal_id) AND market = sqlc.arg(market);
 
 -- name: SmsMetalSubscribers :many
--- Users with SMS on and a phone who chose this metal for SMS after buying (or any metal: metal_id NULL). Their plan is
--- checked in Go (internal/access).
-SELECT u.id AS user_id, u.phone_e164, u.locale, sm.metal_id
-FROM app.sms_metals sm
-JOIN app.users u ON u.id = sm.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL
+-- Users with SMS on and a phone who paid SMS for this metal (or any metal: metal_id NULL) in a subscription active now.
+-- Their plan is checked in Go (internal/access).
+SELECT DISTINCT u.id AS user_id, u.phone_e164, u.locale, ssm.metal_id
+FROM app.subscription_sms_metals ssm
+JOIN app.subscriptions sub ON sub.id = ssm.subscription_id AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL
 LEFT JOIN app.sms_prefs p ON p.user_id = u.id
-WHERE coalesce(p.enabled, true) AND (sqlc.narg(metal_id)::smallint IS NULL OR sm.metal_id = sqlc.narg(metal_id)::smallint);
+WHERE coalesce(p.enabled, true) AND (sqlc.narg(metal_id)::smallint IS NULL OR ssm.metal_id = sqlc.narg(metal_id)::smallint);
 
 -- name: ImeSmsSubscribers :many
--- Users with SMS on and a phone who ticked this metal at sign-up or chose it for SMS: the IME "updated" SMS. Plan
+-- Users with SMS on and a phone who ticked this metal at sign-up or paid SMS for it: the IME "updated" SMS. Plan
 -- checked in Go.
 SELECT u.id AS user_id, u.phone_e164, u.locale
 FROM app.users u
 LEFT JOIN app.sms_prefs p ON p.user_id = u.id
 WHERE u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL AND coalesce(p.enabled, true)
   AND (sqlc.arg(metal_slug)::text = ANY(coalesce(u.metals, '{}'))
-       OR EXISTS (SELECT 1 FROM app.sms_metals sm WHERE sm.user_id = u.id AND sm.metal_id = sqlc.arg(metal_id)::smallint));
+       OR EXISTS (SELECT 1 FROM app.subscription_sms_metals ssm
+                  JOIN app.subscriptions sub ON sub.id = ssm.subscription_id AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+                  WHERE sub.user_id = u.id AND ssm.metal_id = sqlc.arg(metal_id)::smallint));
 
 -- name: BigDailyMoves :many
 -- Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
@@ -232,3 +231,7 @@ WHERE l.updated_at > c.notified_through
 -- name: SubscriptionBoughtAt :one
 -- When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
 SELECT created_at FROM app.subscriptions WHERE id = $1;
+
+-- name: UserSMSCostSince :one
+-- One member's SMS spend since a time (the per-member daily limit, client 2026-11-04).
+SELECT coalesce(sum(cost_rial), 0)::bigint FROM app.notifications WHERE user_id = $1 AND status = 'sent' AND created_at >= sqlc.arg(since);

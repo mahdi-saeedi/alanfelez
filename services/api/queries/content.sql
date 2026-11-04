@@ -39,7 +39,7 @@ WHERE a.status = 'published' AND a.published_at <= now()
 -- name: GetPublishedArticle :one
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
-       a.video_url,
+       a.video_url, a.video_key,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -63,7 +63,7 @@ LIMIT 200;
 -- name: GetArticle :one
 SELECT a.id, a.type, a.slug, a.status, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
-       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug, a.video_url
+       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug, a.video_url, a.video_key
 FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
 LEFT JOIN market.metals m ON m.id = a.metal_id
@@ -347,3 +347,10 @@ WHERE ai.article_id = $1 AND a.status = 'published' AND a.published_at <= now();
 -- name: GetArticleImage :one
 -- Any article's picture (staff preview in the admin).
 SELECT content FROM app.article_images WHERE article_id = $1;
+
+-- name: SetArticleVideoFile :one
+-- Points an article at its uploaded video (key NULL = none) and returns the key it had, to delete the old file.
+WITH old AS (SELECT a.video_key FROM app.articles a WHERE a.id = sqlc.arg(id) FOR UPDATE)
+UPDATE app.articles AS a SET video_key = sqlc.narg(video_key), video_bytes = sqlc.narg(video_bytes), video_type = sqlc.narg(video_type)
+FROM old WHERE a.id = sqlc.arg(id)
+RETURNING old.video_key AS old_key;

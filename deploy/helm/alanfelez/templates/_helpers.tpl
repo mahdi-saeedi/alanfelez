@@ -50,6 +50,17 @@ imagePullSecrets: {{- toYaml . | nindent 2 }}
 - { name: KEYCLOAK_ADMIN_URL, value: "http://{{ .Release.Name }}-keycloak:8080" }
 - name: KEYCLOAK_ADMIN_CLIENT_SECRET
   valueFrom: { secretKeyRef: { name: {{ .Values.secrets.keycloakApiAdmin }}, key: client-secret, optional: true } }
+{{- with .Values.storage }}
+{{- if .bucket }}
+- { name: STORAGE_ENDPOINT, value: {{ .endpoint | quote }} }
+- { name: STORAGE_REGION, value: {{ .region | quote }} }
+- { name: STORAGE_BUCKET, value: {{ .bucket | quote }} }
+- name: STORAGE_ACCESS_KEY
+  valueFrom: { secretKeyRef: { name: {{ $.Values.secrets.media }}, key: ACCESS_KEY_ID, optional: true } }
+- name: STORAGE_SECRET_KEY
+  valueFrom: { secretKeyRef: { name: {{ $.Values.secrets.media }}, key: ACCESS_SECRET_KEY, optional: true } }
+{{- end }}
+{{- end }}
 - { name: PUBLIC_URL, value: {{ include "af.url" (dict "root" . "host" "api") | quote }} }
 - { name: WEB_URL, value: {{ include "af.url" (dict "root" . "host" "web") | quote }} }
 - { name: CORS_ORIGINS, value: {{ (default (list (include "af.url" (dict "root" . "host" "web")) (include "af.url" (dict "root" . "host" "admin"))) .Values.api.corsOrigins) | join "," | quote }} }
@@ -100,4 +111,11 @@ strategy:
   type: RollingUpdate
   rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
 {{- end }}
+{{- end }}
+
+{{/* Origins of the video storage for the CSP (media playback; admin uploads): the endpoint and its bucket subdomains. */}}
+{{- define "af.mediaOrigins" -}}
+{{- if .Values.storage.bucket -}}
+https://{{ .Values.storage.endpoint }} https://*.{{ .Values.storage.endpoint }}
+{{- end -}}
 {{- end }}

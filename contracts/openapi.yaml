@@ -370,6 +370,50 @@ paths:
         '503': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/checkout/sms-metals/quote:
+    post:
+      operationId: quoteSmsMetals
+      tags: [billing]
+      summary: Price adding SMS metals to the caller's Gold plan (each at the full price of the plan's length). No Gold → 403 FEATURE_LOCKED
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SmsMetalsInput' }
+      responses:
+        '200':
+          description: Quote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SmsMetalsQuote' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/checkout/sms-metals:
+    post:
+      operationId: buySmsMetals
+      tags: [billing]
+      summary: Create an order adding SMS metals to the caller's Gold plan and start its payment (idempotent per key)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 100 }
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SmsMetalsInput' }
+      responses:
+        '201':
+          description: Order created (or the existing one for this key)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckoutResult' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/payments/verify:
     post:
       operationId: verifyPayment
@@ -1941,6 +1985,68 @@ paths:
         '204': { description: Removed }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/articles/{id}/video:
+    post:
+      operationId: adminStartArticleVideo
+      tags: [admin]
+      summary: >-
+        Start uploading an article's video (MP4, WebM or MOV, at most 500 MB): returns a signed link the browser PUTs the
+        file to, straight to the object storage. Then PUT here with the key. No storage set up → 503 NOT_CONFIGURED. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentType, size]
+              properties:
+                contentType: { type: string, enum: [video/mp4, video/webm, video/quicktime] }
+                size: { type: integer, format: int64, minimum: 1, description: Bytes }
+      responses:
+        '201':
+          description: Upload link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [uploadUrl, key]
+                properties:
+                  uploadUrl: { type: string, description: 'PUT the file here (valid 1 hour), with its Content-Type' }
+                  key: { type: string }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      operationId: adminSetArticleVideo
+      tags: [admin]
+      summary: Attach the uploaded video (checks it's in the storage, a video and ≤ 500 MB) and delete the previous one. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key]
+              properties:
+                key: { type: string, maxLength: 200 }
+      responses:
+        '204': { description: Attached }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      operationId: adminDeleteArticleVideo
+      tags: [admin]
+      summary: Remove an article's uploaded video. Roles editor, admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/article-categories:
     get:
       operationId: adminListArticleCategories
@@ -2485,7 +2591,7 @@ paths:
     put:
       operationId: setMySmsSettings
       tags: [gold]
-      summary: Choose the price-SMS metals and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
+      summary: Turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -2493,14 +2599,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [metals, enabled]
+              required: [enabled]
               properties:
-                metals:
-                  type: array
-                  maxItems: 20
-                  items: { type: string, maxLength: 60 }
-                  description: Metal slugs (may be empty); unknown slugs → 400
-                enabled: { type: boolean }
+                enabled: { type: boolean, description: 'Turn price SMS on or off. The metals are bought (POST /v1/checkout, /v1/checkout/sms-metals)' }
       responses:
         '200':
           description: Saved
@@ -3164,19 +3265,45 @@ components:
       properties:
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
+        smsMetals:
+          type: array
+          maxItems: 20
+          items: { type: string, maxLength: 60 }
+          description: >-
+            Gold only (other plans → 400): metal slugs to get price SMS for, 100,000 Toman per metal per month of the
+            period (client, 2026-11-04). Paid metals can't be changed or refunded. Unknown slug → 400
 
     CheckoutQuote:
       type: object
-      required: [plan, period, kind, price, credit, amount, startsAt, endsAt]
+      required: [plan, period, kind, price, credit, amount, startsAt, endsAt, smsMetals, smsPrice, smsMetalPrice]
       properties:
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
         kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
         price: { $ref: '#/components/schemas/Money' }
         credit: { $ref: '#/components/schemas/Money' }
-        amount: { $ref: '#/components/schemas/Money' }
+        amount: { $ref: '#/components/schemas/Money', description: 'What is paid: price − credit + smsPrice' }
+        smsMetals: { type: array, items: { type: string } }
+        smsPrice: { $ref: '#/components/schemas/Money', description: The SMS metals for the whole period }
+        smsMetalPrice: { $ref: '#/components/schemas/Money', description: One SMS metal for this period }
         startsAt: { type: string, format: date-time }
         endsAt: { type: string, format: date-time }
+
+    SmsMetalsInput:
+      type: object
+      required: [metals]
+      properties:
+        metals: { type: array, minItems: 1, maxItems: 20, items: { type: string, maxLength: 60 }, description: Metal slugs; already-paid ones are ignored }
+
+    SmsMetalsQuote:
+      type: object
+      required: [paid, adding, months, amount, endsAt]
+      properties:
+        paid: { type: array, items: { type: string }, description: Metals the plan already has }
+        adding: { type: array, items: { type: string }, description: The new metals priced }
+        months: { type: integer, description: The plan's length in months (each metal costs that many months) }
+        amount: { $ref: '#/components/schemas/Money' }
+        endsAt: { type: string, format: date-time, description: The SMS of the added metals run until the plan ends }
 
     CheckoutResult:
       type: object
@@ -3187,12 +3314,13 @@ components:
 
     Order:
       type: object
-      required: [id, plan, period, kind, price, credit, amount, status, createdAt, refundable]
+      required: [id, plan, period, kind, price, credit, amount, status, createdAt, refundable, smsMetals]
       properties:
         id: { type: string, format: uuid }
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
-        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade, sms_addon], description: 'sms_addon: SMS metals added to a Gold plan' }
+        smsMetals: { type: array, items: { type: string }, description: SMS metals bought with this order }
         price: { $ref: '#/components/schemas/Money' }
         credit: { $ref: '#/components/schemas/Money' }
         amount: { $ref: '#/components/schemas/Money' }
@@ -3251,7 +3379,8 @@ components:
         username: { type: string }
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
-        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade, sms_addon] }
+        smsMetals: { type: array, items: { type: string }, description: SMS metals bought with this order (not refundable) }
         price: { $ref: '#/components/schemas/Money' }
         credit: { $ref: '#/components/schemas/Money' }
         amount: { $ref: '#/components/schemas/Money' }
@@ -3267,7 +3396,8 @@ components:
     # --- content (M4) ----------------------------------------------------------------
     ArticleType:
       type: string
-      enum: [news, analysis, forecast]
+      description: article = «مقالات», educational and open to everyone (client, 2026-11-04)
+      enum: [news, analysis, forecast, article]
     ArticleStatus:
       type: string
       enum: [draft, published, archived]
@@ -3308,6 +3438,7 @@ components:
             id: { type: string, format: uuid, description: "For its rating and comments (the article discussion)" }
             body: { type: string, description: Sanitized HTML. Absent when locked }
             videoUrl: { type: string, description: 'Its Aparat video (https://www.aparat.com/v/HASH). Absent when locked or none' }
+            videoFileUrl: { type: string, description: 'Its uploaded video: a signed link valid for a few hours. Absent when locked or none; preferred over videoUrl' }
             author: { type: string }
             updatedAt: { type: string, format: date-time }
 
@@ -3796,9 +3927,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/AdminArticleInput'
         - type: object
-          required: [id, readMinutes, createdAt, updatedAt]
+          required: [id, readMinutes, createdAt, updatedAt, videoUploads]
           properties:
             id: { type: string, format: uuid }
+            videoUploads: { type: boolean, description: Video upload is set up here (object storage) }
+            videoFileUrl: { type: string, description: The uploaded video (signed link, for the preview) }
             readMinutes: { type: integer }
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
@@ -3883,6 +4016,15 @@ components:
             whatsapp: { type: string, maxLength: 300, description: 'e.g. https://wa.me/989121234567' }
         # Empty id and code = no badge. Left out of a save = unchanged.
         enamad: { $ref: '#/components/schemas/Enamad' }
+        sms:
+          type: object
+          description: >-
+            Daily SMS spending limits in Toman (client, 2026-11-04). The price SMS stop for the day when the whole site or
+            one member reaches its limit; 0 = no limit. Left out of a save = unchanged.
+          required: [dailyBudgetToman, perUserDailyToman]
+          properties:
+            dailyBudgetToman: { type: integer, format: int64, minimum: 0, description: All SMS of a day together }
+            perUserDailyToman: { type: integer, format: int64, minimum: 0, description: The price SMS one member receives in a day }
 
     AdminContactMessage:
       type: object
@@ -4032,7 +4174,8 @@ components:
         metals:
           type: array
           items: { type: string }
-          description: Metal slugs chosen for all price SMS (after buying Gold)
+          description: Metal slugs paid for (all price SMS) in the Gold plan active now; can't be changed (client, 2026-11-04)
+        addMetalPrice: { $ref: '#/components/schemas/Money', description: 'Gold: adding one metal now (the full price of the plan''s length)' }
         signupMetals:
           type: array
           items: { type: string }

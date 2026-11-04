@@ -44,6 +44,23 @@ type Config struct {
 	SMSProvider   string        `env:"SMS_PROVIDER" envDefault:"console"` // console | none (no reminders) | smsir
 	SmsIr         SmsIr         `envPrefix:"SMSIR_"`
 	KeycloakAdmin KeycloakAdmin `envPrefix:"KEYCLOAK_ADMIN_"`
+	Storage       Storage       `envPrefix:"STORAGE_"`
+}
+
+// Storage is the S3-compatible object storage for uploaded videos (ArvanCloud Object Storage; internal/storage,
+// client 2026-11-04). Without a bucket and keys, video upload is off and the admin says so.
+type Storage struct {
+	Endpoint  string `env:"ENDPOINT"`                       // e.g. s3.ir-thr-at1.arvanstorage.ir (no scheme)
+	Region    string `env:"REGION" envDefault:"ir-thr-at1"` // the bucket's region
+	Bucket    string `env:"BUCKET"`                         // private: files are reached by signed links only
+	AccessKey string `env:"ACCESS_KEY"`                     // secret alanfelez-media-s3 (ACCESS_KEY_ID)
+	SecretKey string `env:"SECRET_KEY"`                     // secret alanfelez-media-s3 (ACCESS_SECRET_KEY)
+	Insecure  bool   `env:"INSECURE" envDefault:"false"`    // http instead of https (a local MinIO only)
+}
+
+// Enabled reports whether video storage is configured.
+func (s Storage) Enabled() bool {
+	return s.Endpoint != "" && s.Bucket != "" && s.AccessKey != "" && s.SecretKey != ""
 }
 
 // KeycloakAdmin is the service account the API uses for Keycloak's Admin API (deleting users; internal/identity).

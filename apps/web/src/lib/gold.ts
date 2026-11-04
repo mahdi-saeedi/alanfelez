@@ -63,8 +63,8 @@ export async function getSmsSettings(): Promise<SmsSettings | null> {
   return (await client.GET("/v1/me/sms-settings", { cache: "no-store" })).data ?? null;
 }
 
-export async function saveSmsSettings(metals: string[], enabled: boolean) {
+export async function saveSmsSettings(enabled: boolean) {
   const client = await signedIn();
   if (!client) return { status: 401 };
-  return { status: (await client.PUT("/v1/me/sms-settings", { body: { metals, enabled }, cache: "no-store" })).response.status };
+  return { status: (await client.PUT("/v1/me/sms-settings", { body: { enabled }, cache: "no-store" })).response.status };
 }

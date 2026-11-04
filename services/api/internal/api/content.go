@@ -120,6 +120,7 @@ func (s *Server) GetArticle(ctx context.Context, req GetArticleRequestObject) (G
 		body := localized(lang, r.BodyFa, r.BodyEn)
 		a.Body = &body
 		a.VideoUrl = textp(r.VideoUrl) // the video is content too: only with the body
+		a.VideoFileUrl = s.videoFileURL(ctx, r.VideoKey)
 		if f, _ := content.Type(r.Type).Feature(); !access.Allowed(access.Free, f) {
 			s.billing.RecordUsage(ctx, cur.SubscriptionID, f) // paid content delivered: counts for the refund rule
 		}

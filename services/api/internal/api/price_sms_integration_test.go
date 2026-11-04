@@ -19,30 +19,34 @@ func TestGoldPriceSMS(t *testing.T) {
 	e := setup(t)
 	e.seedPrices() // copper-red-free 6,464,000 (prev close 6,400,000), copper-lme, copper-telecom-free
 
-	// Settings: Gold only; the metal must exist.
-	if st, body, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "user", map[string]any{"metals": []string{"copper"}, "enabled": true}); st != 403 || body["code"] != "FEATURE_LOCKED" {
+	// Settings: Gold only (the switch; the metals are bought at checkout).
+	if st, body, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "user", map[string]any{"enabled": true}); st != 403 || body["code"] != "FEATURE_LOCKED" {
 		t.Fatalf("free user: %d %v", st, body)
 	}
-	if st, _, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "", map[string]any{"metals": []string{"copper"}, "enabled": true}); st != 401 {
+	if st, _, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "", map[string]any{"enabled": true}); st != 401 {
 		t.Fatalf("anonymous: %d", st)
 	}
 	e.grantGold()
-	// Just bought Gold, nothing chosen: the "choose your metals" notice, for 7 days.
-	if _, body, raw := e.call(http.MethodGet, "/v1/me/sms-settings", "gold", nil); body["allowed"] != true || body["chooseUntil"] == nil {
+	// Gold without paid metals: the "choose your metals" notice, for 7 days, and the price of adding one (a 30-day
+	// grant = 1 month = 100,000 Toman).
+	if _, body, raw := e.call(http.MethodGet, "/v1/me/sms-settings", "gold", nil); body["allowed"] != true || body["chooseUntil"] == nil || body["addMetalPrice"].(map[string]any)["amount"] != "1000000" {
 		t.Fatalf("notice: %s", raw)
 	}
-	if st, _, _ := e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metals": []string{"copper", "gold-bar"}, "enabled": true}); st != 400 {
-		t.Fatalf("unknown metal: %d", st)
+	// Copper paid for on the Gold subscription (as a checkout would).
+	if _, err := e.pool.Exec(t.Context(), `INSERT INTO app.subscription_sms_metals (subscription_id, metal_id)
+		SELECT s.id, m.id FROM app.subscriptions s, market.metals m WHERE s.user_id = '00000000-0000-0000-0000-000000000003' AND m.slug = 'copper'`); err != nil {
+		t.Fatal(err)
 	}
-	if st, body, raw := e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metals": []string{"copper"}, "enabled": true}); st != 200 || len(body["metals"].([]any)) != 1 || body["metals"].([]any)[0] != "copper" || body["allowed"] != true || body["chooseUntil"] != nil || body["phone"] != "+989120000003" {
+	if st, body, raw := e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"enabled": true}); st != 200 || len(body["metals"].([]any)) != 1 || body["metals"].([]any)[0] != "copper" || body["allowed"] != true || body["chooseUntil"] != nil || body["phone"] != "+989120000003" {
 		t.Fatalf("save: %d %s", st, raw)
 	}
 	if _, body, _ := e.call(http.MethodGet, "/v1/me/sms-settings", "user", nil); body["allowed"] != false || len(body["metals"].([]any)) != 0 || body["chooseUntil"] != nil {
 		t.Fatalf("free user's settings: %v", body)
 	}
-	// A user who chose copper but has no Gold gets nothing.
+	// A user whose copper is on a Silver subscription gets nothing.
 	e.call(http.MethodGet, "/v1/me", "silver", nil)
-	if _, err := e.pool.Exec(t.Context(), `INSERT INTO app.sms_metals (user_id, metal_id) SELECT '00000000-0000-0000-0000-000000000002', id FROM market.metals WHERE slug = 'copper'`); err != nil {
+	if _, err := e.pool.Exec(t.Context(), `WITH s AS (INSERT INTO app.subscriptions (user_id, plan_code, ends_at) VALUES ('00000000-0000-0000-0000-000000000002', 'silver', now() + interval '30 days') RETURNING id)
+		INSERT INTO app.subscription_sms_metals (subscription_id, metal_id) SELECT s.id, m.id FROM s, market.metals m WHERE m.slug = 'copper'`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -109,8 +113,32 @@ func TestGoldPriceSMS(t *testing.T) {
 		t.Fatalf("IME SMS: %s", got)
 	}
 
+	// The member's daily limit (client, 2026-11-04: 50,000 Toman by default): spent → nothing more that day.
+	for _, q := range []string{
+		`INSERT INTO app.site_settings (key, value) VALUES ('sms', '{"per_user_daily_rial": 1000}') ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+		`INSERT INTO app.notifications (user_id, channel, template, recipient, body, status, provider, cost_rial, dedupe_key, created_at)
+		 VALUES ('00000000-0000-0000-0000-000000000003', 'sms', 'price_move', '+989120000003', 'x', 'sent', 'fake', 5000, 'limit-test', $1)`,
+	} {
+		var args []any
+		if strings.Contains(q, "$1") {
+			args = append(args, noon(1))
+		}
+		if _, err := e.pool.Exec(t.Context(), q, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-telecom-free", ObservedAt: now.Add(500 * time.Millisecond), Price: 7_155_000}}, prices.IngestOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {
+		t.Fatalf("sent over the member's limit: %v", sms.sent)
+	}
+	if _, err := e.pool.Exec(t.Context(), `DELETE FROM app.notifications WHERE dedupe_key = 'limit-test'`); err != nil {
+		t.Fatal(err)
+	}
+
 	// Turned off: nothing more, even for a new change.
-	e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metals": []string{"copper"}, "enabled": false})
+	e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"enabled": false})
 	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-telecom-free", ObservedAt: now.Add(time.Second), Price: 7_160_000}}, prices.IngestOptions{}); err != nil {
 		t.Fatal(err)
 	}

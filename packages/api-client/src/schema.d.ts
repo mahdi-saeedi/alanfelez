@@ -276,6 +276,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/checkout/sms-metals/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price adding SMS metals to the caller's Gold plan (each at the full price of the plan's length). No Gold → 403 FEATURE_LOCKED */
+        post: operations["quoteSmsMetals"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/checkout/sms-metals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an order adding SMS metals to the caller's Gold plan and start its payment (idempotent per key) */
+        post: operations["buySmsMetals"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/payments/verify": {
         parameters: {
             query?: never;
@@ -1392,6 +1426,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/articles/{id}/video": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Attach the uploaded video (checks it's in the storage, a video and ≤ 500 MB) and delete the previous one. Roles editor, admin */
+        put: operations["adminSetArticleVideo"];
+        /** Start uploading an article's video (MP4, WebM or MOV, at most 500 MB): returns a signed link the browser PUTs the file to, straight to the object storage. Then PUT here with the key. No storage set up → 503 NOT_CONFIGURED. Roles editor, admin */
+        post: operations["adminStartArticleVideo"];
+        /** Remove an article's uploaded video. Roles editor, admin */
+        delete: operations["adminDeleteArticleVideo"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/article-categories": {
         parameters: {
             query?: never;
@@ -1786,7 +1839,7 @@ export interface paths {
         };
         /** The user's price-SMS metals and whether SMS are on (sent to Gold only) */
         get: operations["getMySmsSettings"];
-        /** Choose the price-SMS metals and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED */
+        /** Turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED */
         put: operations["setMySmsSettings"];
         post?: never;
         delete?: never;
@@ -2255,6 +2308,8 @@ export interface components {
         CheckoutInput: {
             plan: components["schemas"]["PaidPlan"];
             period: components["schemas"]["BillingPeriod"];
+            /** @description Gold only (other plans → 400): metal slugs to get price SMS for, 100,000 Toman per metal per month of the period (client, 2026-11-04). Paid metals can't be changed or refunded. Unknown slug → 400 */
+            smsMetals?: string[];
         };
         CheckoutQuote: {
             plan: components["schemas"]["PaidPlan"];
@@ -2263,10 +2318,34 @@ export interface components {
             kind: "new" | "renewal" | "upgrade" | "downgrade";
             price: components["schemas"]["Money"];
             credit: components["schemas"]["Money"];
+            /** @description What is paid: price − credit + smsPrice */
             amount: components["schemas"]["Money"];
+            smsMetals: string[];
+            /** @description The SMS metals for the whole period */
+            smsPrice: components["schemas"]["Money"];
+            /** @description One SMS metal for this period */
+            smsMetalPrice: components["schemas"]["Money"];
             /** Format: date-time */
             startsAt: string;
             /** Format: date-time */
+            endsAt: string;
+        };
+        SmsMetalsInput: {
+            /** @description Metal slugs; already-paid ones are ignored */
+            metals: string[];
+        };
+        SmsMetalsQuote: {
+            /** @description Metals the plan already has */
+            paid: string[];
+            /** @description The new metals priced */
+            adding: string[];
+            /** @description The plan's length in months (each metal costs that many months) */
+            months: number;
+            amount: components["schemas"]["Money"];
+            /**
+             * Format: date-time
+             * @description The SMS of the added metals run until the plan ends
+             */
             endsAt: string;
         };
         CheckoutResult: {
@@ -2279,8 +2358,13 @@ export interface components {
             id: string;
             plan: components["schemas"]["PaidPlan"];
             period: components["schemas"]["BillingPeriod"];
-            /** @enum {string} */
-            kind: "new" | "renewal" | "upgrade" | "downgrade";
+            /**
+             * @description sms_addon: SMS metals added to a Gold plan
+             * @enum {string}
+             */
+            kind: "new" | "renewal" | "upgrade" | "downgrade" | "sms_addon";
+            /** @description SMS metals bought with this order */
+            smsMetals: string[];
             price: components["schemas"]["Money"];
             credit: components["schemas"]["Money"];
             amount: components["schemas"]["Money"];
@@ -2348,7 +2432,9 @@ export interface components {
             plan: components["schemas"]["PaidPlan"];
             period: components["schemas"]["BillingPeriod"];
             /** @enum {string} */
-            kind: "new" | "renewal" | "upgrade" | "downgrade";
+            kind: "new" | "renewal" | "upgrade" | "downgrade" | "sms_addon";
+            /** @description SMS metals bought with this order (not refundable) */
+            smsMetals?: string[];
             price: components["schemas"]["Money"];
             credit: components["schemas"]["Money"];
             amount: components["schemas"]["Money"];
@@ -2364,8 +2450,11 @@ export interface components {
             refundStatus?: components["schemas"]["RefundStatus"];
             refundReason?: string;
         };
-        /** @enum {string} */
-        ArticleType: "news" | "analysis" | "forecast";
+        /**
+         * @description article = «مقالات», educational and open to everyone (client, 2026-11-04)
+         * @enum {string}
+         */
+        ArticleType: "news" | "analysis" | "forecast" | "article";
         /** @enum {string} */
         ArticleStatus: "draft" | "published" | "archived";
         /**
@@ -2403,6 +2492,8 @@ export interface components {
             body?: string;
             /** @description Its Aparat video (https://www.aparat.com/v/HASH). Absent when locked or none */
             videoUrl?: string;
+            /** @description Its uploaded video: a signed link valid for a few hours. Absent when locked or none; preferred over videoUrl */
+            videoFileUrl?: string;
             author?: string;
             /** Format: date-time */
             updatedAt: string;
@@ -2858,6 +2949,10 @@ export interface components {
         AdminArticle: components["schemas"]["AdminArticleInput"] & {
             /** Format: uuid */
             id: string;
+            /** @description Video upload is set up here (object storage) */
+            videoUploads: boolean;
+            /** @description The uploaded video (signed link */
+            videoFileUrl?: string;
             readMinutes: number;
             /** Format: date-time */
             createdAt: string;
@@ -2924,6 +3019,19 @@ export interface components {
                 whatsapp?: string;
             };
             enamad?: components["schemas"]["Enamad"];
+            /** @description Daily SMS spending limits in Toman (client, 2026-11-04). The price SMS stop for the day when the whole site or one member reaches its limit; 0 = no limit. Left out of a save = unchanged. */
+            sms?: {
+                /**
+                 * Format: int64
+                 * @description All SMS of a day together
+                 */
+                dailyBudgetToman: number;
+                /**
+                 * Format: int64
+                 * @description The price SMS one member receives in a day
+                 */
+                perUserDailyToman: number;
+            };
         };
         AdminContactMessage: {
             /** Format: uuid */
@@ -3074,8 +3182,10 @@ export interface components {
         };
         /** @description Gold price SMS (client, 2026-11-04). IME "updated" SMS for signupMetals and metals; market "updated" SMS and ±10 % alerts for metals only. */
         SmsSettings: {
-            /** @description Metal slugs chosen for all price SMS (after buying Gold) */
+            /** @description Metal slugs paid for (all price SMS) in the Gold plan active now; can't be changed (client, 2026-11-04) */
             metals: string[];
+            /** @description Gold: adding one metal now (the full price of the plan's length) */
+            addMetalPrice?: components["schemas"]["Money"];
             /** @description Metal slugs ticked at sign-up (read only); they get the IME "updated" SMS */
             signupMetals: string[];
             /**
@@ -3569,6 +3679,59 @@ export interface operations {
             404: components["responses"]["Problem"];
             409: components["responses"]["Problem"];
             503: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    quoteSmsMetals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmsMetalsInput"];
+            };
+        };
+        responses: {
+            /** @description Quote */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SmsMetalsQuote"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    buySmsMetals: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmsMetalsInput"];
+            };
+        };
+        responses: {
+            /** @description Order created (or the existing one for this key) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutResult"];
+                };
+            };
             default: components["responses"]["Problem"];
         };
     };
@@ -5582,6 +5745,93 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    adminSetArticleVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Attached */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminStartArticleVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    contentType: "video/mp4" | "video/webm" | "video/quicktime";
+                    /**
+                     * Format: int64
+                     * @description Bytes
+                     */
+                    size: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Upload link */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description PUT the file here (valid 1 hour), with its Content-Type */
+                        uploadUrl: string;
+                        key: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminDeleteArticleVideo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminListArticleCategories: {
         parameters: {
             query?: never;
@@ -6294,8 +6544,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description Metal slugs (may be empty); unknown slugs → 400 */
-                    metals: string[];
+                    /** @description Turn price SMS on or off. The metals are bought (POST /v1/checkout, /v1/checkout/sms-metals) */
                     enabled: boolean;
                 };
             };

@@ -76,22 +76,32 @@ func dbNow(ctx context.Context, q *dbq.Queries) (time.Time, error) {
 	return t.Time.UTC(), nil
 }
 
-// Priced is a quote for a concrete plan price row.
+// Priced is a quote for a concrete plan price row, with the SMS metals bought with it.
 type Priced struct {
 	Quote
 	PlanPriceID pgtype.UUID
 	Plan        access.Tier
 	Period      Period
+	SmsMetals   []string // metal slugs (Gold only)
+	SmsRial     int64    // their price; Total = Amount + SmsRial
+	Total       int64    // what the gateway charges
 }
 
-// Quote prices plan/period for the user without creating anything.
-func (s *Service) Quote(ctx context.Context, userID pgtype.UUID, plan access.Tier, period Period) (Priced, error) {
-	return s.quote(ctx, dbq.New(s.pool), userID, plan, period)
+// Quote prices plan/period (and Gold's SMS metals) for the user without creating anything.
+func (s *Service) Quote(ctx context.Context, userID pgtype.UUID, plan access.Tier, period Period, metals []string) (Priced, error) {
+	return s.quote(ctx, dbq.New(s.pool), userID, plan, period, metals)
 }
 
-func (s *Service) quote(ctx context.Context, q *dbq.Queries, userID pgtype.UUID, plan access.Tier, period Period) (Priced, error) {
+func (s *Service) quote(ctx context.Context, q *dbq.Queries, userID pgtype.UUID, plan access.Tier, period Period, metals []string) (Priced, error) {
 	if plan == access.Free || !plan.Valid() {
 		return Priced{}, ErrFreePlan
+	}
+	if len(metals) > 0 && !access.Allowed(plan, access.AlertsSMS) {
+		return Priced{}, ErrSmsMetalsGoldOnly
+	}
+	metals, err := checkMetals(ctx, q, metals)
+	if err != nil {
+		return Priced{}, err
 	}
 	price, err := q.CurrentPlanPrice(ctx, dbq.CurrentPlanPriceParams{PlanCode: string(plan), Period: string(period)})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -112,7 +122,8 @@ func (s *Service) quote(ctx context.Context, q *dbq.Queries, userID pgtype.UUID,
 	if err != nil {
 		return Priced{}, err
 	}
-	return Priced{Quote: qt, PlanPriceID: price.ID, Plan: plan, Period: period}, nil
+	sms := SmsMetalsPrice(len(metals), PeriodMonths(period))
+	return Priced{Quote: qt, PlanPriceID: price.ID, Plan: plan, Period: period, SmsMetals: metals, SmsRial: sms, Total: qt.Amount + sms}, nil
 }
 
 // Checkout is the result of starting a purchase.
@@ -122,7 +133,7 @@ type Checkout struct {
 }
 
 // StartCheckout creates (or, for a repeated Idempotency-Key, returns) an order and starts its payment.
-func (s *Service) StartCheckout(ctx context.Context, user dbq.UpsertUserRow, plan access.Tier, period Period, idemKey, locale string) (Checkout, error) {
+func (s *Service) StartCheckout(ctx context.Context, user dbq.UpsertUserRow, plan access.Tier, period Period, metals []string, idemKey, locale string) (Checkout, error) {
 	if user.BlockedAt.Valid {
 		return Checkout{}, ErrBlocked
 	}
@@ -148,7 +159,7 @@ func (s *Service) StartCheckout(ctx context.Context, user dbq.UpsertUserRow, pla
 		case !errors.Is(err, pgx.ErrNoRows):
 			return fmt.Errorf("find order: %w", err)
 		}
-		p, err := s.quote(ctx, q, user.ID, plan, period)
+		p, err := s.quote(ctx, q, user.ID, plan, period, metals)
 		if err != nil {
 			return err
 		}
@@ -158,8 +169,9 @@ func (s *Service) StartCheckout(ctx context.Context, user dbq.UpsertUserRow, pla
 		}
 		o, err := q.InsertOrder(ctx, dbq.InsertOrderParams{
 			UserID: user.ID, PlanPriceID: p.PlanPriceID, PlanCode: string(plan), Period: string(period), Kind: string(p.Kind),
-			PriceRial: p.Price, CreditRial: p.Credit, AmountRial: p.Amount, StartsAt: ts(p.Starts),
+			PriceRial: p.Price, CreditRial: p.Credit, AmountRial: p.Total, StartsAt: ts(p.Starts),
 			IdempotencyKey: idemKey, Locale: locale, ExpiresAt: ts(now.Add(PendingTTL)),
+			SmsMetals: p.SmsMetals, SmsRial: p.SmsRial,
 		})
 		if err != nil {
 			return fmt.Errorf("insert order: %w", err)
@@ -318,6 +330,9 @@ func (s *Service) fulfil(ctx context.Context, q *dbq.Queries, o dbq.AppOrder) er
 	if err := q.LockUserBilling(ctx, o.UserID); err != nil {
 		return fmt.Errorf("lock: %w", err)
 	}
+	if Kind(o.Kind) == KindSmsAddon {
+		return s.fulfilAddon(ctx, q, o)
+	}
 	held, err := heldOf(ctx, q, o.UserID)
 	if err != nil {
 		return err
@@ -339,10 +354,16 @@ func (s *Service) fulfil(ctx context.Context, q *dbq.Queries, o dbq.AppOrder) er
 			return fmt.Errorf("replace: %w", err)
 		}
 	}
-	if _, err := q.InsertOrderSubscription(ctx, dbq.InsertOrderSubscriptionParams{
+	sub, err := q.InsertOrderSubscription(ctx, dbq.InsertOrderSubscriptionParams{
 		UserID: o.UserID, PlanCode: o.PlanCode, StartsAt: ts(qt.Starts), EndsAt: ts(qt.Ends), OrderID: o.ID,
-	}); err != nil {
+	})
+	if err != nil {
 		return fmt.Errorf("insert subscription: %w", err)
+	}
+	if len(o.SmsMetals) > 0 {
+		if err := q.AddSubscriptionSmsMetals(ctx, dbq.AddSubscriptionSmsMetalsParams{SubscriptionID: sub.ID, OrderID: o.ID, Slugs: o.SmsMetals}); err != nil {
+			return fmt.Errorf("sms metals: %w", err)
+		}
 	}
 	if err := q.SetOrderStatus(ctx, dbq.SetOrderStatusParams{ID: o.ID, Status: OrderPaid}); err != nil {
 		return fmt.Errorf("order paid: %w", err)
@@ -373,7 +394,8 @@ func (s *Service) RequestRefund(ctx context.Context, userID, orderID pgtype.UUID
 		if !ok {
 			return ErrNotRefundable
 		}
-		out, err = q.InsertRefund(ctx, dbq.InsertRefundParams{OrderID: o.ID, AmountRial: o.AmountRial, Reason: text(reason)})
+		// The SMS metals aren't refunded (client, 2026-11-04): only the plan's part of the payment.
+		out, err = q.InsertRefund(ctx, dbq.InsertRefundParams{OrderID: o.ID, AmountRial: o.AmountRial - o.SmsRial, Reason: text(reason)})
 		if err != nil {
 			return fmt.Errorf("insert refund: %w", err)
 		}
@@ -388,8 +410,8 @@ func (s *Service) Refundable(ctx context.Context, o dbq.AppOrder) (bool, error) 
 }
 
 func (s *Service) refundable(ctx context.Context, q *dbq.Queries, o dbq.AppOrder) (bool, error) {
-	if o.Status != OrderPaid || !o.PaidAt.Valid || o.AmountRial == 0 {
-		return false, nil
+	if o.Status != OrderPaid || !o.PaidAt.Valid || o.AmountRial-o.SmsRial <= 0 || Kind(o.Kind) == KindSmsAddon {
+		return false, nil // nothing refundable: free, or only SMS metals (never refunded)
 	}
 	sub, err := q.GetSubscriptionByOrder(ctx, o.ID)
 	if err != nil {

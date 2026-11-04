@@ -46,6 +46,7 @@ const (
 	SupportPriority Feature = "support.priority" // priority ticket handling
 	CommunityRead   Feature = "community.read"   // members' analyses: read them (client, 2026-10-30)
 	CommunityPost   Feature = "community.post"   // members' analyses: post one
+	ArticlesRead    Feature = "articles.read"    // educational articles «مقالات» (client, 2026-11-04: open to everyone)
 )
 
 // minTier is the tier matrix (SCOPE.md §6, the client's plan table of 2026-10-26).
@@ -64,6 +65,7 @@ var minTier = map[Feature]Tier{
 	SupportPriority: Gold,
 	CommunityRead:   Silver,
 	CommunityPost:   Silver,
+	ArticlesRead:    Free,
 }
 
 // Features returns every known feature in a stable order.

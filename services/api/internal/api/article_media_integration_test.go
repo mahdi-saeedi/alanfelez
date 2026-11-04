@@ -73,4 +73,30 @@ func TestArticleMedia(t *testing.T) {
 	if n := e.count(`SELECT count(*) FROM app.audit_log WHERE action IN ('article.image', 'article.image_delete')`); n != 2 {
 		t.Fatalf("audit rows: %d", n)
 	}
+
+	// «مقالات» (client, 2026-11-04): educational articles are open to everyone.
+	edu := article("article", "what-is-cathode", "published")
+	if st, _, raw := e.call(http.MethodPost, "/v1/admin/articles", "editor", edu); st != 201 {
+		t.Fatalf("create article: %d %s", st, raw)
+	}
+	if _, body, raw := e.call(http.MethodGet, "/v1/articles/what-is-cathode", "", nil); body["locked"] != false || body["body"] == nil {
+		t.Fatalf("educational article for a visitor: %s", raw)
+	}
+
+	// Uploaded videos: without object storage the admin is told so (503), and nothing changes.
+	if _, body, _ := e.call(http.MethodGet, "/v1/admin/articles/"+id, "editor", nil); body["videoUploads"] != false {
+		t.Fatalf("videoUploads without storage: %v", body["videoUploads"])
+	}
+	up := map[string]any{"contentType": "video/mp4", "size": 1000}
+	for _, c := range []struct {
+		tok  string
+		want int
+	}{{"", 401}, {"support", 403}, {"editor", 503}} {
+		if st, _, _ := e.call(http.MethodPost, "/v1/admin/articles/"+id+"/video", c.tok, up); st != c.want {
+			t.Fatalf("video upload as %q: %d", c.tok, st)
+		}
+	}
+	if st, _, _ := e.call(http.MethodDelete, "/v1/admin/articles/"+id+"/video", "editor", nil); st != 404 {
+		t.Fatalf("delete a video that isn't there: %d", st)
+	}
 }

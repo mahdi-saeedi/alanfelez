@@ -25,6 +25,7 @@ const (
 	News     Type = "news"
 	Analysis Type = "analysis"
 	Forecast Type = "forecast"
+	Article  Type = "article" // «مقالات»: educational, open to everyone (client, 2026-11-04)
 )
 
 // Feature is the entitlement needed to read the body of an article of type t. Titles, summaries and covers are
@@ -37,6 +38,8 @@ func (t Type) Feature() (access.Feature, bool) {
 		return access.AnalysisRead, true
 	case Forecast:
 		return access.ForecastRead, true
+	case Article:
+		return access.ArticlesRead, true
 	}
 	return "", false
 }

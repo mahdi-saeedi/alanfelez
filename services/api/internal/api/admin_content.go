@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/alanfelez/alanfelez/services/api/internal/alerts"
 	"github.com/alanfelez/alanfelez/services/api/internal/audit"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
 	"github.com/alanfelez/alanfelez/services/api/internal/content"
@@ -78,7 +79,7 @@ func (s *Server) AdminGetArticle(ctx context.Context, req AdminGetArticleRequest
 	if err != nil {
 		return nil, fmt.Errorf("get article: %w", err)
 	}
-	return AdminGetArticle200JSONResponse(adminArticleOf(a)), nil
+	return AdminGetArticle200JSONResponse(s.withVideo(ctx, adminArticleOf(a), a.VideoKey)), nil
 }
 
 // AdminCreateArticle creates an article.
@@ -113,7 +114,7 @@ func (s *Server) AdminCreateArticle(ctx context.Context, req AdminCreateArticleR
 	if err != nil {
 		return nil, fmt.Errorf("get article: %w", err)
 	}
-	return AdminCreateArticle201JSONResponse(adminArticleOf(a)), nil
+	return AdminCreateArticle201JSONResponse(s.withVideo(ctx, adminArticleOf(a), a.VideoKey)), nil
 }
 
 // AdminUpdateArticle replaces an article.
@@ -157,7 +158,7 @@ func (s *Server) AdminUpdateArticle(ctx context.Context, req AdminUpdateArticleR
 	if err != nil {
 		return nil, fmt.Errorf("get article: %w", err)
 	}
-	return AdminUpdateArticle200JSONResponse(adminArticleOf(a)), nil
+	return AdminUpdateArticle200JSONResponse(s.withVideo(ctx, adminArticleOf(a), a.VideoKey)), nil
 }
 
 // articleParams validates and sanitizes an article. msg is the 400 detail when the input is invalid.
@@ -661,7 +662,20 @@ func (s *Server) AdminGetSettings(ctx context.Context, _ AdminGetSettingsRequest
 	if err != nil {
 		return nil, err
 	}
-	return AdminGetSettings200JSONResponse(settingsOf(c, social, e)), nil
+	limits, err := alerts.LoadLimits(ctx, s.q)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // alerts errors say what failed
+	}
+	return AdminGetSettings200JSONResponse(withSmsLimits(settingsOf(c, social, e), limits)), nil
+}
+
+// withSmsLimits adds the daily SMS limits (Rial in the setting, Toman in the admin).
+func withSmsLimits(out AdminSettings, l alerts.Limits) AdminSettings {
+	out.Sms = &struct {
+		DailyBudgetToman  int64 `json:"dailyBudgetToman"`
+		PerUserDailyToman int64 `json:"perUserDailyToman"`
+	}{DailyBudgetToman: l.DailyBudgetRial / 10, PerUserDailyToman: l.PerUserDailyRial / 10}
+	return out
 }
 
 // AdminUpdateSettings saves contact details and social links.
@@ -710,7 +724,21 @@ func (s *Server) AdminUpdateSettings(ctx context.Context, req AdminUpdateSetting
 	cj, _ := json.Marshal(c)
 	sj, _ := json.Marshal(social)
 	ej, _ := json.Marshal(e)
+	const maxToman = 1_000_000_000_000 // far above any real budget; keeps ×10 inside int64
+	if in.Sms != nil && (in.Sms.DailyBudgetToman < 0 || in.Sms.PerUserDailyToman < 0 || in.Sms.DailyBudgetToman > maxToman || in.Sms.PerUserDailyToman > maxToman) {
+		return fail[AdminUpdateSettingsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "sms limits must be 0 or more Toman")), nil
+	}
+	var limits alerts.Limits
 	err = s.tx(ctx, func(q *dbq.Queries) error {
+		if in.Sms != nil { // left out = unchanged
+			if err := alerts.SaveLimits(ctx, q, alerts.Limits{DailyBudgetRial: in.Sms.DailyBudgetToman * 10, PerUserDailyRial: in.Sms.PerUserDailyToman * 10}); err != nil {
+				return err //nolint:wrapcheck // alerts errors say what failed
+			}
+		}
+		var err error
+		if limits, err = alerts.LoadLimits(ctx, q); err != nil {
+			return err //nolint:wrapcheck // as above
+		}
 		if err := q.PutSetting(ctx, dbq.PutSettingParams{Key: "contact", Value: cj}); err != nil {
 			return err
 		}
@@ -720,12 +748,12 @@ func (s *Server) AdminUpdateSettings(ctx context.Context, req AdminUpdateSetting
 		if err := q.PutSetting(ctx, dbq.PutSettingParams{Key: "enamad", Value: ej}); err != nil {
 			return err
 		}
-		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "settings.update", Entity: "site_settings", EntityID: "contact,social,enamad", Data: map[string]any{"contact": c, "social": social, "enamad": e}})
+		return audit.Write(ctx, q, actorOf(ctx, p), audit.Entry{Action: "settings.update", Entity: "site_settings", EntityID: "contact,social,enamad,sms", Data: map[string]any{"contact": c, "social": social, "enamad": e, "sms": in.Sms}})
 	})
 	if err != nil {
 		return nil, fmt.Errorf("save settings: %w", err)
 	}
-	return AdminUpdateSettings200JSONResponse(settingsOf(c, social, e)), nil
+	return AdminUpdateSettings200JSONResponse(withSmsLimits(settingsOf(c, social, e), limits)), nil
 }
 
 func settingsOf(c contactSettings, social socialSettings, e enamadSettings) AdminSettings {

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { closeTicket, createTicket, replyTicket, requestRefund } from "@/lib/account";
+import { buySmsMetals, closeTicket, createTicket, replyTicket, requestRefund } from "@/lib/account";
 import { saveSmsSettings } from "@/lib/gold";
 
 export async function refundAction(form: FormData) {
@@ -41,12 +41,25 @@ export async function closeTicketAction(form: FormData) {
  * payment result page; `back` is where to return (a path on this site).
  */
 export async function saveSmsSettingsAction(form: FormData) {
-  const metals = form.getAll("metals").map(String).filter(Boolean);
   const enabled = form.get("enabled") === "on";
   const back = String(form.get("back") ?? "/account");
-  const res = await saveSmsSettings(metals, enabled);
+  const res = await saveSmsSettings(enabled);
   revalidatePath("/[locale]/account", "page");
   const sep = back.includes("?") ? "&" : "?";
   const path = back.startsWith("/") && !back.startsWith("//") ? back : "/account";
   redirect(`${prefix(form)}${path}${sep}sms=${res.status === 200 ? "saved" : "failed"}#sms`);
+}
+
+/** Buys more SMS metals for the Gold plan held (client, 2026-11-04) and sends the browser to the gateway. */
+export async function buySmsMetalsAction(form: FormData) {
+  const metals = form.getAll("metals").map(String).filter(Boolean);
+  const locale = form.get("locale") === "en" ? "en" : "fa";
+  const back = String(form.get("back") ?? "/account");
+  const path = back.startsWith("/") && !back.startsWith("//") ? back : "/account";
+  const sep = path.includes("?") ? "&" : "?";
+  if (metals.length === 0) redirect(`${prefix(form)}${path}${sep}sms=pick#sms`);
+  const res = await buySmsMetals(metals, String(form.get("key") ?? ""), locale);
+  if (res.status === 201 && res.result?.redirectUrl) redirect(res.result.redirectUrl);
+  if (res.status === 201 && res.result) redirect(`${prefix(form)}/checkout/result?order=${res.result.order.id}&status=${res.result.order.status}`);
+  redirect(`${prefix(form)}${path}${sep}sms=${res.code === "PAYMENTS_DISABLED" ? "payments" : "failed"}#sms`);
 }

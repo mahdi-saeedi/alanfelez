@@ -11,6 +11,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addSubscriptionSmsMetals = `-- name: AddSubscriptionSmsMetals :exec
+INSERT INTO app.subscription_sms_metals (subscription_id, metal_id, order_id)
+SELECT $1, m.id, $2 FROM market.metals m WHERE m.slug = ANY($3::text[])
+ON CONFLICT DO NOTHING
+`
+
+type AddSubscriptionSmsMetalsParams struct {
+	SubscriptionID pgtype.UUID
+	OrderID        pgtype.UUID
+	Slugs          []string
+}
+
+// The SMS metals an order paid for, on its subscription (unknown slugs are ignored; the API checked them).
+func (q *Queries) AddSubscriptionSmsMetals(ctx context.Context, arg AddSubscriptionSmsMetalsParams) error {
+	_, err := q.db.Exec(ctx, addSubscriptionSmsMetals, arg.SubscriptionID, arg.OrderID, arg.Slugs)
+	return err
+}
+
 const adminListNotifications = `-- name: AdminListNotifications :many
 SELECT n.id, n.created_at, n.template, n.recipient, n.status, n.provider, n.error,
        u.username, u.first_name, u.last_name
@@ -67,7 +85,7 @@ func (q *Queries) AdminListNotifications(ctx context.Context, status pgtype.Text
 }
 
 const adminListOrders = `-- name: AdminListOrders :many
-SELECT o.id, o.user_id, o.plan_price_id, o.plan_code, o.period, o.kind, o.price_rial, o.credit_rial, o.amount_rial, o.starts_at, o.status, o.idempotency_key, o.locale, o.expires_at, o.paid_at, o.created_at, o.updated_at, u.username, p.ref_id, coalesce(p.gateway, '')::text AS gateway, r.id AS refund_id, r.status AS refund_status, r.reason AS refund_reason
+SELECT o.id, o.user_id, o.plan_price_id, o.plan_code, o.period, o.kind, o.price_rial, o.credit_rial, o.amount_rial, o.starts_at, o.status, o.idempotency_key, o.locale, o.expires_at, o.paid_at, o.created_at, o.updated_at, o.sms_metals, o.sms_rial, o.for_subscription, u.username, p.ref_id, coalesce(p.gateway, '')::text AS gateway, r.id AS refund_id, r.status AS refund_status, r.reason AS refund_reason
 FROM app.orders o
 LEFT JOIN app.users u ON u.id = o.user_id
 LEFT JOIN LATERAL (SELECT ref_id, gateway FROM app.payments WHERE order_id = o.id ORDER BY created_at DESC LIMIT 1) p ON true
@@ -85,29 +103,32 @@ type AdminListOrdersParams struct {
 }
 
 type AdminListOrdersRow struct {
-	ID             pgtype.UUID
-	UserID         pgtype.UUID
-	PlanPriceID    pgtype.UUID
-	PlanCode       string
-	Period         string
-	Kind           string
-	PriceRial      int64
-	CreditRial     int64
-	AmountRial     int64
-	StartsAt       pgtype.Timestamptz
-	Status         string
-	IdempotencyKey string
-	Locale         string
-	ExpiresAt      pgtype.Timestamptz
-	PaidAt         pgtype.Timestamptz
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
-	Username       pgtype.Text
-	RefID          pgtype.Text
-	Gateway        string
-	RefundID       pgtype.UUID
-	RefundStatus   pgtype.Text
-	RefundReason   pgtype.Text
+	ID              pgtype.UUID
+	UserID          pgtype.UUID
+	PlanPriceID     pgtype.UUID
+	PlanCode        string
+	Period          string
+	Kind            string
+	PriceRial       int64
+	CreditRial      int64
+	AmountRial      int64
+	StartsAt        pgtype.Timestamptz
+	Status          string
+	IdempotencyKey  string
+	Locale          string
+	ExpiresAt       pgtype.Timestamptz
+	PaidAt          pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+	SmsMetals       []string
+	SmsRial         int64
+	ForSubscription pgtype.UUID
+	Username        pgtype.Text
+	RefID           pgtype.Text
+	Gateway         string
+	RefundID        pgtype.UUID
+	RefundStatus    pgtype.Text
+	RefundReason    pgtype.Text
 }
 
 func (q *Queries) AdminListOrders(ctx context.Context, arg AdminListOrdersParams) ([]AdminListOrdersRow, error) {
@@ -137,6 +158,9 @@ func (q *Queries) AdminListOrders(ctx context.Context, arg AdminListOrdersParams
 			&i.PaidAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SmsMetals,
+			&i.SmsRial,
+			&i.ForSubscription,
 			&i.Username,
 			&i.RefID,
 			&i.Gateway,
@@ -350,7 +374,7 @@ func (q *Queries) FeatureEnabled(ctx context.Context, key string) (bool, error) 
 
 const findOrderByKey = `-- name: FindOrderByKey :one
 
-SELECT id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at FROM app.orders WHERE user_id = $1 AND idempotency_key = $2
+SELECT id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at, sms_metals, sms_rial, for_subscription FROM app.orders WHERE user_id = $1 AND idempotency_key = $2
 `
 
 type FindOrderByKeyParams struct {
@@ -380,12 +404,15 @@ func (q *Queries) FindOrderByKey(ctx context.Context, arg FindOrderByKeyParams) 
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SmsMetals,
+		&i.SmsRial,
+		&i.ForSubscription,
 	)
 	return i, err
 }
 
 const getOrder = `-- name: GetOrder :one
-SELECT id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at FROM app.orders WHERE id = $1
+SELECT id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at, sms_metals, sms_rial, for_subscription FROM app.orders WHERE id = $1
 `
 
 func (q *Queries) GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error) {
@@ -409,6 +436,9 @@ func (q *Queries) GetOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SmsMetals,
+		&i.SmsRial,
+		&i.ForSubscription,
 	)
 	return i, err
 }
@@ -444,6 +474,33 @@ func (q *Queries) GetSiteSetting(ctx context.Context, key string) ([]byte, error
 	var value []byte
 	err := row.Scan(&value)
 	return value, err
+}
+
+const getSubscription = `-- name: GetSubscription :one
+SELECT id, user_id, plan_code, starts_at, ends_at, status FROM app.subscriptions WHERE id = $1
+`
+
+type GetSubscriptionRow struct {
+	ID       pgtype.UUID
+	UserID   pgtype.UUID
+	PlanCode string
+	StartsAt pgtype.Timestamptz
+	EndsAt   pgtype.Timestamptz
+	Status   string
+}
+
+func (q *Queries) GetSubscription(ctx context.Context, id pgtype.UUID) (GetSubscriptionRow, error) {
+	row := q.db.QueryRow(ctx, getSubscription, id)
+	var i GetSubscriptionRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.PlanCode,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.Status,
+	)
+	return i, err
 }
 
 const getSubscriptionByOrder = `-- name: GetSubscriptionByOrder :one
@@ -544,26 +601,30 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO app.orders (user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial,
-                        starts_at, idempotency_key, locale, expires_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-RETURNING id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at
+                        starts_at, idempotency_key, locale, expires_at, sms_metals, sms_rial, for_subscription)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::text[], $14, $15)
+RETURNING id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at, sms_metals, sms_rial, for_subscription
 `
 
 type InsertOrderParams struct {
-	UserID         pgtype.UUID
-	PlanPriceID    pgtype.UUID
-	PlanCode       string
-	Period         string
-	Kind           string
-	PriceRial      int64
-	CreditRial     int64
-	AmountRial     int64
-	StartsAt       pgtype.Timestamptz
-	IdempotencyKey string
-	Locale         string
-	ExpiresAt      pgtype.Timestamptz
+	UserID          pgtype.UUID
+	PlanPriceID     pgtype.UUID
+	PlanCode        string
+	Period          string
+	Kind            string
+	PriceRial       int64
+	CreditRial      int64
+	AmountRial      int64
+	StartsAt        pgtype.Timestamptz
+	IdempotencyKey  string
+	Locale          string
+	ExpiresAt       pgtype.Timestamptz
+	SmsMetals       []string
+	SmsRial         int64
+	ForSubscription pgtype.UUID
 }
 
+// amount_rial includes sms_rial (the paid SMS metals, client 2026-11-04).
 func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOrder, error) {
 	row := q.db.QueryRow(ctx, insertOrder,
 		arg.UserID,
@@ -578,6 +639,9 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOr
 		arg.IdempotencyKey,
 		arg.Locale,
 		arg.ExpiresAt,
+		arg.SmsMetals,
+		arg.SmsRial,
+		arg.ForSubscription,
 	)
 	var i AppOrder
 	err := row.Scan(
@@ -598,6 +662,9 @@ func (q *Queries) InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOr
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SmsMetals,
+		&i.SmsRial,
+		&i.ForSubscription,
 	)
 	return i, err
 }
@@ -782,7 +849,7 @@ func (q *Queries) ListHeldSubscriptions(ctx context.Context, userID pgtype.UUID)
 }
 
 const listUserOrders = `-- name: ListUserOrders :many
-SELECT o.id, o.user_id, o.plan_price_id, o.plan_code, o.period, o.kind, o.price_rial, o.credit_rial, o.amount_rial, o.starts_at, o.status, o.idempotency_key, o.locale, o.expires_at, o.paid_at, o.created_at, o.updated_at, p.ref_id, r.status AS refund_status
+SELECT o.id, o.user_id, o.plan_price_id, o.plan_code, o.period, o.kind, o.price_rial, o.credit_rial, o.amount_rial, o.starts_at, o.status, o.idempotency_key, o.locale, o.expires_at, o.paid_at, o.created_at, o.updated_at, o.sms_metals, o.sms_rial, o.for_subscription, p.ref_id, r.status AS refund_status
 FROM app.orders o
 LEFT JOIN LATERAL (SELECT ref_id FROM app.payments WHERE order_id = o.id AND status = 'verified' LIMIT 1) p ON true
 LEFT JOIN app.refunds r ON r.order_id = o.id
@@ -791,25 +858,28 @@ ORDER BY o.created_at DESC LIMIT 50
 `
 
 type ListUserOrdersRow struct {
-	ID             pgtype.UUID
-	UserID         pgtype.UUID
-	PlanPriceID    pgtype.UUID
-	PlanCode       string
-	Period         string
-	Kind           string
-	PriceRial      int64
-	CreditRial     int64
-	AmountRial     int64
-	StartsAt       pgtype.Timestamptz
-	Status         string
-	IdempotencyKey string
-	Locale         string
-	ExpiresAt      pgtype.Timestamptz
-	PaidAt         pgtype.Timestamptz
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
-	RefID          pgtype.Text
-	RefundStatus   pgtype.Text
+	ID              pgtype.UUID
+	UserID          pgtype.UUID
+	PlanPriceID     pgtype.UUID
+	PlanCode        string
+	Period          string
+	Kind            string
+	PriceRial       int64
+	CreditRial      int64
+	AmountRial      int64
+	StartsAt        pgtype.Timestamptz
+	Status          string
+	IdempotencyKey  string
+	Locale          string
+	ExpiresAt       pgtype.Timestamptz
+	PaidAt          pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+	SmsMetals       []string
+	SmsRial         int64
+	ForSubscription pgtype.UUID
+	RefID           pgtype.Text
+	RefundStatus    pgtype.Text
 }
 
 func (q *Queries) ListUserOrders(ctx context.Context, userID pgtype.UUID) ([]ListUserOrdersRow, error) {
@@ -839,6 +909,9 @@ func (q *Queries) ListUserOrders(ctx context.Context, userID pgtype.UUID) ([]Lis
 			&i.PaidAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SmsMetals,
+			&i.SmsRial,
+			&i.ForSubscription,
 			&i.RefID,
 			&i.RefundStatus,
 		); err != nil {
@@ -896,7 +969,7 @@ func (q *Queries) ListUserSubscriptions(ctx context.Context, userID pgtype.UUID)
 }
 
 const lockOrder = `-- name: LockOrder :one
-SELECT id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at FROM app.orders WHERE id = $1 FOR UPDATE
+SELECT id, user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial, starts_at, status, idempotency_key, locale, expires_at, paid_at, created_at, updated_at, sms_metals, sms_rial, for_subscription FROM app.orders WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) LockOrder(ctx context.Context, id pgtype.UUID) (AppOrder, error) {
@@ -920,6 +993,9 @@ func (q *Queries) LockOrder(ctx context.Context, id pgtype.UUID) (AppOrder, erro
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SmsMetals,
+		&i.SmsRial,
+		&i.ForSubscription,
 	)
 	return i, err
 }
@@ -1140,6 +1216,32 @@ func (q *Queries) SetPaymentVerified(ctx context.Context, arg SetPaymentVerified
 		arg.Raw,
 	)
 	return err
+}
+
+const subscriptionSmsMetals = `-- name: SubscriptionSmsMetals :many
+SELECT m.slug FROM app.subscription_sms_metals ssm JOIN market.metals m ON m.id = ssm.metal_id
+WHERE ssm.subscription_id = $1 ORDER BY m.sort, m.id
+`
+
+// The metals one subscription already sends SMS for.
+func (q *Queries) SubscriptionSmsMetals(ctx context.Context, subscriptionID pgtype.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, subscriptionSmsMetals, subscriptionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return nil, err
+		}
+		items = append(items, slug)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const subscriptionUsed = `-- name: SubscriptionUsed :one

@@ -18,9 +18,13 @@ const runtimeConfig = `window.__ADMIN_CONFIG__ = ${JSON.stringify({
 const connectSrc = [new URL(process.env.ADMIN_API_URL ?? "http://localhost:8080").origin,
   new URL(process.env.ADMIN_OIDC_AUTHORITY ?? "http://localhost:8081").origin].join(" ");
 const https = (process.env.ADMIN_API_URL ?? "").startsWith("https://");
+// The object storage videos are uploaded to and previewed from (space-separated origins; empty = no video upload).
+const media = (process.env.MEDIA_ORIGINS ?? "").trim();
 const SECURITY = {
   "Content-Security-Policy": [
-    "default-src 'self'", "script-src 'self'", `connect-src 'self' ${connectSrc}`, "img-src 'self' data:",
+    "default-src 'self'", "script-src 'self'", `connect-src 'self' ${connectSrc} ${media}`.trim(),
+    // blob: for pictures fetched with the staff token (article pictures, members' charts).
+    "img-src 'self' data: blob:", `media-src 'self' blob: ${media}`.trim(),
     "style-src 'self' 'unsafe-inline'", "font-src 'self'", "object-src 'none'", "base-uri 'self'",
     "form-action 'self'", "frame-ancestors 'none'", ...(https ? ["upgrade-insecure-requests"] : []),
   ].join("; "),

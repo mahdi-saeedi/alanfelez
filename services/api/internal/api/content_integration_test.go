@@ -198,9 +198,18 @@ func TestFaqPagesAndSettings(t *testing.T) {
 	if st, _, _ := e.call(http.MethodPut, "/v1/admin/settings", "editor", settings); st != 403 {
 		t.Fatalf("editor must not edit settings: %d", st)
 	}
-	if st, _, raw := e.call(http.MethodPut, "/v1/admin/settings", "admin", settings); st != 200 {
-		t.Fatalf("settings: %d %s", st, raw)
+	if st, body, raw := e.call(http.MethodPut, "/v1/admin/settings", "admin", settings); st != 200 || body["sms"].(map[string]any)["perUserDailyToman"] != float64(50_000) {
+		t.Fatalf("settings (sms limits unchanged when left out): %d %s", st, raw)
 	}
+	// The daily SMS limits, in Toman (client, 2026-11-04); the seed's alert_at_percent stays.
+	settings["sms"] = map[string]any{"dailyBudgetToman": 20_000_000, "perUserDailyToman": 30_000}
+	if st, body, raw := e.call(http.MethodPut, "/v1/admin/settings", "admin", settings); st != 200 || body["sms"].(map[string]any)["dailyBudgetToman"] != float64(20_000_000) {
+		t.Fatalf("sms limits: %d %s", st, raw)
+	}
+	if n := e.count(`SELECT count(*) FROM app.site_settings WHERE key = 'sms' AND value->>'per_user_daily_rial' = '300000' AND value ? 'alert_at_percent'`); n != 1 {
+		t.Fatal("sms setting not saved in Rial or lost its other keys")
+	}
+	delete(settings, "sms")
 	_, site, _ := e.callH(http.MethodGet, "/v1/site", "", nil, map[string]string{"Accept-Language": "en"})
 	c := site["contact"].(map[string]any)
 	if c["phone"] != "021-12345678" || c["address"] != "تهران" || site["social"].(map[string]any)["telegram"] != "https://t.me/alanfelez" {

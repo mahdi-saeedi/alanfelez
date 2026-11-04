@@ -12,7 +12,8 @@ export async function payAction(form: FormData) {
   const prefix = locale === "en" ? "/en" : "";
   if (form.get("agree") !== "on") redirect(`${prefix}/checkout?plan=${plan}&period=${period}&error=agree`);
 
-  const res = await startCheckout(plan, period, key, locale);
+  const smsMetals = form.getAll("smsMetals").map(String).filter(Boolean);
+  const res = await startCheckout(plan, period, smsMetals, key, locale);
   if (res.status === 401) redirect(`${prefix}/checkout?plan=${plan}&period=${period}`);
   if (!res.result) redirect(`${prefix}/checkout?plan=${plan}&period=${period}&error=${res.code ?? "generic"}`);
   if (res.result.redirectUrl) redirect(res.result.redirectUrl);

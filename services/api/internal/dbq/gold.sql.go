@@ -11,26 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addSmsMetals = `-- name: AddSmsMetals :execrows
-INSERT INTO app.sms_metals (user_id, metal_id)
-SELECT $1, m.id FROM market.metals m WHERE m.slug = ANY($2::text[])
-ON CONFLICT DO NOTHING
-`
-
-type AddSmsMetalsParams struct {
-	UserID pgtype.UUID
-	Slugs  []string
-}
-
-// Adds these metals (unknown slugs are ignored); returns how many were added. Call ClearSmsMetals first to replace.
-func (q *Queries) AddSmsMetals(ctx context.Context, arg AddSmsMetalsParams) (int64, error) {
-	result, err := q.db.Exec(ctx, addSmsMetals, arg.UserID, arg.Slugs)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
-}
-
 const alertCandidates = `-- name: AlertCandidates :many
 SELECT a.id, a.user_id, a.kind, a.threshold_minor, a.move_bp, a.armed, a.last_triggered_at,
        s.slug AS series_slug, s.currency, s.unit, p.name_fa AS product_fa, p.name_en AS product_en,
@@ -175,15 +155,6 @@ func (q *Queries) BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMov
 		return nil, err
 	}
 	return items, nil
-}
-
-const clearSmsMetals = `-- name: ClearSmsMetals :exec
-DELETE FROM app.sms_metals WHERE user_id = $1
-`
-
-func (q *Queries) ClearSmsMetals(ctx context.Context, userID pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, clearSmsMetals, userID)
-	return err
 }
 
 const countCalculations = `-- name: CountCalculations :one
@@ -343,7 +314,9 @@ FROM app.users u
 LEFT JOIN app.sms_prefs p ON p.user_id = u.id
 WHERE u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL AND coalesce(p.enabled, true)
   AND ($1::text = ANY(coalesce(u.metals, '{}'))
-       OR EXISTS (SELECT 1 FROM app.sms_metals sm WHERE sm.user_id = u.id AND sm.metal_id = $2::smallint))
+       OR EXISTS (SELECT 1 FROM app.subscription_sms_metals ssm
+                  JOIN app.subscriptions sub ON sub.id = ssm.subscription_id AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+                  WHERE sub.user_id = u.id AND ssm.metal_id = $2::smallint))
 `
 
 type ImeSmsSubscribersParams struct {
@@ -357,7 +330,7 @@ type ImeSmsSubscribersRow struct {
 	Locale    string
 }
 
-// Users with SMS on and a phone who ticked this metal at sign-up or chose it for SMS: the IME "updated" SMS. Plan
+// Users with SMS on and a phone who ticked this metal at sign-up or paid SMS for it: the IME "updated" SMS. Plan
 // checked in Go.
 func (q *Queries) ImeSmsSubscribers(ctx context.Context, arg ImeSmsSubscribersParams) ([]ImeSmsSubscribersRow, error) {
 	rows, err := q.db.Query(ctx, imeSmsSubscribers, arg.MetalSlug, arg.MetalID)
@@ -652,23 +625,34 @@ func (q *Queries) ListCalculations(ctx context.Context, userID pgtype.UUID) ([]L
 }
 
 const listSmsMetals = `-- name: ListSmsMetals :many
-SELECT m.slug FROM app.sms_metals sm JOIN market.metals m ON m.id = sm.metal_id WHERE sm.user_id = $1 ORDER BY m.sort, m.id
+SELECT DISTINCT m.slug, m.sort, m.id
+FROM app.subscription_sms_metals ssm
+JOIN app.subscriptions sub ON sub.id = ssm.subscription_id AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+JOIN market.metals m ON m.id = ssm.metal_id
+WHERE sub.user_id = $1
+ORDER BY m.sort, m.id
 `
 
-// The metals the user chose for price SMS after buying, in the site's metal order.
-func (q *Queries) ListSmsMetals(ctx context.Context, userID pgtype.UUID) ([]string, error) {
+type ListSmsMetalsRow struct {
+	Slug string
+	Sort int32
+	ID   int16
+}
+
+// The metals the user paid SMS for, of the subscriptions active now (internal/billing), in the site's metal order.
+func (q *Queries) ListSmsMetals(ctx context.Context, userID pgtype.UUID) ([]ListSmsMetalsRow, error) {
 	rows, err := q.db.Query(ctx, listSmsMetals, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []string{}
+	items := []ListSmsMetalsRow{}
 	for rows.Next() {
-		var slug string
-		if err := rows.Scan(&slug); err != nil {
+		var i ListSmsMetalsRow
+		if err := rows.Scan(&i.Slug, &i.Sort, &i.ID); err != nil {
 			return nil, err
 		}
-		items = append(items, slug)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -884,11 +868,12 @@ func (q *Queries) SetPriceUpdateCursor(ctx context.Context, arg SetPriceUpdateCu
 }
 
 const smsMetalSubscribers = `-- name: SmsMetalSubscribers :many
-SELECT u.id AS user_id, u.phone_e164, u.locale, sm.metal_id
-FROM app.sms_metals sm
-JOIN app.users u ON u.id = sm.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL
+SELECT DISTINCT u.id AS user_id, u.phone_e164, u.locale, ssm.metal_id
+FROM app.subscription_sms_metals ssm
+JOIN app.subscriptions sub ON sub.id = ssm.subscription_id AND sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL
 LEFT JOIN app.sms_prefs p ON p.user_id = u.id
-WHERE coalesce(p.enabled, true) AND ($1::smallint IS NULL OR sm.metal_id = $1::smallint)
+WHERE coalesce(p.enabled, true) AND ($1::smallint IS NULL OR ssm.metal_id = $1::smallint)
 `
 
 type SmsMetalSubscribersRow struct {
@@ -898,8 +883,8 @@ type SmsMetalSubscribersRow struct {
 	MetalID   int16
 }
 
-// Users with SMS on and a phone who chose this metal for SMS after buying (or any metal: metal_id NULL). Their plan is
-// checked in Go (internal/access).
+// Users with SMS on and a phone who paid SMS for this metal (or any metal: metal_id NULL) in a subscription active now.
+// Their plan is checked in Go (internal/access).
 func (q *Queries) SmsMetalSubscribers(ctx context.Context, metalID pgtype.Int2) ([]SmsMetalSubscribersRow, error) {
 	rows, err := q.db.Query(ctx, smsMetalSubscribers, metalID)
 	if err != nil {
@@ -1033,4 +1018,21 @@ type UpsertSmsEnabledParams struct {
 func (q *Queries) UpsertSmsEnabled(ctx context.Context, arg UpsertSmsEnabledParams) error {
 	_, err := q.db.Exec(ctx, upsertSmsEnabled, arg.UserID, arg.Enabled)
 	return err
+}
+
+const userSMSCostSince = `-- name: UserSMSCostSince :one
+SELECT coalesce(sum(cost_rial), 0)::bigint FROM app.notifications WHERE user_id = $1 AND status = 'sent' AND created_at >= $2
+`
+
+type UserSMSCostSinceParams struct {
+	UserID pgtype.UUID
+	Since  pgtype.Timestamptz
+}
+
+// One member's SMS spend since a time (the per-member daily limit, client 2026-11-04).
+func (q *Queries) UserSMSCostSince(ctx context.Context, arg UserSMSCostSinceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, userSMSCostSince, arg.UserID, arg.Since)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }

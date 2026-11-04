@@ -53,6 +53,7 @@ export function OrdersPage() {
                 <Td>
                   <Badge tone={o.plan === "gold" ? "gold" : "gray"}>{t(`plan.${o.plan}`)}</Badge>
                   <div className="mt-1 text-xs text-text-3">{t(`orders.period.${o.period}`)} · {t(`orders.kind.${o.kind}`)}</div>
+                  {o.smsMetals && o.smsMetals.length > 0 && <div className="mt-1 text-xs text-text-3">{t("orders.smsMetals", { metals: o.smsMetals.join("، ") })}</div>}
                 </Td>
                 <Td className="tabular-nums">
                   {formatToman(o.amount.amount, locale)}

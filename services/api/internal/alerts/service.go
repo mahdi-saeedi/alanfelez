@@ -197,25 +197,16 @@ func (s *Service) allowed(ctx context.Context, q *dbq.Queries, user pgtype.UUID)
 
 // overBudget is the SMS circuit breaker (SECURITY §4): alerts pause once today's SMS spend reaches the budget.
 func (s *Service) overBudget(ctx context.Context, q *dbq.Queries, since time.Time) (bool, error) {
-	raw, err := q.GetSiteSetting(ctx, "sms")
-	if errors.Is(err, pgx.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("alerts: sms setting: %w", err)
-	}
-	var cfg struct {
-		DailyBudgetRial int64 `json:"daily_budget_rial"`
-	}
-	if err := json.Unmarshal(raw, &cfg); err != nil || cfg.DailyBudgetRial <= 0 {
-		return false, nil //nolint:nilerr // a missing or bad budget means "no budget", not a failed job
+	l, err := LoadLimits(ctx, q)
+	if err != nil || l.DailyBudgetRial <= 0 {
+		return false, err
 	}
 	spent, err := q.SMSCostSince(ctx, pgtype.Timestamptz{Time: since, Valid: true})
 	if err != nil {
 		return false, fmt.Errorf("alerts: sms spend: %w", err)
 	}
-	if spent >= cfg.DailyBudgetRial {
-		s.log.WarnContext(ctx, "price alerts paused: daily SMS budget reached", "spent_rial", spent, "budget_rial", cfg.DailyBudgetRial)
+	if spent >= l.DailyBudgetRial {
+		s.log.WarnContext(ctx, "price alerts paused: daily SMS budget reached", "spent_rial", spent, "budget_rial", l.DailyBudgetRial)
 		return true, nil
 	}
 	return false, nil
