@@ -1034,3 +1034,20 @@ func (q *Queries) UpsertSmsEnabled(ctx context.Context, arg UpsertSmsEnabledPara
 	_, err := q.db.Exec(ctx, upsertSmsEnabled, arg.UserID, arg.Enabled)
 	return err
 }
+
+const userSMSCostSince = `-- name: UserSMSCostSince :one
+SELECT coalesce(sum(cost_rial), 0)::bigint FROM app.notifications WHERE user_id = $1 AND status = 'sent' AND created_at >= $2
+`
+
+type UserSMSCostSinceParams struct {
+	UserID pgtype.UUID
+	Since  pgtype.Timestamptz
+}
+
+// One member's SMS spend since a time (the per-member daily limit, client 2026-11-04).
+func (q *Queries) UserSMSCostSince(ctx context.Context, arg UserSMSCostSinceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, userSMSCostSince, arg.UserID, arg.Since)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}

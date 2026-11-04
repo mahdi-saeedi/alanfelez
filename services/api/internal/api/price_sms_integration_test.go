@@ -109,6 +109,30 @@ func TestGoldPriceSMS(t *testing.T) {
 		t.Fatalf("IME SMS: %s", got)
 	}
 
+	// The member's daily limit (client, 2026-11-04: 50,000 Toman by default): spent → nothing more that day.
+	for _, q := range []string{
+		`INSERT INTO app.site_settings (key, value) VALUES ('sms', '{"per_user_daily_rial": 1000}') ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+		`INSERT INTO app.notifications (user_id, channel, template, recipient, body, status, provider, cost_rial, dedupe_key, created_at)
+		 VALUES ('00000000-0000-0000-0000-000000000003', 'sms', 'price_move', '+989120000003', 'x', 'sent', 'fake', 5000, 'limit-test', $1)`,
+	} {
+		var args []any
+		if strings.Contains(q, "$1") {
+			args = append(args, noon(1))
+		}
+		if _, err := e.pool.Exec(t.Context(), q, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-telecom-free", ObservedAt: now.Add(500 * time.Millisecond), Price: 7_155_000}}, prices.IngestOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {
+		t.Fatalf("sent over the member's limit: %v", sms.sent)
+	}
+	if _, err := e.pool.Exec(t.Context(), `DELETE FROM app.notifications WHERE dedupe_key = 'limit-test'`); err != nil {
+		t.Fatal(err)
+	}
+
 	// Turned off: nothing more, even for a new change.
 	e.call(http.MethodPut, "/v1/me/sms-settings", "gold", map[string]any{"metals": []string{"copper"}, "enabled": false})
 	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-telecom-free", ObservedAt: now.Add(time.Second), Price: 7_160_000}}, prices.IngestOptions{}); err != nil {

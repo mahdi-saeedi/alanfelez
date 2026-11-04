@@ -368,6 +368,8 @@ type Querier interface {
 	UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
 	// The provinces users chose (the users page filter).
 	UserProvinces(ctx context.Context) ([]string, error)
+	// One member's SMS spend since a time (the per-member daily limit, client 2026-11-04).
+	UserSMSCostSince(ctx context.Context, arg UserSMSCostSinceParams) (int64, error)
 	// Accounts with a mobile created since a time whose number never had the welcome SMS (app.welcomed_phones).
 	UsersToWelcome(ctx context.Context, since pgtype.Timestamptz) ([]UsersToWelcomeRow, error)
 	// The day's salt for anonymous visitor ids, made on first use.

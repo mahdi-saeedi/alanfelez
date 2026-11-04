@@ -9,7 +9,7 @@ type Settings = Schemas["AdminSettings"];
 
 const NETWORKS: (keyof Settings["social"])[] = ["instagram", "telegram", "whatsapp", "bale", "eitaa", "linkedin"];
 
-/** Contact details, social links and the eNamad seal shown on the site (empty = hidden; client answer #30). Admin only. */
+/** Contact details, social links and the eNamad seal shown on the site (empty = hidden; client answer #30), and the daily SMS limits. Admin only. */
 export function SettingsPage() {
   const t = useTranslate();
   const loaded = useQuery({ queryKey: ["admin", "settings"], queryFn: async () => unwrap(await api.GET("/v1/admin/settings", {})) });
@@ -28,6 +28,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
     onSuccess: (s) => qc.setQueryData(["admin", "settings"], s),
   });
   const enamad = v.enamad ?? { id: "", code: "" };
+  const sms = v.sms ?? { perUserDailyToman: 50_000, dailyBudgetToman: 0 };
   // Either field also takes the whole snippet from the eNamad panel: id and Code are read out of its link.
   const setEnamad = (text: string, field: "id" | "code") => {
     const id = /[?&]id=(\d+)/.exec(text)?.[1];
@@ -79,6 +80,21 @@ function SettingsForm({ initial }: { initial: Settings }) {
             <Field label={t("settings.enamad.code")}>
               <Input dir="ltr" disabled={!writable} value={enamad.code} onChange={(e) => setEnamad(e.target.value, "code")} className="w-full" />
             </Field>
+          </div>
+        </Card>
+        <Card className="space-y-4 p-4">
+          <h2 className="font-bold">{t("settings.smsTitle")}</h2>
+          <p className="text-sm text-text-2">{t("settings.smsHint")}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {(["perUserDailyToman", "dailyBudgetToman"] as const).map((k) => (
+              <Field key={k} label={t(`settings.sms.${k}`)}>
+                <Input
+                  type="number" min={0} step={1000} dir="ltr" disabled={!writable} className="w-full"
+                  value={sms[k]}
+                  onChange={(e) => setV({ ...v, sms: { ...sms, [k]: Math.max(0, Math.floor(Number(e.target.value) || 0)) } })}
+                />
+              </Field>
+            ))}
           </div>
         </Card>
         {save.isError && <Notice tone="error">{errorText(save.error, t)}</Notice>}

@@ -232,3 +232,7 @@ WHERE l.updated_at > c.notified_through
 -- name: SubscriptionBoughtAt :one
 -- When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
 SELECT created_at FROM app.subscriptions WHERE id = $1;
+
+-- name: UserSMSCostSince :one
+-- One member's SMS spend since a time (the per-member daily limit, client 2026-11-04).
+SELECT coalesce(sum(cost_rial), 0)::bigint FROM app.notifications WHERE user_id = $1 AND status = 'sent' AND created_at >= sqlc.arg(since);

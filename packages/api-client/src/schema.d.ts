@@ -2924,6 +2924,19 @@ export interface components {
                 whatsapp?: string;
             };
             enamad?: components["schemas"]["Enamad"];
+            /** @description Daily SMS spending limits in Toman (client, 2026-11-04). The price SMS stop for the day when the whole site or one member reaches its limit; 0 = no limit. Left out of a save = unchanged. */
+            sms?: {
+                /**
+                 * Format: int64
+                 * @description All SMS of a day together
+                 */
+                dailyBudgetToman: number;
+                /**
+                 * Format: int64
+                 * @description The price SMS one member receives in a day
+                 */
+                perUserDailyToman: number;
+            };
         };
         AdminContactMessage: {
             /** Format: uuid */

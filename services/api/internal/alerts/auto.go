@@ -76,6 +76,11 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 	if over, err := s.overBudget(ctx, q, tehranMidnight(now)); err != nil || over {
 		return 0, err
 	}
+	limits, err := LoadLimits(ctx, q)
+	if err != nil {
+		return 0, err
+	}
+	perUser := userCap{limitRial: limits.PerUserDailyRial, since: tehranMidnight(now)}
 	if err := q.InitPriceUpdateCursors(ctx); err != nil {
 		return 0, fmt.Errorf("alerts: cursors: %w", err)
 	}
@@ -123,7 +128,7 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 			price, change := FormatPrice(m.PriceMinor, m.Currency, m.Unit, lang), FormatBp(ch.Bp, lang)
 			body := strings.NewReplacer("{product}", product, "{price}", price, "{change}", change).Replace(texts[tmplMove][lang])
 			key := fmt.Sprintf("%s:%s:%d:%s", tmplMove, uuid.UUID(u.UserID.Bytes), m.SeriesID, day)
-			ok, err := s.deliver(ctx, q, u.UserID, u.PhoneE164.String, key, tmplMove, notify.Message{
+			ok, err := s.deliver(ctx, q, perUser, u.UserID, u.PhoneE164.String, key, tmplMove, notify.Message{
 				Template: "price_alert", Body: body,
 				Params: []notify.Param{{Name: "PRODUCT", Value: product}, {Name: "PRICE", Value: price}, {Name: "CHANGE", Value: change}},
 			})
@@ -197,7 +202,7 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 			}
 			body := strings.NewReplacer("{metal}", metal, "{count}", count).Replace(texts[tmpl][lang])
 			key := fmt.Sprintf("%s:%s:%d:%d", tmpl, uuid.UUID(u.id.Bytes), c.MetalID, c.LastChange.Time.UnixMicro())
-			ok, err := s.deliver(ctx, q, u.id, u.phone, key, tmpl, notify.Message{
+			ok, err := s.deliver(ctx, q, perUser, u.id, u.phone, key, tmpl, notify.Message{
 				Template: tmpl, Body: body, Params: []notify.Param{{Name: "METAL", Value: metal}, {Name: "COUNT", Value: count}},
 			})
 			if err != nil {
@@ -215,10 +220,25 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 	return sent, nil
 }
 
-// deliver sends one SMS unless its dedupe key was used, and logs it in app.notifications.
-func (s *Service) deliver(ctx context.Context, q *dbq.Queries, user pgtype.UUID, phone, key, template string, m notify.Message) (bool, error) {
+// userCap is one member's daily price-SMS limit for this run (0 = none), counted from the Tehran midnight since.
+type userCap struct {
+	limitRial int64
+	since     time.Time
+}
+
+// deliver sends one SMS unless its dedupe key was used or the member's daily limit is reached, and logs it in app.notifications.
+func (s *Service) deliver(ctx context.Context, q *dbq.Queries, limit userCap, user pgtype.UUID, phone, key, template string, m notify.Message) (bool, error) {
 	if !notify.Configured(s.sms, m.Template) {
 		return false, nil // its sms.ir template isn't approved yet
+	}
+	if limit.limitRial > 0 {
+		spent, err := q.UserSMSCostSince(ctx, dbq.UserSMSCostSinceParams{UserID: user, Since: pgtype.Timestamptz{Time: limit.since, Valid: true}})
+		if err != nil {
+			return false, fmt.Errorf("alerts: member spend: %w", err)
+		}
+		if spent >= limit.limitRial {
+			return false, nil // this member's daily SMS limit is reached; the rest waits for tomorrow's changes
+		}
 	}
 	if done, err := q.NotificationSent(ctx, key); err != nil {
 		return false, fmt.Errorf("alerts: dedupe: %w", err)

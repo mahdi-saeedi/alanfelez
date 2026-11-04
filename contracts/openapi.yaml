@@ -3883,6 +3883,15 @@ components:
             whatsapp: { type: string, maxLength: 300, description: 'e.g. https://wa.me/989121234567' }
         # Empty id and code = no badge. Left out of a save = unchanged.
         enamad: { $ref: '#/components/schemas/Enamad' }
+        sms:
+          type: object
+          description: >-
+            Daily SMS spending limits in Toman (client, 2026-11-04). The price SMS stop for the day when the whole site or
+            one member reaches its limit; 0 = no limit. Left out of a save = unchanged.
+          required: [dailyBudgetToman, perUserDailyToman]
+          properties:
+            dailyBudgetToman: { type: integer, format: int64, minimum: 0, description: All SMS of a day together }
+            perUserDailyToman: { type: integer, format: int64, minimum: 0, description: The price SMS one member receives in a day }
 
     AdminContactMessage:
       type: object
