@@ -4,19 +4,14 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-04 (paid SMS metals, SMS limits, «مقالات», uploaded videos)
+Last updated: 2026-11-04 (privacy policy, «مواد اولیه معدنی», staff accounts from the admin)
 
 ## Now (in progress)
+- [ ] **Privacy policy, «مواد اولیه معدنی» in the CMS texts, staff accounts → staging** (2026-11-04, branch
+      `feat/privacy-staff`); then the main site after the client's check.
 - [ ] **SMS by metal, greetings, article media** (2026-11-04): on staging; waiting for the client's check, then the main
       site, together with the next item.
 - [ ] **Paid SMS metals, SMS limits, «مقالات», uploaded videos → staging** (2026-11-04, branch `feat/sms-checkout`).
-- [ ] **User activity → staging, then the main site** (2026-11-03): on branch `claude/new-session-i1teqj`, waiting for the
-      client's «بفرست روی staging». Before the main site: the client approves the privacy text (F19) and it's pasted in the
-      admin (صفحات ثابت → حریم خصوصی).
-- [ ] **Staff accounts from the admin** (client 2026-11-03: sales staff should sign in with a username and password the
-      client gives them): today staff are made only in the Keycloak console. Proposed: an admin-only «پرسنل» page (create,
-      reset password, disable, roles incl. a new read-only `sales` role; TOTP stays required). Touches auth/Keycloak →
-      needs the owner's OK before building.
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
@@ -72,6 +67,13 @@ Last updated: 2026-11-04 (paid SMS metals, SMS limits, «مقالات», uploade
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-04 Staff accounts from the admin («کارکنان», client and owner OK): create with a username and a temporary
+  password (first sign-in: own password + TOTP), change the role (view only for sales, support, editor, admin), new
+  temporary password, turn off (signs out). Through the API's Keycloak service account (now also query-users and
+  view-realm); admin only, audited, never one's own account, never a customer. A new privacy policy written for the
+  client (F19: usage records, paid SMS metals, greetings; migration 00037; a lawyer's review stays F8), and
+  «مواد اولیه معدنی» in every page and FAQ text. Production got the sms.ir templates for the IME update, welcome and
+  thanks; v0.32.0 published.
 - 2026-11-04 Paid SMS metals (client, owner OK): 100,000 Toman per metal per month of the Gold plan, chosen on the
   checkout page with a live total; tied to the subscription (00035), never changed or refunded; more can be added
   during the plan at the full price of its length (`sms_addon` orders, `/v1/checkout/sms-metals`). Per-member daily SMS

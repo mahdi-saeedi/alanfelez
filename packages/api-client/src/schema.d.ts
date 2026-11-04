@@ -1445,6 +1445,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff accounts (Keycloak users with a staff role). Role admin; no Keycloak service account → 503 */
+        get: operations["adminListStaff"];
+        put?: never;
+        /** Create a staff account with a temporary password: at the first sign-in they choose their own password and set up two-step sign-in (TOTP). Username taken → 409. Role admin, audited */
+        post: operations["adminCreateStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a staff member's role or turn the account on or off (off also signs them out). Not your own account (409). Role admin, audited */
+        put: operations["adminUpdateStaff"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{id}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Give a staff member a new temporary password (they choose their own at the next sign-in). Role admin, audited */
+        post: operations["adminResetStaffPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/article-categories": {
         parameters: {
             query?: never;
@@ -2347,6 +2399,21 @@ export interface components {
              * @description The SMS of the added metals run until the plan ends
              */
             endsAt: string;
+        };
+        /** @description One of staff (view only, e.g. sales), support (tickets and messages), editor (prices and content), admin (everything). Not an enum: the generated constants would clash with other enums' values */
+        StaffRole: string;
+        StaffMember: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            firstName: string;
+            lastName: string;
+            role: components["schemas"]["StaffRole"];
+            enabled: boolean;
+            /** @description Has set up two-step sign-in */
+            totp: boolean;
+            /** Format: date-time */
+            createdAt: string;
         };
         CheckoutResult: {
             order: components["schemas"]["Order"];
@@ -5823,6 +5890,117 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Staff */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StaffMember"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminCreateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Latin lowercase, starts with a letter, 3–30 */
+                    username: string;
+                    firstName: string;
+                    lastName: string;
+                    role: components["schemas"]["StaffRole"];
+                    /** @description Temporary */
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMember"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminUpdateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    role?: components["schemas"]["StaffRole"];
+                    enabled?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminResetStaffPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
             204: {
                 headers: {
                     [name: string]: unknown;

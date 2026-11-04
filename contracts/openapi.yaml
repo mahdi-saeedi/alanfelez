@@ -2047,6 +2047,93 @@ paths:
         '204': { description: Removed }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/staff:
+    get:
+      operationId: adminListStaff
+      tags: [admin]
+      summary: Staff accounts (Keycloak users with a staff role). Role admin; no Keycloak service account → 503
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Staff
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/StaffMember' } }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: adminCreateStaff
+      tags: [admin]
+      summary: >-
+        Create a staff account with a temporary password: at the first sign-in they choose their own password and set
+        up two-step sign-in (TOTP). Username taken → 409. Role admin, audited
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, firstName, lastName, role, password]
+              properties:
+                username: { type: string, pattern: '^[a-z][a-z0-9._-]{2,29}$', description: 'Latin lowercase, starts with a letter, 3–30' }
+                firstName: { type: string, minLength: 1, maxLength: 60 }
+                lastName: { type: string, minLength: 1, maxLength: 60 }
+                role: { $ref: '#/components/schemas/StaffRole' }
+                password: { type: string, minLength: 10, maxLength: 100, description: Temporary }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StaffMember' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/staff/{id}:
+    put:
+      operationId: adminUpdateStaff
+      tags: [admin]
+      summary: Change a staff member's role or turn the account on or off (off also signs them out). Not your own account (409). Role admin, audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { $ref: '#/components/schemas/StaffRole' }
+                enabled: { type: boolean }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/staff/{id}/password:
+    post:
+      operationId: adminResetStaffPassword
+      tags: [admin]
+      summary: Give a staff member a new temporary password (they choose their own at the next sign-in). Role admin, audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, minLength: 10, maxLength: 100 }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/article-categories:
     get:
       operationId: adminListArticleCategories
@@ -3304,6 +3391,26 @@ components:
         months: { type: integer, description: The plan's length in months (each metal costs that many months) }
         amount: { $ref: '#/components/schemas/Money' }
         endsAt: { type: string, format: date-time, description: The SMS of the added metals run until the plan ends }
+
+    StaffRole:
+      type: string
+      pattern: '^(staff|support|editor|admin)$'
+      description: >-
+        One of staff (view only, e.g. sales), support (tickets and messages), editor (prices and content), admin
+        (everything). Not an enum: the generated constants would clash with other enums' values
+
+    StaffMember:
+      type: object
+      required: [id, username, firstName, lastName, role, enabled, totp, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        role: { $ref: '#/components/schemas/StaffRole' }
+        enabled: { type: boolean }
+        totp: { type: boolean, description: Has set up two-step sign-in }
+        createdAt: { type: string, format: date-time }
 
     CheckoutResult:
       type: object

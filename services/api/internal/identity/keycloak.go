@@ -1,6 +1,7 @@
-// Package identity talks to Keycloak's Admin API for the few account actions the API does itself (deleting a user).
+// Package identity talks to Keycloak's Admin API for the few account actions the API does itself (deleting a user,
+// staff accounts from the admin).
 // It signs in as the alanfelez-api-admin client: a service account whose only roles are realm-management's
-// manage-users and view-users (created by the keycloak-profile job, secret alanfelez-keycloak-api-admin).
+// manage-users, view-users, query-users and view-realm (created by the keycloak-profile job, secret alanfelez-keycloak-api-admin).
 package identity
 
 import (
