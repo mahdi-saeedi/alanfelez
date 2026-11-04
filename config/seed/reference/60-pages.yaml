@@ -28,14 +28,14 @@ datasets:
           <li>بررسی و تحلیل روند بازار</li>
           <li>سناریوهای احتمالی تغییرات قیمت</li>
           <li>ماشین حساب قیمت فلزات</li>
-          <li>اطلاعات مزایده‌های فلزات: شمش و محصولات میانی، ضایعات و مواد اولیه</li>
+          <li>اطلاعات مزایده‌های فلزات: شمش و محصولات میانی، ضایعات و مواد اولیه معدنی</li>
           <li>هشدارها و پیامک‌های مرتبط با تغییرات بازار</li>
-          <li>اطلاعات مرتبط با مواد اولیه و محصولات میانی فلزی</li>
+          <li>اطلاعات مرتبط با مواد اولیه معدنی و محصولات میانی فلزی</li>
           </ul>
           <h2>چه کسانی می‌توانند از الان‌فلز استفاده کنند؟</h2>
           <p>الان‌فلز برای طیف گسترده‌ای از فعالان صنعت و بازار فلزات طراحی شده است؛ از جمله:</p>
           <ul>
-          <li><strong>تولیدکنندگان</strong> برای بررسی قیمت مواد اولیه، محصولات میانی و شرایط بازار.</li>
+          <li><strong>تولیدکنندگان</strong> برای بررسی قیمت مواد اولیه معدنی، محصولات میانی و شرایط بازار.</li>
           <li><strong>بازرگانان و تأمین‌کنندگان</strong> برای رصد قیمت‌ها، بررسی روند بازار و شناسایی فرصت‌های تجاری.</li>
           <li><strong>خریداران و فروشندگان</strong> برای دسترسی به اطلاعات قیمت.</li>
           <li><strong>کارشناسان و فعالان حوزه فلزات</strong> برای بررسی داده‌های بازار، نمودارها و روند تغییرات قیمت.</li>
@@ -442,109 +442,114 @@ datasets:
         title_fa: "سیاست حفظ حریم خصوصی"
         title_en: "Privacy policy"
         body_fa: |
-          <p>الان‌فلز به حریم خصوصی کاربران خود احترام می‌گذارد. این صفحه توضیح می‌دهد چه اطلاعاتی از شما جمع‌آوری می‌کنیم، برای چه کاری از آن استفاده می‌کنیم، چه مدت نگه می‌داریم و چه حقوقی درباره آن دارید. استفاده از سایت به معنی پذیرش این سیاست است.</p>
+          <p>الان‌فلز (alanfelez.ir) به حریم خصوصی کاربران خود احترام می‌گذارد و اطلاعات آن‌ها را مطابق قوانین جمهوری اسلامی ایران، از جمله قانون تجارت الکترونیکی، نگهداری و حفاظت می‌کند. این صفحه توضیح می‌دهد چه اطلاعاتی از شما جمع‌آوری می‌شود، برای چه کاری، چه مدت نگهداری می‌شود و چه حقوقی درباره‌ی آن دارید. ثبت‌نام و استفاده از سایت به معنی آگاهی از این سیاست و پذیرش آن است.</p>
           <h2>۱. اطلاعاتی که جمع‌آوری می‌کنیم</h2>
           <ul>
-          <li><strong>اطلاعات حساب کاربری:</strong> شماره موبایل (که نام کاربری شما هم هست و برای ورود با کد یک‌بار مصرف به کار می‌رود)، رمز عبور (به‌صورت رمزنگاری‌شده و غیرقابل بازیابی؛ حتی کارکنان الان‌فلز آن را نمی‌بینند)، نام و نام خانوادگی یا نام شرکت، زمینه‌ی فعالیت و زمان پذیرش قوانین؛ و در صورت تمایل، فلزات تخصصی، استان، شهر، آدرس و ایمیل.</li>
-          <li><strong>سوابق خرید و پرداخت:</strong> اشتراک خریداری‌شده، مبلغ، زمان پرداخت و شماره پیگیری درگاه. اطلاعات کارت بانکی شما در صفحه درگاه پرداخت وارد می‌شود و در سامانه الان‌فلز ذخیره نمی‌شود.</li>
-          <li><strong>پیام‌ها و درخواست‌های پشتیبانی:</strong> متن پیام‌های فرم تماس و تیکت‌ها، به همراه اطلاعات تماسی که خودتان وارد می‌کنید.</li>
-          <li><strong>اطلاعات فنی و استفاده:</strong> نشانی IP، نوع مرورگر و دستگاه، زمان ورود و استفاده از امکانات اشتراکی. این اطلاعات برای امنیت، جلوگیری از سوءاستفاده و اجرای قواعد اشتراک (از جمله شرایط بازگشت وجه) نگهداری می‌شوند.</li>
+          <li><strong>اطلاعات حساب کاربری:</strong> شماره موبایل (که نام کاربری شما هم هست و برای ورود با کد یک‌بار مصرف به کار می‌رود)، رمز عبور (به‌صورت رمزنگاری‌شده و غیرقابل بازیابی؛ حتی کارکنان الان‌فلز آن را نمی‌بینند)، نام و نام خانوادگی، زمینه‌ی فعالیت، فلزات تخصصی و زمان پذیرش قوانین؛ و در صورت تمایل، نام شرکت، استان، شهر، آدرس و ایمیل.</li>
+          <li><strong>سوابق خرید و پرداخت:</strong> اشتراک خریداری‌شده، فلزهایی که برای پیامک قیمت انتخاب و پرداخت کرده‌اید، مبلغ، زمان پرداخت و شماره پیگیری درگاه. اطلاعات کارت بانکی شما فقط در صفحه‌ی درگاه پرداخت بانکی وارد می‌شود و در سامانه‌ی الان‌فلز ذخیره نمی‌شود.</li>
+          <li><strong>پیام‌ها و درخواست‌های پشتیبانی:</strong> متن پیام‌های فرم تماس، تیکت‌ها، تحلیل‌ها، نظرها و امتیازهایی که در سایت ثبت می‌کنید، همراه با اطلاعات تماسی که خودتان وارد می‌کنید.</li>
+          <li><strong>سوابق استفاده از سایت (فقط برای کاربرانی که وارد حساب خود شده‌اند):</strong> صفحه‌هایی که باز می‌کنید، مدت زمانی که هر صفحه جلوی چشم شماست و فلز یا محصولی که آن صفحه درباره‌ی آن است، همراه با حساب شما ثبت می‌شود.</li>
+          <li><strong>اطلاعات فنی:</strong> نشانی IP، نوع مرورگر و دستگاه، زمان ورود و استفاده از امکانات اشتراکی. این اطلاعات برای امنیت، جلوگیری از سوءاستفاده و اجرای قواعد اشتراک (از جمله شرایط بازگشت وجه) نگهداری می‌شود.</li>
           </ul>
           <h2>۲. هدف استفاده از اطلاعات</h2>
           <ul>
           <li>ایجاد و مدیریت حساب کاربری و ورود امن به آن</li>
-          <li>متناسب کردن خدمات و اطلاع‌رسانی‌ها با زمینه‌ی فعالیت و فلزات تخصصی شما</li>
           <li>فعال‌سازی، تمدید و ارتقای اشتراک و رسیدگی به درخواست‌های بازگشت وجه</li>
-          <li>ارسال کد تأیید، پیامک‌های مربوط به حساب و اشتراک (مانند یادآوری پایان اشتراک) و هشدارهای قیمتی که خودتان فعال کرده‌اید</li>
+          <li>ارسال پیامک‌ها: کد تأیید، خوش‌آمدگویی، تأیید خرید، یادآوری پایان اشتراک و پیامک‌های قیمت فلزاتی که انتخاب کرده‌اید</li>
+          <li>شناخت نیاز کاربران و متناسب کردن خدمات، اطلاع‌رسانی‌ها و پیشنهادها با زمینه‌ی فعالیت و فلزات مورد علاقه‌ی آن‌ها</li>
           <li>پاسخ به پیام‌ها و تیکت‌های پشتیبانی</li>
           <li>حفظ امنیت سامانه، پیشگیری از تقلب و سوءاستفاده و رعایت الزامات قانونی</li>
-          <li>بهبود خدمات با استفاده از آمار تجمیعی و بدون شناسایی افراد</li>
+          <li>بهبود خدمات با استفاده از آمار تجمیعی</li>
           </ul>
-          <p>اطلاعات شما فروخته نمی‌شود و برای تبلیغات اشخاص دیگر در اختیار آن‌ها قرار نمی‌گیرد.</p>
+          <p>اطلاعات شما به هیچ شخص یا شرکتی فروخته نمی‌شود و برای تبلیغات اشخاص دیگر در اختیار آن‌ها قرار نمی‌گیرد.</p>
           <h2>۳. اشتراک اطلاعات با دیگران</h2>
-          <p>اطلاعات شما فقط در حد لازم برای ارائه خدمت در اختیار این ارائه‌دهندگان قرار می‌گیرد:</p>
+          <p>اطلاعات شما فقط در حد لازم برای ارائه‌ی خدمت در اختیار این ارائه‌دهندگان داخلی قرار می‌گیرد:</p>
           <ul>
-          <li><strong>سرویس پیامک:</strong> شماره موبایل و متن پیامک، برای ارسال کد تأیید و اطلاع‌رسانی‌ها.</li>
-          <li><strong>درگاه پرداخت:</strong> مبلغ و شناسه سفارش، برای انجام و تأیید پرداخت.</li>
-          <li><strong>میزبانی:</strong> اطلاعات روی سرورهای داخل ایران نگهداری می‌شوند.</li>
+          <li><strong>سرویس پیامک:</strong> شماره موبایل و متن پیامک، برای ارسال پیامک‌ها.</li>
+          <li><strong>درگاه پرداخت:</strong> مبلغ و شناسه‌ی سفارش، برای انجام و تأیید پرداخت.</li>
+          <li><strong>میزبانی و ذخیره‌سازی:</strong> اطلاعات و فایل‌های سایت روی سرورهای داخل ایران نگهداری می‌شود.</li>
           </ul>
-          <p>در صورت درخواست مراجع قانونی صالح، اطلاعات مطابق قوانین لازم‌الاجرا در اختیار آن‌ها قرار می‌گیرد.</p>
-          <h2>۴. کوکی‌ها و آمار بازدید</h2>
+          <p>در صورت درخواست مراجع قضایی یا قانونی صالح، اطلاعات مطابق قوانین لازم‌الاجرا و فقط به همان میزان در اختیار آن‌ها قرار می‌گیرد.</p>
+          <h2>۴. کوکی‌ها، آمار بازدید و سوابق استفاده</h2>
           <p>سایت فقط از کوکی‌های ضروری برای ورود و حفظ نشست کاربری استفاده می‌کند و کوکی ردیابی یا تبلیغاتی ندارد.</p>
-          <p>برای شمارش تعداد بازدیدکنندگان روزانه، نشانی IP و نوع مرورگر شما با کلیدی که هر روز عوض می‌شود به یک شناسه‌ی یک‌طرفه تبدیل می‌شود؛ خود IP ذخیره نمی‌شود و از این شناسه نمی‌توان شما را شناسایی کرد یا بازدیدهای روزهای مختلف را به هم ربط داد. این آمار فقط به‌صورت تجمیعی (مثلاً تعداد بازدیدکنندگان امروز) نگهداری می‌شود و روی سرورهای خود الان‌فلز در داخل ایران است.</p>
+          <p>برای شمارش تعداد بازدیدکنندگان روزانه، نشانی IP و نوع مرورگر با کلیدی که هر روز عوض می‌شود به یک شناسه‌ی یک‌طرفه تبدیل می‌شود؛ خود IP برای این آمار ذخیره نمی‌شود و از این شناسه نمی‌توان شما را شناسایی کرد. وقتی وارد حساب نشده‌اید، بازدید شما فقط شمرده می‌شود و به شما ربط داده نمی‌شود.</p>
+          <p>وقتی با حساب کاربری خود وارد سایت هستید، سوابق استفاده‌ی شما (بند ۱) ثبت می‌شود. این اطلاعات فقط در اختیار کارکنان مجاز الان‌فلز است، روی سرورهای خود الان‌فلز در داخل ایران نگهداری می‌شود و به دیگران فروخته یا داده نمی‌شود.</p>
           <h2>۵. مدت نگهداری</h2>
           <ul>
           <li>اطلاعات حساب کاربری: تا زمانی که حساب فعال است.</li>
           <li>سوابق مالی (سفارش، پرداخت و بازگشت وجه): تا ۱۰ سال، مطابق الزامات نگهداری اسناد مالی.</li>
           <li>پیام‌های فرم تماس و تیکت‌های بسته‌شده: تا ۲ سال.</li>
           <li>سوابق پیامک‌های ارسال‌شده: تا ۱ سال.</li>
+          <li>صفحه‌هایی که کاربران واردشده باز کرده‌اند: تا ۱ سال؛ خلاصه‌ی روزانه‌ی آن (زمان و فلزهای دیده‌شده): تا ۲ سال.</li>
           <li>گزارش‌های فنی سامانه: تا ۳۰ روز.</li>
           <li>شناسه‌های یک‌طرفه‌ی آمار بازدید: تا ۹۰ روز.</li>
           </ul>
+          <p>با حذف حساب کاربری، اطلاعات شخصی و سوابق استفاده‌ی شما پاک می‌شود؛ فقط سوابق مالی، بدون نام و شماره، به مدت الزامی قانونی باقی می‌ماند.</p>
           <h2>۶. امنیت اطلاعات</h2>
-          <p>ارتباط با سایت رمزنگاری‌شده (HTTPS) است، دسترسی کارکنان به اطلاعات محدود به نیاز کاری و همراه با احراز هویت دومرحله‌ای است، تغییرات کارکنان ثبت می‌شود و از اطلاعات به‌صورت منظم نسخه پشتیبان تهیه می‌شود. با این حال هیچ سامانه‌ای امنیت مطلق را تضمین نمی‌کند؛ لطفاً از اطلاعات ورود و دستگاه خود محافظت کنید.</p>
+          <p>ارتباط با سایت رمزنگاری‌شده (HTTPS) است، دسترسی کارکنان به اطلاعات محدود به نیاز کاری و همراه با احراز هویت دومرحله‌ای است، کارهای کارکنان در سامانه ثبت می‌شود و از اطلاعات به‌صورت منظم نسخه‌ی پشتیبان تهیه می‌شود. با این حال هیچ سامانه‌ای امنیت مطلق را تضمین نمی‌کند؛ لطفاً رمز عبور و کد تأیید خود را در اختیار دیگران قرار ندهید و از دستگاه خود محافظت کنید. الان‌فلز هرگز رمز عبور یا کد تأیید شما را از طریق تلفن، پیامک یا پیام‌رسان درخواست نمی‌کند.</p>
           <h2>۷. حقوق شما</h2>
           <ul>
           <li>مشاهده و ویرایش اطلاعات حساب در بخش حساب کاربری</li>
-          <li>درخواست حذف حساب از طریق پشتیبانی (سوابق مالی به مدت الزامی قانونی نگهداری می‌شوند)</li>
-          <li>مدیریت یا لغو دریافت پیامک‌های اطلاع‌رسانی و هشدارها</li>
-          <li>پرسش درباره اطلاعاتی که از شما نگهداری می‌شود</li>
+          <li>درخواست حذف حساب از طریق پشتیبانی (سوابق مالی به مدت الزامی قانونی نگهداری می‌شود)</li>
+          <li>خاموش کردن پیامک‌های قیمت در بخش حساب کاربری</li>
+          <li>پرسش درباره‌ی اطلاعاتی که از شما نگهداری می‌شود و درخواست اصلاح اطلاعات نادرست</li>
           </ul>
-          <h2>۸. تغییرات این سیاست</h2>
-          <p>این سیاست ممکن است به‌روزرسانی شود. تاریخ آخرین به‌روزرسانی در همین صفحه نمایش داده می‌شود و تغییرات مهم از طریق سایت اطلاع‌رسانی خواهد شد.</p>
-          <h2>۹. تماس با ما</h2>
-          <p>برای هر پرسش درباره حریم خصوصی از صفحه <a href="/contact">«تماس با ما»</a> یا تیکت پشتیبانی در حساب کاربری استفاده کنید.</p>
+          <h2>۸. کاربران زیر ۱۸ سال</h2>
+          <p>خدمات الان‌فلز برای فعالان بازار فلزات طراحی شده است. اگر کمتر از ۱۸ سال دارید، با اطلاع و رضایت ولی یا سرپرست قانونی خود از سایت استفاده کنید.</p>
+          <h2>۹. تغییرات این سیاست</h2>
+          <p>این سیاست ممکن است به‌روزرسانی شود. تاریخ آخرین به‌روزرسانی در همین صفحه نمایش داده می‌شود و تغییرات مهم از طریق سایت اطلاع‌رسانی می‌شود. ادامه‌ی استفاده از سایت پس از انتشار تغییرات به معنی پذیرش آن‌هاست.</p>
+          <h2>۱۰. تماس با ما</h2>
+          <p>برای هر پرسش درباره‌ی حریم خصوصی از صفحه‌ی <a href="/contact">«تماس با ما»</a> یا تیکت پشتیبانی در حساب کاربری استفاده کنید.</p>
         body_en: |
-          <p>Alan Felez respects your privacy. This page explains what information we collect, what we use it for, how long we keep it and what rights you have. Using the site means you accept this policy.</p>
+          <p>Alan Felez (alanfelez.ir) respects your privacy and keeps and protects users' information under the laws of the Islamic Republic of Iran, including the Electronic Commerce Act. This page explains what we collect, why, how long we keep it and your rights. Signing up and using the site means you know and accept this policy.</p>
           <h2>1. What we collect</h2>
           <ul>
-          <li><strong>Account details:</strong> your mobile number (to sign up and log in with a one-time code), first and last name and, if you choose, an e-mail address.</li>
-          <li><strong>Purchase and payment records:</strong> the plan bought, amount, payment time and the gateway’s reference number. Your card details are entered on the payment gateway’s page and are never stored by Alan Felez.</li>
-          <li><strong>Messages and support requests:</strong> contact-form messages and tickets, with the contact details you enter.</li>
-          <li><strong>Technical and usage data:</strong> IP address, browser and device type, login times and use of paid features. We keep these for security, abuse prevention and applying the subscription rules (including the refund conditions).</li>
+          <li><strong>Account:</strong> your mobile number (also your username, used for one-time sign-in codes), your password (stored hashed; not even our staff can see it), your name, line of business, metals of interest and when you accepted the terms; and, if you wish, company name, province, city, address and email.</li>
+          <li><strong>Purchases:</strong> the plan bought, the metals you paid price SMS for, the amount, payment time and the gateway's reference number. Card details are entered only on the bank gateway's page and are never stored by Alan Felez.</li>
+          <li><strong>Messages:</strong> contact-form messages, tickets, analyses, comments and ratings you post, with the contact details you enter.</li>
+          <li><strong>Site usage (signed-in users only):</strong> the pages you open, how long each page is in view and the metal or product it is about, recorded with your account.</li>
+          <li><strong>Technical:</strong> IP address, browser and device type, sign-in times and use of paid features, kept for security, abuse prevention and the plan rules (including refunds).</li>
           </ul>
           <h2>2. Why we use it</h2>
           <ul>
-          <li>To create and manage your account and let you log in securely</li>
-          <li>To activate, renew and upgrade subscriptions and handle refund requests</li>
-          <li>To send verification codes, account and subscription SMS (such as expiry reminders) and the price alerts you turned on</li>
-          <li>To answer contact messages and support tickets</li>
-          <li>To keep the system secure, prevent fraud and abuse and meet legal obligations</li>
-          <li>To improve the service using aggregated statistics that don’t identify anyone</li>
+          <li>Creating and managing your account and signing you in securely</li>
+          <li>Activating, renewing and upgrading plans and handling refund requests</li>
+          <li>SMS: sign-in codes, welcome, purchase confirmation, plan reminders and price SMS for the metals you chose</li>
+          <li>Understanding users' needs and tailoring services, notices and offers to their business and metals of interest</li>
+          <li>Answering messages and tickets</li>
+          <li>Security, fraud prevention and legal obligations</li>
+          <li>Improving the service with aggregate statistics</li>
           </ul>
-          <p>We don’t sell your information or share it with others for their advertising.</p>
-          <h2>3. Who we share it with</h2>
-          <p>Only what each provider needs to deliver the service:</p>
+          <p>Your information is never sold and never given to others for their advertising.</p>
+          <h2>3. Sharing</h2>
+          <p>Only what's needed goes to these Iranian providers: the SMS service (number and text), the payment gateway (amount and order id), and hosting and storage on servers inside Iran. Competent judicial or legal authorities receive information only as the law requires.</p>
+          <h2>4. Cookies, visitor counts and usage records</h2>
+          <p>The site uses only the cookies needed to sign in and keep your session; no tracking or advertising cookies. Daily visitors are counted with a one-way identifier from the IP and browser under a key that changes every day; the IP itself isn't kept for this and you can't be identified from it. When you're not signed in, your visit is only counted. When you are signed in, your usage (section 1) is recorded; it is available only to authorised Alan Felez staff, kept on Alan Felez's own servers in Iran, and never sold or given to others.</p>
+          <h2>5. Retention</h2>
           <ul>
-          <li><strong>SMS provider:</strong> your mobile number and the message, to send codes and notifications.</li>
-          <li><strong>Payment gateway:</strong> the amount and order id, to take and verify the payment.</li>
-          <li><strong>Hosting:</strong> data is stored on servers in Iran.</li>
-          </ul>
-          <p>If a competent legal authority requests it, information is disclosed as applicable law requires.</p>
-          <h2>4. Cookies and analytics</h2>
-          <p>The site only uses cookies that are needed to log in and keep your session. Visit statistics are collected with a tool that runs on Alan Felez’s own servers, uses no tracking cookies and doesn’t identify people.</p>
-          <h2>5. How long we keep it</h2>
-          <ul>
-          <li>Account details: while your account is active.</li>
-          <li>Financial records (orders, payments, refunds): up to 10 years, as financial record-keeping requires.</li>
+          <li>Account: while the account exists.</li>
+          <li>Financial records: up to 10 years, as required for financial documents.</li>
           <li>Contact messages and closed tickets: up to 2 years.</li>
-          <li>Records of SMS sent: up to 1 year.</li>
-          <li>Technical system logs: up to 30 days.</li>
+          <li>Sent SMS: up to 1 year.</li>
+          <li>Pages opened by signed-in users: up to 1 year; their daily summary: up to 2 years.</li>
+          <li>Technical logs: up to 30 days. Visitor-count identifiers: up to 90 days.</li>
           </ul>
+          <p>Deleting your account removes your personal details and usage records; only financial records stay, without name or number, for the legally required time.</p>
           <h2>6. Security</h2>
-          <p>Connections to the site are encrypted (HTTPS), staff access is limited to what their work needs and requires two-factor authentication, staff changes are logged and data is backed up regularly. No system can guarantee absolute security, so please protect your login details and device.</p>
+          <p>The site uses HTTPS, staff access is limited to need and protected with two-step sign-in, staff actions are logged and data is backed up regularly. No system is perfectly secure: keep your password and codes to yourself. Alan Felez never asks for your password or sign-in code by phone, SMS or messenger.</p>
           <h2>7. Your rights</h2>
           <ul>
-          <li>View and edit your account details in your account</li>
-          <li>Ask support to delete your account (financial records are kept for the legally required period)</li>
-          <li>Manage or stop notification SMS and alerts</li>
-          <li>Ask what information we hold about you</li>
+          <li>See and edit your account details</li>
+          <li>Ask support to delete your account (financial records are kept as the law requires)</li>
+          <li>Turn price SMS off in your account</li>
+          <li>Ask what we keep about you and have wrong details corrected</li>
           </ul>
-          <h2>8. Changes to this policy</h2>
-          <p>We may update this policy. The date of the last update is shown on this page, and important changes will be announced on the site.</p>
-          <h2>9. Contact</h2>
+          <h2>8. Users under 18</h2>
+          <p>Alan Felez is made for people working in the metals market. If you are under 18, use it with your parent's or guardian's knowledge and consent.</p>
+          <h2>9. Changes</h2>
+          <p>This policy may be updated; the last update date is shown on this page and important changes are announced on the site. Using the site after a change means accepting it.</p>
+          <h2>10. Contact</h2>
           <p>For any privacy question, use the <a href="/en/contact">Contact us</a> page or a support ticket in your account.</p>
-
       - slug: licenses
         published: true   # still hidden: the page and its footer link need the feature flag page.licenses (#29)
         title_fa: "مجوزها و اعتبار"

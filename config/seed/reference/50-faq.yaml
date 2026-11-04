@@ -24,7 +24,7 @@ datasets:
         popular: true
         published: true
         question_fa: "الان‌فلز چیست و چه خدماتی ارائه می‌دهد؟"
-        answer_fa: "<p>الان‌فلز یک پلتفرم تخصصی برای دسترسی به اطلاعات بازار فلزات و مواد اولیه است. کاربران می‌توانند قیمت‌های داخلی و جهانی، نمودار و تاریخچه قیمت، اطلاعات بازار، تحلیل‌ها و ماشین حساب قیمت را در یک محیط یکپارچه مشاهده و بررسی کنند.</p>"
+        answer_fa: "<p>الان‌فلز یک پلتفرم تخصصی برای دسترسی به اطلاعات بازار فلزات و مواد اولیه معدنی است. کاربران می‌توانند قیمت‌های داخلی و جهانی، نمودار و تاریخچه قیمت، اطلاعات بازار، تحلیل‌ها و ماشین حساب قیمت را در یک محیط یکپارچه مشاهده و بررسی کنند.</p>"
         question_en: "What is Alan Felez and what does it offer?"
         answer_en: "<p>Alan Felez is a specialist platform for metals and raw-materials market information. Users can view and review domestic and global prices, price charts and history, market data, analyses and the price calculator in one place.</p>"
       - slug: who-is-it-for  # FAQ.docx #2
@@ -42,7 +42,7 @@ datasets:
         popular: false
         published: true
         question_fa: "چه فلزات و محصولاتی در الان‌فلز پوشش داده می‌شوند؟"
-        answer_fa: "<p>در حال حاضر تمرکز الان‌فلز بر فلزات و مواد اولیه و میانی منتخب از جمله آلومینیوم، مس، برنج، سرب، روی، آهن و چدن است. گروه‌ها و محصولات جدید نیز متناسب با نیاز بازار به مرور به پلتفرم اضافه خواهند شد.</p>"
+        answer_fa: "<p>در حال حاضر تمرکز الان‌فلز بر فلزات و مواد اولیه معدنی و میانی منتخب از جمله آلومینیوم، مس، برنج، سرب، روی، آهن و چدن است. گروه‌ها و محصولات جدید نیز متناسب با نیاز بازار به مرور به پلتفرم اضافه خواهند شد.</p>"
         question_en: "Which metals and products does Alan Felez cover?"
         answer_en: "<p>Alan Felez currently focuses on selected metals and raw and intermediate materials, including aluminium, copper, brass, lead, zinc, iron and cast iron. New groups and products will be added over time as the market needs them.</p>"
       - slug: does-alanfelez-sell-metals  # FAQ.docx #4
@@ -213,7 +213,7 @@ datasets:
         popular: false
         published: true
         question_fa: "مزایدات الان‌فلز چیست؟"
-        answer_fa: "<p>در بخش «مزایدات»، اطلاعات مزایده‌های فلزات، شامل شمش و محصولات میانی، ضایعات و مواد اولیه، منتشر می‌شود. الان‌فلز برگزارکننده‌ی این مزایده‌ها نیست و اطلاعات آن‌ها صرفاً جهت اطلاع منتشر می‌شود؛ شرایط و مهلت قطعی هر مزایده را در آگهی برگزارکننده بررسی کنید.</p>"
+        answer_fa: "<p>در بخش «مزایدات»، اطلاعات مزایده‌های فلزات، شامل شمش و محصولات میانی، ضایعات و مواد اولیه معدنی، منتشر می‌شود. الان‌فلز برگزارکننده‌ی این مزایده‌ها نیست و اطلاعات آن‌ها صرفاً جهت اطلاع منتشر می‌شود؛ شرایط و مهلت قطعی هر مزایده را در آگهی برگزارکننده بررسی کنید.</p>"
         question_en: "What are Alan Felez auctions?"
         answer_en: "<p>The “Auctions” section publishes metal auctions: ingots and intermediate products, scrap and raw materials. Alan Felez doesn't run them; the details are for information, so check each auction's terms and deadline in the organiser's notice.</p>"
       - slug: who-uses-auction-data  # FAQ.docx #30
