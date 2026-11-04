@@ -370,6 +370,50 @@ paths:
         '503': { $ref: '#/components/responses/Problem' }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/checkout/sms-metals/quote:
+    post:
+      operationId: quoteSmsMetals
+      tags: [billing]
+      summary: Price adding SMS metals to the caller's Gold plan (each at the full price of the plan's length). No Gold → 403 FEATURE_LOCKED
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SmsMetalsInput' }
+      responses:
+        '200':
+          description: Quote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SmsMetalsQuote' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/checkout/sms-metals:
+    post:
+      operationId: buySmsMetals
+      tags: [billing]
+      summary: Create an order adding SMS metals to the caller's Gold plan and start its payment (idempotent per key)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 100 }
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SmsMetalsInput' }
+      responses:
+        '201':
+          description: Order created (or the existing one for this key)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckoutResult' }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/payments/verify:
     post:
       operationId: verifyPayment
@@ -2485,7 +2529,7 @@ paths:
     put:
       operationId: setMySmsSettings
       tags: [gold]
-      summary: Choose the price-SMS metals and turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
+      summary: Turn price SMS on or off. Needs alerts.sms (Gold) → 403 FEATURE_LOCKED
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -2493,14 +2537,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [metals, enabled]
+              required: [enabled]
               properties:
-                metals:
-                  type: array
-                  maxItems: 20
-                  items: { type: string, maxLength: 60 }
-                  description: Metal slugs (may be empty); unknown slugs → 400
-                enabled: { type: boolean }
+                enabled: { type: boolean, description: 'Turn price SMS on or off. The metals are bought (POST /v1/checkout, /v1/checkout/sms-metals)' }
       responses:
         '200':
           description: Saved
@@ -3164,19 +3203,45 @@ components:
       properties:
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
+        smsMetals:
+          type: array
+          maxItems: 20
+          items: { type: string, maxLength: 60 }
+          description: >-
+            Gold only (other plans → 400): metal slugs to get price SMS for, 100,000 Toman per metal per month of the
+            period (client, 2026-11-04). Paid metals can't be changed or refunded. Unknown slug → 400
 
     CheckoutQuote:
       type: object
-      required: [plan, period, kind, price, credit, amount, startsAt, endsAt]
+      required: [plan, period, kind, price, credit, amount, startsAt, endsAt, smsMetals, smsPrice, smsMetalPrice]
       properties:
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
         kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
         price: { $ref: '#/components/schemas/Money' }
         credit: { $ref: '#/components/schemas/Money' }
-        amount: { $ref: '#/components/schemas/Money' }
+        amount: { $ref: '#/components/schemas/Money', description: 'What is paid: price − credit + smsPrice' }
+        smsMetals: { type: array, items: { type: string } }
+        smsPrice: { $ref: '#/components/schemas/Money', description: The SMS metals for the whole period }
+        smsMetalPrice: { $ref: '#/components/schemas/Money', description: One SMS metal for this period }
         startsAt: { type: string, format: date-time }
         endsAt: { type: string, format: date-time }
+
+    SmsMetalsInput:
+      type: object
+      required: [metals]
+      properties:
+        metals: { type: array, minItems: 1, maxItems: 20, items: { type: string, maxLength: 60 }, description: Metal slugs; already-paid ones are ignored }
+
+    SmsMetalsQuote:
+      type: object
+      required: [paid, adding, months, amount, endsAt]
+      properties:
+        paid: { type: array, items: { type: string }, description: Metals the plan already has }
+        adding: { type: array, items: { type: string }, description: The new metals priced }
+        months: { type: integer, description: The plan's length in months (each metal costs that many months) }
+        amount: { $ref: '#/components/schemas/Money' }
+        endsAt: { type: string, format: date-time, description: The SMS of the added metals run until the plan ends }
 
     CheckoutResult:
       type: object
@@ -3187,12 +3252,13 @@ components:
 
     Order:
       type: object
-      required: [id, plan, period, kind, price, credit, amount, status, createdAt, refundable]
+      required: [id, plan, period, kind, price, credit, amount, status, createdAt, refundable, smsMetals]
       properties:
         id: { type: string, format: uuid }
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
-        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade, sms_addon], description: 'sms_addon: SMS metals added to a Gold plan' }
+        smsMetals: { type: array, items: { type: string }, description: SMS metals bought with this order }
         price: { $ref: '#/components/schemas/Money' }
         credit: { $ref: '#/components/schemas/Money' }
         amount: { $ref: '#/components/schemas/Money' }
@@ -3251,7 +3317,8 @@ components:
         username: { type: string }
         plan: { $ref: '#/components/schemas/PaidPlan' }
         period: { $ref: '#/components/schemas/BillingPeriod' }
-        kind: { type: string, enum: [new, renewal, upgrade, downgrade] }
+        kind: { type: string, enum: [new, renewal, upgrade, downgrade, sms_addon] }
+        smsMetals: { type: array, items: { type: string }, description: SMS metals bought with this order (not refundable) }
         price: { $ref: '#/components/schemas/Money' }
         credit: { $ref: '#/components/schemas/Money' }
         amount: { $ref: '#/components/schemas/Money' }
@@ -4042,7 +4109,8 @@ components:
         metals:
           type: array
           items: { type: string }
-          description: Metal slugs chosen for all price SMS (after buying Gold)
+          description: Metal slugs paid for (all price SMS) in the Gold plan active now; can't be changed (client, 2026-11-04)
+        addMetalPrice: { $ref: '#/components/schemas/Money', description: 'Gold: adding one metal now (the full price of the plan''s length)' }
         signupMetals:
           type: array
           items: { type: string }

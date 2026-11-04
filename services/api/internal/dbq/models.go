@@ -214,23 +214,26 @@ type AppNotification struct {
 }
 
 type AppOrder struct {
-	ID             pgtype.UUID
-	UserID         pgtype.UUID
-	PlanPriceID    pgtype.UUID
-	PlanCode       string
-	Period         string
-	Kind           string
-	PriceRial      int64
-	CreditRial     int64
-	AmountRial     int64
-	StartsAt       pgtype.Timestamptz
-	Status         string
-	IdempotencyKey string
-	Locale         string
-	ExpiresAt      pgtype.Timestamptz
-	PaidAt         pgtype.Timestamptz
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
+	ID              pgtype.UUID
+	UserID          pgtype.UUID
+	PlanPriceID     pgtype.UUID
+	PlanCode        string
+	Period          string
+	Kind            string
+	PriceRial       int64
+	CreditRial      int64
+	AmountRial      int64
+	StartsAt        pgtype.Timestamptz
+	Status          string
+	IdempotencyKey  string
+	Locale          string
+	ExpiresAt       pgtype.Timestamptz
+	PaidAt          pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+	SmsMetals       []string
+	SmsRial         int64
+	ForSubscription pgtype.UUID
 }
 
 type AppPage struct {
@@ -361,11 +364,6 @@ type AppSiteSetting struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
-type AppSmsMetal struct {
-	UserID  pgtype.UUID
-	MetalID int16
-}
-
 type AppSmsPref struct {
 	UserID    pgtype.UUID
 	MetalID   pgtype.Int2
@@ -386,6 +384,13 @@ type AppSubscription struct {
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
 	OrderID   pgtype.UUID
+}
+
+type AppSubscriptionSmsMetal struct {
+	SubscriptionID pgtype.UUID
+	MetalID        int16
+	OrderID        pgtype.UUID
+	CreatedAt      pgtype.Timestamptz
 }
 
 type AppTicket struct {

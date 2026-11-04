@@ -16,6 +16,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/access"
 	"github.com/alanfelez/alanfelez/services/api/internal/alerts"
 	"github.com/alanfelez/alanfelez/services/api/internal/auth"
+	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/calculator"
 	"github.com/alanfelez/alanfelez/services/api/internal/content"
 	"github.com/alanfelez/alanfelez/services/api/internal/dbq"
@@ -362,7 +363,7 @@ func (s *Server) GetMySmsSettings(ctx context.Context, _ GetMySmsSettingsRequest
 	return GetMySmsSettings200JSONResponse(out), nil
 }
 
-// SetMySmsSettings chooses the price-SMS metals and turns the price SMS on or off (Gold).
+// SetMySmsSettings turns the price SMS on or off (Gold). The metals are bought at checkout (billing).
 func (s *Server) SetMySmsSettings(ctx context.Context, req SetMySmsSettingsRequestObject) (SetMySmsSettingsResponseObject, error) {
 	p := auth.FromContext(ctx)
 	if p == nil {
@@ -378,28 +379,8 @@ func (s *Server) SetMySmsSettings(ctx context.Context, req SetMySmsSettingsReque
 	if _, err := s.touchUser(ctx, p); err != nil { // the prefs row needs the account row
 		return nil, err
 	}
-	metals := dedupe(req.Body.Metals)
-	err = s.tx(ctx, func(q *dbq.Queries) error {
-		if err := q.UpsertSmsEnabled(ctx, dbq.UpsertSmsEnabledParams{UserID: p.ID, Enabled: req.Body.Enabled}); err != nil {
-			return fmt.Errorf("save sms switch: %w", err)
-		}
-		if err := q.ClearSmsMetals(ctx, p.ID); err != nil {
-			return fmt.Errorf("clear sms metals: %w", err)
-		}
-		n, err := q.AddSmsMetals(ctx, dbq.AddSmsMetalsParams{UserID: p.ID, Slugs: metals})
-		if err != nil {
-			return fmt.Errorf("save sms metals: %w", err)
-		}
-		if int(n) != len(metals) {
-			return errUnknownMetal
-		}
-		return nil
-	})
-	if errors.Is(err, errUnknownMetal) {
-		return fail[SetMySmsSettingsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "unknown metal")), nil
-	}
-	if err != nil {
-		return nil, err
+	if err := s.q.UpsertSmsEnabled(ctx, dbq.UpsertSmsEnabledParams{UserID: p.ID, Enabled: req.Body.Enabled}); err != nil {
+		return nil, fmt.Errorf("save sms switch: %w", err)
 	}
 	out, err := s.smsSettings(ctx, p)
 	if err != nil {
@@ -431,7 +412,17 @@ func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSetting
 	if err != nil {
 		return SmsSettings{}, fmt.Errorf("sms metals: %w", err)
 	}
-	out.Metals = append(out.Metals, metals...)
+	for _, m := range metals {
+		out.Metals = append(out.Metals, m.Slug)
+	}
+	if out.Allowed && cur.SubscriptionID.Valid {
+		sub, err := s.q.GetSubscription(ctx, cur.SubscriptionID)
+		if err != nil {
+			return SmsSettings{}, fmt.Errorf("sms subscription: %w", err)
+		}
+		price := rial(billing.SmsMetalsPrice(1, billing.SubscriptionMonths(sub.StartsAt.Time, sub.EndsAt.Time)))
+		out.AddMetalPrice = &price
+	}
 	// The "choose your metals" notice (client, 2026-11-04): Gold, nothing chosen, at most 7 days after buying.
 	if out.Allowed && len(out.Metals) == 0 && cur.SubscriptionID.Valid {
 		bought, err := s.q.SubscriptionBoughtAt(ctx, cur.SubscriptionID)
@@ -448,20 +439,6 @@ func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSetting
 // ChooseSmsMetalsDays is how long after buying Gold the site asks for the SMS metals (client, 2026-11-04).
 const ChooseSmsMetalsDays = 7
 
-var errUnknownMetal = errors.New("unknown metal")
-
-// dedupe drops repeated strings, keeping the first of each.
-func dedupe(in []string) []string {
-	out := make([]string, 0, len(in))
-	seen := map[string]bool{}
-	for _, v := range in {
-		if !seen[v] {
-			seen[v] = true
-			out = append(out, v)
-		}
-	}
-	return out
-}
 
 // intOr0 is an optional integer field, 0 when it's left out.
 func intOr0(p *int) int {

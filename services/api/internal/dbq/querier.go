@@ -35,8 +35,8 @@ type Querier interface {
 	// Time the page was in view, added when the user leaves or hides it (only the user's own view; ≤ 4 h per page).
 	// added = what was really added after the cap.
 	AddPageViewSeconds(ctx context.Context, arg AddPageViewSecondsParams) (AddPageViewSecondsRow, error)
-	// Adds these metals (unknown slugs are ignored); returns how many were added. Call ClearSmsMetals first to replace.
-	AddSmsMetals(ctx context.Context, arg AddSmsMetalsParams) (int64, error)
+	// The SMS metals an order paid for, on its subscription (unknown slugs are ignored; the API checked them).
+	AddSubscriptionSmsMetals(ctx context.Context, arg AddSubscriptionSmsMetalsParams) error
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
 	AdminListCategories(ctx context.Context) ([]AdminListCategoriesRow, error)
 	// For review: waiting ones first (oldest first), then the rest newest first; with the title of what was commented on.
@@ -80,7 +80,6 @@ type Querier interface {
 	CatalogRefsExist(ctx context.Context, arg CatalogRefsExistParams) (CatalogRefsExistRow, error)
 	// Marks a number as welcomed; 0 rows: it already was (another run got there first).
 	ClaimWelcome(ctx context.Context, phone string) (int64, error)
-	ClearSmsMetals(ctx context.Context, userID pgtype.UUID) error
 	CountCalculations(ctx context.Context, userID pgtype.UUID) (int32, error)
 	CountCommunityPosts(ctx context.Context, metal pgtype.Text) (int64, error)
 	CountPendingComments(ctx context.Context) (int64, error)
@@ -168,11 +167,12 @@ type Querier interface {
 	// The on/off switch (absent row = on).
 	GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (bool, error)
 	GetSourceBySlug(ctx context.Context, slug string) (GetSourceBySlugRow, error)
+	GetSubscription(ctx context.Context, id pgtype.UUID) (GetSubscriptionRow, error)
 	GetSubscriptionByOrder(ctx context.Context, orderID pgtype.UUID) (GetSubscriptionByOrderRow, error)
 	GetTicket(ctx context.Context, id pgtype.UUID) (GetTicketRow, error)
 	GetTicketForUpdate(ctx context.Context, id pgtype.UUID) (GetTicketForUpdateRow, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (GetUserRow, error)
-	// Users with SMS on and a phone who ticked this metal at sign-up or chose it for SMS: the IME "updated" SMS. Plan
+	// Users with SMS on and a phone who ticked this metal at sign-up or paid SMS for it: the IME "updated" SMS. Plan
 	// checked in Go.
 	ImeSmsSubscribers(ctx context.Context, arg ImeSmsSubscribersParams) ([]ImeSmsSubscribersRow, error)
 	// New metals start "announced up to now" for both markets, so the first run never sends old changes.
@@ -189,6 +189,7 @@ type Querier interface {
 	// No row back = the slug is taken.
 	InsertMetal(ctx context.Context, arg InsertMetalParams) (InsertMetalRow, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) (pgtype.UUID, error)
+	// amount_rial includes sms_rial (the paid SMS metals, client 2026-11-04).
 	InsertOrder(ctx context.Context, arg InsertOrderParams) (AppOrder, error)
 	// Subscriptions ---------------------------------------------------------------------------------------------
 	InsertOrderSubscription(ctx context.Context, arg InsertOrderSubscriptionParams) (InsertOrderSubscriptionRow, error)
@@ -247,8 +248,8 @@ type Querier interface {
 	ListPublishedArticles(ctx context.Context, arg ListPublishedArticlesParams) ([]ListPublishedArticlesRow, error)
 	// Review of quarantined points -----------------------------------------------------------------------------
 	ListQuarantined(ctx context.Context) ([]ListQuarantinedRow, error)
-	// The metals the user chose for price SMS after buying, in the site's metal order.
-	ListSmsMetals(ctx context.Context, userID pgtype.UUID) ([]string, error)
+	// The metals the user paid SMS for, of the subscriptions active now (internal/billing), in the site's metal order.
+	ListSmsMetals(ctx context.Context, userID pgtype.UUID) ([]ListSmsMetalsRow, error)
 	// Sources ----------------------------------------------------------------------------------------------------
 	ListSources(ctx context.Context) ([]ListSourcesRow, error)
 	ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]ListSubscriptionsRow, error)
@@ -331,13 +332,15 @@ type Querier interface {
 	SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error)
 	// Also bumps last_message_at when a message was just added (touched = true).
 	SetTicketStatus(ctx context.Context, arg SetTicketStatusParams) (SetTicketStatusRow, error)
-	// Users with SMS on and a phone who chose this metal for SMS after buying (or any metal: metal_id NULL). Their plan is
-	// checked in Go (internal/access).
+	// Users with SMS on and a phone who paid SMS for this metal (or any metal: metal_id NULL) in a subscription active now.
+	// Their plan is checked in Go (internal/access).
 	SmsMetalSubscribers(ctx context.Context, metalID pgtype.Int2) ([]SmsMetalSubscribersRow, error)
 	SourceHasPoints(ctx context.Context, sourceID int16) (bool, error)
 	SourceHealth(ctx context.Context) ([]SourceHealthRow, error)
 	// When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
 	SubscriptionBoughtAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
+	// The metals one subscription already sends SMS for.
+	SubscriptionSmsMetals(ctx context.Context, subscriptionID pgtype.UUID) ([]string, error)
 	SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UUID) (bool, error)
 	// Plans bought or granted by staff since a time whose thank-you SMS hasn't gone out, with the member's mobile.
 	SubscriptionsToThank(ctx context.Context, since pgtype.Timestamptz) ([]SubscriptionsToThankRow, error)

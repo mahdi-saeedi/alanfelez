@@ -66,9 +66,10 @@ SELECT coalesce((SELECT enabled FROM app.feature_flags WHERE key = $1), false)::
 SELECT * FROM app.orders WHERE user_id = $1 AND idempotency_key = $2;
 
 -- name: InsertOrder :one
+-- amount_rial includes sms_rial (the paid SMS metals, client 2026-11-04).
 INSERT INTO app.orders (user_id, plan_price_id, plan_code, period, kind, price_rial, credit_rial, amount_rial,
-                        starts_at, idempotency_key, locale, expires_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                        starts_at, idempotency_key, locale, expires_at, sms_metals, sms_rial, for_subscription)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, sqlc.arg(sms_metals)::text[], sqlc.arg(sms_rial), sqlc.narg(for_subscription))
 RETURNING *;
 
 -- name: GetOrder :one
@@ -248,3 +249,17 @@ JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.delete
 WHERE sub.status = 'active' AND sub.created_at >= sqlc.arg(since)
   AND NOT EXISTS (SELECT 1 FROM app.notifications n WHERE n.dedupe_key = 'purchase_thanks:' || sub.id::text)
 ORDER BY sub.created_at;
+
+-- name: AddSubscriptionSmsMetals :exec
+-- The SMS metals an order paid for, on its subscription (unknown slugs are ignored; the API checked them).
+INSERT INTO app.subscription_sms_metals (subscription_id, metal_id, order_id)
+SELECT sqlc.arg(subscription_id), m.id, sqlc.arg(order_id) FROM market.metals m WHERE m.slug = ANY(sqlc.arg(slugs)::text[])
+ON CONFLICT DO NOTHING;
+
+-- name: SubscriptionSmsMetals :many
+-- The metals one subscription already sends SMS for.
+SELECT m.slug FROM app.subscription_sms_metals ssm JOIN market.metals m ON m.id = ssm.metal_id
+WHERE ssm.subscription_id = $1 ORDER BY m.sort, m.id;
+
+-- name: GetSubscription :one
+SELECT id, user_id, plan_code, starts_at, ends_at, status FROM app.subscriptions WHERE id = $1;

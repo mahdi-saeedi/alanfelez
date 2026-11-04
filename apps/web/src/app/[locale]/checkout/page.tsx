@@ -6,6 +6,9 @@ import { Link } from "@/i18n/navigation";
 import { getQuote, type PaidPlan, type Period } from "@/lib/account";
 import { signInTo } from "@/lib/actions";
 import { payAction } from "./actions";
+import { getMetals } from "@/lib/content";
+import { getSmsSettings } from "@/lib/gold";
+import { SmsMetalPicker } from "@/components/gold/SmsMetalPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +54,11 @@ export default async function CheckoutPage({ params, searchParams }: Params) {
   const planName = t(`lock.plan.${plan}`);
   const error = q.error === "agree" ? null : q.error ? (ERRORS.includes(q.error) ? q.error : "generic") : null;
   const due = BigInt(quote.amount.amount) > 0n;
+  // Gold: the SMS metals are chosen and paid here, before paying (client, 2026-11-04). Sign-up metals are shown, not
+  // ticked: every metal costs extra.
+  const gold = plan === "gold";
+  const [metals, sms] = gold ? await Promise.all([getMetals(locale), getSmsSettings()]) : [[], null];
+  const signup = metals.filter((m) => sms?.signupMetals.includes(m.slug)).map((m) => m.name);
 
   return (
     <section className="mx-auto max-w-lg px-4 py-12">
@@ -80,6 +88,27 @@ export default async function CheckoutPage({ params, searchParams }: Params) {
         <input type="hidden" name="locale" value={locale} />
         {/* One key per page view: a double submit reuses the same order and payment. */}
         <input type="hidden" name="key" value={randomUUID()} />
+        {gold && (
+          <fieldset className="rounded-card border border-border bg-surface p-5 shadow-soft">
+            <legend className="sr-only">{t("sms.metal")}</legend>
+            <h2 className="font-bold">{t("sms.metal")}</h2>
+            <p className="mt-1 text-xs leading-6 text-text-2">{t("sms.metalHint")}</p>
+            <p className="mt-1 text-xs leading-6 text-text-2">{t("checkout.smsPrice", { price: toman(quote.smsMetalPrice.amount), period: t(`plans.${period}`) })}</p>
+            {signup.length > 0 && <p className="mt-1 text-xs leading-6 text-text-3">{t("checkout.smsSignup", { metals: signup.join(locale === "fa" ? "، " : ", ") })}</p>}
+            <div className="mt-3">
+              <SmsMetalPicker
+                metals={metals}
+                name="smsMetals"
+                unitRial={quote.smsMetalPrice.amount}
+                baseRial={quote.amount.amount}
+                locale={locale}
+                labels={{ paid: "", total: t("checkout.amount"), pay: "", none: "", toman: locale === "fa" ? "تومان" : "Toman" }}
+                withButton={false}
+              />
+            </div>
+            <p className="mt-3 rounded-lg bg-gold/10 p-3 text-xs leading-6 text-gold-dark">{t("sms.noRefund")}</p>
+          </fieldset>
+        )}
         <label className={`flex items-start gap-2 text-sm ${q.error === "agree" ? "text-down" : ""}`}>
           <input type="checkbox" name="agree" required className="mt-1" />
           <span>
@@ -88,7 +117,7 @@ export default async function CheckoutPage({ params, searchParams }: Params) {
           </span>
         </label>
         <button className="w-full rounded-lg bg-gold px-6 py-3 font-bold text-graphite hover:bg-gold-light">
-          {due ? t("checkout.pay", { amount: toman(quote.amount.amount) }) : t("checkout.activate")}
+          {gold ? t("checkout.payNow") : due ? t("checkout.pay", { amount: toman(quote.amount.amount) }) : t("checkout.activate")}
         </button>
         <p className="text-xs text-text-3">{t("checkout.refundNote")}</p>
         <Link href={{ pathname: "/plans", query: { period } }} className="block text-center text-sm text-text-2 hover:text-gold-dark">
