@@ -2364,8 +2364,11 @@ export interface components {
             refundStatus?: components["schemas"]["RefundStatus"];
             refundReason?: string;
         };
-        /** @enum {string} */
-        ArticleType: "news" | "analysis" | "forecast";
+        /**
+         * @description article = «مقالات», educational and open to everyone (client, 2026-11-04)
+         * @enum {string}
+         */
+        ArticleType: "news" | "analysis" | "forecast" | "article";
         /** @enum {string} */
         ArticleStatus: "draft" | "published" | "archived";
         /**

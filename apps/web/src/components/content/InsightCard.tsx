@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
+import { articleHref } from "@/lib/article-href";
 import { LockIcon } from "@/components/Locked";
 import { KeywordChips, Meta } from "./parts";
 import type { ArticleSummary } from "@/lib/content";
@@ -24,7 +25,7 @@ export async function InsightCard({ a, locale }: { a: ArticleSummary; locale: Lo
         {a.locked ? (
           <Link href="/plans" className="rounded-lg bg-gold px-3 py-2 text-xs font-bold text-graphite hover:bg-gold-light">{t("readToUnlock")}</Link>
         ) : (
-          <Link href={`/analysis/${a.slug}`} className="rounded-lg bg-graphite px-3 py-2 text-xs font-bold text-white hover:bg-graphite-2">{t("read")}</Link>
+          <Link href={articleHref(a)} className="rounded-lg bg-graphite px-3 py-2 text-xs font-bold text-white hover:bg-graphite-2">{t("read")}</Link>
         )}
       </div>
     </article>

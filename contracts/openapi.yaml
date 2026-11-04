@@ -3267,7 +3267,8 @@ components:
     # --- content (M4) ----------------------------------------------------------------
     ArticleType:
       type: string
-      enum: [news, analysis, forecast]
+      description: article = «مقالات», educational and open to everyone (client, 2026-11-04)
+      enum: [news, analysis, forecast, article]
     ArticleStatus:
       type: string
       enum: [draft, published, archived]

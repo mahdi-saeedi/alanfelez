@@ -11,6 +11,7 @@ const QUICK = [
   ["prices", "/prices"],
   ["chart", "/chart"],
   ["analysis", "/analysis"],
+  ["articles", "/articles"], // educational, open to everyone; in the footer for SEO (client, 2026-11-04)
   ["auctions", "/auctions"],
   ["calculator", "/calculator"],
 ] as const;

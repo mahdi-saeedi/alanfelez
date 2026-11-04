@@ -12,7 +12,7 @@ type Input = Schemas["AdminArticleInput"];
 type Type = Schemas["ArticleType"];
 type Status = Schemas["ArticleStatus"];
 
-const TYPES: Type[] = ["news", "analysis", "forecast"];
+const TYPES: Type[] = ["news", "analysis", "forecast", "article"];
 const STATUSES: Status[] = ["draft", "published", "archived"];
 
 /** News, analyses and forecasts (SCOPE §10). The type decides who can read the body on the site (news = everyone). */

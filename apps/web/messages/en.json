@@ -29,7 +29,8 @@
       "chart": "Chart",
       "analysis": "Analysis"
     },
-    "skip": "Skip to main content"
+    "skip": "Skip to main content",
+    "articles": "Articles"
   },
   "auth": {
     "login": "Log in",
@@ -472,7 +473,8 @@
     "type": {
       "news": "News",
       "analysis": "Market analysis",
-      "forecast": "Price forecast"
+      "forecast": "Price forecast",
+      "article": "Article"
     },
     "outlook": {
       "up": "Bullish",
@@ -952,5 +954,14 @@
     "limited": "At most 20 comments a day.",
     "failed": "Not saved; please try again.",
     "title": "Ratings and comments"
+  },
+  "articles": {
+    "title": "Articles",
+    "subtitle": "Practical, educational articles about the metals market; free for everyone.",
+    "empty": "No articles yet.",
+    "back": "Back to articles",
+    "read": "Read the article",
+    "prev": "Previous",
+    "next": "Next"
   }
 }
