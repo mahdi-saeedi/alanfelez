@@ -17,7 +17,8 @@ import { getMe } from "@/lib/account";
 import { formatNumber } from "@alanfelez/ui/format";
 import { AccountMenu } from "./AccountMenu";
 import { RenewBanner } from "./RenewBanner";
-import { RENEW_HIDE_COOKIE } from "./renew-cookie";
+import { RENEW_HIDE_COOKIE, SMS_HIDE_COOKIE } from "./renew-cookie";
+import { getSmsSettings } from "@/lib/gold";
 
 /** The renewal reminder shows when a paid plan ends within this many days (client, 2026-10-29). */
 const RENEW_DAYS = 7;
@@ -48,16 +49,19 @@ export async function Header() {
   const ent = signedIn ? await getEntitlements() : null;
   const tier = ent?.tier ?? "free";
   const renew = await renewReminder(ent?.tier, ent?.tierEndsAt);
+  const chooseSms = !renew && tier === "gold" && (await smsReminder());
 
   // «ورود»: username + password first; «ثبت‌نام»: mobile number + SMS code (see PASSWORD_FIRST).
   async function login() {
     "use server";
     (await cookies()).delete(RENEW_HIDE_COOKIE);
+    (await cookies()).delete(SMS_HIDE_COOKIE);
     await signIn("keycloak", undefined, { ...PASSWORD_FIRST, ui_locales: locale });
   }
   async function signup() {
     "use server";
     (await cookies()).delete(RENEW_HIDE_COOKIE);
+    (await cookies()).delete(SMS_HIDE_COOKIE);
     await signIn("keycloak", undefined, { ui_locales: locale });
   }
   // Ends the website session AND the Keycloak session (otherwise "login" would silently sign the same person back
@@ -66,6 +70,7 @@ export async function Header() {
     "use server";
     const session = await readSession(await headers()).catch(() => null);
     (await cookies()).delete(RENEW_HIDE_COOKIE);
+    (await cookies()).delete(SMS_HIDE_COOKIE);
     await signOut({ redirect: false });
     const url = new URL(`${keycloak.issuer}/protocol/openid-connect/logout`);
     url.searchParams.set("client_id", keycloak.clientId);
@@ -125,6 +130,15 @@ export async function Header() {
           href={{ pathname: "/checkout", query: { plan: renew.plan, period: "month" } }}
         />
       )}
+      {chooseSms && (
+        <RenewBanner
+          text={t("sms.banner")}
+          renew={t("sms.bannerCta")}
+          hide={t("auth.renewHide")}
+          href={{ pathname: "/account", hash: "sms" }}
+          cookie={SMS_HIDE_COOKIE}
+        />
+      )}
       {expired && (
         <div role="status" className="border-t border-graphite-3 bg-gold/15">
           <form action={login} className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm text-white">
@@ -141,6 +155,13 @@ export async function Header() {
  * The renewal reminder's plan and days left, or null: a paid plan ending within RENEW_DAYS, with no renewal already
  * queued, and not hidden with × since the user signed in. Asks for the subscription details only when it's close.
  */
+/** The "choose your SMS metals" notice: Gold bought less than 7 days ago and no metal chosen (the API's chooseUntil). */
+async function smsReminder() {
+  if ((await cookies()).get(SMS_HIDE_COOKIE)) return false;
+  const sms = await getSmsSettings();
+  return !!sms?.chooseUntil && Date.parse(sms.chooseUntil) > Date.now();
+}
+
 async function renewReminder(tier: string | undefined, endsAt: string | undefined) {
   if (!tier || tier === "free" || !endsAt) return null;
   const days = Math.ceil((Date.parse(endsAt) - Date.now()) / 86_400_000);

@@ -36,6 +36,7 @@ type AppArticle struct {
 	UpdatedAt   pgtype.Timestamptz
 	KeywordsFa  string
 	KeywordsEn  pgtype.Text
+	VideoUrl    pgtype.Text
 }
 
 type AppArticleCategory struct {
@@ -45,6 +46,15 @@ type AppArticleCategory struct {
 	NameEn    pgtype.Text
 	Sort      int32
 	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type AppArticleImage struct {
+	ArticleID pgtype.UUID
+	Width     int32
+	Height    int32
+	SizeBytes int32
+	Content   []byte
 	UpdatedAt pgtype.Timestamptz
 }
 
@@ -311,6 +321,7 @@ type AppPriceAlert struct {
 type AppPriceUpdateCursor struct {
 	MetalID         int16
 	NotifiedThrough pgtype.Timestamptz
+	Market          string
 }
 
 type AppRating struct {
@@ -348,6 +359,11 @@ type AppSiteSetting struct {
 	Value     []byte
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
+}
+
+type AppSmsMetal struct {
+	UserID  pgtype.UUID
+	MetalID int16
 }
 
 type AppSmsPref struct {
@@ -435,6 +451,11 @@ type AppVisitTotal struct {
 	Visitors  int32
 	SignedIn  int32
 	Pageviews int32
+}
+
+type AppWelcomedPhone struct {
+	PhoneSha256 []byte
+	CreatedAt   pgtype.Timestamptz
 }
 
 type MarketAuction struct {

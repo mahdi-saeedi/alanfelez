@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetLocale, useTranslate } from "@refinedev/core";
 import type { Schemas } from "@alanfelez/api-client";
 import { formatDate, type Locale } from "@alanfelez/ui/format";
-import { api, canWriteContent, currentRoles, errorText, unwrap } from "../api";
+import { api, canWriteContent, currentRoles, ensureOk, errorText, unwrap } from "../api";
 import { Badge, Button, Card, Field, Input, Notice, Page, Select, Td, Th } from "./ui";
 import { RichEditor } from "./RichEditor";
 
@@ -188,8 +188,11 @@ function ArticleForm({ initial, id }: { initial: Input & { readMinutes?: number 
               {(["up", "down", "neutral"] as const).map((o) => <option key={o} value={o}>{t(`articles.outlook.${o}`)}</option>)}
             </Select>
           </Field>
-          <Field label={t("articles.f.cover")} hint={t("articles.f.coverHint")}>
-            <Input dir="ltr" maxLength={500} value={v.coverUrl ?? ""} onChange={(e) => set("coverUrl", e.target.value)} className="w-full" placeholder="https://" />
+          <Field plain label={t("articles.f.image")} hint={t("articles.f.imageHint")}>
+            {id ? <ArticleImage id={id} hasImage={!!initial.coverUrl?.startsWith("/api/articles/")} writable={writable} /> : <p className="text-xs text-text-3">{t("articles.f.imageAfterSave")}</p>}
+          </Field>
+          <Field label={t("articles.f.video")} hint={t("articles.f.videoHint")}>
+            <Input dir="ltr" maxLength={300} value={v.videoUrl ?? ""} onChange={(e) => set("videoUrl", e.target.value)} className="w-full" placeholder="https://www.aparat.com/v/…" />
           </Field>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={v.featured} onChange={(e) => set("featured", e.target.checked)} />
@@ -206,5 +209,61 @@ function ArticleForm({ initial, id }: { initial: Input & { readMinutes?: number 
         </aside>
       </form>
     </Page>
+  );
+}
+
+/**
+ * The article's picture (client, 2026-11-04): uploaded on its own (not with the form), so the article must be saved
+ * first. JPEG, PNG or GIF up to 5 MB; the API re-encodes it. With a video, the site shows it with a play button.
+ */
+function ArticleImage({ id, hasImage, writable }: { id: string; hasImage: boolean; writable: boolean }) {
+  const t = useTranslate();
+  const qc = useQueryClient();
+  const [version, setVersion] = useState(hasImage ? 1 : 0);
+  const [url, setUrl] = useState<string>();
+  useEffect(() => {
+    if (!version) return setUrl(undefined);
+    let u: string | undefined;
+    void api.GET("/v1/admin/articles/{id}/image", { params: { path: { id } }, parseAs: "blob" }).then((r) => {
+      if (r.data) setUrl((u = URL.createObjectURL(r.data as Blob)));
+    });
+    return () => { if (u) URL.revokeObjectURL(u); };
+  }, [id, version]);
+  const done = () => {
+    void qc.invalidateQueries({ queryKey: ["admin", "articles"] });
+  };
+  const upload = useMutation({
+    mutationFn: async (file: File) =>
+      ensureOk(await api.PUT("/v1/admin/articles/{id}/image", {
+        params: { path: { id } },
+        body: file as unknown as string,
+        bodySerializer: (b: unknown) => b as BodyInit,
+        headers: { "Content-Type": "application/octet-stream" },
+      })),
+    onSuccess: () => { setVersion((n) => n + 1); done(); },
+  });
+  const remove = useMutation({
+    mutationFn: async () => ensureOk(await api.DELETE("/v1/admin/articles/{id}/image", { params: { path: { id } } })),
+    onSuccess: () => { setVersion(0); done(); },
+  });
+  return (
+    <div className="space-y-2">
+      {url ? <img src={url} alt="" className="aspect-video w-full rounded-lg border border-border object-cover" /> : <div className="grid aspect-video w-full place-items-center rounded-lg border border-dashed border-border text-xs text-text-3">{t("articles.f.noImage")}</div>}
+      {writable && (
+        <div className="flex flex-wrap gap-2">
+          <label className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-2">
+            {upload.isPending ? t("common.saving") : url ? t("articles.f.replaceImage") : t("articles.f.uploadImage")}
+            <input type="file" accept="image/jpeg,image/png,image/gif" className="sr-only" disabled={upload.isPending}
+              onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload.mutate(f); }} />
+          </label>
+          {url && (
+            <Button type="button" tone="danger" disabled={remove.isPending} onClick={() => { if (confirm(t("articles.f.removeImageConfirm"))) remove.mutate(); }}>
+              {t("articles.f.removeImage")}
+            </Button>
+          )}
+        </div>
+      )}
+      {(upload.isError || remove.isError) && <Notice tone="error">{errorText(upload.error ?? remove.error, t)}</Notice>}
+    </div>
   );
 }

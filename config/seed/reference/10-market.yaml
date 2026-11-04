@@ -13,7 +13,7 @@ datasets:
 
   - name: product_categories
     rows:
-      - { slug: raw,          name_fa: مواد اولیه,    name_en: Raw materials,         sort: 1 }
+      - { slug: raw,          name_fa: مواد اولیه معدنی, name_en: Mineral raw materials,        sort: 1 }
       - { slug: intermediate, name_fa: محصولات میانی, name_en: Intermediate products, sort: 2 }
       - { slug: scrap,        name_fa: ضایعات,        name_en: Scrap,                 sort: 3 }
 

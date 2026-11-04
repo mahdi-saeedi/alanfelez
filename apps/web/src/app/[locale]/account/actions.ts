@@ -41,10 +41,10 @@ export async function closeTicketAction(form: FormData) {
  * payment result page; `back` is where to return (a path on this site).
  */
 export async function saveSmsSettingsAction(form: FormData) {
-  const metal = String(form.get("metal") ?? "");
+  const metals = form.getAll("metals").map(String).filter(Boolean);
   const enabled = form.get("enabled") === "on";
   const back = String(form.get("back") ?? "/account");
-  const res = metal ? await saveSmsSettings(metal, enabled) : { status: 400 };
+  const res = await saveSmsSettings(metals, enabled);
   revalidatePath("/[locale]/account", "page");
   const sep = back.includes("?") ? "&" : "?";
   const path = back.startsWith("/") && !back.startsWith("//") ? back : "/account";

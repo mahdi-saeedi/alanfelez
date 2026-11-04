@@ -203,7 +203,7 @@ FROM app.notifications n
 LEFT JOIN app.users u ON u.id = n.user_id
 WHERE (sqlc.narg(status)::text IS NULL OR n.status = sqlc.narg(status)::text)
 ORDER BY n.created_at DESC
-LIMIT 200;
+LIMIT 1000;
 
 -- name: AnonymizeUser :execrows
 -- Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
@@ -226,3 +226,25 @@ WHERE cm.user_id = $1;
 
 -- name: UserDeletedAt :one
 SELECT deleted_at FROM app.users WHERE id = $1;
+
+-- name: UsersToWelcome :many
+-- Accounts with a mobile created since a time whose number never had the welcome SMS (app.welcomed_phones).
+SELECT u.id, u.phone_e164, u.first_name, u.last_name, u.locale
+FROM app.users u
+WHERE u.phone_e164 IS NOT NULL AND u.deleted_at IS NULL AND u.blocked_at IS NULL AND u.created_at >= sqlc.arg(since)
+  AND NOT EXISTS (SELECT 1 FROM app.welcomed_phones w WHERE w.phone_sha256 = sha256(convert_to(u.phone_e164, 'UTF8')))
+ORDER BY u.created_at;
+
+-- name: ClaimWelcome :execrows
+-- Marks a number as welcomed; 0 rows: it already was (another run got there first).
+INSERT INTO app.welcomed_phones (phone_sha256) VALUES (sha256(convert_to(sqlc.arg(phone)::text, 'UTF8')))
+ON CONFLICT DO NOTHING;
+
+-- name: SubscriptionsToThank :many
+-- Plans bought (origin order) since a time whose thank-you SMS hasn't gone out, with the buyer's mobile.
+SELECT sub.id, sub.plan_code, sub.ends_at, u.id AS user_id, u.phone_e164, u.first_name, u.last_name, u.locale
+FROM app.subscriptions sub
+JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.deleted_at IS NULL
+WHERE sub.origin = 'order' AND sub.status = 'active' AND sub.created_at >= sqlc.arg(since)
+  AND NOT EXISTS (SELECT 1 FROM app.notifications n WHERE n.dedupe_key = 'purchase_thanks:' || sub.id::text)
+ORDER BY sub.created_at;

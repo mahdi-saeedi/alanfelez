@@ -39,6 +39,7 @@ WHERE a.status = 'published' AND a.published_at <= now()
 -- name: GetPublishedArticle :one
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
+       a.video_url,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -62,7 +63,7 @@ LIMIT 200;
 -- name: GetArticle :one
 SELECT a.id, a.type, a.slug, a.status, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
-       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug
+       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug, a.video_url
 FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
 LEFT JOIN market.metals m ON m.id = a.metal_id
@@ -71,7 +72,7 @@ WHERE a.id = $1;
 -- name: CreateArticle :one
 INSERT INTO app.articles (type, slug, status, category_id, metal_id, outlook, featured, title_fa, title_en,
                           summary_fa, summary_en, keywords_fa, keywords_en, body_fa, body_en, author_fa, author_en, cover_url, read_minutes,
-                          published_at, created_by, updated_by)
+                          published_at, created_by, updated_by, video_url)
 VALUES (sqlc.arg(type), sqlc.arg(slug), sqlc.arg(status),
         (SELECT ac.id FROM app.article_categories ac WHERE ac.slug = sqlc.narg(category_slug)::text),
         (SELECT mm.id FROM market.metals mm WHERE mm.slug = sqlc.narg(metal_slug)::text),
@@ -79,7 +80,7 @@ VALUES (sqlc.arg(type), sqlc.arg(slug), sqlc.arg(status),
         sqlc.arg(summary_fa), sqlc.narg(summary_en), sqlc.arg(keywords_fa), sqlc.narg(keywords_en), sqlc.arg(body_fa), sqlc.narg(body_en),
         sqlc.narg(author_fa), sqlc.narg(author_en), sqlc.narg(cover_url), sqlc.arg(read_minutes),
         CASE WHEN sqlc.arg(status)::text = 'published' THEN coalesce(sqlc.narg(published_at)::timestamptz, now()) ELSE sqlc.narg(published_at)::timestamptz END,
-        sqlc.arg(actor), sqlc.arg(actor))
+        sqlc.arg(actor), sqlc.arg(actor), sqlc.narg(video_url))
 RETURNING id;
 
 -- name: UpdateArticle :one
@@ -94,7 +95,9 @@ UPDATE app.articles AS a SET
   keywords_fa = sqlc.arg(keywords_fa), keywords_en = sqlc.narg(keywords_en),
   body_fa = sqlc.arg(body_fa), body_en = sqlc.narg(body_en),
   author_fa = sqlc.narg(author_fa), author_en = sqlc.narg(author_en),
-  cover_url = sqlc.narg(cover_url), read_minutes = sqlc.arg(read_minutes),
+  -- An uploaded picture owns cover_url (set by SetArticleImage), so a form sending an old value can't drop it.
+  cover_url = CASE WHEN EXISTS (SELECT 1 FROM app.article_images ai WHERE ai.article_id = a.id) THEN a.cover_url ELSE sqlc.narg(cover_url) END,
+  read_minutes = sqlc.arg(read_minutes), video_url = sqlc.narg(video_url),
   published_at = CASE
     WHEN sqlc.narg(published_at)::timestamptz IS NOT NULL THEN sqlc.narg(published_at)::timestamptz
     WHEN sqlc.arg(status)::text = 'published' THEN coalesce(a.published_at, now())
@@ -318,3 +321,29 @@ SELECT count(*) FROM app.comments WHERE status = 'pending';
 -- With a deleted post: its ratings and comments go too.
 WITH r AS (DELETE FROM app.ratings rt WHERE rt.target_kind = $1 AND rt.target_id = $2)
 DELETE FROM app.comments c WHERE c.target_kind = $1 AND c.target_id = $2;
+
+-- name: SetArticleImage :execrows
+-- Stores an article's picture and points its cover at the website's image route (?v= changes with each upload, so
+-- browsers and caches fetch the new one). 0 rows: no such article.
+WITH img AS (
+  INSERT INTO app.article_images (article_id, width, height, size_bytes, content)
+  SELECT a.id, sqlc.arg(width), sqlc.arg(height), sqlc.arg(size_bytes), sqlc.arg(content) FROM app.articles a WHERE a.id = sqlc.arg(article_id)
+  ON CONFLICT (article_id) DO UPDATE SET width = EXCLUDED.width, height = EXCLUDED.height, size_bytes = EXCLUDED.size_bytes,
+    content = EXCLUDED.content, updated_at = now()
+  RETURNING article_id, updated_at
+)
+UPDATE app.articles AS a SET cover_url = '/api/articles/' || img.article_id::text || '/image?v=' || floor(extract(epoch FROM img.updated_at))::bigint::text
+FROM img WHERE a.id = img.article_id;
+
+-- name: DeleteArticleImage :execrows
+WITH gone AS (DELETE FROM app.article_images ai WHERE ai.article_id = $1 RETURNING ai.article_id)
+UPDATE app.articles AS a SET cover_url = NULL FROM gone WHERE a.id = gone.article_id;
+
+-- name: GetPublishedArticleImage :one
+-- A published article's picture (public: the title, summary and picture are for everyone).
+SELECT ai.content FROM app.article_images ai JOIN app.articles a ON a.id = ai.article_id
+WHERE ai.article_id = $1 AND a.status = 'published' AND a.published_at <= now();
+
+-- name: GetArticleImage :one
+-- Any article's picture (staff preview in the admin).
+SELECT content FROM app.article_images WHERE article_id = $1;

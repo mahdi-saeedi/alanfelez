@@ -11,6 +11,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addSmsMetals = `-- name: AddSmsMetals :execrows
+INSERT INTO app.sms_metals (user_id, metal_id)
+SELECT $1, m.id FROM market.metals m WHERE m.slug = ANY($2::text[])
+ON CONFLICT DO NOTHING
+`
+
+type AddSmsMetalsParams struct {
+	UserID pgtype.UUID
+	Slugs  []string
+}
+
+// Adds these metals (unknown slugs are ignored); returns how many were added. Call ClearSmsMetals first to replace.
+func (q *Queries) AddSmsMetals(ctx context.Context, arg AddSmsMetalsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, addSmsMetals, arg.UserID, arg.Slugs)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const alertCandidates = `-- name: AlertCandidates :many
 SELECT a.id, a.user_id, a.kind, a.threshold_minor, a.move_bp, a.armed, a.last_triggered_at,
        s.slug AS series_slug, s.currency, s.unit, p.name_fa AS product_fa, p.name_en AS product_en,
@@ -157,6 +177,15 @@ func (q *Queries) BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMov
 	return items, nil
 }
 
+const clearSmsMetals = `-- name: ClearSmsMetals :exec
+DELETE FROM app.sms_metals WHERE user_id = $1
+`
+
+func (q *Queries) ClearSmsMetals(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, clearSmsMetals, userID)
+	return err
+}
+
 const countCalculations = `-- name: CountCalculations :one
 SELECT count(*)::int FROM app.calculations WHERE user_id = $1 AND created_at > now() - interval '3 months'
 `
@@ -297,27 +326,66 @@ func (q *Queries) GetLatestPrice(ctx context.Context, seriesID int32) (GetLatest
 }
 
 const getSmsPrefs = `-- name: GetSmsPrefs :one
-SELECT m.slug AS metal_slug, p.enabled FROM app.sms_prefs p LEFT JOIN market.metals m ON m.id = p.metal_id WHERE p.user_id = $1
+SELECT p.enabled FROM app.sms_prefs p WHERE p.user_id = $1
 `
 
-type GetSmsPrefsRow struct {
-	MetalSlug pgtype.Text
-	Enabled   bool
+// The on/off switch (absent row = on).
+func (q *Queries) GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, getSmsPrefs, userID)
+	var enabled bool
+	err := row.Scan(&enabled)
+	return enabled, err
 }
 
-func (q *Queries) GetSmsPrefs(ctx context.Context, userID pgtype.UUID) (GetSmsPrefsRow, error) {
-	row := q.db.QueryRow(ctx, getSmsPrefs, userID)
-	var i GetSmsPrefsRow
-	err := row.Scan(&i.MetalSlug, &i.Enabled)
-	return i, err
+const imeSmsSubscribers = `-- name: ImeSmsSubscribers :many
+SELECT u.id AS user_id, u.phone_e164, u.locale
+FROM app.users u
+LEFT JOIN app.sms_prefs p ON p.user_id = u.id
+WHERE u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL AND coalesce(p.enabled, true)
+  AND ($1::text = ANY(coalesce(u.metals, '{}'))
+       OR EXISTS (SELECT 1 FROM app.sms_metals sm WHERE sm.user_id = u.id AND sm.metal_id = $2::smallint))
+`
+
+type ImeSmsSubscribersParams struct {
+	MetalSlug string
+	MetalID   int16
+}
+
+type ImeSmsSubscribersRow struct {
+	UserID    pgtype.UUID
+	PhoneE164 pgtype.Text
+	Locale    string
+}
+
+// Users with SMS on and a phone who ticked this metal at sign-up or chose it for SMS: the IME "updated" SMS. Plan
+// checked in Go.
+func (q *Queries) ImeSmsSubscribers(ctx context.Context, arg ImeSmsSubscribersParams) ([]ImeSmsSubscribersRow, error) {
+	rows, err := q.db.Query(ctx, imeSmsSubscribers, arg.MetalSlug, arg.MetalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ImeSmsSubscribersRow{}
+	for rows.Next() {
+		var i ImeSmsSubscribersRow
+		if err := rows.Scan(&i.UserID, &i.PhoneE164, &i.Locale); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const initPriceUpdateCursors = `-- name: InitPriceUpdateCursors :exec
-INSERT INTO app.price_update_cursor (metal_id, notified_through) SELECT m.id, now() FROM market.metals m
-ON CONFLICT (metal_id) DO NOTHING
+INSERT INTO app.price_update_cursor (metal_id, market, notified_through)
+SELECT m.id, mk.slug, now() FROM market.metals m CROSS JOIN (VALUES ('ime'), ('free')) AS mk (slug)
+ON CONFLICT (metal_id, market) DO NOTHING
 `
 
-// New metals start "announced up to now", so the first run never sends old changes.
+// New metals start "announced up to now" for both markets, so the first run never sends old changes.
 func (q *Queries) InitPriceUpdateCursors(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, initPriceUpdateCursors)
 	return err
@@ -583,6 +651,31 @@ func (q *Queries) ListCalculations(ctx context.Context, userID pgtype.UUID) ([]L
 	return items, nil
 }
 
+const listSmsMetals = `-- name: ListSmsMetals :many
+SELECT m.slug FROM app.sms_metals sm JOIN market.metals m ON m.id = sm.metal_id WHERE sm.user_id = $1 ORDER BY m.sort, m.id
+`
+
+// The metals the user chose for price SMS after buying, in the site's metal order.
+func (q *Queries) ListSmsMetals(ctx context.Context, userID pgtype.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, listSmsMetals, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return nil, err
+		}
+		items = append(items, slug)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserAlerts = `-- name: ListUserAlerts :many
 SELECT a.id, s.slug AS series_slug, s.currency, s.unit, p.name_fa AS product_fa, p.name_en AS product_en,
        a.kind, a.threshold_minor, a.move_bp, a.active, a.last_triggered_at, a.created_at
@@ -659,27 +752,29 @@ func (q *Queries) MarkAlert(ctx context.Context, arg MarkAlertParams) error {
 }
 
 const metalPriceChanges = `-- name: MetalPriceChanges :many
-SELECT m.id AS metal_id, m.name_fa AS metal_fa, m.name_en AS metal_en,
+SELECT m.id AS metal_id, m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en, mk.slug AS market,
        max(l.updated_at)::timestamptz AS last_change, count(*)::int AS changed
 FROM market.price_latest l
 JOIN market.price_series s ON s.id = l.series_id AND s.active
-JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
+JOIN market.markets mk ON mk.id = s.market_id AND mk.slug IN ('ime', 'free')
 JOIN market.products p ON p.id = s.product_id
 JOIN market.metals m ON m.id = p.metal_id
-JOIN app.price_update_cursor c ON c.metal_id = m.id
+JOIN app.price_update_cursor c ON c.metal_id = m.id AND c.market = mk.slug
 WHERE l.updated_at > c.notified_through
-GROUP BY m.id, m.name_fa, m.name_en
+GROUP BY m.id, m.slug, m.name_fa, m.name_en, mk.slug
 `
 
 type MetalPriceChangesRow struct {
 	MetalID    int16
+	MetalSlug  string
 	MetalFa    string
 	MetalEn    pgtype.Text
+	Market     string
 	LastChange pgtype.Timestamptz
 	Changed    int32
 }
 
-// Per metal: domestic latest prices (not global) that changed after the metal's cursor, the last change and how many.
+// Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
 func (q *Queries) MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error) {
 	rows, err := q.db.Query(ctx, metalPriceChanges)
 	if err != nil {
@@ -691,8 +786,10 @@ func (q *Queries) MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow
 		var i MetalPriceChangesRow
 		if err := rows.Scan(
 			&i.MetalID,
+			&i.MetalSlug,
 			&i.MetalFa,
 			&i.MetalEn,
+			&i.Market,
 			&i.LastChange,
 			&i.Changed,
 		); err != nil {
@@ -704,65 +801,6 @@ func (q *Queries) MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow
 		return nil, err
 	}
 	return items, nil
-}
-
-const metalSmsSubscribers = `-- name: MetalSmsSubscribers :many
-SELECT u.id AS user_id, u.phone_e164, u.locale, p.metal_id
-FROM app.sms_prefs p
-JOIN app.users u ON u.id = p.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL
-WHERE p.enabled AND p.metal_id IS NOT NULL AND ($1::smallint IS NULL OR p.metal_id = $1::smallint)
-`
-
-type MetalSmsSubscribersRow struct {
-	UserID    pgtype.UUID
-	PhoneE164 pgtype.Text
-	Locale    string
-	MetalID   pgtype.Int2
-}
-
-// Users who chose this metal and have SMS on, with a phone. Their plan is checked in Go (internal/access).
-func (q *Queries) MetalSmsSubscribers(ctx context.Context, metalID pgtype.Int2) ([]MetalSmsSubscribersRow, error) {
-	rows, err := q.db.Query(ctx, metalSmsSubscribers, metalID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []MetalSmsSubscribersRow{}
-	for rows.Next() {
-		var i MetalSmsSubscribersRow
-		if err := rows.Scan(
-			&i.UserID,
-			&i.PhoneE164,
-			&i.Locale,
-			&i.MetalID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const notificationsSentSince = `-- name: NotificationsSentSince :one
-SELECT count(*)::int FROM app.notifications
-WHERE user_id = $1 AND template = $2 AND status = 'sent' AND created_at >= $3
-`
-
-type NotificationsSentSinceParams struct {
-	UserID   pgtype.UUID
-	Template string
-	Since    pgtype.Timestamptz
-}
-
-// SMS of one template sent to a user since a time (daily caps).
-func (q *Queries) NotificationsSentSince(ctx context.Context, arg NotificationsSentSinceParams) (int32, error) {
-	row := q.db.QueryRow(ctx, notificationsSentSince, arg.UserID, arg.Template, arg.Since)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
 }
 
 const putAuctionFile = `-- name: PutAuctionFile :execrows
@@ -830,43 +868,100 @@ func (q *Queries) SetAlertActive(ctx context.Context, arg SetAlertActiveParams) 
 }
 
 const setPriceUpdateCursor = `-- name: SetPriceUpdateCursor :exec
-UPDATE app.price_update_cursor SET notified_through = $1 WHERE metal_id = $2
+UPDATE app.price_update_cursor SET notified_through = $1
+WHERE metal_id = $2 AND market = $3
 `
 
 type SetPriceUpdateCursorParams struct {
 	Through pgtype.Timestamptz
 	MetalID int16
+	Market  string
 }
 
 func (q *Queries) SetPriceUpdateCursor(ctx context.Context, arg SetPriceUpdateCursorParams) error {
-	_, err := q.db.Exec(ctx, setPriceUpdateCursor, arg.Through, arg.MetalID)
+	_, err := q.db.Exec(ctx, setPriceUpdateCursor, arg.Through, arg.MetalID, arg.Market)
 	return err
+}
+
+const smsMetalSubscribers = `-- name: SmsMetalSubscribers :many
+SELECT u.id AS user_id, u.phone_e164, u.locale, sm.metal_id
+FROM app.sms_metals sm
+JOIN app.users u ON u.id = sm.user_id AND u.phone_e164 IS NOT NULL AND u.blocked_at IS NULL AND u.deleted_at IS NULL
+LEFT JOIN app.sms_prefs p ON p.user_id = u.id
+WHERE coalesce(p.enabled, true) AND ($1::smallint IS NULL OR sm.metal_id = $1::smallint)
+`
+
+type SmsMetalSubscribersRow struct {
+	UserID    pgtype.UUID
+	PhoneE164 pgtype.Text
+	Locale    string
+	MetalID   int16
+}
+
+// Users with SMS on and a phone who chose this metal for SMS after buying (or any metal: metal_id NULL). Their plan is
+// checked in Go (internal/access).
+func (q *Queries) SmsMetalSubscribers(ctx context.Context, metalID pgtype.Int2) ([]SmsMetalSubscribersRow, error) {
+	rows, err := q.db.Query(ctx, smsMetalSubscribers, metalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SmsMetalSubscribersRow{}
+	for rows.Next() {
+		var i SmsMetalSubscribersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.PhoneE164,
+			&i.Locale,
+			&i.MetalID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const subscriptionBoughtAt = `-- name: SubscriptionBoughtAt :one
+SELECT created_at FROM app.subscriptions WHERE id = $1
+`
+
+// When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
+func (q *Queries) SubscriptionBoughtAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, subscriptionBoughtAt, id)
+	var created_at pgtype.Timestamptz
+	err := row.Scan(&created_at)
+	return created_at, err
 }
 
 const uncoveredPriceChanges = `-- name: UncoveredPriceChanges :one
 SELECT count(*)::int
 FROM market.price_latest l
 JOIN market.price_series s ON s.id = l.series_id AND s.active
-JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
-JOIN market.products p ON p.id = s.product_id AND p.metal_id = $1
-JOIN app.price_update_cursor c ON c.metal_id = p.metal_id
+JOIN market.markets mk ON mk.id = s.market_id AND mk.slug = $1::text
+JOIN market.products p ON p.id = s.product_id AND p.metal_id = $2
+JOIN app.price_update_cursor c ON c.metal_id = p.metal_id AND c.market = mk.slug
 WHERE l.updated_at > c.notified_through
   AND NOT EXISTS (
     SELECT 1 FROM app.notifications n
-    WHERE n.user_id = $2 AND n.template = 'price_move' AND n.status = 'sent'
-      AND n.dedupe_key LIKE 'price_move:' || $2::text || ':' || s.id || ':%'
+    WHERE n.user_id = $3 AND n.template = 'price_move' AND n.status = 'sent'
+      AND n.dedupe_key LIKE 'price_move:' || $3::text || ':' || s.id || ':%'
       AND n.created_at >= l.updated_at)
 `
 
 type UncoveredPriceChangesParams struct {
+	Market  string
 	MetalID int16
 	UserID  pgtype.UUID
 }
 
-// How many of a metal's changed domestic prices (since its cursor) the user hasn't had a move alert for since that
-// change: a product whose ±10 % alert already went out isn't announced again in "prices updated" (client, 2026-10-27).
+// How many of a metal's changed prices in one market (since its cursor) the user hasn't had a move alert for since
+// that change: a product whose ±10 % alert already went out isn't counted again in an "updated" SMS (client, 2026-10-27).
 func (q *Queries) UncoveredPriceChanges(ctx context.Context, arg UncoveredPriceChangesParams) (int32, error) {
-	row := q.db.QueryRow(ctx, uncoveredPriceChanges, arg.MetalID, arg.UserID)
+	row := q.db.QueryRow(ctx, uncoveredPriceChanges, arg.Market, arg.MetalID, arg.UserID)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -925,23 +1020,17 @@ func (q *Queries) UpdateAuction(ctx context.Context, arg UpdateAuctionParams) (i
 	return result.RowsAffected(), nil
 }
 
-const upsertSmsPrefs = `-- name: UpsertSmsPrefs :execrows
-INSERT INTO app.sms_prefs (user_id, metal_id, enabled)
-SELECT $1, mm.id, $2 FROM market.metals mm WHERE mm.slug = $3::text
-ON CONFLICT (user_id) DO UPDATE SET metal_id = EXCLUDED.metal_id, enabled = EXCLUDED.enabled, updated_at = now()
+const upsertSmsEnabled = `-- name: UpsertSmsEnabled :exec
+INSERT INTO app.sms_prefs (user_id, enabled) VALUES ($1, $2)
+ON CONFLICT (user_id) DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = now()
 `
 
-type UpsertSmsPrefsParams struct {
-	UserID    pgtype.UUID
-	Enabled   bool
-	MetalSlug string
+type UpsertSmsEnabledParams struct {
+	UserID  pgtype.UUID
+	Enabled bool
 }
 
-// 0 rows: unknown metal slug.
-func (q *Queries) UpsertSmsPrefs(ctx context.Context, arg UpsertSmsPrefsParams) (int64, error) {
-	result, err := q.db.Exec(ctx, upsertSmsPrefs, arg.UserID, arg.Enabled, arg.MetalSlug)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) UpsertSmsEnabled(ctx context.Context, arg UpsertSmsEnabledParams) error {
+	_, err := q.db.Exec(ctx, upsertSmsEnabled, arg.UserID, arg.Enabled)
+	return err
 }

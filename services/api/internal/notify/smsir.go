@@ -112,3 +112,9 @@ func abbreviate(s string) string {
 	}
 	return s
 }
+
+// Has reports whether template has an sms.ir template id (see Configured).
+func (s SmsIr) Has(template string) bool {
+	_, ok := s.Templates[template]
+	return ok
+}

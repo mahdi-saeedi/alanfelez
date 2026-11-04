@@ -18,7 +18,7 @@ FROM app.notifications n
 LEFT JOIN app.users u ON u.id = n.user_id
 WHERE ($1::text IS NULL OR n.status = $1::text)
 ORDER BY n.created_at DESC
-LIMIT 200
+LIMIT 1000
 `
 
 type AdminListNotificationsRow struct {
@@ -180,6 +180,20 @@ WHERE id = $1
 func (q *Queries) CancelSubscription(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, cancelSubscription, id)
 	return err
+}
+
+const claimWelcome = `-- name: ClaimWelcome :execrows
+INSERT INTO app.welcomed_phones (phone_sha256) VALUES (sha256(convert_to($1::text, 'UTF8')))
+ON CONFLICT DO NOTHING
+`
+
+// Marks a number as welcomed; 0 rows: it already was (another run got there first).
+func (q *Queries) ClaimWelcome(ctx context.Context, phone string) (int64, error) {
+	result, err := q.db.Exec(ctx, claimWelcome, phone)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const currentPlanPrice = `-- name: CurrentPlanPrice :one
@@ -1139,6 +1153,56 @@ func (q *Queries) SubscriptionUsed(ctx context.Context, subscriptionID pgtype.UU
 	return exists, err
 }
 
+const subscriptionsToThank = `-- name: SubscriptionsToThank :many
+SELECT sub.id, sub.plan_code, sub.ends_at, u.id AS user_id, u.phone_e164, u.first_name, u.last_name, u.locale
+FROM app.subscriptions sub
+JOIN app.users u ON u.id = sub.user_id AND u.phone_e164 IS NOT NULL AND u.deleted_at IS NULL
+WHERE sub.origin = 'order' AND sub.status = 'active' AND sub.created_at >= $1
+  AND NOT EXISTS (SELECT 1 FROM app.notifications n WHERE n.dedupe_key = 'purchase_thanks:' || sub.id::text)
+ORDER BY sub.created_at
+`
+
+type SubscriptionsToThankRow struct {
+	ID        pgtype.UUID
+	PlanCode  string
+	EndsAt    pgtype.Timestamptz
+	UserID    pgtype.UUID
+	PhoneE164 pgtype.Text
+	FirstName pgtype.Text
+	LastName  pgtype.Text
+	Locale    string
+}
+
+// Plans bought (origin order) since a time whose thank-you SMS hasn't gone out, with the buyer's mobile.
+func (q *Queries) SubscriptionsToThank(ctx context.Context, since pgtype.Timestamptz) ([]SubscriptionsToThankRow, error) {
+	rows, err := q.db.Query(ctx, subscriptionsToThank, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SubscriptionsToThankRow{}
+	for rows.Next() {
+		var i SubscriptionsToThankRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlanCode,
+			&i.EndsAt,
+			&i.UserID,
+			&i.PhoneE164,
+			&i.FirstName,
+			&i.LastName,
+			&i.Locale,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertUser = `-- name: UpsertUser :one
 
 INSERT INTO app.users (id, username, phone_e164, first_name, last_name, email, activity, metals, province, company, last_seen_at)
@@ -1220,4 +1284,47 @@ func (q *Queries) UserDeletedAt(ctx context.Context, id pgtype.UUID) (pgtype.Tim
 	var deleted_at pgtype.Timestamptz
 	err := row.Scan(&deleted_at)
 	return deleted_at, err
+}
+
+const usersToWelcome = `-- name: UsersToWelcome :many
+SELECT u.id, u.phone_e164, u.first_name, u.last_name, u.locale
+FROM app.users u
+WHERE u.phone_e164 IS NOT NULL AND u.deleted_at IS NULL AND u.blocked_at IS NULL AND u.created_at >= $1
+  AND NOT EXISTS (SELECT 1 FROM app.welcomed_phones w WHERE w.phone_sha256 = sha256(convert_to(u.phone_e164, 'UTF8')))
+ORDER BY u.created_at
+`
+
+type UsersToWelcomeRow struct {
+	ID        pgtype.UUID
+	PhoneE164 pgtype.Text
+	FirstName pgtype.Text
+	LastName  pgtype.Text
+	Locale    string
+}
+
+// Accounts with a mobile created since a time whose number never had the welcome SMS (app.welcomed_phones).
+func (q *Queries) UsersToWelcome(ctx context.Context, since pgtype.Timestamptz) ([]UsersToWelcomeRow, error) {
+	rows, err := q.db.Query(ctx, usersToWelcome, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UsersToWelcomeRow{}
+	for rows.Next() {
+		var i UsersToWelcomeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PhoneE164,
+			&i.FirstName,
+			&i.LastName,
+			&i.Locale,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

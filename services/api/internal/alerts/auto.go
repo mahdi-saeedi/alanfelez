@@ -17,13 +17,16 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/prices"
 )
 
-// Automatic Gold SMS about the user's main metal (client, 2026-10-27; owner OK'd). Global prices don't count.
+// Automatic Gold SMS by metal (client, 2026-11-04; owner OK'd). World prices never count. Three kinds, each its own SMS:
+//   - ime_update: IME prices of a metal were updated; for the metals ticked at sign-up and the metals chosen for SMS
+//   - price_update: market (free) prices of a metal were updated; for the metals chosen for SMS only
+//   - price_move: an IME or market price moved 10 % or more against the previous day; for the metals chosen for SMS only
+//
+// No daily cap per user any more (client, 2026-11-04); the daily SMS budget (site setting "sms") still stops everything.
 const (
-	// UpdateQuiet is how long a metal's prices must stay unchanged before its "prices updated" SMS goes out, so a
-	// staff member entering 15 products sends one SMS, not 15.
+	// UpdateQuiet is how long a metal's prices in one market must stay unchanged before its "updated" SMS goes out, so
+	// a staff member entering 15 products sends one SMS, not 15.
 	UpdateQuiet = 15 * time.Minute
-	// UpdatesPerDay is how many "prices updated" SMS a user receives per Tehran day at most.
-	UpdatesPerDay = 3
 	// BigMoveBp is the move against the previous day that sends an alert (10 %, up or down), once per product and day.
 	BigMoveBp = 1000
 	// QuietFrom is the Tehran hour the night pause starts: nothing is sent until QuietUntil, when what's due goes out.
@@ -34,13 +37,15 @@ const (
 
 // Template ids (sms_templates texts and sms.ir templates).
 const (
+	tmplIme    = "ime_update"   // {metal} {count}; sms.ir: METAL, COUNT
 	tmplUpdate = "price_update" // {metal} {count}; sms.ir: METAL, COUNT
 	tmplMove   = "price_move"   // {product} {price} {change}; sms.ir: the price_alert template (PRODUCT, PRICE, CHANGE)
 )
 
 var autoDefaults = map[string]map[string]string{
-	tmplUpdate: {"fa": "الان\u200cفلز - به\u200cروزرسانی قیمت\nفلز: {metal}\nتعداد محصولات: {count}", "en": "Alan Felez: {metal} prices updated ({count} products)"},
-	tmplMove:   {"fa": "الان\u200cفلز - هشدار قیمت\nکالا: {product}\nقیمت: {price}\nتغییر: {change}", "en": "Alan Felez price alert: {product} {price} ({change})"},
+	tmplIme:    {"fa": "الان\u200cفلز - به\u200cروزرسانی قیمت بورس کالا\nفلز: {metal}\nتعداد محصولات: {count}", "en": "Alan Felez: {metal} IME prices updated ({count} products)"},
+	tmplUpdate: {"fa": "الان\u200cفلز - به\u200cروزرسانی قیمت بازار\nفلز: {metal}\nتعداد محصولات: {count}", "en": "Alan Felez: {metal} market prices updated ({count} products)"},
+	tmplMove:   {"fa": "الان\u200cفلز - هشدار نوسان قیمت\nکالا: {product}\nقیمت: {price}\nتغییر: {change}", "en": "Alan Felez price alert: {product} {price} ({change})"},
 }
 
 // Quiet reports whether t falls in the night pause (Tehran time).
@@ -68,8 +73,7 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 	if Quiet(now) {
 		return 0, nil
 	}
-	dayStart := tehranMidnight(now)
-	if over, err := s.overBudget(ctx, q, dayStart); err != nil || over {
+	if over, err := s.overBudget(ctx, q, tehranMidnight(now)); err != nil || over {
 		return 0, err
 	}
 	if err := q.InitPriceUpdateCursors(ctx); err != nil {
@@ -92,9 +96,9 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 	if err != nil {
 		return sent, fmt.Errorf("alerts: moves: %w", err)
 	}
-	var subs []dbq.MetalSmsSubscribersRow
+	var subs []dbq.SmsMetalSubscribersRow
 	if len(moves) > 0 {
-		if subs, err = q.MetalSmsSubscribers(ctx, pgtype.Int2{}); err != nil {
+		if subs, err = q.SmsMetalSubscribers(ctx, pgtype.Int2{}); err != nil {
 			return sent, fmt.Errorf("alerts: subscribers: %w", err)
 		}
 	}
@@ -102,7 +106,7 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 	for _, m := range moves {
 		ch, _ := prices.ChangeFrom(&m.PrevCloseMinor, m.PriceMinor)
 		for _, u := range subs {
-			if !u.MetalID.Valid || u.MetalID.Int16 != m.MetalID {
+			if u.MetalID != m.MetalID {
 				continue
 			}
 			if ok, err := isGold(u.UserID); err != nil || !ok {
@@ -132,8 +136,9 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 		}
 	}
 
-	// 2. "Prices updated", one per metal batch, counting only the products the user hasn't just had a move alert for;
-	// none left = no SMS (client, 2026-10-27: no second SMS for the same change).
+	// 2. "Updated", one SMS per metal, market and batch, counting only the products the user hasn't just had a move
+	// alert for; none left = no SMS (client, 2026-10-27: no second SMS for the same change). IME goes to the metals
+	// ticked at sign-up and the ones chosen for SMS, the market to the chosen ones only (client, 2026-11-04).
 	changes, err := q.MetalPriceChanges(ctx)
 	if err != nil {
 		return sent, fmt.Errorf("alerts: price changes: %w", err)
@@ -142,32 +147,46 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 		if !BatchReady(c.LastChange.Time, now) {
 			continue
 		}
-		subs, err := q.MetalSmsSubscribers(ctx, pgtype.Int2{Int16: c.MetalID, Valid: true})
-		if err != nil {
-			return sent, fmt.Errorf("alerts: subscribers: %w", err)
+		type sub struct {
+			id     pgtype.UUID
+			phone  string
+			locale string
 		}
-		for _, u := range subs {
-			if ok, err := isGold(u.UserID); err != nil || !ok {
+		var list []sub
+		tmpl := tmplUpdate
+		if c.Market == "ime" {
+			tmpl = tmplIme
+			rows, err := q.ImeSmsSubscribers(ctx, dbq.ImeSmsSubscribersParams{MetalSlug: c.MetalSlug, MetalID: c.MetalID})
+			if err != nil {
+				return sent, fmt.Errorf("alerts: ime subscribers: %w", err)
+			}
+			for _, r := range rows {
+				list = append(list, sub{r.UserID, r.PhoneE164.String, r.Locale})
+			}
+		} else {
+			rows, err := q.SmsMetalSubscribers(ctx, pgtype.Int2{Int16: c.MetalID, Valid: true})
+			if err != nil {
+				return sent, fmt.Errorf("alerts: subscribers: %w", err)
+			}
+			for _, r := range rows {
+				list = append(list, sub{r.UserID, r.PhoneE164.String, r.Locale})
+			}
+		}
+		for _, u := range list {
+			if ok, err := isGold(u.id); err != nil || !ok {
 				if err != nil {
 					return sent, err
 				}
 				continue
 			}
-			n, err := q.NotificationsSentSince(ctx, dbq.NotificationsSentSinceParams{UserID: u.UserID, Template: tmplUpdate, Since: pgtype.Timestamptz{Time: dayStart, Valid: true}})
-			if err != nil {
-				return sent, fmt.Errorf("alerts: daily count: %w", err)
-			}
-			if n >= UpdatesPerDay {
-				continue
-			}
-			changed, err := q.UncoveredPriceChanges(ctx, dbq.UncoveredPriceChangesParams{MetalID: c.MetalID, UserID: u.UserID})
+			changed, err := q.UncoveredPriceChanges(ctx, dbq.UncoveredPriceChangesParams{Market: c.Market, MetalID: c.MetalID, UserID: u.id})
 			if err != nil {
 				return sent, fmt.Errorf("alerts: uncovered changes: %w", err)
 			}
 			if changed == 0 {
 				continue
 			}
-			lang := langOf(u.Locale)
+			lang := langOf(u.locale)
 			metal := c.MetalFa
 			if lang == "en" && c.MetalEn.Valid && c.MetalEn.String != "" {
 				metal = c.MetalEn.String
@@ -176,10 +195,10 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 			if lang == "fa" {
 				count = jalali.Digits(count)
 			}
-			body := strings.NewReplacer("{metal}", metal, "{count}", count).Replace(texts[tmplUpdate][lang])
-			key := fmt.Sprintf("%s:%s:%d:%d", tmplUpdate, uuid.UUID(u.UserID.Bytes), c.MetalID, c.LastChange.Time.UnixMicro())
-			ok, err := s.deliver(ctx, q, u.UserID, u.PhoneE164.String, key, tmplUpdate, notify.Message{
-				Template: tmplUpdate, Body: body, Params: []notify.Param{{Name: "METAL", Value: metal}, {Name: "COUNT", Value: count}},
+			body := strings.NewReplacer("{metal}", metal, "{count}", count).Replace(texts[tmpl][lang])
+			key := fmt.Sprintf("%s:%s:%d:%d", tmpl, uuid.UUID(u.id.Bytes), c.MetalID, c.LastChange.Time.UnixMicro())
+			ok, err := s.deliver(ctx, q, u.id, u.phone, key, tmpl, notify.Message{
+				Template: tmpl, Body: body, Params: []notify.Param{{Name: "METAL", Value: metal}, {Name: "COUNT", Value: count}},
 			})
 			if err != nil {
 				return sent, err
@@ -188,7 +207,7 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 				sent++
 			}
 		}
-		if err := q.SetPriceUpdateCursor(ctx, dbq.SetPriceUpdateCursorParams{MetalID: c.MetalID, Through: c.LastChange}); err != nil {
+		if err := q.SetPriceUpdateCursor(ctx, dbq.SetPriceUpdateCursorParams{MetalID: c.MetalID, Market: c.Market, Through: c.LastChange}); err != nil {
 			return sent, fmt.Errorf("alerts: cursor: %w", err)
 		}
 	}
@@ -198,6 +217,9 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 
 // deliver sends one SMS unless its dedupe key was used, and logs it in app.notifications.
 func (s *Service) deliver(ctx context.Context, q *dbq.Queries, user pgtype.UUID, phone, key, template string, m notify.Message) (bool, error) {
+	if !notify.Configured(s.sms, m.Template) {
+		return false, nil // its sms.ir template isn't approved yet
+	}
 	if done, err := q.NotificationSent(ctx, key); err != nil {
 		return false, fmt.Errorf("alerts: dedupe: %w", err)
 	} else if done {

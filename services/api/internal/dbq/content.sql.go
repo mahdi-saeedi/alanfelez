@@ -315,7 +315,7 @@ func (q *Queries) CountUserCommunityPostsSince(ctx context.Context, arg CountUse
 const createArticle = `-- name: CreateArticle :one
 INSERT INTO app.articles (type, slug, status, category_id, metal_id, outlook, featured, title_fa, title_en,
                           summary_fa, summary_en, keywords_fa, keywords_en, body_fa, body_en, author_fa, author_en, cover_url, read_minutes,
-                          published_at, created_by, updated_by)
+                          published_at, created_by, updated_by, video_url)
 VALUES ($1, $2, $3,
         (SELECT ac.id FROM app.article_categories ac WHERE ac.slug = $4::text),
         (SELECT mm.id FROM market.metals mm WHERE mm.slug = $5::text),
@@ -323,7 +323,7 @@ VALUES ($1, $2, $3,
         $10, $11, $12, $13, $14, $15,
         $16, $17, $18, $19,
         CASE WHEN $3::text = 'published' THEN coalesce($20::timestamptz, now()) ELSE $20::timestamptz END,
-        $21, $21)
+        $21, $21, $22)
 RETURNING id
 `
 
@@ -349,6 +349,7 @@ type CreateArticleParams struct {
 	ReadMinutes  int32
 	PublishedAt  pgtype.Timestamptz
 	Actor        pgtype.UUID
+	VideoUrl     pgtype.Text
 }
 
 func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (pgtype.UUID, error) {
@@ -374,6 +375,7 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (p
 		arg.ReadMinutes,
 		arg.PublishedAt,
 		arg.Actor,
+		arg.VideoUrl,
 	)
 	var id pgtype.UUID
 	err := row.Scan(&id)
@@ -529,6 +531,19 @@ func (q *Queries) CreateFaqItem(ctx context.Context, arg CreateFaqItemParams) (p
 	return id, err
 }
 
+const deleteArticleImage = `-- name: DeleteArticleImage :execrows
+WITH gone AS (DELETE FROM app.article_images ai WHERE ai.article_id = $1 RETURNING ai.article_id)
+UPDATE app.articles AS a SET cover_url = NULL FROM gone WHERE a.id = gone.article_id
+`
+
+func (q *Queries) DeleteArticleImage(ctx context.Context, articleID pgtype.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteArticleImage, articleID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteCommunityPost = `-- name: DeleteCommunityPost :execrows
 DELETE FROM app.community_posts WHERE id = $1 AND user_id = $2
 `
@@ -577,7 +592,7 @@ func (q *Queries) DeleteFaqItem(ctx context.Context, id pgtype.UUID) (int64, err
 const getArticle = `-- name: GetArticle :one
 SELECT a.id, a.type, a.slug, a.status, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at,
-       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug
+       a.created_at, a.updated_at, c.slug AS category_slug, m.slug AS metal_slug, a.video_url
 FROM app.articles a
 LEFT JOIN app.article_categories c ON c.id = a.category_id
 LEFT JOIN market.metals m ON m.id = a.metal_id
@@ -608,6 +623,7 @@ type GetArticleRow struct {
 	UpdatedAt    pgtype.Timestamptz
 	CategorySlug pgtype.Text
 	MetalSlug    pgtype.Text
+	VideoUrl     pgtype.Text
 }
 
 func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow, error) {
@@ -637,6 +653,7 @@ func (q *Queries) GetArticle(ctx context.Context, id pgtype.UUID) (GetArticleRow
 		&i.UpdatedAt,
 		&i.CategorySlug,
 		&i.MetalSlug,
+		&i.VideoUrl,
 	)
 	return i, err
 }
@@ -657,6 +674,18 @@ func (q *Queries) GetArticleForDiscussion(ctx context.Context, id pgtype.UUID) (
 	var i GetArticleForDiscussionRow
 	err := row.Scan(&i.Type, &i.Status)
 	return i, err
+}
+
+const getArticleImage = `-- name: GetArticleImage :one
+SELECT content FROM app.article_images WHERE article_id = $1
+`
+
+// Any article's picture (staff preview in the admin).
+func (q *Queries) GetArticleImage(ctx context.Context, articleID pgtype.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getArticleImage, articleID)
+	var content []byte
+	err := row.Scan(&content)
+	return content, err
 }
 
 const getCommunityPostImage = `-- name: GetCommunityPostImage :one
@@ -729,6 +758,7 @@ func (q *Queries) GetPage(ctx context.Context, slug string) (GetPageRow, error) 
 const getPublishedArticle = `-- name: GetPublishedArticle :one
 SELECT a.id, a.type, a.slug, a.outlook, a.featured, a.title_fa, a.title_en, a.summary_fa, a.summary_en,
        a.keywords_fa, a.keywords_en, a.body_fa, a.body_en, a.author_fa, a.author_en, a.cover_url, a.read_minutes, a.published_at, a.updated_at,
+       a.video_url,
        c.slug AS category_slug, c.name_fa AS category_fa, c.name_en AS category_en,
        m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en
 FROM app.articles a
@@ -757,6 +787,7 @@ type GetPublishedArticleRow struct {
 	ReadMinutes  int32
 	PublishedAt  pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
+	VideoUrl     pgtype.Text
 	CategorySlug pgtype.Text
 	CategoryFa   pgtype.Text
 	CategoryEn   pgtype.Text
@@ -788,6 +819,7 @@ func (q *Queries) GetPublishedArticle(ctx context.Context, slug string) (GetPubl
 		&i.ReadMinutes,
 		&i.PublishedAt,
 		&i.UpdatedAt,
+		&i.VideoUrl,
 		&i.CategorySlug,
 		&i.CategoryFa,
 		&i.CategoryEn,
@@ -796,6 +828,19 @@ func (q *Queries) GetPublishedArticle(ctx context.Context, slug string) (GetPubl
 		&i.MetalEn,
 	)
 	return i, err
+}
+
+const getPublishedArticleImage = `-- name: GetPublishedArticleImage :one
+SELECT ai.content FROM app.article_images ai JOIN app.articles a ON a.id = ai.article_id
+WHERE ai.article_id = $1 AND a.status = 'published' AND a.published_at <= now()
+`
+
+// A published article's picture (public: the title, summary and picture are for everyone).
+func (q *Queries) GetPublishedArticleImage(ctx context.Context, articleID pgtype.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getPublishedArticleImage, articleID)
+	var content []byte
+	err := row.Scan(&content)
+	return content, err
 }
 
 const getSetting = `-- name: GetSetting :one
@@ -1410,6 +1455,42 @@ func (q *Queries) SavePageRevision(ctx context.Context, arg SavePageRevisionPara
 	return err
 }
 
+const setArticleImage = `-- name: SetArticleImage :execrows
+WITH img AS (
+  INSERT INTO app.article_images (article_id, width, height, size_bytes, content)
+  SELECT a.id, $1, $2, $3, $4 FROM app.articles a WHERE a.id = $5
+  ON CONFLICT (article_id) DO UPDATE SET width = EXCLUDED.width, height = EXCLUDED.height, size_bytes = EXCLUDED.size_bytes,
+    content = EXCLUDED.content, updated_at = now()
+  RETURNING article_id, updated_at
+)
+UPDATE app.articles AS a SET cover_url = '/api/articles/' || img.article_id::text || '/image?v=' || floor(extract(epoch FROM img.updated_at))::bigint::text
+FROM img WHERE a.id = img.article_id
+`
+
+type SetArticleImageParams struct {
+	Width     int32
+	Height    int32
+	SizeBytes int32
+	Content   []byte
+	ArticleID pgtype.UUID
+}
+
+// Stores an article's picture and points its cover at the website's image route (?v= changes with each upload, so
+// browsers and caches fetch the new one). 0 rows: no such article.
+func (q *Queries) SetArticleImage(ctx context.Context, arg SetArticleImageParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setArticleImage,
+		arg.Width,
+		arg.Height,
+		arg.SizeBytes,
+		arg.Content,
+		arg.ArticleID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const setCommentStatus = `-- name: SetCommentStatus :execrows
 UPDATE app.comments SET status = $1, reviewed_by = $2::uuid, reviewed_at = now()
 WHERE id = $3
@@ -1487,13 +1568,15 @@ UPDATE app.articles AS a SET
   keywords_fa = $12, keywords_en = $13,
   body_fa = $14, body_en = $15,
   author_fa = $16, author_en = $17,
-  cover_url = $18, read_minutes = $19,
+  -- An uploaded picture owns cover_url (set by SetArticleImage), so a form sending an old value can't drop it.
+  cover_url = CASE WHEN EXISTS (SELECT 1 FROM app.article_images ai WHERE ai.article_id = a.id) THEN a.cover_url ELSE $18 END,
+  read_minutes = $19, video_url = $20,
   published_at = CASE
-    WHEN $20::timestamptz IS NOT NULL THEN $20::timestamptz
+    WHEN $21::timestamptz IS NOT NULL THEN $21::timestamptz
     WHEN $3::text = 'published' THEN coalesce(a.published_at, now())
     ELSE a.published_at END,
-  updated_by = $21
-WHERE a.id = $22
+  updated_by = $22
+WHERE a.id = $23
 RETURNING a.id
 `
 
@@ -1517,6 +1600,7 @@ type UpdateArticleParams struct {
 	AuthorEn     pgtype.Text
 	CoverUrl     pgtype.Text
 	ReadMinutes  int32
+	VideoUrl     pgtype.Text
 	PublishedAt  pgtype.Timestamptz
 	Actor        pgtype.UUID
 	ID           pgtype.UUID
@@ -1544,6 +1628,7 @@ func (q *Queries) UpdateArticle(ctx context.Context, arg UpdateArticleParams) (p
 		arg.AuthorEn,
 		arg.CoverUrl,
 		arg.ReadMinutes,
+		arg.VideoUrl,
 		arg.PublishedAt,
 		arg.Actor,
 		arg.ID,

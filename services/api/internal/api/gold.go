@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"context"
 	"encoding/json"
 	"errors"
@@ -347,7 +349,7 @@ func isNotNullViolation(err error) bool {
 
 // --- price SMS settings (Gold, client 2026-10-27) -------------------------------------
 
-// GetMySmsSettings returns the user's main metal for the automatic price SMS (internal/alerts.Auto).
+// GetMySmsSettings returns the user's price-SMS metals and switch (internal/alerts.Auto).
 func (s *Server) GetMySmsSettings(ctx context.Context, _ GetMySmsSettingsRequestObject) (GetMySmsSettingsResponseObject, error) {
 	p := auth.FromContext(ctx)
 	if p == nil {
@@ -360,7 +362,7 @@ func (s *Server) GetMySmsSettings(ctx context.Context, _ GetMySmsSettingsRequest
 	return GetMySmsSettings200JSONResponse(out), nil
 }
 
-// SetMySmsSettings chooses the main metal and turns the price SMS on or off (Gold).
+// SetMySmsSettings chooses the price-SMS metals and turns the price SMS on or off (Gold).
 func (s *Server) SetMySmsSettings(ctx context.Context, req SetMySmsSettingsRequestObject) (SetMySmsSettingsResponseObject, error) {
 	p := auth.FromContext(ctx)
 	if p == nil {
@@ -376,12 +378,28 @@ func (s *Server) SetMySmsSettings(ctx context.Context, req SetMySmsSettingsReque
 	if _, err := s.touchUser(ctx, p); err != nil { // the prefs row needs the account row
 		return nil, err
 	}
-	n, err := s.q.UpsertSmsPrefs(ctx, dbq.UpsertSmsPrefsParams{UserID: p.ID, MetalSlug: req.Body.Metal, Enabled: req.Body.Enabled})
-	if err != nil {
-		return nil, fmt.Errorf("save sms settings: %w", err)
-	}
-	if n == 0 {
+	metals := dedupe(req.Body.Metals)
+	err = s.tx(ctx, func(q *dbq.Queries) error {
+		if err := q.UpsertSmsEnabled(ctx, dbq.UpsertSmsEnabledParams{UserID: p.ID, Enabled: req.Body.Enabled}); err != nil {
+			return fmt.Errorf("save sms switch: %w", err)
+		}
+		if err := q.ClearSmsMetals(ctx, p.ID); err != nil {
+			return fmt.Errorf("clear sms metals: %w", err)
+		}
+		n, err := q.AddSmsMetals(ctx, dbq.AddSmsMetalsParams{UserID: p.ID, Slugs: metals})
+		if err != nil {
+			return fmt.Errorf("save sms metals: %w", err)
+		}
+		if int(n) != len(metals) {
+			return errUnknownMetal
+		}
+		return nil
+	})
+	if errors.Is(err, errUnknownMetal) {
 		return fail[SetMySmsSettingsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "unknown metal")), nil
+	}
+	if err != nil {
+		return nil, err
 	}
 	out, err := s.smsSettings(ctx, p)
 	if err != nil {
@@ -395,19 +413,54 @@ func (s *Server) smsSettings(ctx context.Context, p *auth.Principal) (SmsSetting
 	if err != nil {
 		return SmsSettings{}, err //nolint:wrapcheck // tier lookups say what failed
 	}
-	out := SmsSettings{Allowed: access.Allowed(cur.Tier, access.AlertsSMS), Enabled: true}
+	out := SmsSettings{Allowed: access.Allowed(cur.Tier, access.AlertsSMS), Enabled: true, Metals: []string{}, SignupMetals: []string{}}
 	if ph := phoneOf(p.Username); ph != "" {
 		out.Phone = &ph
 	}
-	row, err := s.q.GetSmsPrefs(ctx, p.ID)
-	switch {
+	if p.Metals != nil {
+		out.SignupMetals = p.Metals
+	}
+	switch on, err := s.q.GetSmsPrefs(ctx, p.ID); {
 	case errors.Is(err, pgx.ErrNoRows):
 	case err != nil:
 		return SmsSettings{}, fmt.Errorf("sms settings: %w", err)
 	default:
-		out.Metal, out.Enabled = textp(row.MetalSlug), row.Enabled
+		out.Enabled = on
+	}
+	metals, err := s.q.ListSmsMetals(ctx, p.ID)
+	if err != nil {
+		return SmsSettings{}, fmt.Errorf("sms metals: %w", err)
+	}
+	out.Metals = append(out.Metals, metals...)
+	// The "choose your metals" notice (client, 2026-11-04): Gold, nothing chosen, at most 7 days after buying.
+	if out.Allowed && len(out.Metals) == 0 && cur.SubscriptionID.Valid {
+		bought, err := s.q.SubscriptionBoughtAt(ctx, cur.SubscriptionID)
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return SmsSettings{}, fmt.Errorf("sms notice: %w", err)
+		}
+		if until := bought.Time.Add(ChooseSmsMetalsDays * 24 * time.Hour); err == nil && time.Now().Before(until) {
+			out.ChooseUntil = &until
+		}
 	}
 	return out, nil
+}
+
+// ChooseSmsMetalsDays is how long after buying Gold the site asks for the SMS metals (client, 2026-11-04).
+const ChooseSmsMetalsDays = 7
+
+var errUnknownMetal = errors.New("unknown metal")
+
+// dedupe drops repeated strings, keeping the first of each.
+func dedupe(in []string) []string {
+	out := make([]string, 0, len(in))
+	seen := map[string]bool{}
+	for _, v := range in {
+		if !seen[v] {
+			seen[v] = true
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 // intOr0 is an optional integer field, 0 when it's left out.
