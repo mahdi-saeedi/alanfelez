@@ -7,6 +7,10 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-04 (privacy policy, «مواد اولیه معدنی», staff accounts from the admin)
 
 ## Now (in progress)
+- [ ] **Admin analytics and tools** (client 2026-11-05, owner OK): «تحلیل بازدید» (products and metals seen, sections by
+      audience, sales funnel and plans-from, traffic sources with campaign tags, devices, provinces, site searches;
+      migration 00038) → staging. Next: revenue report and dashboard charts; users export segments, customer notes
+      for sales, staff work report, global search, phone-friendly tables.
 - [ ] **Privacy policy, «مواد اولیه معدنی» in the CMS texts, staff accounts → staging** (2026-11-04, branch
       `feat/privacy-staff`); then the main site after the client's check.
 - [ ] **SMS by metal, greetings, article media** (2026-11-04): on staging; waiting for the client's check, then the main

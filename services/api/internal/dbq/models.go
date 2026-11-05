@@ -152,6 +152,7 @@ type AppDailyVisit struct {
 	FirstAt   pgtype.Timestamptz
 	LastAt    pgtype.Timestamptz
 	Pageviews int32
+	Device    pgtype.Text
 }
 
 type AppEntitlementUsage struct {
@@ -263,6 +264,16 @@ type AppPageRevision struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type AppPageStatsDaily struct {
+	Day      pgtype.Date
+	Audience string
+	Section  string
+	Metal    string
+	Series   string
+	Views    int32
+	Seconds  int64
+}
+
 type AppPageView struct {
 	ID         pgtype.UUID
 	UserID     pgtype.UUID
@@ -310,6 +321,14 @@ type AppPlanPrice struct {
 	UpdatedAt  pgtype.Timestamptz
 }
 
+type AppPlansFromDaily struct {
+	Day     pgtype.Date
+	Page    string
+	Section string
+	Metal   string
+	Views   int32
+}
+
 type AppPriceAlert struct {
 	ID              pgtype.UUID
 	UserID          pgtype.UUID
@@ -339,6 +358,13 @@ type AppRating struct {
 	UpdatedAt  pgtype.Timestamptz
 }
 
+type AppReachDaily struct {
+	Day     pgtype.Date
+	Kind    string
+	Key     string
+	Visitor string
+}
+
 type AppRefund struct {
 	ID         pgtype.UUID
 	OrderID    pgtype.UUID
@@ -350,6 +376,13 @@ type AppRefund struct {
 	DecidedAt  pgtype.Timestamptz
 	CreatedAt  pgtype.Timestamptz
 	UpdatedAt  pgtype.Timestamptz
+}
+
+type AppSearchTermsDaily struct {
+	Day         pgtype.Date
+	Term        string
+	Searches    int32
+	ZeroResults int32
 }
 
 type AppSeedRun struct {
@@ -420,23 +453,32 @@ type AppTicketMessage struct {
 	CreatedAt  pgtype.Timestamptz
 }
 
+type AppTrafficDaily struct {
+	Day      pgtype.Date
+	Source   string
+	Campaign string
+	Landings int32
+}
+
 type AppUser struct {
-	ID         pgtype.UUID
-	Username   string
-	PhoneE164  pgtype.Text
-	FirstName  pgtype.Text
-	LastName   pgtype.Text
-	Email      pgtype.Text
-	Locale     string
-	BlockedAt  pgtype.Timestamptz
-	CreatedAt  pgtype.Timestamptz
-	LastSeenAt pgtype.Timestamptz
-	UpdatedAt  pgtype.Timestamptz
-	Activity   pgtype.Text
-	Metals     []string
-	Province   pgtype.Text
-	DeletedAt  pgtype.Timestamptz
-	Company    pgtype.Text
+	ID             pgtype.UUID
+	Username       string
+	PhoneE164      pgtype.Text
+	FirstName      pgtype.Text
+	LastName       pgtype.Text
+	Email          pgtype.Text
+	Locale         string
+	BlockedAt      pgtype.Timestamptz
+	CreatedAt      pgtype.Timestamptz
+	LastSeenAt     pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	Activity       pgtype.Text
+	Metals         []string
+	Province       pgtype.Text
+	DeletedAt      pgtype.Timestamptz
+	Company        pgtype.Text
+	SignupSource   pgtype.Text
+	SignupCampaign pgtype.Text
 }
 
 type AppUserActivityDaily struct {

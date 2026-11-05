@@ -186,7 +186,7 @@ func (q *Queries) ListSubscriptions(ctx context.Context, userID pgtype.UUID) ([]
 }
 
 const recordVisit = `-- name: RecordVisit :exec
-INSERT INTO app.daily_visits (day, visitor, user_id) VALUES ($1::date, $2, $3)
+INSERT INTO app.daily_visits (day, visitor, user_id, device) VALUES ($1::date, $2, $3, $4)
 ON CONFLICT (day, visitor) DO UPDATE SET last_at = now(), pageviews = app.daily_visits.pageviews + 1
 `
 
@@ -194,10 +194,16 @@ type RecordVisitParams struct {
 	Day     pgtype.Date
 	Visitor string
 	UserID  pgtype.UUID
+	Device  pgtype.Text
 }
 
 func (q *Queries) RecordVisit(ctx context.Context, arg RecordVisitParams) error {
-	_, err := q.db.Exec(ctx, recordVisit, arg.Day, arg.Visitor, arg.UserID)
+	_, err := q.db.Exec(ctx, recordVisit,
+		arg.Day,
+		arg.Visitor,
+		arg.UserID,
+		arg.Device,
+	)
 	return err
 }
 

@@ -608,6 +608,48 @@ paths:
               schema: { type: string, format: binary }
         default: { $ref: '#/components/responses/Problem' }
 
+  /v1/admin/analytics:
+    get:
+      operationId: adminAnalytics
+      tags: [admin]
+      summary: >-
+        «تحلیل بازدید» for a period (default the last 30 days, Tehran): products and metals seen (with the period before),
+        sections by audience, the sales funnel, where plan-page visitors came from, traffic sources, devices, provinces
+        and site searches. Nameless totals. Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: Analytics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminAnalytics' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/analytics/export:
+    get:
+      operationId: adminExportAnalytics
+      tags: [admin]
+      summary: One table of «تحلیل بازدید» as a CSV file for Excel. Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+        - { name: table, in: query, required: true, schema: { type: string, enum: [products, metals, sections, traffic, searches] } }
+        - { $ref: '#/components/parameters/AcceptLanguage' }
+      responses:
+        '200':
+          description: UTF-8 CSV with a byte order mark
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+
   /v1/admin/dashboard:
     get:
       operationId: adminDashboard
@@ -1470,7 +1512,33 @@ paths:
                   maximum: 1800
                   description: >
                     Time the page was in view since the last report (the user left or hid it). With it, the call only adds
-                    time to the view `view` (the caller's own) and counts nothing.
+                    time: to the view `view` (the caller's own) and to the page's nameless totals; it counts nothing.
+                from: { type: string, maxLength: 300, description: 'The site page (path) the visitor was on before this one, if any' }
+                landing:
+                  type: boolean
+                  description: The first page of a visit in this tab; with ref/utm it counts where the visit came from
+                ref: { type: string, maxLength: 300, description: 'The referring page (document.referrer) of a landing; only its site name is kept' }
+                utm: { type: string, maxLength: 80, description: utm_source of a landing (a campaign tag) }
+                campaign: { type: string, maxLength: 80, description: utm_campaign of a landing }
+      responses:
+        '204': { description: Counted (or ignored) }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/searches:
+    post:
+      operationId: recordSearch
+      tags: [site]
+      summary: Count a site search (sent by the website's search page; the term and whether anything was found). Always 204
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [q, results]
+              properties:
+                q: { type: string, maxLength: 200 }
+                results: { type: integer, minimum: 0 }
       responses:
         '204': { description: Counted (or ignored) }
         default: { $ref: '#/components/responses/Problem' }
@@ -3411,6 +3479,132 @@ components:
         enabled: { type: boolean }
         totp: { type: boolean, description: Has set up two-step sign-in }
         createdAt: { type: string, format: date-time }
+
+    AdminAnalytics:
+      type: object
+      required: [from, to, products, metals, sections, funnel, plansFrom, traffic, devices, provinces, searches]
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        products:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsProduct' }
+        metals:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsMetal' }
+        sections:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsSection' }
+        funnel:
+          type: object
+          required: [visitors, signups, plansVisitors, checkoutVisitors, buyers]
+          properties:
+            visitors: { type: integer, format: int64, description: 'Unique visitors (a visitor is counted once a day; the last 90 days)' }
+            signups: { type: integer, format: int64 }
+            plansVisitors: { type: integer, format: int64 }
+            checkoutVisitors: { type: integer, format: int64 }
+            buyers: { type: integer, format: int64, description: Members who paid in the period }
+        plansFrom:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsPlansFrom' }
+        traffic:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsTraffic' }
+        devices:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsDevice' }
+        provinces:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsProvince' }
+        searches:
+          type: array
+          items: { $ref: '#/components/schemas/AnalyticsSearch' }
+
+    AnalyticsProduct:
+      type: object
+      required: [series, product, metal, metalName, market, unit, views, paidViews, visitors, seconds, prevViews]
+      properties:
+        series: { type: string }
+        product: { type: string }
+        metal: { type: string }
+        metalName: { type: string }
+        market: { type: string }
+        unit: { type: string, description: 'e.g. Toman/kg' }
+        views: { type: integer, format: int64 }
+        paidViews: { type: integer, format: int64, description: Views by Silver and Gold members }
+        visitors: { type: integer, format: int64, description: 'Unique visitors (counted for the last 90 days only)' }
+        seconds: { type: integer, format: int64, description: Time in view, all views together }
+        prevViews: { type: integer, format: int64, description: Views in the same number of days before }
+
+    AnalyticsMetal:
+      type: object
+      required: [metal, name, views, visitors, seconds, prevViews]
+      properties:
+        metal: { type: string }
+        name: { type: string }
+        views: { type: integer, format: int64 }
+        visitors: { type: integer, format: int64 }
+        seconds: { type: integer, format: int64 }
+        prevViews: { type: integer, format: int64 }
+
+    AnalyticsSection:
+      type: object
+      required: [section, visitors, guest, free, paid]
+      properties:
+        section: { type: string }
+        visitors: { type: integer, format: int64 }
+        guest: { $ref: '#/components/schemas/ViewsSeconds' }
+        free: { $ref: '#/components/schemas/ViewsSeconds' }
+        paid: { $ref: '#/components/schemas/ViewsSeconds' }
+
+    AnalyticsPlansFrom:
+      type: object
+      required: [page, section, metal, views]
+      properties:
+        page: { type: string, description: plans or checkout }
+        section: { type: string }
+        metal: { type: string }
+        views: { type: integer, format: int64 }
+
+    AnalyticsTraffic:
+      type: object
+      required: [source, campaign, landings, signups, buyers]
+      properties:
+        source: { type: string, description: 'direct, google, instagram, telegram…, ref:<site> or utm:<tag>' }
+        campaign: { type: string }
+        landings: { type: integer, format: int64 }
+        signups: { type: integer, format: int64 }
+        buyers: { type: integer, format: int64 }
+
+    AnalyticsDevice:
+      type: object
+      required: [device, visitorDays]
+      properties:
+        device: { type: string }
+        visitorDays: { type: integer, format: int64 }
+
+    AnalyticsProvince:
+      type: object
+      required: [province, members, paying]
+      properties:
+        province: { type: string }
+        members: { type: integer, format: int64 }
+        paying: { type: integer, format: int64 }
+
+    AnalyticsSearch:
+      type: object
+      required: [term, searches, zeroResults]
+      properties:
+        term: { type: string }
+        searches: { type: integer, format: int64 }
+        zeroResults: { type: integer, format: int64 }
+
+    ViewsSeconds:
+      type: object
+      required: [views, seconds]
+      properties:
+        views: { type: integer, format: int64 }
+        seconds: { type: integer, format: int64 }
 
     CheckoutResult:
       type: object

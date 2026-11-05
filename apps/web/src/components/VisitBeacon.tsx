@@ -36,6 +36,32 @@ function newId(): string | undefined {
   }
 }
 
+// Where this tab's visit came from, kept for the visit (sessionStorage, not a cookie; gone when the tab closes): the
+// referring site and campaign tags of the first page, sent again with every page so a member who signs up during
+// the visit is credited to it (admin «تحلیل بازدید», client 2026-11-05).
+const SOURCE_KEY = "af_src";
+type Source = { ref?: string; utm?: string; campaign?: string };
+
+function visitSource(params: URLSearchParams): { source: Source; landing: boolean } {
+  try {
+    const kept = sessionStorage.getItem(SOURCE_KEY);
+    if (kept) return { source: JSON.parse(kept) as Source, landing: false };
+    const external = document.referrer && !document.referrer.startsWith(location.origin) ? document.referrer : "";
+    const source: Source = {
+      ...(external ? { ref: external.slice(0, 300) } : {}),
+      ...(params.get("utm_source") ? { utm: params.get("utm_source")!.slice(0, 80) } : {}),
+      ...(params.get("utm_campaign") ? { campaign: params.get("utm_campaign")!.slice(0, 80) } : {}),
+    };
+    sessionStorage.setItem(SOURCE_KEY, JSON.stringify(source));
+    return { source, landing: true };
+  } catch {
+    return { source: {}, landing: false }; // storage blocked: the visit is still counted, its source isn't
+  }
+}
+
+// The previous page of this tab (the section that sent a visitor to the plans page).
+let previousPath = "";
+
 function Beacon() {
   const pathname = usePathname();
   const params = useSearchParams();
@@ -44,7 +70,10 @@ function Beacon() {
   useEffect(() => {
     const path = (query ? `${pathname}?${query}` : pathname).slice(0, 300);
     const view = newId();
-    send(view ? { path, view } : { path });
+    const { source, landing } = visitSource(params);
+    const from = previousPath && previousPath !== path ? previousPath : undefined;
+    previousPath = path;
+    send({ path, ...(view ? { view } : {}), ...source, ...(landing ? { landing } : {}), ...(from ? { from } : {}) });
     if (!view) return;
 
     // Time in view: counted while the page is visible, reported when it's hidden or left (at most 30 minutes a report).

@@ -33,7 +33,7 @@ WITH ins AS (
 SELECT salt FROM ins UNION ALL SELECT vs.salt FROM app.visit_salts vs WHERE vs.day = sqlc.arg(day)::date LIMIT 1;
 
 -- name: RecordVisit :exec
-INSERT INTO app.daily_visits (day, visitor, user_id) VALUES (sqlc.arg(day)::date, sqlc.arg(visitor), sqlc.narg(user_id))
+INSERT INTO app.daily_visits (day, visitor, user_id, device) VALUES (sqlc.arg(day)::date, sqlc.arg(visitor), sqlc.narg(user_id), sqlc.narg(device))
 ON CONFLICT (day, visitor) DO UPDATE SET last_at = now(), pageviews = app.daily_visits.pageviews + 1;
 
 -- name: VisitTotals :many

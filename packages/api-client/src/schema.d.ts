@@ -456,6 +456,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** «تحلیل بازدید» for a period (default the last 30 days, Tehran): products and metals seen (with the period before), sections by audience, the sales funnel, where plan-page visitors came from, traffic sources, devices, provinces and site searches. Nameless totals. Roles staff */
+        get: operations["adminAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/analytics/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One table of «تحلیل بازدید» as a CSV file for Excel. Roles staff */
+        get: operations["adminExportAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/dashboard": {
         parameters: {
             query?: never;
@@ -1067,6 +1101,23 @@ export interface paths {
          * @description Signed-in callers are counted by their user id; anonymous ones by a one-way id of the day's salt, IP and user agent (the IP isn't stored). Always 204.
          */
         post: operations["recordVisit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Count a site search (sent by the website's search page; the term and whether anything was found). Always 204 */
+        post: operations["recordSearch"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2414,6 +2465,133 @@ export interface components {
             totp: boolean;
             /** Format: date-time */
             createdAt: string;
+        };
+        AdminAnalytics: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            products: components["schemas"]["AnalyticsProduct"][];
+            metals: components["schemas"]["AnalyticsMetal"][];
+            sections: components["schemas"]["AnalyticsSection"][];
+            funnel: {
+                /**
+                 * Format: int64
+                 * @description Unique visitors (a visitor is counted once a day; the last 90 days)
+                 */
+                visitors: number;
+                /** Format: int64 */
+                signups: number;
+                /** Format: int64 */
+                plansVisitors: number;
+                /** Format: int64 */
+                checkoutVisitors: number;
+                /**
+                 * Format: int64
+                 * @description Members who paid in the period
+                 */
+                buyers: number;
+            };
+            plansFrom: components["schemas"]["AnalyticsPlansFrom"][];
+            traffic: components["schemas"]["AnalyticsTraffic"][];
+            devices: components["schemas"]["AnalyticsDevice"][];
+            provinces: components["schemas"]["AnalyticsProvince"][];
+            searches: components["schemas"]["AnalyticsSearch"][];
+        };
+        AnalyticsProduct: {
+            series: string;
+            product: string;
+            metal: string;
+            metalName: string;
+            market: string;
+            /** @description e.g. Toman/kg */
+            unit: string;
+            /** Format: int64 */
+            views: number;
+            /**
+             * Format: int64
+             * @description Views by Silver and Gold members
+             */
+            paidViews: number;
+            /**
+             * Format: int64
+             * @description Unique visitors (counted for the last 90 days only)
+             */
+            visitors: number;
+            /**
+             * Format: int64
+             * @description Time in view
+             */
+            seconds: number;
+            /**
+             * Format: int64
+             * @description Views in the same number of days before
+             */
+            prevViews: number;
+        };
+        AnalyticsMetal: {
+            metal: string;
+            name: string;
+            /** Format: int64 */
+            views: number;
+            /** Format: int64 */
+            visitors: number;
+            /** Format: int64 */
+            seconds: number;
+            /** Format: int64 */
+            prevViews: number;
+        };
+        AnalyticsSection: {
+            section: string;
+            /** Format: int64 */
+            visitors: number;
+            guest: components["schemas"]["ViewsSeconds"];
+            free: components["schemas"]["ViewsSeconds"];
+            paid: components["schemas"]["ViewsSeconds"];
+        };
+        AnalyticsPlansFrom: {
+            /** @description plans or checkout */
+            page: string;
+            section: string;
+            metal: string;
+            /** Format: int64 */
+            views: number;
+        };
+        AnalyticsTraffic: {
+            /** @description direct, google, instagram, telegram…, ref:<site> or utm:<tag> */
+            source: string;
+            campaign: string;
+            /** Format: int64 */
+            landings: number;
+            /** Format: int64 */
+            signups: number;
+            /** Format: int64 */
+            buyers: number;
+        };
+        AnalyticsDevice: {
+            device: string;
+            /** Format: int64 */
+            visitorDays: number;
+        };
+        AnalyticsProvince: {
+            province: string;
+            /** Format: int64 */
+            members: number;
+            /** Format: int64 */
+            paying: number;
+        };
+        AnalyticsSearch: {
+            term: string;
+            /** Format: int64 */
+            searches: number;
+            /** Format: int64 */
+            zeroResults: number;
+        };
+        ViewsSeconds: {
+            /** Format: int64 */
+            views: number;
+            /** Format: int64 */
+            seconds: number;
         };
         CheckoutResult: {
             order: components["schemas"]["Order"];
@@ -4034,6 +4212,64 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    adminAnalytics: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Analytics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAnalytics"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminExportAnalytics: {
+        parameters: {
+            query: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+                table: "products" | "metals" | "sections" | "traffic" | "searches";
+            };
+            header?: {
+                "Accept-Language"?: components["parameters"]["AcceptLanguage"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UTF-8 CSV with a byte order mark */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     adminDashboard: {
         parameters: {
             query?: {
@@ -5097,8 +5333,44 @@ export interface operations {
                      * @description Made by the browser for this page view. With it, a signed-in user's page view is recorded for the admin «رفتار کاربران» (section, metal, product); a repeat of the same id is ignored.
                      */
                     view?: string;
-                    /** @description Time the page was in view since the last report (the user left or hid it). With it, the call only adds time to the view `view` (the caller's own) and counts nothing. */
+                    /** @description Time the page was in view since the last report (the user left or hid it). With it, the call only adds time: to the view `view` (the caller's own) and to the page's nameless totals; it counts nothing. */
                     seconds?: number;
+                    /** @description The site page (path) the visitor was on before this one, if any */
+                    from?: string;
+                    /** @description The first page of a visit in this tab; with ref/utm it counts where the visit came from */
+                    landing?: boolean;
+                    /** @description The referring page (document.referrer) of a landing; only its site name is kept */
+                    ref?: string;
+                    /** @description utm_source of a landing (a campaign tag) */
+                    utm?: string;
+                    /** @description utm_campaign of a landing */
+                    campaign?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Counted (or ignored) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    recordSearch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    q: string;
+                    results: number;
                 };
             };
         };

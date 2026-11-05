@@ -1,4 +1,5 @@
 import "server-only";
+import { headers } from "next/headers";
 import { articleHref } from "./article-href";
 import { cache } from "react";
 import { api } from "./api";
@@ -96,4 +97,13 @@ function levenshtein(a: string, b: string): number {
     prev = cur;
   }
   return prev[b.length]!;
+}
+
+/** Counts one site search for the admin (the term and whether anything was found); never fails the page. */
+export async function recordSearch(q: string, results: number) {
+  const h = await headers();
+  const agent = h.get("user-agent");
+  await api
+    .POST("/v1/searches", { body: { q: q.slice(0, 200), results }, ...(agent ? { headers: { "User-Agent": agent.slice(0, 300) } } : {}), cache: "no-store" })
+    .catch(() => undefined);
 }

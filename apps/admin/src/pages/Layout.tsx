@@ -11,7 +11,7 @@ type BadgeKey = "openTickets" | "newMessages" | "pendingCommunity" | "quarantine
 const NAV: { group: string; items: { to: string; key: string; badge?: BadgeKey }[] }[] = [
   {
     group: "nav.group.main",
-    items: [{ to: "/", key: "nav.dashboard" }, { to: "/activity", key: "nav.activity" }, { to: "/visits", key: "nav.visits" }, { to: "/sms", key: "nav.sms" }],
+    items: [{ to: "/", key: "nav.dashboard" }, { to: "/activity", key: "nav.activity" }, { to: "/analytics", key: "nav.analytics" }, { to: "/visits", key: "nav.visits" }, { to: "/sms", key: "nav.sms" }],
   },
   {
     group: "nav.group.market",

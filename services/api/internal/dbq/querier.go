@@ -31,10 +31,16 @@ type Querier interface {
 	ActivityUsers(ctx context.Context, arg ActivityUsersParams) ([]ActivityUsersRow, error)
 	AddActivitySeconds(ctx context.Context, arg AddActivitySecondsParams) error
 	AddActivityView(ctx context.Context, arg AddActivityViewParams) error
+	AddLanding(ctx context.Context, arg AddLandingParams) error
 	AddMetalView(ctx context.Context, arg AddMetalViewParams) error
+	// Site analytics (admin «تحلیل بازدید», client 2026-11-05): nameless daily totals; see migration 00038.
+	AddPageStat(ctx context.Context, arg AddPageStatParams) error
 	// Time the page was in view, added when the user leaves or hides it (only the user's own view; ≤ 4 h per page).
 	// added = what was really added after the cap.
 	AddPageViewSeconds(ctx context.Context, arg AddPageViewSecondsParams) (AddPageViewSecondsRow, error)
+	AddPlansFrom(ctx context.Context, arg AddPlansFromParams) error
+	AddReach(ctx context.Context, arg AddReachParams) error
+	AddSearch(ctx context.Context, arg AddSearchParams) error
 	// The SMS metals an order paid for, on its subscription (unknown slugs are ignored; the API checked them).
 	AddSubscriptionSmsMetals(ctx context.Context, arg AddSubscriptionSmsMetalsParams) error
 	AdminListArticles(ctx context.Context, arg AdminListArticlesParams) ([]AdminListArticlesRow, error)
@@ -69,6 +75,23 @@ type Querier interface {
 	AlertCandidates(ctx context.Context) ([]AlertCandidatesRow, error)
 	// Price-alert SMS sent to a user since a time (the per-user daily cap).
 	AlertsSentSince(ctx context.Context, arg AlertsSentSinceParams) (int32, error)
+	AnalyticsDevices(ctx context.Context, arg AnalyticsDevicesParams) ([]AnalyticsDevicesRow, error)
+	// Visitors → sign-ups → reached the plans page → reached checkout → bought (distinct members), in a period.
+	AnalyticsFunnel(ctx context.Context, arg AnalyticsFunnelParams) (AnalyticsFunnelRow, error)
+	// Metals seen in a period (any page about the metal, by everyone), with unique visitors and the period before.
+	AnalyticsMetals(ctx context.Context, arg AnalyticsMetalsParams) ([]AnalyticsMetalsRow, error)
+	// The section (and metal) visitors were on right before opening the plans or checkout page.
+	AnalyticsPlansFrom(ctx context.Context, arg AnalyticsPlansFromParams) ([]AnalyticsPlansFromRow, error)
+	// Price rows (products) seen in a period: views, time, unique visitors (90 days back only), and the views of the
+	// period before (for the trend). Most viewed first.
+	AnalyticsProducts(ctx context.Context, arg AnalyticsProductsParams) ([]AnalyticsProductsRow, error)
+	// Members by the province they gave at sign-up, with those holding a paid plan now.
+	AnalyticsProvinces(ctx context.Context) ([]AnalyticsProvincesRow, error)
+	AnalyticsSearches(ctx context.Context, arg AnalyticsSearchesParams) ([]AnalyticsSearchesRow, error)
+	// Sections in a period by audience (guest, free, paid): views and time; with unique visitors per section.
+	AnalyticsSections(ctx context.Context, arg AnalyticsSectionsParams) ([]AnalyticsSectionsRow, error)
+	// Where visits came from in a period, with the members who signed up from each source and those of them who paid.
+	AnalyticsTraffic(ctx context.Context, arg AnalyticsTrafficParams) ([]AnalyticsTrafficRow, error)
 	// Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
 	// profile (never used the API) or already deleted.
 	AnonymizeUser(ctx context.Context, id pgtype.UUID) (int64, error)
@@ -123,6 +146,7 @@ type Querier interface {
 	DeleteOldActivity(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldCalculations(ctx context.Context, userID pgtype.UUID) error
 	DeleteOldPageViews(ctx context.Context, before pgtype.Date) (int64, error)
+	DeleteOldReach(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldSourceRuns(ctx context.Context, startedAt pgtype.Timestamptz) (int64, error)
 	DeleteOldVisitSalts(ctx context.Context, before pgtype.Date) (int64, error)
 	DeleteOldVisits(ctx context.Context, before pgtype.Date) (int64, error)
@@ -332,6 +356,8 @@ type Querier interface {
 	// group_id NULL = no group. A group of another metal or category updates nothing (the handler answers 400).
 	SetProductGroup(ctx context.Context, arg SetProductGroupParams) (int64, error)
 	SetSeriesActive(ctx context.Context, arg SetSeriesActiveParams) (int64, error)
+	// A new member's first source (only within a day of their first visit, and never overwritten).
+	SetSignupSource(ctx context.Context, arg SetSignupSourceParams) error
 	// Also bumps last_message_at when a message was just added (touched = true).
 	SetTicketStatus(ctx context.Context, arg SetTicketStatusParams) (SetTicketStatusRow, error)
 	// Users with SMS on and a phone who paid SMS for this metal (or any metal: metal_id NULL) in a subscription active now.
