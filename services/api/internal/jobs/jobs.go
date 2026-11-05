@@ -199,7 +199,12 @@ func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) err
 	if err != nil {
 		return fmt.Errorf("cleanup visit salts: %w", err)
 	}
-	w.Log.InfoContext(ctx, "old visits deleted", "rows", nv, "salts", ns)
+	// The per-visitor reach rows of «تحلیل بازدید» go with the visits (90 days); the nameless daily totals stay.
+	nr, err := q.DeleteOldReach(ctx, pgtype.Date{Time: today.Add(-visits.Retention), Valid: true})
+	if err != nil {
+		return fmt.Errorf("cleanup reach: %w", err)
+	}
+	w.Log.InfoContext(ctx, "old visits deleted", "rows", nv, "salts", ns, "reach", nr)
 	// User activity (admin «رفتار کاربران»): page views 1 year, the daily summary 2 years.
 	npv, err := q.DeleteOldPageViews(ctx, pgtype.Date{Time: today.Add(-visits.PageViewRetention), Valid: true})
 	if err != nil {

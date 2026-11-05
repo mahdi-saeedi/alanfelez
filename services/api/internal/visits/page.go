@@ -17,11 +17,11 @@ const (
 const MaxReportSeconds = 1800
 
 // Sections of the website, as the admin shows them. A path outside these is "other".
-var Sections = []string{"home", "prices", "chart", "auctions", "analysis", "calculator", "plans", "account", "faq", "about", "contact", "search", "other"}
+var Sections = []string{"home", "prices", "chart", "auctions", "analysis", "articles", "calculator", "plans", "checkout", "account", "faq", "about", "contact", "search", "other"}
 
 var sectionOf = map[string]string{
 	"": "home", "prices": "prices", "chart": "chart", "auctions": "auctions", "analysis": "analysis", "calculator": "calculator",
-	"plans": "plans", "checkout": "plans", "account": "account", "faq": "faq", "about": "about", "contact": "contact", "search": "search",
+	"plans": "plans", "checkout": "checkout", "articles": "articles", "account": "account", "faq": "faq", "about": "about", "contact": "contact", "search": "search",
 }
 
 var slugRe = regexp.MustCompile(`^[a-z0-9-]{1,80}$`)

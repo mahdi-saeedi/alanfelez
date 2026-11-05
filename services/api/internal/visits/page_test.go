@@ -19,7 +19,7 @@ func TestParsePage(t *testing.T) {
 		{"/chart?metal=zinc&c1=&c2=zinc-ingot", Page{Section: "chart", Metal: "zinc", Series: "zinc-ingot"}},
 		{"/auctions?metal=lead&page=2", Page{Section: "auctions", Metal: "lead"}},
 		{"/analysis/copper-week-2", Page{Section: "analysis", Article: "copper-week-2"}},
-		{"/checkout?plan=gold", Page{Section: "plans"}},
+		{"/checkout?plan=gold", Page{Section: "checkout"}},
 		{"/terms", Page{Section: "other"}},
 		{"/prices?metal=DROP%20TABLE", Page{Section: "prices"}},
 		{"%zz", Page{Section: "other"}},

@@ -12,9 +12,16 @@ export const dynamic = "force-dynamic";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as { path?: unknown; view?: unknown; seconds?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const path = typeof body?.path === "string" ? body.path.slice(0, 300) : "";
-  const out: { path: string; view?: string; seconds?: number } = { path };
+  const out: Record<string, string | number | boolean> = { path };
+  // «تحلیل بازدید» (client, 2026-11-05): the previous page, and where the visit came from (referrer, campaign tags).
+  const text = (k: string, max: number) => typeof body?.[k] === "string" && (body[k] as string) !== "" && (out[k] = (body[k] as string).slice(0, max));
+  text("from", 300);
+  text("ref", 300);
+  text("utm", 80);
+  text("campaign", 80);
+  if (body?.landing === true) out.landing = true;
   if (typeof body?.view === "string" && UUID.test(body.view)) out.view = body.view;
   if (typeof body?.seconds === "number" && Number.isFinite(body.seconds)) {
     out.seconds = Math.min(1800, Math.max(1, Math.round(body.seconds)));

@@ -101,7 +101,7 @@ export function duration(seconds: number, locale: Locale, t: (k: string, o?: Rec
 }
 
 /** Downloads a CSV export (fetched with the staff token, so it can't be a plain link). */
-export async function downloadCsv(path: "/v1/admin/users/export" | "/v1/admin/activity/export", query: Record<string, string | undefined>, fallbackName: string) {
+export async function downloadCsv(path: "/v1/admin/users/export" | "/v1/admin/activity/export" | "/v1/admin/analytics/export", query: Record<string, string | undefined>, fallbackName: string) {
   const clean = Object.fromEntries(Object.entries(query).filter(([, v]) => v));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the two exports take different query types
   const res = await api.GET(path, { params: { query: clean as any }, parseAs: "blob" });
@@ -123,7 +123,7 @@ export const metalColor = (slug: string) => METAL_COLOR[slug] ?? "#9ca3af";
 /** The metals in the client's order (migration 00026), for filters. */
 export const METALS = ["aluminum", "copper", "zinc", "lead", "brass", "cast-iron", "iron"];
 export const ACTIVITIES = ["trader", "producer", "industrial-consumer", "recycler", "investor", "other"];
-export const SECTIONS = ["home", "prices", "chart", "auctions", "analysis", "calculator", "plans", "account", "faq", "about", "contact", "search", "other"];
+export const SECTIONS = ["home", "prices", "chart", "auctions", "analysis", "articles", "calculator", "plans", "checkout", "account", "faq", "about", "contact", "search", "other"];
 
 /** A horizontal bar row: label, bar (share of max), value. */
 export function Bar({ label, value, max, color, text }: { label: string; value: number; max: number; color: string; text: string }) {

@@ -473,6 +473,7 @@ datasets:
           <h2>۴. کوکی‌ها، آمار بازدید و سوابق استفاده</h2>
           <p>سایت فقط از کوکی‌های ضروری برای ورود و حفظ نشست کاربری استفاده می‌کند و کوکی ردیابی یا تبلیغاتی ندارد.</p>
           <p>برای شمارش تعداد بازدیدکنندگان روزانه، نشانی IP و نوع مرورگر با کلیدی که هر روز عوض می‌شود به یک شناسه‌ی یک‌طرفه تبدیل می‌شود؛ خود IP برای این آمار ذخیره نمی‌شود و از این شناسه نمی‌توان شما را شناسایی کرد. وقتی وارد حساب نشده‌اید، بازدید شما فقط شمرده می‌شود و به شما ربط داده نمی‌شود.</p>
+          <p>برای بهبود سایت، این آمارها هم به‌صورت تجمیعی و بدون نام نگهداری می‌شود: سایتی که از آن به الان‌فلز آمده‌اید (مثلاً یک موتور جست‌وجو یا شبکه‌ی اجتماعی، فقط نام آن سایت) و برچسب کمپین تبلیغاتی لینک، نوع دستگاه (موبایل، تبلت یا رایانه)، عبارت‌هایی که در جست‌وجوی سایت می‌نویسید و بخش‌هایی از سایت که بیشتر دیده می‌شوند. برای این کار در مرورگر شما فقط تا بسته شدن همان زبانه، منبع ورود نگه داشته می‌شود و کوکی ساخته نمی‌شود. اگر در همان بازدید ثبت‌نام کنید، منبع ورود همراه حساب شما ثبت می‌شود.</p>
           <p>وقتی با حساب کاربری خود وارد سایت هستید، سوابق استفاده‌ی شما (بند ۱) ثبت می‌شود. این اطلاعات فقط در اختیار کارکنان مجاز الان‌فلز است، روی سرورهای خود الان‌فلز در داخل ایران نگهداری می‌شود و به دیگران فروخته یا داده نمی‌شود.</p>
           <h2>۵. مدت نگهداری</h2>
           <ul>
@@ -524,7 +525,7 @@ datasets:
           <h2>3. Sharing</h2>
           <p>Only what's needed goes to these Iranian providers: the SMS service (number and text), the payment gateway (amount and order id), and hosting and storage on servers inside Iran. Competent judicial or legal authorities receive information only as the law requires.</p>
           <h2>4. Cookies, visitor counts and usage records</h2>
-          <p>The site uses only the cookies needed to sign in and keep your session; no tracking or advertising cookies. Daily visitors are counted with a one-way identifier from the IP and browser under a key that changes every day; the IP itself isn't kept for this and you can't be identified from it. When you're not signed in, your visit is only counted. When you are signed in, your usage (section 1) is recorded; it is available only to authorised Alan Felez staff, kept on Alan Felez's own servers in Iran, and never sold or given to others.</p>
+          <p>The site uses only the cookies needed to sign in and keep your session; no tracking or advertising cookies. Daily visitors are counted with a one-way identifier from the IP and browser under a key that changes every day; the IP itself isn't kept for this and you can't be identified from it. When you're not signed in, your visit is only counted. To improve the site we also keep, as nameless totals: the site you came from (a search engine or social network; only its name) and a link's campaign tag, your device type (mobile, tablet or computer), what you type in the site search and which parts of the site are seen most. Only the source of your visit is kept in your browser, until you close that tab; no cookie is set. If you sign up during that visit, its source is recorded with your account. When you are signed in, your usage (section 1) is recorded; it is available only to authorised Alan Felez staff, kept on Alan Felez's own servers in Iran, and never sold or given to others.</p>
           <h2>5. Retention</h2>
           <ul>
           <li>Account: while the account exists.</li>

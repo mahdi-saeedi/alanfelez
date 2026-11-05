@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { formatNumber, type Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
 import { seo } from "@/lib/seo";
-import { search, type SearchItem, type SearchKind } from "@/lib/search";
+import { recordSearch, search, type SearchItem, type SearchKind } from "@/lib/search";
 import { SearchBox } from "@/components/SearchBox";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +27,8 @@ export default async function SearchPage({ params, searchParams }: Params) {
   const q = ((await searchParams).q ?? "").slice(0, 80).trim();
   const r = q.length >= 2 ? await search(locale, q, { page: (k) => tn(k), metalPrices: (metal) => t("metalPrices", { metal }) }) : null;
   const total = r?.items.length ?? 0;
+  // What visitors look for, and when nothing was found (admin «تحلیل بازدید», client 2026-11-05). Nameless.
+  if (r) void recordSearch(q, r.similar ? 0 : total);
   const kinds = Object.fromEntries(KINDS.map((k) => [k, t(k)]));
 
   return (
