@@ -5,7 +5,7 @@ import { Link, useSearchParams } from "react-router";
 import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
 import { api, canGrant, currentRoles, ensureOk, errorText, unwrap } from "../api";
 import { Badge, Button, Card, Input, Notice, Page, Select, Td, Th } from "./ui";
-import { ACTIVITIES, METALS, downloadCsv } from "./dates";
+import { ACTIVITIES, METALS, addDays, downloadCsv, todayTehran } from "./dates";
 
 type Plan = "free" | "silver" | "gold";
 
@@ -19,12 +19,16 @@ export function UsersPage() {
   const locale = useGetLocale()() as Locale;
   const [params] = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? ""); // ?q= from the visitor stats
-  const [f, setF] = useState({ plan: "" as Plan | "", metal: "", activity: "", province: "" });
+  const [f, setF] = useState({ plan: "" as Plan | "", metal: "", activity: "", province: "", smsMetal: "", expiresWithin: "", joinedFrom: "", joinedTo: "", source: "" });
+  const [more, setMore] = useState(false);
   const [page, setPage] = useState(1);
   const [exportError, setExportError] = useState<unknown>(null);
   const filter = (patch: Partial<typeof f>) => { setF({ ...f, ...patch }); setPage(1); };
   const query = { ...(q ? { q } : {}), ...(f.plan ? { plan: f.plan } : {}), ...(f.metal ? { metal: f.metal } : {}),
-    ...(f.activity ? { activity: f.activity } : {}), ...(f.province ? { province: f.province } : {}) };
+    ...(f.activity ? { activity: f.activity } : {}), ...(f.province ? { province: f.province } : {}),
+    // Segments for the sales team's own bulk SMS (client, 2026-11-05): export the list, send from the SMS panel.
+    ...(f.smsMetal ? { smsMetal: f.smsMetal } : {}), ...(f.expiresWithin ? { expiresWithin: Number(f.expiresWithin) } : {}),
+    ...(f.joinedFrom ? { joinedFrom: f.joinedFrom } : {}), ...(f.joinedTo ? { joinedTo: f.joinedTo } : {}), ...(f.source ? { source: f.source } : {}) };
   const res = useQuery({
     queryKey: ["admin", "users", query, page],
     queryFn: async () => unwrap(await api.GET("/v1/admin/users", { params: { query: { ...query, page } } })),
@@ -35,7 +39,7 @@ export function UsersPage() {
   const exportCsv = async () => {
     setExportError(null);
     try {
-      await downloadCsv("/v1/admin/users/export", query, "users.csv");
+      await downloadCsv("/v1/admin/users/export", Object.fromEntries(Object.entries(query).map(([k, v]) => [k, String(v)])), "users.csv");
     } catch (e) {
       setExportError(e);
     }
@@ -67,9 +71,41 @@ export function UsersPage() {
           <option value="">{t("users.allProvinces")}</option>
           {res.data?.provinces.map((p) => <option key={p} value={p}>{p}</option>)}
         </Select>
+        <Button type="button" tone="ghost" onClick={() => setMore(!more)}>{more ? t("users.lessFilters") : t("users.moreFilters")}</Button>
         <span className="flex-1" />
         <Button type="button" tone="gold" onClick={exportCsv}>⬇ {t("act.export")}</Button>
       </div>
+      {more && (
+        <Card className="flex flex-wrap items-end gap-3 p-3">
+          <label className="space-y-1 text-xs text-text-2">
+            <span className="block">{t("users.smsMetal")}</span>
+            <Select value={f.smsMetal} onChange={(e) => filter({ smsMetal: e.target.value })}>
+              <option value="">{t("users.any")}</option>
+              {METALS.map((m) => <option key={m} value={m}>{t(`signup.metal.${m}`)}</option>)}
+            </Select>
+          </label>
+          <label className="space-y-1 text-xs text-text-2">
+            <span className="block">{t("users.expiresWithin")}</span>
+            <Select value={f.expiresWithin} onChange={(e) => filter({ expiresWithin: e.target.value })}>
+              <option value="">{t("users.any")}</option>
+              {["3", "7", "14", "30"].map((d) => <option key={d} value={d}>{t("users.days", { n: n(Number(d)) })}</option>)}
+            </Select>
+          </label>
+          <label className="space-y-1 text-xs text-text-2">
+            <span className="block">{t("users.joined")}</span>
+            <Select value={f.joinedFrom ? String(Math.round((Date.parse(todayTehran()) - Date.parse(f.joinedFrom)) / 864e5) + 1) : ""}
+              onChange={(e) => filter({ joinedFrom: e.target.value ? addDays(todayTehran(), -(Number(e.target.value) - 1)) : "", joinedTo: "" })}>
+              <option value="">{t("users.any")}</option>
+              {["1", "7", "30", "90"].map((d) => <option key={d} value={d}>{d === "1" ? t("range.today") : t("users.lastDays", { n: n(Number(d)) })}</option>)}
+            </Select>
+          </label>
+          <label className="space-y-1 text-xs text-text-2">
+            <span className="block">{t("users.source")}</span>
+            <Input dir="ltr" placeholder="google, instagram, utm:insta" value={f.source} onChange={(e) => filter({ source: e.target.value.trim() })} className="w-44" />
+          </label>
+          <p className="basis-full text-xs text-text-3">{t("users.segmentsHint")}</p>
+        </Card>
+      )}
       {exportError != null && <Notice tone="error">{errorText(exportError, t)}</Notice>}
       {remove.isSuccess && <Notice tone="ok">{t("users.deleted")}</Notice>}
       {remove.isError && (
@@ -77,7 +113,32 @@ export function UsersPage() {
           {errorText(remove.error, t, { CONFLICT: "users.deleteConflict", UPSTREAM_UNAVAILABLE: "users.deleteNotSetUp" })}
         </Notice>
       )}
-      <Card>
+      {/* Phones: one card per user (client, 2026-11-05). */}
+      <Card className="md:hidden">
+        <ul className="divide-y divide-border">
+          {list.data?.length === 0 && <li className="p-3 text-sm text-text-2">{t("table.empty")}</li>}
+          {list.data?.map((u) => (
+            <li key={u.id} className="space-y-1 p-3 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <b>{[u.firstName, u.lastName].filter(Boolean).join(" ") || "—"}</b>
+                  <a href={`tel:${u.phone ?? u.username}`} dir="ltr" className="block text-xs text-text-2">{u.phone ?? u.username}</a>
+                </div>
+                <Badge tone={u.currentPlan === "gold" ? "gold" : "gray"}>{t(`plan.${u.currentPlan}`)}</Badge>
+              </div>
+              {(u.company || u.metals?.length) ? (
+                <div className="text-xs text-text-3">{[u.company, u.metals?.map((m) => t(`signup.metal.${m}`, m)).join(locale === "fa" ? "، " : ", ")].filter(Boolean).join(" · ")}</div>
+              ) : null}
+              <div className="flex gap-3 pt-1 text-xs">
+                <Link to={`/activity/${u.id}`} className="font-bold text-gold-dark">{t("users.activity")}</Link>
+                <Link to={`/subscriptions?user=${u.id}`} className="text-gold-dark">{t("users.grant")}</Link>
+                <Link to={`/orders?user=${u.id}`} className="text-text-2">{t("users.orders")}</Link>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <Card className="hidden md:block">
         <table className="w-full text-sm">
           <thead className="bg-surface-2">
             <tr><Th>{t("users.user")}</Th><Th>{t("account.name")}</Th><Th>{t("users.signup")}</Th><Th>{t("subs.plan")}</Th><Th>{t("users.lastSeen")}</Th><Th /></tr>

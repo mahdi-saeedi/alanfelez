@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useGetLocale, useTranslate } from "@refinedev/core";
 import type { Schemas } from "@alanfelez/api-client";
-import { formatDate, type Locale } from "@alanfelez/ui/format";
+import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
+import { RangePicker, type Range, lastDays } from "./dates";
 import { api, canGrant, currentRoles, ensureOk, errorText, unwrap } from "../api";
 import { Badge, Button, Card, Field, Input, Notice, Page, Select, Td, Th } from "./ui";
 
@@ -77,6 +78,7 @@ export function StaffPage() {
       {(list.isError || update.isError || reset.isError) && <Notice tone="error">{errorText(list.error ?? update.error ?? reset.error, t)}</Notice>}
       {reset.isSuccess && <Notice tone="ok">{t("staff.resetDone")}</Notice>}
       <Notice tone="warn">{t("staff.howTo")}</Notice>
+      <StaffWork />
     </Page>
   );
 }
@@ -112,6 +114,47 @@ function NewStaff({ onDone }: { onDone: () => void }) {
       </form>
       {create.isError && <Notice tone="error">{errorText(create.error, t, { CONFLICT: "staff.taken" })}</Notice>}
       {create.isSuccess && <Notice tone="ok">{t("staff.created")}</Notice>}
+    </Card>
+  );
+}
+
+/** What each staff member did in a period, from the audit log (client, 2026-11-05). */
+function StaffWork() {
+  const t = useTranslate();
+  const locale = useGetLocale()() as Locale;
+  const [range, setRange] = useState<Range>(lastDays(30));
+  const q = useQuery({
+    queryKey: ["admin", "staff-work", range],
+    queryFn: async () => unwrap(await api.GET("/v1/admin/staff-work", { params: { query: { from: range.from, to: range.to } } })).items,
+  });
+  const people = new Map<string, { name: string; total: number; last: string; actions: { action: string; count: number }[] }>();
+  for (const r of q.data ?? []) {
+    const p = people.get(r.actorId) ?? { name: r.name, total: 0, last: r.lastAt, actions: [] };
+    p.total += r.count;
+    if (r.lastAt > p.last) p.last = r.lastAt;
+    p.actions.push({ action: r.action, count: r.count });
+    people.set(r.actorId, p);
+  }
+  const label = (a: string) => (t(`work.${a}`) === `work.${a}` ? a : t(`work.${a}`));
+  return (
+    <Card className="space-y-3 p-4">
+      <h2 className="font-bold">{t("work.title")}</h2>
+      <p className="text-xs text-text-3">{t("work.hint")}</p>
+      <RangePicker value={range} onChange={setRange} locale={locale} />
+      {q.isError && <Notice tone="error">{errorText(q.error, t)}</Notice>}
+      {people.size === 0 && q.isSuccess && <p className="text-sm text-text-3">{t("work.none")}</p>}
+      <div className="grid gap-3 md:grid-cols-2">
+        {[...people.entries()].sort((a, b) => b[1].total - a[1].total).map(([id, p]) => (
+          <div key={id} className="rounded-lg border border-border p-3">
+            <div className="flex justify-between gap-2"><b dir="ltr">{p.name}</b><span className="text-xs text-text-3">{t("work.last", { date: formatDate(p.last, locale, true) })}</span></div>
+            <ul className="mt-2 space-y-1 text-sm">
+              {p.actions.slice(0, 8).map((a) => (
+                <li key={a.action} className="flex justify-between gap-2"><span>{label(a.action)}</span><b className="tabular-nums">{formatNumber(a.count, locale)}</b></li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

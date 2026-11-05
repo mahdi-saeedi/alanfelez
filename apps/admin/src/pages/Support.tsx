@@ -97,7 +97,27 @@ export function TicketsPage() {
         ))}
       </div>
       <Card>
-        <table className="w-full text-sm">
+        {/* Phones: one card per ticket (client, 2026-11-05: wide tables were cramped on a phone). */}
+        <ul className="divide-y divide-border md:hidden">
+          {list.data?.length === 0 && <li className="p-3 text-sm text-text-2">{t("table.empty")}</li>}
+          {list.data?.map((k) => (
+            <li key={k.id}>
+              <Link to={`/support/tickets/${k.id}`} className="block space-y-1 p-3 hover:bg-surface-2">
+                <div className="flex items-start justify-between gap-2">
+                  <b className="leading-6">{k.subject}</b>
+                  <Badge tone={statusTone(k.status)}>{t(`tickets.status.${k.status}`)}</Badge>
+                </div>
+                <div className="flex flex-wrap gap-x-2 text-xs text-text-3">
+                  <span>#{k.number}</span>
+                  <span>{k.userName ?? ""} <span dir="ltr">{k.username}</span></span>
+                  <span>{formatDate(k.lastMessageAt, locale, true)}</span>
+                  {k.priority === "high" && <Badge tone="gold">{t("tickets.high")}</Badge>}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <table className="hidden w-full text-sm md:table">
           <thead className="bg-surface-2">
             <tr><Th>#</Th><Th>{t("tickets.subject")}</Th><Th>{t("orders.user")}</Th><Th>{t("sources.status")}</Th><Th>{t("tickets.lastActivity")}</Th></tr>
           </thead>

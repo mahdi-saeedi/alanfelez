@@ -517,7 +517,7 @@ func (q *Queries) AdminUserByID(ctx context.Context, id pgtype.UUID) (AdminUserB
 
 const adminUsersPage = `-- name: AdminUsersPage :many
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
-       u.activity, u.metals, u.province, u.company, u.deleted_at,
+       u.activity, u.metals, u.province, u.company, u.deleted_at, u.signup_source,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at,
        count(*) OVER ()::int AS total
 FROM app.users u
@@ -535,18 +535,34 @@ WHERE ($1::text = ''
   AND ($3::text = '' OR $3::text = ANY (u.metals))
   AND ($4::text = '' OR u.activity = $4::text)
   AND ($5::text = '' OR u.province = $5::text)
+  -- Segments for the sales team's own bulk SMS (client, 2026-11-05): a paid SMS metal, a plan ending soon, a sign-up
+  -- period and where they came from.
+  AND ($6::text = '' OR EXISTS (
+        SELECT 1 FROM app.subscription_sms_metals ssm
+        JOIN app.subscriptions ss ON ss.id = ssm.subscription_id AND ss.status = 'active' AND ss.starts_at <= now() AND ss.ends_at > now()
+        JOIN market.metals mm ON mm.id = ssm.metal_id
+        WHERE ss.user_id = u.id AND mm.slug = $6::text))
+  AND ($7::int = 0 OR (cur.ends_at IS NOT NULL AND cur.ends_at <= now() + make_interval(days => $7::int)))
+  AND ($8::date IS NULL OR (u.created_at AT TIME ZONE 'Asia/Tehran')::date >= $8::date)
+  AND ($9::date IS NULL OR (u.created_at AT TIME ZONE 'Asia/Tehran')::date <= $9::date)
+  AND ($10::text = '' OR u.signup_source = $10::text)
 ORDER BY u.last_seen_at DESC, u.id
-LIMIT $7::int OFFSET $6::int
+LIMIT $12::int OFFSET $11::int
 `
 
 type AdminUsersPageParams struct {
-	Q        string
-	Plan     string
-	Metal    string
-	Activity string
-	Province string
-	Off      int32
-	Lim      int32
+	Q             string
+	Plan          string
+	Metal         string
+	Activity      string
+	Province      string
+	SmsMetal      string
+	ExpiresWithin int32
+	JoinedFrom    pgtype.Date
+	JoinedTo      pgtype.Date
+	Source        string
+	Off           int32
+	Lim           int32
 }
 
 type AdminUsersPageRow struct {
@@ -564,6 +580,7 @@ type AdminUsersPageRow struct {
 	Province      pgtype.Text
 	Company       pgtype.Text
 	DeletedAt     pgtype.Timestamptz
+	SignupSource  pgtype.Text
 	CurrentPlan   string
 	CurrentEndsAt pgtype.Timestamptz
 	Total         int32
@@ -577,6 +594,11 @@ func (q *Queries) AdminUsersPage(ctx context.Context, arg AdminUsersPageParams) 
 		arg.Metal,
 		arg.Activity,
 		arg.Province,
+		arg.SmsMetal,
+		arg.ExpiresWithin,
+		arg.JoinedFrom,
+		arg.JoinedTo,
+		arg.Source,
 		arg.Off,
 		arg.Lim,
 	)
@@ -602,6 +624,7 @@ func (q *Queries) AdminUsersPage(ctx context.Context, arg AdminUsersPageParams) 
 			&i.Province,
 			&i.Company,
 			&i.DeletedAt,
+			&i.SignupSource,
 			&i.CurrentPlan,
 			&i.CurrentEndsAt,
 			&i.Total,

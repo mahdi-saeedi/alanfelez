@@ -1,5 +1,6 @@
 import { useGetIdentity, useLogout, useTranslate, useSetLocale, useGetLocale } from "@refinedev/core";
 import { useEffect, useState } from "react";
+import { GlobalSearch } from "./GlobalSearch";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { formatNumber } from "@alanfelez/ui/format";
@@ -45,6 +46,7 @@ const NAV: { group: string; items: { to: string; key: string; badge?: BadgeKey }
     group: "nav.group.commerce",
     items: [
       { to: "/users", key: "nav.users" },
+      { to: "/revenue", key: "nav.revenue" },
       { to: "/orders", key: "nav.orders" },
       { to: "/subscriptions", key: "nav.subscriptions" },
     ],
@@ -114,7 +116,9 @@ export function Layout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-end gap-3 border-b border-border bg-surface px-4 py-3 text-sm md:px-6">
           <button type="button" onClick={() => setOpen(true)} aria-label={t("nav.open")} aria-expanded={open}
-            className="me-auto rounded-lg border border-border px-3 py-1.5 font-bold md:hidden">☰ {t("nav.menu")}</button>
+            className="rounded-lg border border-border px-3 py-1.5 font-bold md:hidden">☰</button>
+          <GlobalSearch />
+          <span className="hidden flex-1 md:block" />
           <span dir="ltr" className="hidden text-text-2 sm:inline">{identity?.name}</span>
           <button onClick={() => setLocale(locale === "fa" ? "en" : "fa")} className="rounded-lg border border-border px-3 py-1.5 hover:border-gold">
             {t("app.language")}

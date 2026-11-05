@@ -120,6 +120,128 @@ func (q *Queries) AddSearch(ctx context.Context, arg AddSearchParams) error {
 	return err
 }
 
+const adminSearchArticles = `-- name: AdminSearchArticles :many
+SELECT a.id, a.title_fa, a.title_en, a.type FROM app.articles a
+WHERE a.title_fa ILIKE '%' || $1::text || '%' OR coalesce(a.title_en, '') ILIKE '%' || $1::text || '%' OR a.slug LIKE '%' || $1::text || '%'
+ORDER BY a.updated_at DESC LIMIT 8
+`
+
+type AdminSearchArticlesRow struct {
+	ID      pgtype.UUID
+	TitleFa string
+	TitleEn pgtype.Text
+	Type    string
+}
+
+func (q *Queries) AdminSearchArticles(ctx context.Context, q_ string) ([]AdminSearchArticlesRow, error) {
+	rows, err := q.db.Query(ctx, adminSearchArticles, q_)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminSearchArticlesRow{}
+	for rows.Next() {
+		var i AdminSearchArticlesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TitleFa,
+			&i.TitleEn,
+			&i.Type,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminSearchOrders = `-- name: AdminSearchOrders :many
+SELECT o.id, o.plan_code, o.status, o.amount_rial, o.created_at, coalesce(u.username, '')::text AS username FROM app.orders o
+LEFT JOIN app.users u ON u.id = o.user_id
+WHERE o.id::text LIKE $1::text || '%' OR u.username ILIKE '%' || $1::text || '%'
+ORDER BY o.created_at DESC LIMIT 8
+`
+
+type AdminSearchOrdersRow struct {
+	ID         pgtype.UUID
+	PlanCode   string
+	Status     string
+	AmountRial int64
+	CreatedAt  pgtype.Timestamptz
+	Username   string
+}
+
+func (q *Queries) AdminSearchOrders(ctx context.Context, q_ string) ([]AdminSearchOrdersRow, error) {
+	rows, err := q.db.Query(ctx, adminSearchOrders, q_)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminSearchOrdersRow{}
+	for rows.Next() {
+		var i AdminSearchOrdersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlanCode,
+			&i.Status,
+			&i.AmountRial,
+			&i.CreatedAt,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminSearchUsers = `-- name: AdminSearchUsers :many
+SELECT u.id, u.username, u.first_name, u.last_name, u.company FROM app.users u
+WHERE u.deleted_at IS NULL AND (u.username ILIKE '%' || $1::text || '%' OR u.phone_e164 ILIKE '%' || $1::text || '%'
+   OR (coalesce(u.first_name, '') || ' ' || coalesce(u.last_name, '') || ' ' || coalesce(u.company, '')) ILIKE '%' || $1::text || '%')
+ORDER BY u.last_seen_at DESC LIMIT 8
+`
+
+type AdminSearchUsersRow struct {
+	ID        pgtype.UUID
+	Username  string
+	FirstName pgtype.Text
+	LastName  pgtype.Text
+	Company   pgtype.Text
+}
+
+func (q *Queries) AdminSearchUsers(ctx context.Context, q_ string) ([]AdminSearchUsersRow, error) {
+	rows, err := q.db.Query(ctx, adminSearchUsers, q_)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AdminSearchUsersRow{}
+	for rows.Next() {
+		var i AdminSearchUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.FirstName,
+			&i.LastName,
+			&i.Company,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const analyticsDevices = `-- name: AnalyticsDevices :many
 SELECT coalesce(v.device, 'unknown')::text AS device, count(*)::bigint AS visitor_days FROM app.daily_visits v
 WHERE v.day BETWEEN $1::date AND $2::date
@@ -598,12 +720,387 @@ func (q *Queries) AnalyticsTraffic(ctx context.Context, arg AnalyticsTrafficPara
 	return items, nil
 }
 
+const dashboardTrend = `-- name: DashboardTrend :many
+WITH days AS (SELECT generate_series($1::date - 29, $1::date, interval '1 day')::date AS day)
+SELECT d.day,
+  coalesce((SELECT t.visitors FROM app.visit_totals t WHERE t.day = d.day),
+           (SELECT count(*) FROM app.daily_visits v WHERE v.day = d.day), 0)::bigint AS visitors,
+  (SELECT count(*) FROM app.users u WHERE u.phone_e164 IS NOT NULL AND (u.created_at AT TIME ZONE 'Asia/Tehran')::date = d.day)::bigint AS signups,
+  (SELECT coalesce(sum(o.amount_rial), 0) FROM app.orders o WHERE o.status = 'paid' AND (o.paid_at AT TIME ZONE 'Asia/Tehran')::date = d.day)::bigint AS revenue_rial
+FROM days d ORDER BY d.day
+`
+
+type DashboardTrendRow struct {
+	Day         pgtype.Date
+	Visitors    int64
+	Signups     int64
+	RevenueRial int64
+}
+
+// The 30 days up to a day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts.
+func (q *Queries) DashboardTrend(ctx context.Context, toDay pgtype.Date) ([]DashboardTrendRow, error) {
+	rows, err := q.db.Query(ctx, dashboardTrend, toDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DashboardTrendRow{}
+	for rows.Next() {
+		var i DashboardTrendRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.Visitors,
+			&i.Signups,
+			&i.RevenueRial,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteOldReach = `-- name: DeleteOldReach :execrows
 DELETE FROM app.reach_daily WHERE day < $1::date
 `
 
 func (q *Queries) DeleteOldReach(ctx context.Context, before pgtype.Date) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteOldReach, before)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const dueFollowUps = `-- name: DueFollowUps :many
+SELECT n.id, n.user_id, n.author_name, n.body, n.follow_up, n.done, n.created_at, u.username, u.first_name, u.last_name, u.company
+FROM app.customer_notes n JOIN app.users u ON u.id = n.user_id AND u.deleted_at IS NULL
+WHERE n.follow_up IS NOT NULL AND NOT n.done AND n.follow_up <= $1::date
+ORDER BY n.follow_up, n.created_at LIMIT 100
+`
+
+type DueFollowUpsRow struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Body       string
+	FollowUp   pgtype.Date
+	Done       bool
+	CreatedAt  pgtype.Timestamptz
+	Username   string
+	FirstName  pgtype.Text
+	LastName   pgtype.Text
+	Company    pgtype.Text
+}
+
+// Follow-ups due on or before a day and not done, oldest first, with the customer.
+func (q *Queries) DueFollowUps(ctx context.Context, day pgtype.Date) ([]DueFollowUpsRow, error) {
+	rows, err := q.db.Query(ctx, dueFollowUps, day)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DueFollowUpsRow{}
+	for rows.Next() {
+		var i DueFollowUpsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.AuthorName,
+			&i.Body,
+			&i.FollowUp,
+			&i.Done,
+			&i.CreatedAt,
+			&i.Username,
+			&i.FirstName,
+			&i.LastName,
+			&i.Company,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const expiringSoon = `-- name: ExpiringSoon :many
+SELECT s.id, s.plan_code, s.ends_at, u.id AS user_id, u.username, u.first_name, u.last_name, u.company
+FROM app.subscriptions s
+JOIN app.users u ON u.id = s.user_id AND u.deleted_at IS NULL
+WHERE s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now() AND s.ends_at <= now() + interval '7 days'
+  AND NOT EXISTS (SELECT 1 FROM app.subscriptions n WHERE n.user_id = s.user_id AND n.id <> s.id AND n.status = 'active' AND n.starts_at >= s.ends_at - interval '1 minute')
+ORDER BY s.ends_at LIMIT 200
+`
+
+type ExpiringSoonRow struct {
+	ID        pgtype.UUID
+	PlanCode  string
+	EndsAt    pgtype.Timestamptz
+	UserID    pgtype.UUID
+	Username  string
+	FirstName pgtype.Text
+	LastName  pgtype.Text
+	Company   pgtype.Text
+}
+
+// Paid plans ending in the next 7 days with nothing queued after them: who sales should call.
+func (q *Queries) ExpiringSoon(ctx context.Context) ([]ExpiringSoonRow, error) {
+	rows, err := q.db.Query(ctx, expiringSoon)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ExpiringSoonRow{}
+	for rows.Next() {
+		var i ExpiringSoonRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PlanCode,
+			&i.EndsAt,
+			&i.UserID,
+			&i.Username,
+			&i.FirstName,
+			&i.LastName,
+			&i.Company,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertCustomerNote = `-- name: InsertCustomerNote :one
+INSERT INTO app.customer_notes (user_id, author_id, author_name, body, follow_up)
+SELECT u.id, $1, $2, $3, $4 FROM app.users u WHERE u.id = $5
+RETURNING id, user_id, author_name, body, follow_up, done, created_at
+`
+
+type InsertCustomerNoteParams struct {
+	AuthorID   pgtype.UUID
+	AuthorName string
+	Body       string
+	FollowUp   pgtype.Date
+	UserID     pgtype.UUID
+}
+
+type InsertCustomerNoteRow struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Body       string
+	FollowUp   pgtype.Date
+	Done       bool
+	CreatedAt  pgtype.Timestamptz
+}
+
+func (q *Queries) InsertCustomerNote(ctx context.Context, arg InsertCustomerNoteParams) (InsertCustomerNoteRow, error) {
+	row := q.db.QueryRow(ctx, insertCustomerNote,
+		arg.AuthorID,
+		arg.AuthorName,
+		arg.Body,
+		arg.FollowUp,
+		arg.UserID,
+	)
+	var i InsertCustomerNoteRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.AuthorName,
+		&i.Body,
+		&i.FollowUp,
+		&i.Done,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listCustomerNotes = `-- name: ListCustomerNotes :many
+SELECT n.id, n.user_id, n.author_name, n.body, n.follow_up, n.done, n.created_at FROM app.customer_notes n
+WHERE n.user_id = $1 ORDER BY n.created_at DESC LIMIT 200
+`
+
+type ListCustomerNotesRow struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorName string
+	Body       string
+	FollowUp   pgtype.Date
+	Done       bool
+	CreatedAt  pgtype.Timestamptz
+}
+
+func (q *Queries) ListCustomerNotes(ctx context.Context, userID pgtype.UUID) ([]ListCustomerNotesRow, error) {
+	rows, err := q.db.Query(ctx, listCustomerNotes, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCustomerNotesRow{}
+	for rows.Next() {
+		var i ListCustomerNotesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.AuthorName,
+			&i.Body,
+			&i.FollowUp,
+			&i.Done,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const renewalStats = `-- name: RenewalStats :one
+SELECT count(*)::bigint AS ended,
+  count(*) FILTER (WHERE EXISTS (
+    SELECT 1 FROM app.subscriptions n WHERE n.user_id = s.user_id AND n.id <> s.id AND n.status = 'active'
+      AND n.starts_at > s.starts_at AND n.starts_at <= s.ends_at + interval '7 days'))::bigint AS renewed
+FROM app.subscriptions s
+WHERE s.origin = 'order' AND s.status IN ('active', 'replaced')
+  AND (s.ends_at AT TIME ZONE 'Asia/Tehran')::date BETWEEN $1::date AND $2::date
+  AND s.ends_at <= now()
+`
+
+type RenewalStatsParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
+type RenewalStatsRow struct {
+	Ended   int64
+	Renewed int64
+}
+
+// Paid plans (bought, not granted) that ended in a period, and how many of them the member renewed (a new plan
+// starting at most 7 days after the end).
+func (q *Queries) RenewalStats(ctx context.Context, arg RenewalStatsParams) (RenewalStatsRow, error) {
+	row := q.db.QueryRow(ctx, renewalStats, arg.FromDay, arg.ToDay)
+	var i RenewalStatsRow
+	err := row.Scan(&i.Ended, &i.Renewed)
+	return i, err
+}
+
+const revenueByDay = `-- name: RevenueByDay :many
+WITH days AS (SELECT generate_series($1::date, $2::date, interval '1 day')::date AS day),
+o AS (
+  SELECT (o.paid_at AT TIME ZONE 'Asia/Tehran')::date AS day, o.plan_code, o.kind, o.amount_rial, o.sms_rial
+  FROM app.orders o WHERE o.status IN ('paid', 'refunded') AND o.paid_at IS NOT NULL
+)
+SELECT d.day,
+  coalesce(sum(o.amount_rial - o.sms_rial) FILTER (WHERE o.plan_code = 'silver' AND o.kind <> 'sms_addon'), 0)::bigint AS silver_rial,
+  coalesce(sum(o.amount_rial - o.sms_rial) FILTER (WHERE o.plan_code = 'gold' AND o.kind <> 'sms_addon'), 0)::bigint AS gold_rial,
+  coalesce(sum(o.sms_rial), 0)::bigint AS sms_rial,
+  count(o.day)::bigint AS orders,
+  (SELECT coalesce(sum(r.amount_rial), 0) FROM app.refunds r WHERE r.status = 'approved' AND (r.decided_at AT TIME ZONE 'Asia/Tehran')::date = d.day)::bigint AS refunds_rial
+FROM days d LEFT JOIN o ON o.day = d.day
+GROUP BY d.day ORDER BY d.day
+`
+
+type RevenueByDayParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
+type RevenueByDayRow struct {
+	Day         pgtype.Date
+	SilverRial  int64
+	GoldRial    int64
+	SmsRial     int64
+	Orders      int64
+	RefundsRial int64
+}
+
+// Paid orders per day in a period, split into Silver, Gold and SMS metals (Rial); refunds on the day they were decided.
+func (q *Queries) RevenueByDay(ctx context.Context, arg RevenueByDayParams) ([]RevenueByDayRow, error) {
+	rows, err := q.db.Query(ctx, revenueByDay, arg.FromDay, arg.ToDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []RevenueByDayRow{}
+	for rows.Next() {
+		var i RevenueByDayRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SilverRial,
+			&i.GoldRial,
+			&i.SmsRial,
+			&i.Orders,
+			&i.RefundsRial,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const revenueNow = `-- name: RevenueNow :one
+WITH act AS (
+  SELECT sub.id, sub.plan_code, sub.order_id, sub.starts_at, sub.ends_at FROM app.subscriptions sub
+  WHERE sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+)
+SELECT
+  (SELECT count(*) FROM act s WHERE s.plan_code = 'silver')::bigint AS silver,
+  (SELECT count(*) FROM act s WHERE s.plan_code = 'gold')::bigint AS gold,
+  (SELECT coalesce(sum(o.amount_rial::numeric / CASE o.period WHEN 'quarter' THEN 3 WHEN 'year' THEN 12 ELSE 1 END), 0)
+     FROM act s JOIN app.orders o ON o.id = s.order_id)::bigint AS mrr_plans_rial,
+  (SELECT coalesce(sum(o.amount_rial::numeric / greatest(1, round(extract(epoch FROM s.ends_at - s.starts_at) / 86400 / 30))), 0)
+     FROM app.orders o JOIN act s ON s.id = o.for_subscription WHERE o.kind = 'sms_addon' AND o.status = 'paid')::bigint AS mrr_addons_rial
+`
+
+type RevenueNowRow struct {
+	Silver        int64
+	Gold          int64
+	MrrPlansRial  int64
+	MrrAddonsRial int64
+}
+
+// Paying members now and the monthly recurring revenue: each active paid subscription's order (plan and SMS metals)
+// divided by its months; and SMS add-ons the same way.
+func (q *Queries) RevenueNow(ctx context.Context) (RevenueNowRow, error) {
+	row := q.db.QueryRow(ctx, revenueNow)
+	var i RevenueNowRow
+	err := row.Scan(
+		&i.Silver,
+		&i.Gold,
+		&i.MrrPlansRial,
+		&i.MrrAddonsRial,
+	)
+	return i, err
+}
+
+const setCustomerNoteDone = `-- name: SetCustomerNoteDone :execrows
+UPDATE app.customer_notes SET done = $1 WHERE id = $2
+`
+
+type SetCustomerNoteDoneParams struct {
+	Done bool
+	ID   pgtype.UUID
+}
+
+func (q *Queries) SetCustomerNoteDone(ctx context.Context, arg SetCustomerNoteDoneParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setCustomerNoteDone, arg.Done, arg.ID)
 	if err != nil {
 		return 0, err
 	}
@@ -625,4 +1122,51 @@ type SetSignupSourceParams struct {
 func (q *Queries) SetSignupSource(ctx context.Context, arg SetSignupSourceParams) error {
 	_, err := q.db.Exec(ctx, setSignupSource, arg.Source, arg.Campaign, arg.ID)
 	return err
+}
+
+const staffWork = `-- name: StaffWork :many
+SELECT a.actor_id, coalesce(max(a.actor_name), '')::text AS actor_name, a.action, count(*)::bigint AS n, max(a.at)::timestamptz AS last_at
+FROM app.audit_log a
+WHERE a.actor_id IS NOT NULL AND (a.at AT TIME ZONE 'Asia/Tehran')::date BETWEEN $1::date AND $2::date
+GROUP BY a.actor_id, a.action ORDER BY actor_name, n DESC
+`
+
+type StaffWorkParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
+type StaffWorkRow struct {
+	ActorID   pgtype.UUID
+	ActorName string
+	Action    string
+	N         int64
+	LastAt    pgtype.Timestamptz
+}
+
+// What each staff member did in a period (audit log): one row per person and kind of action.
+func (q *Queries) StaffWork(ctx context.Context, arg StaffWorkParams) ([]StaffWorkRow, error) {
+	rows, err := q.db.Query(ctx, staffWork, arg.FromDay, arg.ToDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []StaffWorkRow{}
+	for rows.Next() {
+		var i StaffWorkRow
+		if err := rows.Scan(
+			&i.ActorID,
+			&i.ActorName,
+			&i.Action,
+			&i.N,
+			&i.LastAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

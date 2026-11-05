@@ -62,6 +62,9 @@ type Querier interface {
 	AdminListTickets(ctx context.Context, arg AdminListTicketsParams) ([]AdminListTicketsRow, error)
 	// The price of every series at a moment: its last published point at or before it (the admin's "prices on a date").
 	AdminPricesAt(ctx context.Context, at pgtype.Timestamptz) ([]AdminPricesAtRow, error)
+	AdminSearchArticles(ctx context.Context, q_ string) ([]AdminSearchArticlesRow, error)
+	AdminSearchOrders(ctx context.Context, q_ string) ([]AdminSearchOrdersRow, error)
+	AdminSearchUsers(ctx context.Context, q_ string) ([]AdminSearchUsersRow, error)
 	// Price history and voiding (admin) ------------------------------------------------------------------------
 	// Recent points of one series in every status, newest first, with the staff names from the audit log and the
 	// published price before each point (so the admin can show "from → to").
@@ -129,6 +132,8 @@ type Querier interface {
 	DashboardCounts(ctx context.Context, dayEnd pgtype.Timestamptz) (DashboardCountsRow, error)
 	// Domestic price rows that had a price in the 14 days before the day but none on it (day_start..day_end).
 	DashboardMissingPrices(ctx context.Context, arg DashboardMissingPricesParams) ([]DashboardMissingPricesRow, error)
+	// The 30 days up to a day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts.
+	DashboardTrend(ctx context.Context, toDay pgtype.Date) ([]DashboardTrendRow, error)
 	DecideRefund(ctx context.Context, arg DecideRefundParams) error
 	DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64, error)
 	DeleteArticleImage(ctx context.Context, articleID pgtype.UUID) (int64, error)
@@ -156,7 +161,11 @@ type Querier interface {
 	// What only the user had: SMS choice, price alerts, saved calculations, the pages they opened (activity); the SMS log keeps cost and status without the
 	// number; contact-form messages they sent while signed in keep the text without name, number, email and address.
 	DeleteUserPrivateData(ctx context.Context, userID pgtype.UUID) error
+	// Follow-ups due on or before a day and not done, oldest first, with the customer.
+	DueFollowUps(ctx context.Context, day pgtype.Date) ([]DueFollowUpsRow, error)
 	ExpirePendingOrders(ctx context.Context) (int64, error)
+	// Paid plans ending in the next 7 days with nothing queued after them: who sales should call.
+	ExpiringSoon(ctx context.Context) ([]ExpiringSoonRow, error)
 	// Notifications ---------------------------------------------------------------------------------------------
 	// Paid or granted plans ending in the window with nothing queued after them, and a phone to remind.
 	ExpiringSubscriptions(ctx context.Context, arg ExpiringSubscriptionsParams) ([]ExpiringSubscriptionsRow, error)
@@ -208,6 +217,7 @@ type Querier interface {
 	InsertComment(ctx context.Context, arg InsertCommentParams) (InsertCommentRow, error)
 	// Support (internal/support): contact form messages and user tickets.
 	InsertContactMessage(ctx context.Context, arg InsertContactMessageParams) (InsertContactMessageRow, error)
+	InsertCustomerNote(ctx context.Context, arg InsertCustomerNoteParams) (InsertCustomerNoteRow, error)
 	// No row back = the metal or category doesn't exist; a unique violation = the name is taken in that metal and category.
 	InsertGroup(ctx context.Context, arg InsertGroupParams) (InsertGroupRow, error)
 	// No row back = the slug is taken.
@@ -256,6 +266,7 @@ type Querier interface {
 	// that wait for review (migration 00027), marked so on their card.
 	ListCommunityPosts(ctx context.Context, arg ListCommunityPostsParams) ([]ListCommunityPostsRow, error)
 	ListCurrentPlanPrices(ctx context.Context) ([]ListCurrentPlanPricesRow, error)
+	ListCustomerNotes(ctx context.Context, userID pgtype.UUID) ([]ListCustomerNotesRow, error)
 	ListFaqCategories(ctx context.Context) ([]ListFaqCategoriesRow, error)
 	// Every item in display order; published_only = true for the public site.
 	ListFaqItems(ctx context.Context, publishedOnly bool) ([]ListFaqItemsRow, error)
@@ -321,9 +332,17 @@ type Querier interface {
 	RecordUsage(ctx context.Context, arg RecordUsageParams) error
 	RecordVisit(ctx context.Context, arg RecordVisitParams) error
 	RenameMetal(ctx context.Context, arg RenameMetalParams) (int64, error)
+	// Paid plans (bought, not granted) that ended in a period, and how many of them the member renewed (a new plan
+	// starting at most 7 days after the end).
+	RenewalStats(ctx context.Context, arg RenewalStatsParams) (RenewalStatsRow, error)
 	// An upgrade ends running lower plans now; queued ones keep their dates and simply never start (status).
 	ReplaceSubscriptions(ctx context.Context, ids []pgtype.UUID) error
 	ReportCommunityPost(ctx context.Context, arg ReportCommunityPostParams) error
+	// Paid orders per day in a period, split into Silver, Gold and SMS metals (Rial); refunds on the day they were decided.
+	RevenueByDay(ctx context.Context, arg RevenueByDayParams) ([]RevenueByDayRow, error)
+	// Paying members now and the monthly recurring revenue: each active paid subscription's order (plan and SMS metals)
+	// divided by its months; and SMS add-ons the same way.
+	RevenueNow(ctx context.Context) (RevenueNowRow, error)
 	// Total SMS spend since a time (the daily budget circuit breaker, SECURITY §4).
 	SMSCostSince(ctx context.Context, since pgtype.Timestamptz) (int64, error)
 	// Keeps the text that is about to be replaced.
@@ -345,6 +364,7 @@ type Querier interface {
 	SetArticleVideoFile(ctx context.Context, arg SetArticleVideoFileParams) (pgtype.Text, error)
 	SetCommentStatus(ctx context.Context, arg SetCommentStatusParams) (int64, error)
 	SetCommunityPostStatus(ctx context.Context, arg SetCommunityPostStatusParams) (int64, error)
+	SetCustomerNoteDone(ctx context.Context, arg SetCustomerNoteDoneParams) (int64, error)
 	// Upsert: a flag missing from an environment's seed is created on first switch.
 	SetFlag(ctx context.Context, arg SetFlagParams) (SetFlagRow, error)
 	SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) error
@@ -365,6 +385,8 @@ type Querier interface {
 	SmsMetalSubscribers(ctx context.Context, metalID pgtype.Int2) ([]SmsMetalSubscribersRow, error)
 	SourceHasPoints(ctx context.Context, sourceID int16) (bool, error)
 	SourceHealth(ctx context.Context) ([]SourceHealthRow, error)
+	// What each staff member did in a period (audit log): one row per person and kind of action.
+	StaffWork(ctx context.Context, arg StaffWorkParams) ([]StaffWorkRow, error)
 	// When a subscription was created (bought or granted): the "choose your SMS metals" notice runs 7 days from it.
 	SubscriptionBoughtAt(ctx context.Context, id pgtype.UUID) (pgtype.Timestamptz, error)
 	// The metals one subscription already sends SMS for.
