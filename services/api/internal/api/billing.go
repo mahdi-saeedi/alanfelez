@@ -284,6 +284,8 @@ func (s *Server) AdminListUsers(ctx context.Context, req AdminListUsersRequestOb
 	rows, err := s.q.AdminUsersPage(ctx, dbq.AdminUsersPageParams{
 		Q: searchTerm(req.Params.Q), Plan: planOf(req.Params.Plan), Metal: str(req.Params.Metal), Activity: str(req.Params.Activity),
 		Province: str(req.Params.Province), Off: offsetOf(req.Params.Page), Lim: pageSize,
+		SmsMetal: str(req.Params.SmsMetal), ExpiresWithin: segmentDays(req.Params.ExpiresWithin),
+		JoinedFrom: optDate(req.Params.JoinedFrom), JoinedTo: optDate(req.Params.JoinedTo), Source: str(req.Params.Source),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("search users: %w", err)

@@ -163,6 +163,14 @@ func (s *Server) AdminDashboard(ctx context.Context, req AdminDashboardRequestOb
 	for _, m := range metals {
 		out.Metals = append(out.Metals, ActivityMetal{Metal: m.Metal, Views: int(m.Views)})
 	}
+	trend, err := s.q.DashboardTrend(ctx, pgDate(day))
+	if err != nil {
+		return nil, fmt.Errorf("dashboard trend: %w", err)
+	}
+	out.Trend = make([]DayTrend, 0, len(trend))
+	for _, r := range trend {
+		out.Trend = append(out.Trend, DayTrend{Day: openapi_types.Date{Time: r.Day.Time}, Visitors: r.Visitors, Signups: r.Signups, Revenue: rial(r.RevenueRial)})
+	}
 	return out, nil
 }
 
@@ -477,7 +485,7 @@ func labelsFor(en bool) csvLabels {
 			acts: map[string]string{"trader": "Trading", "producer": "Producer", "industrial-consumer": "Industrial consumer", "distributor": "Distribution",
 				"recycler": "Recycling and scrap", "investor": "Investor / analyst", "other": "Other"},
 			plan:  map[string]string{"free": "Free", "silver": "Silver", "gold": "Gold"},
-			users: map[string]string{"metals": "Metals (sign-up)", "province": "Province", "ends": "Plan ends", "signup": "Signed up", "seen": "Last seen"},
+			users: map[string]string{"metals": "Metals (sign-up)", "province": "Province", "ends": "Plan ends", "signup": "Signed up", "seen": "Last seen", "source": "Came from"},
 		}
 	}
 	return csvLabels{
@@ -489,7 +497,7 @@ func labelsFor(en bool) csvLabels {
 		acts: map[string]string{"trader": "بازرگانی (خرید و فروش)", "producer": "تولیدکننده", "industrial-consumer": "مصرف\u200cکننده\u200cی صنعتی", "distributor": "توزیع و پخش",
 			"recycler": "بازیافت و ضایعات", "investor": "سرمایه\u200cگذار / تحلیلگر", "other": "سایر"},
 		plan:  map[string]string{"free": "رایگان", "silver": "نقره\u200cای", "gold": "طلایی"},
-		users: map[string]string{"metals": "فلزهای ثبت\u200cنام", "province": "استان", "ends": "پایان اشتراک", "signup": "تاریخ ثبت\u200cنام", "seen": "آخرین حضور"},
+		users: map[string]string{"metals": "فلزهای ثبت\u200cنام", "province": "استان", "ends": "پایان اشتراک", "signup": "تاریخ ثبت\u200cنام", "seen": "آخرین حضور", "source": "منبع ورود"},
 	}
 }
 
@@ -502,6 +510,8 @@ func (s *Server) AdminExportUsers(ctx context.Context, req AdminExportUsersReque
 	rows, err := s.q.AdminUsersPage(ctx, dbq.AdminUsersPageParams{
 		Q: searchTerm(req.Params.Q), Plan: planOf(req.Params.Plan), Metal: str(req.Params.Metal), Activity: str(req.Params.Activity),
 		Province: str(req.Params.Province), Lim: 20000,
+		SmsMetal: str(req.Params.SmsMetal), ExpiresWithin: segmentDays(req.Params.ExpiresWithin),
+		JoinedFrom: optDate(req.Params.JoinedFrom), JoinedTo: optDate(req.Params.JoinedTo), Source: str(req.Params.Source),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("export users: %w", err)
@@ -523,7 +533,7 @@ func (s *Server) AdminExportUsers(ctx context.Context, req AdminExportUsersReque
 	buf.WriteString("\xef\xbb\xbf")
 	w := csv.NewWriter(&buf)
 	_ = w.Write([]string{l.col["mobile"], l.col["id"], l.col["name"], l.col["company"], l.col["activity"], l.users["metals"],
-		l.users["province"], l.col["plan"], l.users["ends"], l.users["signup"], l.users["seen"]})
+		l.users["province"], l.col["plan"], l.users["ends"], l.users["signup"], l.users["seen"], l.users["source"]})
 	for _, r := range rows {
 		names := make([]string, 0, len(r.Metals))
 		for _, m := range r.Metals {
@@ -535,7 +545,7 @@ func (s *Server) AdminExportUsers(ctx context.Context, req AdminExportUsersReque
 		}
 		_ = w.Write([]string{r.Username, uuid.UUID(r.ID.Bytes).String(), fullName(r.FirstName, r.LastName),
 			r.Company.String, l.activity(r.Activity.String), strings.Join(names, sep), r.Province.String, l.plan[r.CurrentPlan], ends,
-			l.when(r.CreatedAt.Time), l.when(r.LastSeenAt.Time)})
+			l.when(r.CreatedAt.Time), l.when(r.LastSeenAt.Time), r.SignupSource.String})
 	}
 	w.Flush()
 	if err := w.Error(); err != nil {
@@ -548,4 +558,20 @@ func (s *Server) AdminExportUsers(ctx context.Context, req AdminExportUsersReque
 	}
 	disp := `attachment; filename="users-` + visits.Day(time.Now()).Format(time.DateOnly) + `.csv"`
 	return AdminExportUsers200TextcsvResponse{Body: &buf, ContentLength: int64(buf.Len()), Headers: AdminExportUsers200ResponseHeaders{ContentDisposition: &disp}}, nil
+}
+
+// segmentDays is the "plan ends within N days" segment (0 = any), at most a year.
+func segmentDays(d *int) int32 {
+	if d == nil || *d < 1 {
+		return 0
+	}
+	return int32(min(*d, 365)) //nolint:gosec // bounded to 365
+}
+
+// optDate is an optional query date as a nullable SQL date.
+func optDate(d *openapi_types.Date) pgtype.Date {
+	if d == nil {
+		return pgtype.Date{}
+	}
+	return pgtype.Date{Time: d.Time, Valid: true}
 }

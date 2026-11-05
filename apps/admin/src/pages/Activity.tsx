@@ -5,6 +5,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { formatDate, formatNumber, formatTime, type Locale } from "@alanfelez/ui/format";
 import { api, errorText, unwrap } from "../api";
 import { Badge, Button, Card, Input, Notice, Page, Select, Td, Th } from "./ui";
+import { CustomerNotes } from "./Notes";
 import { ACTIVITIES, Bar, METALS, RangePicker, type Range, addDays, downloadCsv, duration, lastDays, metalColor, noonOf } from "./dates";
 
 type Plan = "free" | "silver" | "gold";
@@ -209,6 +210,7 @@ export function ActivityUserPage() {
             <Link to={`/orders?user=${u.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:border-gold">{t("users.orders")}</Link>
             <Button type="button" tone="gold" onClick={exportCsv}>⬇ {t("act.exportUser")}</Button>
           </Card>
+          <CustomerNotes userId={id} />
           <RangePicker value={range} onChange={setRange} locale={locale} />
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

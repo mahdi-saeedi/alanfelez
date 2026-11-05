@@ -227,7 +227,7 @@ LIMIT 50;
 -- name: AdminUsersPage :many
 -- The admin users list with filters (plan held now, a metal from the sign-up form, activity, province) and paging.
 SELECT u.id, u.username, u.phone_e164, u.first_name, u.last_name, u.email, u.created_at, u.last_seen_at, u.blocked_at,
-       u.activity, u.metals, u.province, u.company, u.deleted_at,
+       u.activity, u.metals, u.province, u.company, u.deleted_at, u.signup_source,
        coalesce(cur.plan_code, 'free')::text AS current_plan, cur.ends_at AS current_ends_at,
        count(*) OVER ()::int AS total
 FROM app.users u
@@ -245,6 +245,17 @@ WHERE (sqlc.arg(q)::text = ''
   AND (sqlc.arg(metal)::text = '' OR sqlc.arg(metal)::text = ANY (u.metals))
   AND (sqlc.arg(activity)::text = '' OR u.activity = sqlc.arg(activity)::text)
   AND (sqlc.arg(province)::text = '' OR u.province = sqlc.arg(province)::text)
+  -- Segments for the sales team's own bulk SMS (client, 2026-11-05): a paid SMS metal, a plan ending soon, a sign-up
+  -- period and where they came from.
+  AND (sqlc.arg(sms_metal)::text = '' OR EXISTS (
+        SELECT 1 FROM app.subscription_sms_metals ssm
+        JOIN app.subscriptions ss ON ss.id = ssm.subscription_id AND ss.status = 'active' AND ss.starts_at <= now() AND ss.ends_at > now()
+        JOIN market.metals mm ON mm.id = ssm.metal_id
+        WHERE ss.user_id = u.id AND mm.slug = sqlc.arg(sms_metal)::text))
+  AND (sqlc.arg(expires_within)::int = 0 OR (cur.ends_at IS NOT NULL AND cur.ends_at <= now() + make_interval(days => sqlc.arg(expires_within)::int)))
+  AND (sqlc.narg(joined_from)::date IS NULL OR (u.created_at AT TIME ZONE 'Asia/Tehran')::date >= sqlc.narg(joined_from)::date)
+  AND (sqlc.narg(joined_to)::date IS NULL OR (u.created_at AT TIME ZONE 'Asia/Tehran')::date <= sqlc.narg(joined_to)::date)
+  AND (sqlc.arg(source)::text = '' OR u.signup_source = sqlc.arg(source)::text)
 ORDER BY u.last_seen_at DESC, u.id
 LIMIT sqlc.arg(lim)::int OFFSET sqlc.arg(off)::int;
 

@@ -4,18 +4,11 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-04 (privacy policy, «مواد اولیه معدنی», staff accounts from the admin)
+Last updated: 2026-11-05 (admin analytics, sales report, customer notes, staff work, global search)
 
 ## Now (in progress)
-- [ ] **Admin analytics and tools** (client 2026-11-05, owner OK): «تحلیل بازدید» (products and metals seen, sections by
-      audience, sales funnel and plans-from, traffic sources with campaign tags, devices, provinces, site searches;
-      migration 00038) → staging. Next: revenue report and dashboard charts; users export segments, customer notes
-      for sales, staff work report, global search, phone-friendly tables.
-- [ ] **Privacy policy, «مواد اولیه معدنی» in the CMS texts, staff accounts → staging** (2026-11-04, branch
-      `feat/privacy-staff`); then the main site after the client's check.
-- [ ] **SMS by metal, greetings, article media** (2026-11-04): on staging; waiting for the client's check, then the main
-      site, together with the next item.
-- [ ] **Paid SMS metals, SMS limits, «مقالات», uploaded videos → staging** (2026-11-04, branch `feat/sms-checkout`).
+- [ ] **Admin analytics and tools → staging, then the main site** (client 2026-11-05, owner OK). «تحلیل بازدید» is on
+      staging; «گزارش فروش», dashboard charts, user segments, sales notes, staff work, global search ship next.
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
@@ -71,6 +64,13 @@ Last updated: 2026-11-04 (privacy policy, «مواد اولیه معدنی», st
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-05 Admin analytics and sales tools (client, owner OK by phone): «تحلیل بازدید» (products and metals seen by
+  audience, section map, sales funnel and the page a plan was opened from, traffic sources with UTM campaigns, devices,
+  provinces, site searches; migration 00038, a line in the privacy policy); «گزارش فروش» (revenue by plan and SMS
+  metals, monthly revenue now, renewals, plans ending soon) and 30-day charts on the dashboard; users list segments
+  for bulk SMS (SMS metal, plan ending within N days, joined, source) in the Excel export; sales notes with a
+  follow-up date on each customer (migration 00039) and due follow-ups on the dashboard; «کار کارکنان» (admin only,
+  from the audit log); global search (Ctrl+K: users, orders, articles); phone cards for users and tickets.
 - 2026-11-04 Staff accounts from the admin («کارکنان», client and owner OK): create with a username and a temporary
   password (first sign-in: own password + TOTP), change the role (view only for sales, support, editor, admin), new
   temporary password, turn off (signs out). Through the API's Keycloak service account (now also query-users and

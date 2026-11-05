@@ -145,6 +145,17 @@ type AppContactMessage struct {
 	UpdatedAt pgtype.Timestamptz
 }
 
+type AppCustomerNote struct {
+	ID         pgtype.UUID
+	UserID     pgtype.UUID
+	AuthorID   pgtype.UUID
+	AuthorName string
+	Body       string
+	FollowUp   pgtype.Date
+	Done       bool
+	CreatedAt  pgtype.Timestamptz
+}
+
 type AppDailyVisit struct {
 	Day       pgtype.Date
 	Visitor   string

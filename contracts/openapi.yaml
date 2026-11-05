@@ -546,6 +546,11 @@ paths:
         - { name: metal, in: query, required: false, schema: { type: string, maxLength: 40 }, description: A metal slug the user chose at sign-up }
         - { $ref: '#/components/parameters/UserActivityFilter' }
         - { name: province, in: query, required: false, schema: { type: string, maxLength: 60 } }
+        - { $ref: '#/components/parameters/UserSegmentSmsMetal' }
+        - { $ref: '#/components/parameters/UserSegmentExpires' }
+        - { $ref: '#/components/parameters/UserSegmentJoinedFrom' }
+        - { $ref: '#/components/parameters/UserSegmentJoinedTo' }
+        - { $ref: '#/components/parameters/UserSegmentSource' }
         - { $ref: '#/components/parameters/PageNumber' }
       responses:
         '200':
@@ -589,7 +594,7 @@ paths:
     get:
       operationId: adminExportUsers
       tags: [admin]
-      summary: The users list as a CSV file for Excel (same filters, every page, up to 20,000 rows). Audited
+      summary: The users list as a CSV file for Excel (same filters and segments, every page, up to 20,000 rows; for the sales team's own bulk SMS). Audited
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
@@ -597,6 +602,11 @@ paths:
         - { name: metal, in: query, required: false, schema: { type: string, maxLength: 40 } }
         - { $ref: '#/components/parameters/UserActivityFilter' }
         - { name: province, in: query, required: false, schema: { type: string, maxLength: 60 } }
+        - { $ref: '#/components/parameters/UserSegmentSmsMetal' }
+        - { $ref: '#/components/parameters/UserSegmentExpires' }
+        - { $ref: '#/components/parameters/UserSegmentJoinedFrom' }
+        - { $ref: '#/components/parameters/UserSegmentJoinedTo' }
+        - { $ref: '#/components/parameters/UserSegmentSource' }
         - { $ref: '#/components/parameters/AcceptLanguage' }
       responses:
         '200':
@@ -648,6 +658,153 @@ paths:
           content:
             text/csv:
               schema: { type: string, format: binary }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/revenue:
+    get:
+      operationId: adminRevenue
+      tags: [admin]
+      summary: >-
+        Sales for a period (default the last 30 days): revenue per day split into Silver, Gold and SMS metals, refunds,
+        paying members and monthly recurring revenue now, renewals, and the paid plans ending in the next 7 days. Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+      responses:
+        '200':
+          description: Revenue
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminRevenue' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/users/{id}/notes:
+    get:
+      operationId: adminListCustomerNotes
+      tags: [admin]
+      summary: The sales team's notes on a customer, newest first. Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Notes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CustomerNote' } }
+        default: { $ref: '#/components/responses/Problem' }
+    post:
+      operationId: adminAddCustomerNote
+      tags: [admin]
+      summary: Add a note on a customer, optionally with a day to follow up. Roles staff (sales included), audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body: { type: string, minLength: 1, maxLength: 2000 }
+                followUp: { type: string, format: date, description: Tehran day to call back }
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerNote' }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/customer-notes/{id}:
+    put:
+      operationId: adminSetCustomerNoteDone
+      tags: [admin]
+      summary: Mark a note's follow-up done (or not). Roles staff, audited
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [done]
+              properties:
+                done: { type: boolean }
+      responses:
+        '204': { description: Saved }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/follow-ups:
+    get:
+      operationId: adminFollowUps
+      tags: [admin]
+      summary: Follow-ups due today or earlier and not done (the dashboard). Roles staff
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Due follow-ups
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CustomerNote' } }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/staff-work:
+    get:
+      operationId: adminStaffWork
+      tags: [admin]
+      summary: What each staff member did in a period (from the audit log), per kind of action. Role admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ActivityFrom' }
+        - { $ref: '#/components/parameters/ActivityTo' }
+      responses:
+        '200':
+          description: Work
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [from, to, items]
+                properties:
+                  from: { type: string, format: date }
+                  to: { type: string, format: date }
+                  items: { type: array, items: { $ref: '#/components/schemas/StaffWorkRow' } }
+        default: { $ref: '#/components/responses/Problem' }
+
+  /v1/admin/search:
+    get:
+      operationId: adminSearch
+      tags: [admin]
+      summary: The admin's search box (mobile, name, company, order id, article title); a few of each. Roles staff
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+      responses:
+        '200':
+          description: Matches
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [users, orders, articles]
+                properties:
+                  users: { type: array, items: { $ref: '#/components/schemas/SearchUser' } }
+                  orders: { type: array, items: { $ref: '#/components/schemas/SearchOrder' } }
+                  articles: { type: array, items: { $ref: '#/components/schemas/SearchArticle' } }
         default: { $ref: '#/components/responses/Problem' }
 
   /v1/admin/dashboard:
@@ -2979,6 +3136,35 @@ components:
       required: false
       description: The plan the user holds now
       schema: { $ref: '#/components/schemas/Tier' }
+    UserSegmentSmsMetal:
+      name: smsMetal
+      in: query
+      required: false
+      description: A metal the user paid price SMS for (Gold plan active now)
+      schema: { type: string, maxLength: 40 }
+    UserSegmentExpires:
+      name: expiresWithin
+      in: query
+      required: false
+      description: Days; the user's current paid plan ends within this many days
+      schema: { type: integer, minimum: 1, maximum: 365 }
+    UserSegmentJoinedFrom:
+      name: joinedFrom
+      in: query
+      required: false
+      description: Signed up on or after this day (Tehran)
+      schema: { type: string, format: date }
+    UserSegmentJoinedTo:
+      name: joinedTo
+      in: query
+      required: false
+      schema: { type: string, format: date }
+    UserSegmentSource:
+      name: source
+      in: query
+      required: false
+      description: 'Where they came from when they signed up (as «تحلیل بازدید» names it: google, instagram, utm:<tag>…)'
+      schema: { type: string, maxLength: 80 }
     UserActivityFilter:
       name: activity
       in: query
@@ -3606,6 +3792,111 @@ components:
         views: { type: integer, format: int64 }
         seconds: { type: integer, format: int64 }
 
+    DayTrend:
+      type: object
+      required: [day, visitors, signups, revenue]
+      properties:
+        day: { type: string, format: date }
+        visitors: { type: integer, format: int64 }
+        signups: { type: integer, format: int64 }
+        revenue: { $ref: '#/components/schemas/Money' }
+
+    RevenueDay:
+      type: object
+      required: [day, silver, gold, sms, refunds, orders]
+      properties:
+        day: { type: string, format: date }
+        silver: { $ref: '#/components/schemas/Money' }
+        gold: { $ref: '#/components/schemas/Money' }
+        sms: { $ref: '#/components/schemas/Money' }
+        refunds: { $ref: '#/components/schemas/Money' }
+        orders: { type: integer, format: int64 }
+
+    AdminRevenue:
+      type: object
+      required: [from, to, days, total, silver, gold, sms, refunds, orders, payingSilver, payingGold, mrr, renewalsEnded, renewalsRenewed, expiring]
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        days: { type: array, items: { $ref: '#/components/schemas/RevenueDay' } }
+        total: { $ref: '#/components/schemas/Money' }
+        silver: { $ref: '#/components/schemas/Money' }
+        gold: { $ref: '#/components/schemas/Money' }
+        sms: { $ref: '#/components/schemas/Money' }
+        refunds: { $ref: '#/components/schemas/Money' }
+        orders: { type: integer, format: int64 }
+        payingSilver: { type: integer, format: int64, description: Members holding Silver now }
+        payingGold: { type: integer, format: int64 }
+        mrr: { $ref: '#/components/schemas/Money', description: 'Monthly recurring revenue now: each active paid plan (and SMS add-on) per month' }
+        renewalsEnded: { type: integer, format: int64, description: Bought plans that ended in the period }
+        renewalsRenewed: { type: integer, format: int64, description: Of those, renewed within 7 days }
+        expiring:
+          type: array
+          description: Paid plans ending in the next 7 days with nothing after them (for sales calls)
+          items: { $ref: '#/components/schemas/ExpiringPlan' }
+
+    ExpiringPlan:
+      type: object
+      required: [userId, mobile, name, plan, endsAt]
+      properties:
+        userId: { type: string, format: uuid }
+        mobile: { type: string }
+        name: { type: string }
+        company: { type: string }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        endsAt: { type: string, format: date-time }
+
+    CustomerNote:
+      type: object
+      required: [id, userId, author, body, done, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        author: { type: string }
+        body: { type: string }
+        followUp: { type: string, format: date }
+        done: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        customer: { type: string, description: 'The customer (name, mobile), in the follow-ups list' }
+
+    StaffWorkRow:
+      type: object
+      required: [actorId, name, action, count, lastAt]
+      properties:
+        actorId: { type: string, format: uuid }
+        name: { type: string }
+        action: { type: string, description: 'e.g. price.manual_entry, ticket.reply' }
+        count: { type: integer, format: int64 }
+        lastAt: { type: string, format: date-time }
+
+    SearchUser:
+      type: object
+      required: [id, mobile, name]
+      properties:
+        id: { type: string, format: uuid }
+        mobile: { type: string }
+        name: { type: string }
+        company: { type: string }
+
+    SearchOrder:
+      type: object
+      required: [id, mobile, plan, status, amount, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        mobile: { type: string }
+        plan: { $ref: '#/components/schemas/PaidPlan' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        amount: { $ref: '#/components/schemas/Money' }
+        createdAt: { type: string, format: date-time }
+
+    SearchArticle:
+      type: object
+      required: [id, title, type]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        type: { $ref: '#/components/schemas/ArticleType' }
+
     CheckoutResult:
       type: object
       required: [order]
@@ -3880,9 +4171,13 @@ components:
 
     AdminDashboard:
       type: object
-      required: [day, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups7d, signupsPrev7d, silver, gold, expiring7d, pending, missingPrices, metals]
+      required: [day, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups7d, signupsPrev7d, silver, gold, expiring7d, pending, missingPrices, metals, trend]
       properties:
         day: { type: string, format: date }
+        trend:
+          type: array
+          description: The 30 days up to the day, for the charts (client, 2026-11-05)
+          items: { $ref: '#/components/schemas/DayTrend' }
         today: { type: boolean, description: The day is today (Tehran); plan counts are then as of now, else as of the day's end }
         visitors: { type: integer }
         signedIn: { type: integer }

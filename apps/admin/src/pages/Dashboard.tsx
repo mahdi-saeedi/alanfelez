@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGetLocale, useTranslate } from "@refinedev/core";
 import { Link } from "react-router";
-import { formatDate, formatNumber, type Locale } from "@alanfelez/ui/format";
+import { formatDate, formatNumber, formatToman, type Locale } from "@alanfelez/ui/format";
+import { DayBars } from "./charts";
+import { DueFollowUps } from "./Notes";
 import { api, errorText, unwrap } from "../api";
 import { Button, Card, Notice, Page } from "./ui";
 import { Bar, DayPicker, addDays, metalColor, noonOf, todayTehran } from "./dates";
@@ -72,6 +74,24 @@ export function Dashboard() {
             </Card>
           </div>
 
+          {/* The 30 days up to the day (client, 2026-11-05): visitors, sign-ups and revenue. */}
+          <div className="grid gap-3 lg:grid-cols-3">
+            {([
+              ["dash.trendVisitors", d.trend.map((x) => x.visitors), "#5f8fb3", undefined],
+              ["dash.trendSignups", d.trend.map((x) => x.signups), "#16a34a", undefined],
+              ["dash.trendRevenue", d.trend.map((x) => Number(BigInt(x.revenue.amount) / 10n)), "#c9a227", (v: number) => formatToman(String(v * 10), locale)],
+            ] as const).map(([k, values, color, format]) => (
+              <Card key={k} className="space-y-2 p-4">
+                <div className="flex items-baseline justify-between gap-2">
+                  <h2 className="text-sm font-bold">{t(k)}</h2>
+                  <b className="text-sm tabular-nums">{format ? format(values.reduce((a, b) => a + b, 0)) : n(values.reduce((a, b) => a + b, 0))}</b>
+                </div>
+                <DayBars days={d.trend.map((x) => x.day)} series={[{ label: t(k), color, values: [...values] }]} locale={locale} height={90} format={format} />
+              </Card>
+            ))}
+          </div>
+
+          <DueFollowUps />
           <div className="grid gap-3 lg:grid-cols-2">
             <Card>
               <h2 className="border-b border-border px-4 py-3 text-sm font-bold">{t("dash.waiting")}</h2>

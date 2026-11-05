@@ -446,7 +446,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The users list as a CSV file for Excel (same filters, every page, up to 20,000 rows). Audited */
+        /** The users list as a CSV file for Excel (same filters and segments, every page, up to 20,000 rows; for the sales team's own bulk SMS). Audited */
         get: operations["adminExportUsers"];
         put?: never;
         post?: never;
@@ -482,6 +482,109 @@ export interface paths {
         };
         /** One table of «تحلیل بازدید» as a CSV file for Excel. Roles staff */
         get: operations["adminExportAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales for a period (default the last 30 days): revenue per day split into Silver, Gold and SMS metals, refunds, paying members and monthly recurring revenue now, renewals, and the paid plans ending in the next 7 days. Roles staff */
+        get: operations["adminRevenue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sales team's notes on a customer, newest first. Roles staff */
+        get: operations["adminListCustomerNotes"];
+        put?: never;
+        /** Add a note on a customer, optionally with a day to follow up. Roles staff (sales included), audited */
+        post: operations["adminAddCustomerNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/customer-notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a note's follow-up done (or not). Roles staff, audited */
+        put: operations["adminSetCustomerNoteDone"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Follow-ups due today or earlier and not done (the dashboard). Roles staff */
+        get: operations["adminFollowUps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff-work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What each staff member did in a period (from the audit log), per kind of action. Role admin */
+        get: operations["adminStaffWork"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The admin's search box (mobile, name, company, order id, article title); a few of each. Roles staff */
+        get: operations["adminSearch"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2593,6 +2696,119 @@ export interface components {
             /** Format: int64 */
             seconds: number;
         };
+        DayTrend: {
+            /** Format: date */
+            day: string;
+            /** Format: int64 */
+            visitors: number;
+            /** Format: int64 */
+            signups: number;
+            revenue: components["schemas"]["Money"];
+        };
+        RevenueDay: {
+            /** Format: date */
+            day: string;
+            silver: components["schemas"]["Money"];
+            gold: components["schemas"]["Money"];
+            sms: components["schemas"]["Money"];
+            refunds: components["schemas"]["Money"];
+            /** Format: int64 */
+            orders: number;
+        };
+        AdminRevenue: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            days: components["schemas"]["RevenueDay"][];
+            total: components["schemas"]["Money"];
+            silver: components["schemas"]["Money"];
+            gold: components["schemas"]["Money"];
+            sms: components["schemas"]["Money"];
+            refunds: components["schemas"]["Money"];
+            /** Format: int64 */
+            orders: number;
+            /**
+             * Format: int64
+             * @description Members holding Silver now
+             */
+            payingSilver: number;
+            /** Format: int64 */
+            payingGold: number;
+            /** @description Monthly recurring revenue now: each active paid plan (and SMS add-on) per month */
+            mrr: components["schemas"]["Money"];
+            /**
+             * Format: int64
+             * @description Bought plans that ended in the period
+             */
+            renewalsEnded: number;
+            /**
+             * Format: int64
+             * @description Of those
+             */
+            renewalsRenewed: number;
+            /** @description Paid plans ending in the next 7 days with nothing after them (for sales calls) */
+            expiring: components["schemas"]["ExpiringPlan"][];
+        };
+        ExpiringPlan: {
+            /** Format: uuid */
+            userId: string;
+            mobile: string;
+            name: string;
+            company?: string;
+            plan: components["schemas"]["PaidPlan"];
+            /** Format: date-time */
+            endsAt: string;
+        };
+        CustomerNote: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            author: string;
+            body: string;
+            /** Format: date */
+            followUp?: string;
+            done: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description The customer (name, mobile), in the follow-ups list */
+            customer?: string;
+        };
+        StaffWorkRow: {
+            /** Format: uuid */
+            actorId: string;
+            name: string;
+            /** @description e.g. price.manual_entry, ticket.reply */
+            action: string;
+            /** Format: int64 */
+            count: number;
+            /** Format: date-time */
+            lastAt: string;
+        };
+        SearchUser: {
+            /** Format: uuid */
+            id: string;
+            mobile: string;
+            name: string;
+            company?: string;
+        };
+        SearchOrder: {
+            /** Format: uuid */
+            id: string;
+            mobile: string;
+            plan: components["schemas"]["PaidPlan"];
+            status: components["schemas"]["OrderStatus"];
+            amount: components["schemas"]["Money"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SearchArticle: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            type: components["schemas"]["ArticleType"];
+        };
         CheckoutResult: {
             order: components["schemas"]["Order"];
             /** @description Gateway payment page; absent when nothing is left to pay */
@@ -2859,6 +3075,8 @@ export interface components {
         AdminDashboard: {
             /** Format: date */
             day: string;
+            /** @description The 30 days up to the day, for the charts (client, 2026-11-05) */
+            trend: components["schemas"]["DayTrend"][];
             /** @description The day is today (Tehran); plan counts are then as of now */
             today: boolean;
             visitors: number;
@@ -3519,6 +3737,15 @@ export interface components {
         PageNumber: number;
         /** @description The plan the user holds now */
         UserPlanFilter: components["schemas"]["Tier"];
+        /** @description A metal the user paid price SMS for (Gold plan active now) */
+        UserSegmentSmsMetal: string;
+        /** @description Days; the user's current paid plan ends within this many days */
+        UserSegmentExpires: number;
+        /** @description Signed up on or after this day (Tehran) */
+        UserSegmentJoinedFrom: string;
+        UserSegmentJoinedTo: string;
+        /** @description Where they came from when they signed up (as «تحلیل بازدید» names it: google, instagram, utm:<tag>…) */
+        UserSegmentSource: string;
         /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
         UserActivityFilter: string;
         /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
@@ -4130,6 +4357,15 @@ export interface operations {
                 /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
                 activity?: components["parameters"]["UserActivityFilter"];
                 province?: string;
+                /** @description A metal the user paid price SMS for (Gold plan active now) */
+                smsMetal?: components["parameters"]["UserSegmentSmsMetal"];
+                /** @description Days; the user's current paid plan ends within this many days */
+                expiresWithin?: components["parameters"]["UserSegmentExpires"];
+                /** @description Signed up on or after this day (Tehran) */
+                joinedFrom?: components["parameters"]["UserSegmentJoinedFrom"];
+                joinedTo?: components["parameters"]["UserSegmentJoinedTo"];
+                /** @description Where they came from when they signed up (as «تحلیل بازدید» names it: google, instagram, utm:<tag>…) */
+                source?: components["parameters"]["UserSegmentSource"];
                 /** @description Page number, from 1 (50 rows a page) */
                 page?: components["parameters"]["PageNumber"];
             };
@@ -4190,6 +4426,15 @@ export interface operations {
                 /** @description Sign-up answer (trader, producer, industrial-consumer, recycler, investor, other) */
                 activity?: components["parameters"]["UserActivityFilter"];
                 province?: string;
+                /** @description A metal the user paid price SMS for (Gold plan active now) */
+                smsMetal?: components["parameters"]["UserSegmentSmsMetal"];
+                /** @description Days; the user's current paid plan ends within this many days */
+                expiresWithin?: components["parameters"]["UserSegmentExpires"];
+                /** @description Signed up on or after this day (Tehran) */
+                joinedFrom?: components["parameters"]["UserSegmentJoinedFrom"];
+                joinedTo?: components["parameters"]["UserSegmentJoinedTo"];
+                /** @description Where they came from when they signed up (as «تحلیل بازدید» names it: google, instagram, utm:<tag>…) */
+                source?: components["parameters"]["UserSegmentSource"];
             };
             header?: {
                 "Accept-Language"?: components["parameters"]["AcceptLanguage"];
@@ -4265,6 +4510,200 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminRevenue: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revenue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRevenue"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminListCustomerNotes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Notes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CustomerNote"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminAddCustomerNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                    /**
+                     * Format: date
+                     * @description Tehran day to call back
+                     */
+                    followUp?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerNote"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSetCustomerNoteDone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    done: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminFollowUps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Due follow-ups */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CustomerNote"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminStaffWork: {
+        parameters: {
+            query?: {
+                /** @description First day, Tehran (default: 29 days before `to`). At most 2 years before `to` */
+                from?: components["parameters"]["ActivityFrom"];
+                /** @description Last day, Tehran (default: today) */
+                to?: components["parameters"]["ActivityTo"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Work */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        from: string;
+                        /** Format: date */
+                        to: string;
+                        items: components["schemas"]["StaffWorkRow"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    adminSearch: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Matches */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        users: components["schemas"]["SearchUser"][];
+                        orders: components["schemas"]["SearchOrder"][];
+                        articles: components["schemas"]["SearchArticle"][];
+                    };
                 };
             };
             default: components["responses"]["Problem"];

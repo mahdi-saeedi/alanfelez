@@ -151,3 +151,108 @@ GROUP BY 1 ORDER BY members DESC;
 SELECT st.term, sum(st.searches)::bigint AS searches, sum(st.zero_results)::bigint AS zero_results FROM app.search_terms_daily st
 WHERE st.day BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date
 GROUP BY st.term ORDER BY searches DESC, st.term LIMIT 100;
+
+-- name: DashboardTrend :many
+-- The 30 days up to a day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts.
+WITH days AS (SELECT generate_series(sqlc.arg(to_day)::date - 29, sqlc.arg(to_day)::date, interval '1 day')::date AS day)
+SELECT d.day,
+  coalesce((SELECT t.visitors FROM app.visit_totals t WHERE t.day = d.day),
+           (SELECT count(*) FROM app.daily_visits v WHERE v.day = d.day), 0)::bigint AS visitors,
+  (SELECT count(*) FROM app.users u WHERE u.phone_e164 IS NOT NULL AND (u.created_at AT TIME ZONE 'Asia/Tehran')::date = d.day)::bigint AS signups,
+  (SELECT coalesce(sum(o.amount_rial), 0) FROM app.orders o WHERE o.status = 'paid' AND (o.paid_at AT TIME ZONE 'Asia/Tehran')::date = d.day)::bigint AS revenue_rial
+FROM days d ORDER BY d.day;
+
+-- name: RevenueByDay :many
+-- Paid orders per day in a period, split into Silver, Gold and SMS metals (Rial); refunds on the day they were decided.
+WITH days AS (SELECT generate_series(sqlc.arg(from_day)::date, sqlc.arg(to_day)::date, interval '1 day')::date AS day),
+o AS (
+  SELECT (o.paid_at AT TIME ZONE 'Asia/Tehran')::date AS day, o.plan_code, o.kind, o.amount_rial, o.sms_rial
+  FROM app.orders o WHERE o.status IN ('paid', 'refunded') AND o.paid_at IS NOT NULL
+)
+SELECT d.day,
+  coalesce(sum(o.amount_rial - o.sms_rial) FILTER (WHERE o.plan_code = 'silver' AND o.kind <> 'sms_addon'), 0)::bigint AS silver_rial,
+  coalesce(sum(o.amount_rial - o.sms_rial) FILTER (WHERE o.plan_code = 'gold' AND o.kind <> 'sms_addon'), 0)::bigint AS gold_rial,
+  coalesce(sum(o.sms_rial), 0)::bigint AS sms_rial,
+  count(o.day)::bigint AS orders,
+  (SELECT coalesce(sum(r.amount_rial), 0) FROM app.refunds r WHERE r.status = 'approved' AND (r.decided_at AT TIME ZONE 'Asia/Tehran')::date = d.day)::bigint AS refunds_rial
+FROM days d LEFT JOIN o ON o.day = d.day
+GROUP BY d.day ORDER BY d.day;
+
+-- name: RevenueNow :one
+-- Paying members now and the monthly recurring revenue: each active paid subscription's order (plan and SMS metals)
+-- divided by its months; and SMS add-ons the same way.
+WITH act AS (
+  SELECT sub.id, sub.plan_code, sub.order_id, sub.starts_at, sub.ends_at FROM app.subscriptions sub
+  WHERE sub.status = 'active' AND sub.starts_at <= now() AND sub.ends_at > now()
+)
+SELECT
+  (SELECT count(*) FROM act s WHERE s.plan_code = 'silver')::bigint AS silver,
+  (SELECT count(*) FROM act s WHERE s.plan_code = 'gold')::bigint AS gold,
+  (SELECT coalesce(sum(o.amount_rial::numeric / CASE o.period WHEN 'quarter' THEN 3 WHEN 'year' THEN 12 ELSE 1 END), 0)
+     FROM act s JOIN app.orders o ON o.id = s.order_id)::bigint AS mrr_plans_rial,
+  (SELECT coalesce(sum(o.amount_rial::numeric / greatest(1, round(extract(epoch FROM s.ends_at - s.starts_at) / 86400 / 30))), 0)
+     FROM app.orders o JOIN act s ON s.id = o.for_subscription WHERE o.kind = 'sms_addon' AND o.status = 'paid')::bigint AS mrr_addons_rial;
+
+-- name: RenewalStats :one
+-- Paid plans (bought, not granted) that ended in a period, and how many of them the member renewed (a new plan
+-- starting at most 7 days after the end).
+SELECT count(*)::bigint AS ended,
+  count(*) FILTER (WHERE EXISTS (
+    SELECT 1 FROM app.subscriptions n WHERE n.user_id = s.user_id AND n.id <> s.id AND n.status = 'active'
+      AND n.starts_at > s.starts_at AND n.starts_at <= s.ends_at + interval '7 days'))::bigint AS renewed
+FROM app.subscriptions s
+WHERE s.origin = 'order' AND s.status IN ('active', 'replaced')
+  AND (s.ends_at AT TIME ZONE 'Asia/Tehran')::date BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date
+  AND s.ends_at <= now();
+
+-- name: ExpiringSoon :many
+-- Paid plans ending in the next 7 days with nothing queued after them: who sales should call.
+SELECT s.id, s.plan_code, s.ends_at, u.id AS user_id, u.username, u.first_name, u.last_name, u.company
+FROM app.subscriptions s
+JOIN app.users u ON u.id = s.user_id AND u.deleted_at IS NULL
+WHERE s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now() AND s.ends_at <= now() + interval '7 days'
+  AND NOT EXISTS (SELECT 1 FROM app.subscriptions n WHERE n.user_id = s.user_id AND n.id <> s.id AND n.status = 'active' AND n.starts_at >= s.ends_at - interval '1 minute')
+ORDER BY s.ends_at LIMIT 200;
+
+-- name: ListCustomerNotes :many
+SELECT n.id, n.user_id, n.author_name, n.body, n.follow_up, n.done, n.created_at FROM app.customer_notes n
+WHERE n.user_id = $1 ORDER BY n.created_at DESC LIMIT 200;
+
+-- name: InsertCustomerNote :one
+INSERT INTO app.customer_notes (user_id, author_id, author_name, body, follow_up)
+SELECT u.id, sqlc.arg(author_id), sqlc.arg(author_name), sqlc.arg(body), sqlc.narg(follow_up) FROM app.users u WHERE u.id = sqlc.arg(user_id)
+RETURNING id, user_id, author_name, body, follow_up, done, created_at;
+
+-- name: SetCustomerNoteDone :execrows
+UPDATE app.customer_notes SET done = sqlc.arg(done) WHERE id = sqlc.arg(id);
+
+-- name: DueFollowUps :many
+-- Follow-ups due on or before a day and not done, oldest first, with the customer.
+SELECT n.id, n.user_id, n.author_name, n.body, n.follow_up, n.done, n.created_at, u.username, u.first_name, u.last_name, u.company
+FROM app.customer_notes n JOIN app.users u ON u.id = n.user_id AND u.deleted_at IS NULL
+WHERE n.follow_up IS NOT NULL AND NOT n.done AND n.follow_up <= sqlc.arg(day)::date
+ORDER BY n.follow_up, n.created_at LIMIT 100;
+
+-- name: StaffWork :many
+-- What each staff member did in a period (audit log): one row per person and kind of action.
+SELECT a.actor_id, coalesce(max(a.actor_name), '')::text AS actor_name, a.action, count(*)::bigint AS n, max(a.at)::timestamptz AS last_at
+FROM app.audit_log a
+WHERE a.actor_id IS NOT NULL AND (a.at AT TIME ZONE 'Asia/Tehran')::date BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date
+GROUP BY a.actor_id, a.action ORDER BY actor_name, n DESC;
+
+-- name: AdminSearchUsers :many
+SELECT u.id, u.username, u.first_name, u.last_name, u.company FROM app.users u
+WHERE u.deleted_at IS NULL AND (u.username ILIKE '%' || sqlc.arg(q)::text || '%' OR u.phone_e164 ILIKE '%' || sqlc.arg(q)::text || '%'
+   OR (coalesce(u.first_name, '') || ' ' || coalesce(u.last_name, '') || ' ' || coalesce(u.company, '')) ILIKE '%' || sqlc.arg(q)::text || '%')
+ORDER BY u.last_seen_at DESC LIMIT 8;
+
+-- name: AdminSearchOrders :many
+SELECT o.id, o.plan_code, o.status, o.amount_rial, o.created_at, coalesce(u.username, '')::text AS username FROM app.orders o
+LEFT JOIN app.users u ON u.id = o.user_id
+WHERE o.id::text LIKE sqlc.arg(q)::text || '%' OR u.username ILIKE '%' || sqlc.arg(q)::text || '%'
+ORDER BY o.created_at DESC LIMIT 8;
+
+-- name: AdminSearchArticles :many
+SELECT a.id, a.title_fa, a.title_en, a.type FROM app.articles a
+WHERE a.title_fa ILIKE '%' || sqlc.arg(q)::text || '%' OR coalesce(a.title_en, '') ILIKE '%' || sqlc.arg(q)::text || '%' OR a.slug LIKE '%' || sqlc.arg(q)::text || '%'
+ORDER BY a.updated_at DESC LIMIT 8;
