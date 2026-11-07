@@ -39,6 +39,7 @@ import (
 	"github.com/alanfelez/alanfelez/services/api/internal/billing"
 	"github.com/alanfelez/alanfelez/services/api/internal/identity"
 	"github.com/alanfelez/alanfelez/services/api/internal/jobs"
+	"github.com/alanfelez/alanfelez/services/api/internal/mcpproxy"
 	"github.com/alanfelez/alanfelez/services/api/internal/notify"
 	"github.com/alanfelez/alanfelez/services/api/internal/payment"
 	"github.com/alanfelez/alanfelez/services/api/internal/payment/mock"
@@ -173,6 +174,15 @@ func serve(ctx context.Context, cfg config.Config, log *slog.Logger) error {
 	hub := live.NewHub(rdb, log)
 	go hub.Run(streams)
 	api.Mount(router, server, verifier, hub, log, trusted)
+	if cfg.MCPUpstream != "" {
+		// ArvanCloud's MCP server for a claude.ai connector: the caller's own key, renamed (ADR-0031).
+		mcp, err := mcpproxy.New(cfg.MCPUpstream)
+		if err != nil {
+			return fmt.Errorf("MCP_UPSTREAM: %w", err)
+		}
+		router.Handle(mcpproxy.Prefix, mcp)
+		router.Handle(mcpproxy.Prefix+"/*", mcp)
+	}
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
