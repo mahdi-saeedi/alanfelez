@@ -17,6 +17,7 @@ Rules for the API surface: `docs/architecture/API_GUIDELINES.md`. Data model: `d
 | `internal/<domain>` | Domain logic, pure where possible: `prices`, `billing`, `payment`, `calculator`, `auctions`, `alerts`, `content`, `support`, `notify` (SMS), `audit` |
 | `internal/jobs` | River workers and periodic jobs (`jobs.go`: `river.AddWorker`, `river.NewPeriodicJob`) |
 | `internal/seed` | Seed loader for `config/seed/**` (`seed.Datasets` lists what files may write) |
+| `internal/mcpproxy` | `/mcp`: proxy to ArvanCloud's MCP server for a claude.ai connector; the caller's `api-key` header becomes `Arvancloud-Api-Key` (ADR-0031) |
 | `internal/platform/*` | Config (env vars), DB pool, HTTP helpers (problems, client IP), Jalali dates, logging, rate limiter |
 | `internal/testdb` | Throwaway Postgres database per integration test |
 

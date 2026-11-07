@@ -45,6 +45,9 @@ type Config struct {
 	SmsIr         SmsIr         `envPrefix:"SMSIR_"`
 	KeycloakAdmin KeycloakAdmin `envPrefix:"KEYCLOAK_ADMIN_"`
 	Storage       Storage       `envPrefix:"STORAGE_"`
+	// MCPUpstream is ArvanCloud's MCP server, reached at https://<api host>/mcp (internal/mcpproxy, ADR-0031).
+	// Callers bring their own ArvanCloud key; empty turns the proxy off.
+	MCPUpstream string `env:"MCP_UPSTREAM" envDefault:"https://mcp.arvancloud.ir"`
 }
 
 // Storage is the S3-compatible object storage for uploaded videos (ArvanCloud Object Storage; internal/storage,

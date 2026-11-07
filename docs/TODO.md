@@ -64,6 +64,8 @@ Last updated: 2026-11-05 (admin analytics, sales report, customer notes, staff w
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-07 ArvanCloud MCP for Claude in the browser (owner): `https://api.alanfelez.ir/mcp` proxies to `mcp.arvancloud.ir`,
+  renaming the caller's `api-key` header to `Arvancloud-Api-Key`; no key stored on our side (ADR-0031, `internal/mcpproxy`).
 - 2026-11-05 Admin analytics and sales tools (client, owner OK by phone): «تحلیل بازدید» (products and metals seen by
   audience, section map, sales funnel and the page a plan was opened from, traffic sources with UTM campaigns, devices,
   provinces, site searches; migration 00038, a line in the privacy policy); «گزارش فروش» (revenue by plan and SMS

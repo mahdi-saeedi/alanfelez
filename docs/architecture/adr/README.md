@@ -33,3 +33,4 @@ Format: see ADR-0001. Status is one of *Proposed*, *Accepted*, *Superseded by AD
 | [0027](0027-auction-pdfs-in-postgres.md) | Auction PDF notices are stored in Postgres (`bytea`, Gold-only download through the API) until Object Storage exists | Accepted |
 | [0028](0028-community-posts.md) | Members' analyses: Silver and Gold post and read, published at once (staff hide, 3 a day), chart images re-encoded and kept in Postgres | Accepted |
 | [0030](0030-article-videos-in-object-storage.md) | Article videos in a private ArvanCloud bucket: signed upload links from the admin, signed play links for readers who may read the article | Accepted |
+| [0031](0031-arvancloud-mcp-proxy.md) | ArvanCloud's MCP server through `api.alanfelez.ir/mcp`: the caller's own key in an `api-key` header, renamed; we store none | Accepted |
