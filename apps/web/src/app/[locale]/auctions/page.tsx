@@ -20,8 +20,8 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<Query
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "auctions" });
-  return seo(locale, "/auctions", { title: t("title"), description: t("subtitle") });
+  const t = await getTranslations({ locale, namespace: "seo.auctions" });
+  return seo(locale, "/auctions", { title: t("title"), description: t("description") });
 }
 
 /**

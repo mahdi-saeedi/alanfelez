@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confirmed)
+Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading demo data)
 
 ## Now (in progress)
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
@@ -37,8 +37,9 @@ Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confir
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
-- [ ] **SEO** (client 2026-11-08: no prompt needed, Claude proposes): keyword list for the client to approve, then
-      per-page titles/descriptions, structured data, internal links; production stays noindex until launch.
+- [ ] **SEO, part 2**: Google Search Console + Bing (DNS TXT on alanfelez.ir), then `indexable: true` at launch; track the
+      real searches there and in the admin's «جست‌وجوهای سایت», and adjust the titles; one article per approved
+      search (e.g. «فرق آلومینیوم نرم و خشک») written or approved by the client.
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
@@ -59,6 +60,10 @@ Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confir
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-08 SEO titles and descriptions (client approved the searches: قیمت روز / نرخ روز فلزات و ضایعات, قیمت شمش
+  آلومینیوم, کاتد مس, ضایعات آهن…): home, prices, each of the 7 metals (their best-known products), chart, auctions,
+  analysis, articles, plans (`seo.*` messages; visible headings unchanged); organization structured data with the
+  social links and phone from Settings; the metal pages' breadcrumbs carry the CSP nonce.
 - 2026-11-08 Production loads reference data only (owner OK): with the demo profile, each change to a demo seed
   file overwrote the contact details the client set in the admin (last on 2026-11-01). The client confirmed the
   renewal and end-of-plan SMS arrive; alanfelez.com already redirects to alanfelez.ir.

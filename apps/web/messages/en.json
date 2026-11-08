@@ -973,5 +973,69 @@
     "read": "Read the article",
     "prev": "Previous",
     "next": "Next"
+  },
+  "seo": {
+    "home": {
+      "title": "Alan Felez | Today's metal and scrap prices: aluminum, copper, iron",
+      "description": "Today's prices for metals and scrap: aluminum ingot, copper cathode, iron scrap, brass, lead, zinc and cast iron; Iran Mercantile Exchange and world prices, charts, expert analysis and auctions, with the source and the last update."
+    },
+    "prices": {
+      "title": "Metal prices today: scrap and ingot rates",
+      "description": "Today's prices for metals and scrap: aluminum, copper, iron, brass, lead, zinc and cast iron in the market, on the Iran Mercantile Exchange and worldwide, with the source and the last update."
+    },
+    "metal": {
+      "title": "{metal} price today: {metal} scrap rates",
+      "description": "Today's {metal} prices: intermediate products, {metal} scrap, exchange and world prices, with the source and the last update."
+    },
+    "metals": {
+      "aluminum": {
+        "title": "Aluminum price today: aluminum ingot and scrap prices",
+        "description": "Today's aluminum prices: aluminum ingot on the Iran Mercantile Exchange, the world aluminum price and hard and soft aluminum scrap, cans, profiles and radiators, with the source and the last update."
+      },
+      "copper": {
+        "title": "Copper price today: copper cathode and scrap prices",
+        "description": "Today's copper prices: copper cathode, the world copper price and red and black cable scrap, telecom, melted, armature and copper tube scrap, with the source and the last update."
+      },
+      "zinc": {
+        "title": "Zinc price today: zinc ingot and scrap prices",
+        "description": "Today's zinc prices: zinc ingot on the Iran Mercantile Exchange, the world zinc price and melted zinc, zinc sheet and tube scrap, with the source and the last update."
+      },
+      "lead": {
+        "title": "Lead price today: lead ingot and battery scrap prices",
+        "description": "Today's lead prices: lead ingot and sheet, the world lead price, soft and hard lead and used batteries, with the source and the last update."
+      },
+      "brass": {
+        "title": "Brass price today: brass scrap rates",
+        "description": "Today's brass prices: brass tube, sheet and rod, the world price and brass scrap such as clippings, yellow and white brass, radiators and fittings, with the source and the last update."
+      },
+      "cast-iron": {
+        "title": "Cast iron price today: cast iron and ductile scrap prices",
+        "description": "Today's cast iron prices: cast iron ingot, grey and ductile iron, the world price and fine and coarse cast iron and ductile scrap, with the source and the last update."
+      },
+      "iron": {
+        "title": "Iron price today: iron scrap rates",
+        "description": "Today's iron prices: the world price, pellets and sponge iron, special and super special iron scrap, grades 1 and 2, pressed and light scrap, rebar and sheet, with the source and the last update."
+      }
+    },
+    "chart": {
+      "title": "Metal price charts: world and exchange prices",
+      "description": "Price charts and history for aluminum, copper, zinc, lead, brass, cast iron and iron worldwide, on the exchange and in the market, with several metals compared on one chart."
+    },
+    "auctions": {
+      "title": "Metal and scrap auctions",
+      "description": "Auctions of ingots, intermediate products, scrap and mineral raw materials: the subject and volume of each auction, its status, and full details for Gold members."
+    },
+    "analysis": {
+      "title": "Metal market news and analysis",
+      "description": "Fundamental news and technical analysis of the metals and scrap market by Alan Felez experts. Analyses are estimates, not advice to buy or sell."
+    },
+    "articles": {
+      "title": "Articles about metals and scrap",
+      "description": "Free articles about metals and scrap: types of copper and aluminum scrap, hard vs soft aluminum, and what to know before trading a load."
+    },
+    "plans": {
+      "title": "Plans: metal prices, charts and price SMS",
+      "description": "Free, Silver and Gold plans: today's prices for every metal and scrap, price history and charts, expert analysis, auctions and price SMS; monthly, quarterly or yearly."
+    }
   }
 }
