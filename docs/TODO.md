@@ -64,7 +64,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 ## Done (last 30 days)
 - 2026-11-08 The first two «مقالات» (written by Claude, approved by the client): «فرق آلومینیوم نرم و خشک» and
   «انواع ضایعات مس», with our own illustrations (static files under `apps/web/public/articles/`), linked to the metals'
-  price pages; added once by the reference seed `65-articles.yaml` (insert_missing), then edited in the admin.
+  price pages and a «سؤال‌های رایج» section; added once by the reference seed `65-articles.yaml` (insert_missing),
+  then edited in the admin.
 - 2026-11-08 Date ranges in the admin (client): the dashboard has «یک روز» / «بازه‌ی تاریخ» (visitors and signed-in
   users summed over the days, sign-ups, metals viewed and the charts for the range, compared with as many days
   before; plans as of the last day); «آمار بازدید» lists any from–to range (up to 366 days) and everyone signed in
