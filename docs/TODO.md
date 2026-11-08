@@ -28,10 +28,9 @@ Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confir
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Video bucket** (ADR-0030, 2026-11-04): in ArvanCloud Object Storage, one private bucket per environment
-      (e.g. `alanfelez-media-staging`, `alanfelez-media`) with CORS (PUT from the admin host, GET/HEAD from the web host),
-      a key sealed as `alanfelez-media-s3` (ACCESS_KEY_ID, ACCESS_SECRET_KEY), and `storage: {endpoint, bucket}` in the
-      environment's values. Until then the admin says video upload isn't set up (Aparat links still work).
+- [ ] **Video upload: test it** (ADR-0030): buckets `alanfelez-media-staging` / `alanfelez-media`, a machine user with
+      a Bucket Policy on just those two, its key sealed as `alanfelez-media-s3` and `storage` in both values (2026-11-08).
+      Left: upload and play a video on staging, then publish.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
