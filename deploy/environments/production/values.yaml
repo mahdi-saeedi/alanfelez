@@ -2,7 +2,7 @@
 #
 # TEST MODE UNTIL LAUNCH (docs/guides/LAUNCH.md §3 switches it): APP_ENV staging, demo prices, the mock gateway and
 # sign-in codes in the log, because the real SMS provider (F7) and payment gateway (F13) don't exist yet. Pages stay
-# noindex. At launch: env production, seedProfiles reference, the real providers, indexable true.
+# noindex. At launch: env production, the real providers, indexable true.
 global:
   env: staging # until launch; then: production
   hosts:
@@ -19,7 +19,9 @@ images:
   admin: {repository: admin, tag: "v0.35.0"}
 api:
   replicas: 2
-  seedProfiles: reference,demo # until launch; then: reference
+  # Reference data only (owner OK 2026-11-08): with demo loaded, every change to a demo file overwrote what the client
+  # had set in the admin (contact details). Demo rows already loaded stay until the client deletes them.
+  seedProfiles: reference
   demoPrices: false # off since 2026-10-25 (owner OK): staff enter prices by hand in the admin (the demo history stays)
   paymentGateway: mock # until launch (F13); then the real gateway
   smsProvider: smsir # renewal reminders and Gold price SMS through sms.ir (client tested them on staging, owner OK, 2026-10-27)

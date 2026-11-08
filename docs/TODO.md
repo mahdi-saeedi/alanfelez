@@ -4,15 +4,12 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-05 (admin analytics, sales report, customer notes, staff work, global search)
+Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confirmed)
 
 ## Now (in progress)
-- [ ] **Admin analytics and tools → staging, then the main site** (client 2026-11-05, owner OK). «تحلیل بازدید» is on
-      staging; «گزارش فروش», dashboard charts, user segments, sales notes, staff work, global search ship next.
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
-- [ ] Client to test the idle sign-out on staging (1 hour untouched → «ورود دوباره» asks for the password or code).
-- [ ] First run of the chat flow end to end: ship a small change (`ship/*`), then publish `v0.1.0` (ADR-0026).
+- [ ] Client to test the idle sign-out (3 hours untouched → «ورود دوباره» asks for the password or code).
 
 ## Next (no one else needed)
 - [ ] Monitoring, part 2: `/metrics` in the Go API (per route; prices freshness, SMS, payments, sign-ups) with alerts
@@ -30,9 +27,6 @@ Last updated: 2026-11-05 (admin analytics, sales report, customer notes, staff w
       (e.g. `alanfelez-media-staging`, `alanfelez-media`) with CORS (PUT from the admin host, GET/HEAD from the web host),
       a key sealed as `alanfelez-media-s3` (ACCESS_KEY_ID, ACCESS_SECRET_KEY), and `storage: {endpoint, bucket}` in the
       environment's values. Until then the admin says video upload isn't set up (Aparat links still work).
-- [ ] **sms.ir templates on production**: `ime_update=937878,welcome=207508,purchase_thanks=493390` added to
-      `api.smsir.templates` in `deploy/environments/production/values.yaml` (staging has them). A ship branch may not
-      touch production values, so this is a PR for the owner to approve.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
@@ -43,7 +37,8 @@ Last updated: 2026-11-05 (admin analytics, sales report, customer notes, staff w
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
-- [ ] **The client's SEO prompt** (said 2026-10-27 they'd give it once the site is complete): ask for it now.
+- [ ] **SEO** (client 2026-11-08: no prompt needed, Claude proposes): keyword list for the client to approve, then
+      per-page titles/descriptions, structured data, internal links; production stays noindex until launch.
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
@@ -64,6 +59,9 @@ Last updated: 2026-11-05 (admin analytics, sales report, customer notes, staff w
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-08 Production loads reference data only (owner OK): with the demo profile, each change to a demo seed
+  file overwrote the contact details the client set in the admin (last on 2026-11-01). The client confirmed the
+  renewal and end-of-plan SMS arrive; alanfelez.com already redirects to alanfelez.ir.
 - 2026-11-07 ArvanCloud MCP for Claude in the browser (owner): `https://api.alanfelez.ir/mcp` proxies to `mcp.arvancloud.ir`,
   renaming the caller's `api-key` header to `Arvancloud-Api-Key`; no key stored on our side (ADR-0031, `internal/mcpproxy`).
 - 2026-11-05 Admin analytics and sales tools (client, owner OK by phone): «تحلیل بازدید» (products and metals seen by
