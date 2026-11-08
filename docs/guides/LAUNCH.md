@@ -37,7 +37,7 @@ file (the PR is the record). Environments and delivery: [DEPLOYMENT.md](DEPLOYME
 | ☐ | `web.indexable` | `true` (only here: staging must stay `noindex`) |
 | ☐ | `web.cspFormOrigins` | the gateway's payment page origin (F13) |
 | ☐ | `api.paymentGateway` / `api.smsProvider` / `keycloak.otp.smsProvider` | the real providers (F13, F7) |
-| ☐ | `api.seedProfiles` | `reference` only (demo data is refused in production anyway) |
+| ☑ | `api.seedProfiles` | `reference` only (done 2026-11-08; demo data is refused in production anyway) |
 | ☐ | Demo content already loaded (test mode) | Delete the «(نمونه)» articles (admin → «مقالات») and auctions (admin → «مزایدات»), which show on the home page too, and any test prices, auctions and users; switching the seed profile doesn't remove them |
 | ☐ | Feature flags: admin → «قابلیت‌ها» (payments only switch on once the real gateway is configured) | `payments.enabled` on after a real test payment; `locale.en` on after F4; `page.licenses` on when licences exist |
 | ☐ | Keycloak realm: password policy `length(4) and notUsername and notEmail` (client + owner, 2026-11-01), brute-force protection on | Applied to running realms by the keycloak-profile job (`keycloak.passwordPolicy`); check brute-force protection in the console |
