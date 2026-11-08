@@ -37,3 +37,10 @@ ingress:
 # that really never gets Ready still aborts, just later. Production keeps 180 s (owner's call).
 rollout:
   progressDeadlineSeconds: 600
+
+# Article videos (ADR-0030): private bucket made 2026-11-04 (CORS: PUT from the admin host, GET/HEAD from the site);
+# the key is the sealed alanfelez-media-s3 (deploy/server/seal-backup-keys.sh alanfelez-media-s3).
+storage:
+  endpoint: s3.ir-thr-at1.arvanstorage.ir
+  region: ir-thr-at1
+  bucket: alanfelez-media-staging
