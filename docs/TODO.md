@@ -7,6 +7,10 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confirmed)
 
 ## Now (in progress)
+- [ ] Postgres AppArmor fix (`fix/postgres-apparmor`): Ubuntu 26.04 AppArmor blocked signals inside the Postgres pod, so the
+      nightly backups failed 2026-11-06…08 (staging WAL archiving too) and production stuck in recovery 2026-11-07.
+      Ship to staging, check a manual backup, then production. Then move production to the new 50 GB server
+      `alanfelez-production-2` (created 2026-11-08, REBUILD.md).
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out (3 hours untouched → «ورود دوباره» asks for the password or code).

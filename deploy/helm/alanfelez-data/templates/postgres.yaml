@@ -25,6 +25,18 @@ spec:
     storageClass: {{ . }}
     {{- end }}
   resources: {{- toYaml .Values.postgres.resources | nindent 4 }}
+  # The operator's own defaults, plus AppArmor off for this pod only. Ubuntu 26.04's AppArmor gives some Postgres
+  # processes a stacked label (cri-containerd.apparmor.d//&unconfined) and then blocks signals between them, so
+  # Postgres can't wake its checkpointer: "could not signal for checkpoint: Permission denied". That failed the
+  # nightly backups (2026-11-06…08) and left production stuck in recovery after a restart (2026-11-07).
+  # Setting podSecurityContext replaces the operator's default, so its other fields are repeated here.
+  podSecurityContext:
+    runAsUser: 26
+    runAsGroup: 26
+    fsGroup: 26
+    runAsNonRoot: true
+    seccompProfile: { type: RuntimeDefault }
+    appArmorProfile: { type: Unconfined }
   {{- if .Values.postgres.backup.enabled }}
   backup:
     retentionPolicy: {{ .Values.postgres.backup.retentionPolicy }}
