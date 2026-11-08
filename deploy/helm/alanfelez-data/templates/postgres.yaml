@@ -15,6 +15,9 @@ spec:
     # which must be a different folder than restoreFrom.destinationPath.
     recovery:
       source: origin
+      # Without these CloudNativePG gives the app a login for a NEW empty database "app" (it did on 2026-11-08).
+      database: {{ .database | default $.Values.postgres.appDatabase }}
+      owner: {{ .owner | default $.Values.postgres.appDatabase }}
       {{- with .targetTime }}
       recoveryTarget: { targetTime: {{ . | quote }} }
       {{- end }}
