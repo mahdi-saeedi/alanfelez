@@ -56,7 +56,7 @@ export async function ArticleView({ locale, slug, section }: { locale: Locale; s
     dateModified: a.updatedAt,
     inLanguage: locale,
     ...(a.author ? { author: { "@type": "Person", name: a.author } } : {}),
-    ...(a.coverUrl ? { image: [a.coverUrl] } : {}),
+    ...(a.coverUrl ? { image: [a.coverUrl.startsWith("/") ? `${SITE_URL}${a.coverUrl}` : a.coverUrl] } : {}), // a picture of the site itself: a full address
     isAccessibleForFree: !a.locked,
   };
 

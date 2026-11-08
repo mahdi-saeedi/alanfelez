@@ -39,7 +39,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **SEO, part 2**: Google Search Console + Bing (DNS TXT on alanfelez.ir), then `indexable: true` at launch; track the
       real searches there and in the admin's «جست‌وجوهای سایت», and adjust the titles; one article per approved
-      search (e.g. «فرق آلومینیوم نرم و خشک») written or approved by the client.
+      search, drafted by Claude and approved by the client (the first two are live).
+- [ ] **Remind the client before indexing** (`indexable: true`): delete the demo articles, auctions and placeholder
+      prices in the admin first (client asked to be reminded, 2026-11-08).
 - [ ] **A source for the global prices** (all 7 metals; iron, brass, cast iron sit in «بازار جهانی», migration 00008,
   entered by hand for now): the client will send the sources. Ask them again; then see whether it can be automatic.
 - [ ] **F13 payment gateway** (merchant id, sandbox, production keys).
@@ -60,6 +62,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-08 The first two «مقالات» (written by Claude, approved by the client): «فرق آلومینیوم نرم و خشک» and
+  «انواع ضایعات مس», with our own illustrations (static files under `apps/web/public/articles/`), linked to the metals'
+  price pages; added once by the reference seed `65-articles.yaml` (insert_missing), then edited in the admin.
 - 2026-11-08 Date ranges in the admin (client): the dashboard has «یک روز» / «بازه‌ی تاریخ» (visitors and signed-in
   users summed over the days, sign-ups, metals viewed and the charts for the range, compared with as many days
   before; plans as of the last day); «آمار بازدید» lists any from–to range (up to 366 days) and everyone signed in

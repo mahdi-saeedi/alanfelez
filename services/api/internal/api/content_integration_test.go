@@ -57,8 +57,8 @@ func TestArticlesLockedBodiesNeverSent(t *testing.T) {
 	}
 
 	// Anonymous: both published articles listed as locked teasers (news needs Silver since 2026-10-30, the analysis
-	// Gold); the draft is invisible.
-	st, body, raw := e.call(http.MethodGet, "/v1/articles", "", nil)
+	// Gold); the draft is invisible. (Only news and analyses: the reference data also has free educational articles.)
+	st, body, raw := e.call(http.MethodGet, "/v1/articles?type=news&type=analysis", "", nil)
 	if st != 200 || body["total"].(float64) != 2 || strings.Contains(raw, "copper-draft") || strings.Contains(raw, `"body"`) {
 		t.Fatalf("list: %d %s", st, raw)
 	}
