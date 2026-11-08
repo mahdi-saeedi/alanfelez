@@ -13,10 +13,10 @@ global:
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "v0.35.0"}
-  web: {repository: web, tag: "v0.35.0"}
-  keycloak: {repository: keycloak, tag: "v0.35.0"}
-  admin: {repository: admin, tag: "v0.35.0"}
+  api: {repository: api, tag: "v0.35.1"}
+  web: {repository: web, tag: "v0.35.1"}
+  keycloak: {repository: keycloak, tag: "v0.35.1"}
+  admin: {repository: admin, tag: "v0.35.1"}
 api:
   replicas: 2
   # Reference data only (owner OK 2026-11-08): with demo loaded, every change to a demo file overwrote what the client
@@ -43,7 +43,6 @@ keycloak:
 ingress:
   redirectHosts: [www.alanfelez.ir, alanfelez.com, www.alanfelez.com] # 301 → https://alanfelez.ir
   basicAuth: {enabled: false} # removed 2026-10-27 (owner): staff sign-in alone protects the admin
-
 # Article videos (ADR-0030): private bucket made 2026-11-04 (CORS: PUT from the admin host, GET/HEAD from the site);
 # the key is the sealed alanfelez-media-s3 (deploy/server/seal-backup-keys.sh alanfelez-media-s3).
 storage:
