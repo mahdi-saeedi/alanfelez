@@ -9,5 +9,10 @@ postgres:
     limits: { memory: 2Gi }
   backup:
     enabled: true                  # WAL archiving + nightly; if the keys stop working WAL fills the disk (runbook R6)
-    destinationPath: s3://alanfelez-backups/production/postgres
+    destinationPath: s3://alanfelez-backups/production-2/postgres   # the server 185.226.116.217 (2026-11-08); production/ = the old one
     endpointURL: https://s3.ir-thr-at1.arvanstorage.ir
+  # Moved to the 50 GB server 185.226.116.217 on 2026-11-08: the cluster there started from the old server's backups.
+  # Only read when the cluster is created (REBUILD.md step 8).
+  restoreFrom:
+    destinationPath: s3://alanfelez-backups/production/postgres
+    serverName: alanfelez-data-pg

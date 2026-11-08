@@ -149,7 +149,7 @@ with `deploy/server/bootstrap.sh` (REBUILD.md).
 
 | | Production | Staging |
 |---|---|---|
-| Server | `188.121.120.201`, 4 CPU / 12 GB | `37.32.39.49`, 4 CPU / 8 GB (2 CPU / 4 GB was too small: k3s crash-looped) |
+| Server | `185.226.116.217`, 4 CPU / 12 GB / 50 GB (since 2026-11-08; before: `188.121.120.201`, 100 GB) | `37.32.39.49`, 4 CPU / 8 GB (2 CPU / 4 GB was too small: k3s crash-looped) |
 | Names | `alanfelez.ir` + `api.`/`auth.`/`admin.`; `www.alanfelez.ir`, `alanfelez.com`, `www.alanfelez.com` → 301 | `staging.alanfelez.ir` + `api.`/`auth.`/`admin.staging` |
 | Shared password | none (removed 2026-10-27; staff sign-in protects the admin) | none (pages are noindex) |
 | Mode | test mode until launch (LAUNCH.md §3) | test mode (demo data, mock gateway) |
