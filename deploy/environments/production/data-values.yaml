@@ -13,6 +13,10 @@ postgres:
     endpointURL: https://s3.ir-thr-at1.arvanstorage.ir
   # Moved to the 50 GB server 185.226.116.217 on 2026-11-08: the cluster there started from the old server's backups.
   # Only read when the cluster is created (REBUILD.md step 8).
+  # The live database is named "app" (not "alanfelez"): this restore first gave the app an empty "app" database, so on
+  # 2026-11-08 the restored "alanfelez" was renamed to "app" (the empty one is app_unused_20261108) and the app's login
+  # acts as the data's owner (GRANT alanfelez TO app; ALTER ROLE app SET role = 'alanfelez'). A restore from
+  # production-2/ therefore needs database: app, owner: app.
   restoreFrom:
     destinationPath: s3://alanfelez-backups/production/postgres
     serverName: alanfelez-data-pg
