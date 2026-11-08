@@ -18,7 +18,7 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ per
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale });
-  return seo(locale, "/plans", { title: t("nav.plans"), description: t("plans.subtitle") });
+  return seo(locale, "/plans", { title: t("seo.plans.title"), description: t("seo.plans.description") });
 }
 
 /** Plans (SCOPE §5 #7, §6; design 12-subscriptions). Enterprise is out of v1 (SCOPE §4). */

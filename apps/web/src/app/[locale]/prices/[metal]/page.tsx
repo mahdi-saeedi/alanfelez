@@ -1,3 +1,4 @@
+import { JsonLd } from "@/components/JsonLd";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { seo } from "@/lib/seo";
@@ -19,8 +20,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale, metal } = await params;
   const m = await metalOf(locale, metal);
   if (!m) return {};
-  const t = await getTranslations({ locale, namespace: "prices" });
-  return seo(locale, `/prices/${m.slug}`, { title: t("metalTitle", { metal: m.name }), description: t("metalSubtitle", { metal: m.name }) });
+  const t = await getTranslations({ locale, namespace: "seo" });
+  // The seven metals have their own wording (their best-known products); a metal added later in the admin gets the general one.
+  const own = t.has(`metals.${m.slug}.title`);
+  return seo(locale, `/prices/${m.slug}`, {
+    title: own ? t(`metals.${m.slug}.title`) : t("metal.title", { metal: m.name }),
+    description: own ? t(`metals.${m.slug}.description`) : t("metal.description", { metal: m.name }),
+  });
 }
 
 /**
@@ -48,7 +54,7 @@ export default async function MetalPricesPage({ params, searchParams }: Params) 
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs).replace(/</g, "\\u003c") }} />
+      <JsonLd data={crumbs} />
       <PricesView locale={locale} metal={m.slug} query={query} title={t("metalTitle", { metal: m.name })} subtitle={t("metalSubtitle", { metal: m.name })} />
     </>
   );

@@ -14,7 +14,9 @@ import { WhyAlanFelez } from "@/components/WhyAlanFelez";
 import { SilverUpgrade } from "@/components/SilverUpgrade";
 import { LatestAuctions } from "@/components/auctions/LatestAuctions";
 import { LatestInsights } from "@/components/content/LatestInsights";
-import { getMetals } from "@/lib/content";
+import { getMetals, getSite } from "@/lib/content";
+import { seo } from "@/lib/seo";
+import type { Metadata } from "next";
 import { FinalCta } from "@/components/FinalCta";
 import { api } from "@/lib/api";
 import { getMe } from "@/lib/account";
@@ -22,6 +24,13 @@ import { SITE_URL } from "@/lib/site";
 
 // Rendered per request (no API needed at build time); anonymous API responses are cached briefly in Next's data cache.
 export const dynamic = "force-dynamic";
+
+/** The home page's search title and description, with the searches the client chose (2026-11-08). */
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "seo.home" });
+  return seo(locale, "/", { title: t("title"), absoluteTitle: true, description: t("description") });
+}
 
 export default async function HomePage({ params }: { params: Promise<{ locale: "fa" | "en" }> }) {
   const { locale } = await params;
@@ -87,11 +96,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
   ).filter((it) => it.points.length > 1);
 
   // Plans section after the global chart (client, 2026-10-26): the same cards as /plans.
-  const [plansRes, me, metals] = await Promise.all([
+  const [plansRes, me, metals, site] = await Promise.all([
     api.GET("/v1/plans", { params: { header: { "Accept-Language": locale } }, next: { revalidate: 60 } }),
     getMe(),
     getMetals(locale), // links to each metal's price page under the live prices (search engines follow them)
+    getSite(locale), // social links and phone for the organization's structured data
   ]);
+  const sameAs = Object.values(site?.social ?? {}).filter((u) => u.startsWith("https://"));
   const plans = plansRes.data;
 
   const home = `${SITE_URL}${locale === "en" ? "/en" : "/"}`;
@@ -101,7 +112,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
         data={{
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Organization", "@id": `${SITE_URL}/#org`, name: t("brand.name"), url: SITE_URL, logo: `${SITE_URL}/logo.png` },
+            {
+              "@type": "Organization",
+              "@id": `${SITE_URL}/#org`,
+              name: t("brand.name"),
+              url: SITE_URL,
+              logo: `${SITE_URL}/logo.png`,
+              ...(sameAs.length ? { sameAs } : {}),
+              ...(site?.contact.phone || site?.contact.email
+                ? { contactPoint: { "@type": "ContactPoint", contactType: "customer support", ...(site.contact.phone ? { telephone: site.contact.phone } : {}), ...(site.contact.email ? { email: site.contact.email } : {}) } }
+                : {}),
+            },
             { "@type": "WebSite", "@id": `${SITE_URL}/#site`, name: t("brand.name"), url: home, inLanguage: locale, publisher: { "@id": `${SITE_URL}/#org` } },
           ],
         }}

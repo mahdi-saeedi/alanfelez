@@ -34,8 +34,8 @@ const FORM_KEYS = [
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "analysis" });
-  return seo(locale, "/analysis", { title: t("title"), description: t("subtitle") });
+  const t = await getTranslations({ locale, namespace: "seo.analysis" });
+  return seo(locale, "/analysis", { title: t("title"), description: t("description") });
 }
 
 /**
