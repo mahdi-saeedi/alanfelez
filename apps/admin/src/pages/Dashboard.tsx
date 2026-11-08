@@ -7,28 +7,33 @@ import { DayBars } from "./charts";
 import { DueFollowUps } from "./Notes";
 import { api, errorText, unwrap } from "../api";
 import { Button, Card, Notice, Page } from "./ui";
-import { Bar, DayPicker, addDays, metalColor, noonOf, todayTehran } from "./dates";
+import { Bar, DayPicker, RangePicker, type Range, addDays, lastDays, metalColor, noonOf, todayTehran } from "./dates";
 
 /**
- * The admin home page (client 2026-11-03): one day's numbers (any past day can be picked), what waits for staff now,
- * and which metals visitors looked at that day.
+ * The admin home page (client 2026-11-03): one day's numbers (any past day can be picked) or a from–to range's
+ * (client 2026-11-08), what waits for staff now, and which metals visitors looked at.
  */
 export function Dashboard() {
   const t = useTranslate();
   const locale = useGetLocale()() as Locale;
   const [day, setDay] = useState(todayTehran());
+  const [ranged, setRanged] = useState(false);
+  const [range, setRange] = useState<Range>(lastDays(7));
+  const isRange = ranged && range.from < range.to;
   const q = useQuery({
-    queryKey: ["admin", "dashboard", day],
-    queryFn: async () => unwrap(await api.GET("/v1/admin/dashboard", { params: { query: { day } } })),
+    queryKey: ["admin", "dashboard", isRange ? `${range.from}..${range.to}` : day],
+    queryFn: async () => unwrap(await api.GET("/v1/admin/dashboard", { params: { query: isRange ? { day: range.to, from: range.from } : { day } } })),
     refetchInterval: 60_000,
   });
   const d = q.data;
   const n = (v: number) => formatNumber(v, locale);
-  const isToday = day === todayTehran();
+  const isToday = (isRange ? range.to : day) === todayTehran();
+  const days = d ? d.trend.length : 0;
   const change = (cur: number, prev: number) => {
     if (!prev) return null;
     const pct = Math.round(((cur - prev) / prev) * 100);
-    return <em className={`not-italic text-xs font-bold ${pct >= 0 ? "text-up" : "text-down"}`}>{pct >= 0 ? "▲" : "▼"} {t("dash.vsPrev", { pct: n(Math.abs(pct)) })}</em>;
+    const text = isRange ? t("dash.vsPrevRange", { pct: n(Math.abs(pct)), days: n(days) }) : t("dash.vsPrev", { pct: n(Math.abs(pct)) });
+    return <em className={`not-italic text-xs font-bold ${pct >= 0 ? "text-up" : "text-down"}`}>{pct >= 0 ? "▲" : "▼"} {text}</em>;
   };
   const maxMetal = Math.max(1, ...(d?.metals.map((m) => m.views) ?? []));
   const pending: [string, number, string][] = d ? [
@@ -41,6 +46,13 @@ export function Dashboard() {
 
   return (
     <Page title={t("dash.title")} hint={t("dash.hint")}>
+      <div className="flex flex-wrap gap-1">
+        <Button type="button" tone={ranged ? "ghost" : "gold"} onClick={() => setRanged(false)}>{t("dash.modeDay")}</Button>
+        <Button type="button" tone={ranged ? "gold" : "ghost"} onClick={() => setRanged(true)}>{t("dash.modeRange")}</Button>
+      </div>
+      {ranged ? (
+        <RangePicker value={range} onChange={setRange} locale={locale} />
+      ) : (
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" tone="ghost" onClick={() => setDay(addDays(day, -1))}>{t("dash.prevDay")}</Button>
         <DayPicker value={day} onChange={setDay} locale={locale} label={t("dash.day")} />
@@ -48,24 +60,25 @@ export function Dashboard() {
         {!isToday && <Button type="button" tone="gold" onClick={() => setDay(todayTehran())}>{t("range.today")}</Button>}
         <span className="text-sm font-bold text-text-2">{formatDate(noonOf(day), locale)}</span>
       </div>
+      )}
       {q.isError && <Notice tone="error">{errorText(q.error, t)}</Notice>}
       {d && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="space-y-1 p-4">
-              <div className="text-xs text-text-2">{t("dash.visitors")}</div>
+              <div className="text-xs text-text-2">{t("dash.visitors")}{isRange && <span className="text-text-3"> ({t("dash.sumNote")})</span>}</div>
               <div className="text-2xl font-extrabold tabular-nums">{n(d.visitors)}</div>
               {change(d.visitors, d.prevVisitors)}
             </Card>
             <Card className="space-y-1 p-4">
-              <div className="text-xs text-text-2">{t("dash.signedIn")}</div>
+              <div className="text-xs text-text-2">{t("dash.signedIn")}{isRange && <span className="text-text-3"> ({t("dash.sumNote")})</span>}</div>
               <div className="text-2xl font-extrabold tabular-nums">{n(d.signedIn)}</div>
               {change(d.signedIn, d.prevSignedIn)}
             </Card>
             <Card className="space-y-1 p-4">
-              <div className="text-xs text-text-2">{t("dash.signups")}</div>
-              <div className="text-2xl font-extrabold tabular-nums">{n(d.signups7d)}</div>
-              <em className="not-italic text-xs text-text-3">{t("dash.signupsPrev", { n: n(d.signupsPrev7d) })}</em>
+              <div className="text-xs text-text-2">{t(isRange ? "dash.signupsRange" : "dash.signups")}</div>
+              <div className="text-2xl font-extrabold tabular-nums">{n(isRange ? d.signups : d.signups7d)}</div>
+              <em className="not-italic text-xs text-text-3">{isRange ? t("dash.signupsPrevRange", { n: n(d.signupsPrev), days: n(days) }) : t("dash.signupsPrev", { n: n(d.signupsPrev7d) })}</em>
             </Card>
             <Card className="space-y-1 p-4">
               <div className="text-xs text-text-2">{t("dash.plans")}</div>
@@ -83,7 +96,7 @@ export function Dashboard() {
             ] as const).map(([k, values, color, format]) => (
               <Card key={k} className="space-y-2 p-4">
                 <div className="flex items-baseline justify-between gap-2">
-                  <h2 className="text-sm font-bold">{t(k)}</h2>
+                  <h2 className="text-sm font-bold">{t(isRange ? `${k}Range` : k)}</h2>
                   <b className="text-sm tabular-nums">{format ? format(values.reduce((a, b) => a + b, 0)) : n(values.reduce((a, b) => a + b, 0))}</b>
                 </div>
                 <DayBars days={d.trend.map((x) => x.day)} series={[{ label: t(k), color, values: [...values] }]} locale={locale} height={90} format={format} />
@@ -116,7 +129,7 @@ export function Dashboard() {
               </ul>
             </Card>
             <Card>
-              <h2 className="border-b border-border px-4 py-3 text-sm font-bold">{t(isToday ? "dash.metalsToday" : "dash.metalsDay")}</h2>
+              <h2 className="border-b border-border px-4 py-3 text-sm font-bold">{t(isRange ? "dash.metalsRange" : isToday ? "dash.metalsToday" : "dash.metalsDay")}</h2>
               <div className="space-y-2 p-4">
                 {d.metals.length === 0 && <p className="text-sm text-text-3">{t("dash.noMetals")}</p>}
                 {d.metals.map((m) => (
@@ -126,7 +139,7 @@ export function Dashboard() {
               </div>
             </Card>
           </div>
-          <p className="text-xs text-text-3">{t(isToday ? "dash.waitingNote" : "dash.pastNote")}</p>
+          <p className="text-xs text-text-3">{t(isRange ? "dash.rangeNote" : isToday ? "dash.waitingNote" : "dash.pastNote")}</p>
         </>
       )}
     </Page>

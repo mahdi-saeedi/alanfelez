@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestVisitorStats(t *testing.T) {
@@ -46,7 +47,7 @@ func TestVisitorStats(t *testing.T) {
 	}
 	days := body["days"].([]any)
 	today := days[0].(map[string]any)
-	if len(days) != 1 || today["visitors"].(float64) != 3 || today["signedIn"].(float64) != 1 || today["pageviews"].(float64) != 6 || today["day"] != body["day"] {
+	if len(days) != 30 || today["visitors"].(float64) != 3 || today["signedIn"].(float64) != 1 || today["pageviews"].(float64) != 6 || today["day"] != body["day"] {
 		t.Fatalf("totals: %s", raw)
 	}
 	users := body["users"].([]any)
@@ -56,7 +57,32 @@ func TestVisitorStats(t *testing.T) {
 	}
 	// Another day: no users, and the 30-day totals are still there.
 	_, body, raw = e.call(http.MethodGet, "/v1/admin/visits?day=2026-01-01", "support", nil)
-	if len(body["users"].([]any)) != 0 || len(body["days"].([]any)) != 1 || !strings.Contains(raw, `"day":"2026-01-01"`) {
+	if len(body["users"].([]any)) != 0 || len(body["days"].([]any)) != 30 || !strings.Contains(raw, `"day":"2026-01-01"`) {
 		t.Fatalf("other day: %s", raw)
 	}
+	// A chosen range (client, 2026-11-08): each of its days, and everyone signed in who came in it, one row each.
+	to := today["day"].(string)
+	from := mustDay(t, to).AddDate(0, 0, -9).Format("2006-01-02")
+	_, body, raw = e.call(http.MethodGet, "/v1/admin/visits?from="+from+"&to="+to, "support", nil)
+	if len(body["days"].([]any)) != 10 || body["day"] != nil || len(body["users"].([]any)) != 1 || body["users"].([]any)[0].(map[string]any)["days"].(float64) != 1 {
+		t.Fatalf("range: %s", raw)
+	}
+	if st, _, _ := e.call(http.MethodGet, "/v1/admin/visits?from="+to+"&to="+from, "support", nil); st != 400 {
+		t.Fatalf("from after to: %d", st)
+	}
+	// A range far in the past has no people (they're kept 90 days) and is capped at 366 days.
+	_, body, raw = e.call(http.MethodGet, "/v1/admin/visits?from=2020-01-01&to=2026-01-01", "support", nil)
+	if len(body["days"].([]any)) != 366 || len(body["users"].([]any)) != 0 {
+		t.Fatalf("old range: %d days %s", len(body["days"].([]any)), raw[:200])
+	}
+}
+
+// mustDay parses a "2006-01-02" day.
+func mustDay(t *testing.T, s string) time.Time {
+	t.Helper()
+	d, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return d
 }

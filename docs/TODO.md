@@ -59,6 +59,10 @@ Last updated: 2026-11-08 (production stops loading demo data; renewal SMS confir
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-08 Date ranges in the admin (client): the dashboard has «یک روز» / «بازه‌ی تاریخ» (visitors and signed-in
+  users summed over the days, sign-ups, metals viewed and the charts for the range, compared with as many days
+  before; plans as of the last day); «آمار بازدید» lists any from–to range (up to 366 days) and everyone signed in
+  who came in it (days visited, last visit), or one day's users when a day is clicked.
 - 2026-11-08 Production loads reference data only (owner OK): with the demo profile, each change to a demo seed
   file overwrote the contact details the client set in the admin (last on 2026-11-01). The client confirmed the
   renewal and end-of-plan SMS arrive; alanfelez.com already redirects to alanfelez.ir.

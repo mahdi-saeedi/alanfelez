@@ -79,6 +79,30 @@ func dayRange(from, to *openapi_types.Date) (time.Time, time.Time, bool) {
 	return f, t, true
 }
 
+// maxPeriodDays caps a chosen range of days (dashboard, visits): a year and a day.
+const maxPeriodDays = 366
+
+// periodRange is the range from..to (Tehran days): to defaults to today (never after it), from to 29 days before to;
+// a range longer than maxPeriodDays keeps its last maxPeriodDays days. ok is false when from is after to.
+func periodRange(from, to *openapi_types.Date) (time.Time, time.Time, bool) {
+	today := visits.Day(time.Now())
+	t := today
+	if to != nil && to.Before(today) {
+		t = to.Time
+	}
+	f := t.AddDate(0, 0, -29)
+	if from != nil {
+		f = from.Time
+	}
+	if f.After(t) {
+		return f, t, false
+	}
+	if earliest := t.AddDate(0, 0, -(maxPeriodDays - 1)); f.Before(earliest) {
+		f = earliest
+	}
+	return f, t, true
+}
+
 // searchTerm prepares a search box value: a phone number loses spaces and "+98"; a name keeps its spaces.
 func searchTerm(q *string) string {
 	if q == nil {
@@ -112,7 +136,7 @@ func planOf(p *UserPlanFilter) string {
 	return string(*p)
 }
 
-// AdminDashboard returns the admin home page for one Tehran day (default today).
+// AdminDashboard returns the admin home page for one Tehran day (default today), or for the days from `from` to it.
 func (s *Server) AdminDashboard(ctx context.Context, req AdminDashboardRequestObject) (AdminDashboardResponseObject, error) {
 	if _, pr := requireRoles(ctx, rolesRead...); pr != nil {
 		return fail[AdminDashboarddefaultApplicationProblemPlusJSONResponse](*pr), nil
@@ -122,18 +146,43 @@ func (s *Server) AdminDashboard(ctx context.Context, req AdminDashboardRequestOb
 	if req.Params.Day != nil && req.Params.Day.Before(today) {
 		day = req.Params.Day.Time
 	}
+	from := day // one day, or a range ending on it (client, 2026-11-08)
+	if req.Params.From != nil && req.Params.From.Before(day) {
+		from = req.Params.From.Time
+		if earliest := day.AddDate(0, 0, -(maxPeriodDays - 1)); from.Before(earliest) {
+			from = earliest
+		}
+	}
+	days := int(day.Sub(from).Hours()/24+0.5) + 1
 	start, end := visits.Bounds(day)
 	asOf := end
 	if day.Equal(today) {
 		asOf = time.Now()
 	}
-	cur, err := s.q.VisitTotalsOfDay(ctx, pgDate(day))
+	periodStart, _ := visits.Bounds(from)
+	prevFrom := from.AddDate(0, 0, -days)
+	prevStart, _ := visits.Bounds(prevFrom)
+	totals, err := s.q.VisitTotalsBetween(ctx, dbq.VisitTotalsBetweenParams{FromDay: pgDate(prevFrom), ToDay: pgDate(day)})
 	if err != nil {
 		return nil, fmt.Errorf("dashboard visits: %w", err)
 	}
-	prev, err := s.q.VisitTotalsOfDay(ctx, pgDate(day.AddDate(0, 0, -1)))
+	var cur, prev dbq.VisitTotalsBetweenRow // each day's unique visitors, added up over the period and the one before
+	for _, r := range totals {
+		into := &prev
+		if !r.Day.Time.Before(from) {
+			into = &cur
+		}
+		into.Visitors += r.Visitors
+		into.SignedIn += r.SignedIn
+		into.Pageviews += r.Pageviews
+	}
+	signups, err := s.q.SignupsBetween(ctx, dbq.SignupsBetweenParams{DayStart: pgTime(periodStart), DayEnd: pgTime(asOf)})
 	if err != nil {
-		return nil, fmt.Errorf("dashboard visits: %w", err)
+		return nil, fmt.Errorf("dashboard sign-ups: %w", err)
+	}
+	signupsPrev, err := s.q.SignupsBetween(ctx, dbq.SignupsBetweenParams{DayStart: pgTime(prevStart), DayEnd: pgTime(periodStart)})
+	if err != nil {
+		return nil, fmt.Errorf("dashboard sign-ups: %w", err)
 	}
 	c, err := s.q.DashboardCounts(ctx, pgTime(asOf))
 	if err != nil {
@@ -143,13 +192,14 @@ func (s *Server) AdminDashboard(ctx context.Context, req AdminDashboardRequestOb
 	if err != nil {
 		return nil, fmt.Errorf("dashboard missing prices: %w", err)
 	}
-	metals, err := s.q.MetalViewsOfDay(ctx, pgDate(day))
+	metals, err := s.q.MetalViewsBetween(ctx, dbq.MetalViewsBetweenParams{FromDay: pgDate(from), ToDay: pgDate(day)})
 	if err != nil {
 		return nil, fmt.Errorf("dashboard metals: %w", err)
 	}
 	en := req.Params.AcceptLanguage != nil && *req.Params.AcceptLanguage == "en"
 	out := AdminDashboard200JSONResponse{
-		Day: openapi_types.Date{Time: day}, Today: day.Equal(today),
+		Day: openapi_types.Date{Time: day}, From: openapi_types.Date{Time: from}, Today: day.Equal(today),
+		Signups: int(signups), SignupsPrev: int(signupsPrev),
 		Visitors: int(cur.Visitors), SignedIn: int(cur.SignedIn), Pageviews: int(cur.Pageviews),
 		PrevVisitors: int(prev.Visitors), PrevSignedIn: int(prev.SignedIn),
 		Signups7d: int(c.Signups7d), SignupsPrev7d: int(c.SignupsPrev7d), Silver: int(c.Silver), Gold: int(c.Gold), Expiring7d: int(c.Expiring7d),
@@ -163,7 +213,11 @@ func (s *Server) AdminDashboard(ctx context.Context, req AdminDashboardRequestOb
 	for _, m := range metals {
 		out.Metals = append(out.Metals, ActivityMetal{Metal: m.Metal, Views: int(m.Views)})
 	}
-	trend, err := s.q.DashboardTrend(ctx, pgDate(day))
+	trendFrom := day.AddDate(0, 0, -29) // the 30 days up to the day, or the range itself
+	if !from.Equal(day) {
+		trendFrom = from
+	}
+	trend, err := s.q.DashboardTrend(ctx, dbq.DashboardTrendParams{FromDay: pgDate(trendFrom), ToDay: pgDate(day)})
 	if err != nil {
 		return nil, fmt.Errorf("dashboard trend: %w", err)
 	}

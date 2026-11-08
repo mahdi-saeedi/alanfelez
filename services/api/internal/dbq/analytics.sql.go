@@ -721,7 +721,7 @@ func (q *Queries) AnalyticsTraffic(ctx context.Context, arg AnalyticsTrafficPara
 }
 
 const dashboardTrend = `-- name: DashboardTrend :many
-WITH days AS (SELECT generate_series($1::date - 29, $1::date, interval '1 day')::date AS day)
+WITH days AS (SELECT generate_series($1::date, $2::date, interval '1 day')::date AS day)
 SELECT d.day,
   coalesce((SELECT t.visitors FROM app.visit_totals t WHERE t.day = d.day),
            (SELECT count(*) FROM app.daily_visits v WHERE v.day = d.day), 0)::bigint AS visitors,
@@ -730,6 +730,11 @@ SELECT d.day,
 FROM days d ORDER BY d.day
 `
 
+type DashboardTrendParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
 type DashboardTrendRow struct {
 	Day         pgtype.Date
 	Visitors    int64
@@ -737,9 +742,10 @@ type DashboardTrendRow struct {
 	RevenueRial int64
 }
 
-// The 30 days up to a day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts.
-func (q *Queries) DashboardTrend(ctx context.Context, toDay pgtype.Date) ([]DashboardTrendRow, error) {
-	rows, err := q.db.Query(ctx, dashboardTrend, toDay)
+// Each day from from_day to to_day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts
+// (the 30 days up to the day, or the chosen range).
+func (q *Queries) DashboardTrend(ctx context.Context, arg DashboardTrendParams) ([]DashboardTrendRow, error) {
+	rows, err := q.db.Query(ctx, dashboardTrend, arg.FromDay, arg.ToDay)
 	if err != nil {
 		return nil, err
 	}

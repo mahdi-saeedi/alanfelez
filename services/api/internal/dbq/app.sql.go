@@ -320,3 +320,73 @@ func (q *Queries) VisitUsers(ctx context.Context, day pgtype.Date) ([]VisitUsers
 	}
 	return items, nil
 }
+
+const visitUsersBetween = `-- name: VisitUsersBetween :many
+SELECT a.user_id::uuid AS user_id, u.username, u.phone_e164, u.first_name, u.last_name, a.first_at::timestamptz AS first_at,
+       a.last_at::timestamptz AS last_at, a.pageviews::int AS pageviews, a.days::int AS days, coalesce(cur.plan_code, 'free')::text AS current_plan
+FROM (
+  SELECT v.user_id, min(v.first_at) AS first_at, max(v.last_at) AS last_at, sum(v.pageviews) AS pageviews, count(*) AS days
+  FROM app.daily_visits v
+  WHERE v.day BETWEEN $1::date AND $2::date AND v.user_id IS NOT NULL
+  GROUP BY v.user_id
+) a
+LEFT JOIN app.users u ON u.id = a.user_id
+LEFT JOIN LATERAL (
+  SELECT s.plan_code FROM app.subscriptions s JOIN app.plans p ON p.code = s.plan_code
+  WHERE s.user_id = a.user_id AND s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now()
+  ORDER BY p.rank DESC LIMIT 1
+) cur ON true
+ORDER BY a.last_at DESC
+LIMIT 500
+`
+
+type VisitUsersBetweenParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
+type VisitUsersBetweenRow struct {
+	UserID      pgtype.UUID
+	Username    pgtype.Text
+	PhoneE164   pgtype.Text
+	FirstName   pgtype.Text
+	LastName    pgtype.Text
+	FirstAt     pgtype.Timestamptz
+	LastAt      pgtype.Timestamptz
+	Pageviews   int32
+	Days        int32
+	CurrentPlan string
+}
+
+// The signed-in visitors from from_day to to_day (one row each: first and last visit, page views, days visited), with
+// their name, mobile and the plan they hold now. Only the last 90 days are kept per person.
+func (q *Queries) VisitUsersBetween(ctx context.Context, arg VisitUsersBetweenParams) ([]VisitUsersBetweenRow, error) {
+	rows, err := q.db.Query(ctx, visitUsersBetween, arg.FromDay, arg.ToDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VisitUsersBetweenRow{}
+	for rows.Next() {
+		var i VisitUsersBetweenRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.PhoneE164,
+			&i.FirstName,
+			&i.LastName,
+			&i.FirstAt,
+			&i.LastAt,
+			&i.Pageviews,
+			&i.Days,
+			&i.CurrentPlan,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

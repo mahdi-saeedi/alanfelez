@@ -815,6 +815,43 @@ func (q *Queries) MetalSlugExists(ctx context.Context, slug string) (bool, error
 	return column_1, err
 }
 
+const metalViewsBetween = `-- name: MetalViewsBetween :many
+SELECT mv.metal, sum(mv.views)::int AS views FROM app.metal_views_daily mv
+WHERE mv.day BETWEEN $1::date AND $2::date
+GROUP BY mv.metal ORDER BY views DESC
+`
+
+type MetalViewsBetweenParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
+type MetalViewsBetweenRow struct {
+	Metal string
+	Views int32
+}
+
+// Every visitor's metal page views from from_day to to_day (dashboard range), most viewed first.
+func (q *Queries) MetalViewsBetween(ctx context.Context, arg MetalViewsBetweenParams) ([]MetalViewsBetweenRow, error) {
+	rows, err := q.db.Query(ctx, metalViewsBetween, arg.FromDay, arg.ToDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MetalViewsBetweenRow{}
+	for rows.Next() {
+		var i MetalViewsBetweenRow
+		if err := rows.Scan(&i.Metal, &i.Views); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const metalViewsOfDay = `-- name: MetalViewsOfDay :many
 SELECT mv.metal, mv.views FROM app.metal_views_daily mv WHERE mv.day = $1::date ORDER BY mv.views DESC
 `
@@ -996,6 +1033,24 @@ func (q *Queries) SaveVisitTotals(ctx context.Context, today pgtype.Date) (int64
 	return result.RowsAffected(), nil
 }
 
+const signupsBetween = `-- name: SignupsBetween :one
+SELECT count(*)::int FROM app.users u
+WHERE u.created_at >= $1::timestamptz AND u.created_at < $2::timestamptz AND u.deleted_at IS NULL
+`
+
+type SignupsBetweenParams struct {
+	DayStart pgtype.Timestamptz
+	DayEnd   pgtype.Timestamptz
+}
+
+// Sign-ups from day_start (inclusive) to day_end (exclusive), as DashboardCounts counts them.
+func (q *Queries) SignupsBetween(ctx context.Context, arg SignupsBetweenParams) (int32, error) {
+	row := q.db.QueryRow(ctx, signupsBetween, arg.DayStart, arg.DayEnd)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const userProvinces = `-- name: UserProvinces :many
 SELECT DISTINCT u.province::text AS province FROM app.users u WHERE u.province IS NOT NULL AND u.province <> '' ORDER BY 1
 `
@@ -1014,6 +1069,58 @@ func (q *Queries) UserProvinces(ctx context.Context) ([]string, error) {
 			return nil, err
 		}
 		items = append(items, province)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const visitTotalsBetween = `-- name: VisitTotalsBetween :many
+WITH days AS (SELECT generate_series($1::date, $2::date, interval '1 day')::date AS day)
+SELECT d.day, coalesce(l.visitors, t.visitors, 0)::int AS visitors, coalesce(l.signed_in, t.signed_in, 0)::int AS signed_in,
+       coalesce(l.pageviews, t.pageviews, 0)::int AS pageviews
+FROM days d
+LEFT JOIN (
+  SELECT v.day, count(*)::int AS visitors, count(v.user_id)::int AS signed_in, sum(v.pageviews)::int AS pageviews
+  FROM app.daily_visits v WHERE v.day BETWEEN $1::date AND $2::date GROUP BY v.day
+) l ON l.day = d.day
+LEFT JOIN app.visit_totals t ON t.day = d.day
+ORDER BY d.day DESC
+`
+
+type VisitTotalsBetweenParams struct {
+	FromDay pgtype.Date
+	ToDay   pgtype.Date
+}
+
+type VisitTotalsBetweenRow struct {
+	Day       pgtype.Date
+	Visitors  int32
+	SignedIn  int32
+	Pageviews int32
+}
+
+// Each day from from_day to to_day, newest first: visitor totals from the per-visitor rows while they're kept (90 days),
+// else from the saved totals (days without visits are 0).
+func (q *Queries) VisitTotalsBetween(ctx context.Context, arg VisitTotalsBetweenParams) ([]VisitTotalsBetweenRow, error) {
+	rows, err := q.db.Query(ctx, visitTotalsBetween, arg.FromDay, arg.ToDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VisitTotalsBetweenRow{}
+	for rows.Next() {
+		var i VisitTotalsBetweenRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.Visitors,
+			&i.SignedIn,
+			&i.Pageviews,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
