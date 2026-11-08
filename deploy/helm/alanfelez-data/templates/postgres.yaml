@@ -9,9 +9,35 @@ spec:
   instances: {{ .Values.postgres.instances }}
   imageName: {{ .Values.postgres.imageName }}
   bootstrap:
+    {{- with .Values.postgres.restoreFrom }}
+    # A new cluster that starts from another cluster's backups (moving servers, REBUILD.md step 8). Read once, when the
+    # cluster is created; later changes to restoreFrom do nothing. The restored cluster backs up to backup.destinationPath,
+    # which must be a different folder than restoreFrom.destinationPath.
+    recovery:
+      source: origin
+      {{- with .targetTime }}
+      recoveryTarget: { targetTime: {{ . | quote }} }
+      {{- end }}
+    {{- else }}
     initdb:
-      database: {{ .Values.postgres.appDatabase }}
-      owner: {{ .Values.postgres.appDatabase }}
+      database: {{ $.Values.postgres.appDatabase }}
+      owner: {{ $.Values.postgres.appDatabase }}
+    {{- end }}
+  {{- with .Values.postgres.restoreFrom }}
+  {{- if eq .destinationPath $.Values.postgres.backup.destinationPath }}
+  {{- fail "postgres.restoreFrom.destinationPath must differ from postgres.backup.destinationPath (two clusters must never write to one backup folder)" }}
+  {{- end }}
+  externalClusters:
+    - name: origin
+      barmanObjectStore:
+        serverName: {{ .serverName }}
+        destinationPath: {{ required "postgres.restoreFrom.destinationPath" .destinationPath }}
+        endpointURL: {{ required "postgres.backup.endpointURL" $.Values.postgres.backup.endpointURL }}
+        s3Credentials:
+          accessKeyId: { name: {{ $.Values.postgres.backup.s3CredentialsSecret }}, key: ACCESS_KEY_ID }
+          secretAccessKey: { name: {{ $.Values.postgres.backup.s3CredentialsSecret }}, key: ACCESS_SECRET_KEY }
+        wal: { maxParallel: 4 }
+  {{- end }}
   managed:
     roles:
       - name: keycloak
