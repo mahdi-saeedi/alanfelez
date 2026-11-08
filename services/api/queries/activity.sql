@@ -165,6 +165,31 @@ WHERE u.id = sqlc.arg(id);
 -- Every visitor's metal page views on one day (dashboard), most viewed first.
 SELECT mv.metal, mv.views FROM app.metal_views_daily mv WHERE mv.day = sqlc.arg(day)::date ORDER BY mv.views DESC;
 
+-- name: MetalViewsBetween :many
+-- Every visitor's metal page views from from_day to to_day (dashboard range), most viewed first.
+SELECT mv.metal, sum(mv.views)::int AS views FROM app.metal_views_daily mv
+WHERE mv.day BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date
+GROUP BY mv.metal ORDER BY views DESC;
+
+-- name: VisitTotalsBetween :many
+-- Each day from from_day to to_day, newest first: visitor totals from the per-visitor rows while they're kept (90 days),
+-- else from the saved totals (days without visits are 0).
+WITH days AS (SELECT generate_series(sqlc.arg(from_day)::date, sqlc.arg(to_day)::date, interval '1 day')::date AS day)
+SELECT d.day, coalesce(l.visitors, t.visitors, 0)::int AS visitors, coalesce(l.signed_in, t.signed_in, 0)::int AS signed_in,
+       coalesce(l.pageviews, t.pageviews, 0)::int AS pageviews
+FROM days d
+LEFT JOIN (
+  SELECT v.day, count(*)::int AS visitors, count(v.user_id)::int AS signed_in, sum(v.pageviews)::int AS pageviews
+  FROM app.daily_visits v WHERE v.day BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date GROUP BY v.day
+) l ON l.day = d.day
+LEFT JOIN app.visit_totals t ON t.day = d.day
+ORDER BY d.day DESC;
+
+-- name: SignupsBetween :one
+-- Sign-ups from day_start (inclusive) to day_end (exclusive), as DashboardCounts counts them.
+SELECT count(*)::int FROM app.users u
+WHERE u.created_at >= sqlc.arg(day_start)::timestamptz AND u.created_at < sqlc.arg(day_end)::timestamptz AND u.deleted_at IS NULL;
+
 -- name: VisitTotalsOfDay :one
 -- One day's visitor totals: from the per-visitor rows while they're kept (90 days), else from the saved totals.
 SELECT coalesce(l.visitors, t.visitors, 0)::int AS visitors, coalesce(l.signed_in, t.signed_in, 0)::int AS signed_in,

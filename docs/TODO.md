@@ -60,6 +60,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-08 Date ranges in the admin (client): the dashboard has «یک روز» / «بازه‌ی تاریخ» (visitors and signed-in
+  users summed over the days, sign-ups, metals viewed and the charts for the range, compared with as many days
+  before; plans as of the last day); «آمار بازدید» lists any from–to range (up to 366 days) and everyone signed in
+  who came in it (days visited, last visit), or one day's users when a day is clicked.
 - 2026-11-08 SEO titles and descriptions (client approved the searches: قیمت روز / نرخ روز فلزات و ضایعات, قیمت شمش
   آلومینیوم, کاتد مس, ضایعات آهن…): home, prices, each of the 7 metals (their best-known products), chart, auctions,
   analysis, articles, plans (`seo.*` messages; visible headings unchanged); organization structured data with the

@@ -59,6 +59,26 @@ WHERE v.day = sqlc.arg(day)::date AND v.user_id IS NOT NULL
 ORDER BY v.last_at DESC
 LIMIT 500;
 
+-- name: VisitUsersBetween :many
+-- The signed-in visitors from from_day to to_day (one row each: first and last visit, page views, days visited), with
+-- their name, mobile and the plan they hold now. Only the last 90 days are kept per person.
+SELECT a.user_id::uuid AS user_id, u.username, u.phone_e164, u.first_name, u.last_name, a.first_at::timestamptz AS first_at,
+       a.last_at::timestamptz AS last_at, a.pageviews::int AS pageviews, a.days::int AS days, coalesce(cur.plan_code, 'free')::text AS current_plan
+FROM (
+  SELECT v.user_id, min(v.first_at) AS first_at, max(v.last_at) AS last_at, sum(v.pageviews) AS pageviews, count(*) AS days
+  FROM app.daily_visits v
+  WHERE v.day BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date AND v.user_id IS NOT NULL
+  GROUP BY v.user_id
+) a
+LEFT JOIN app.users u ON u.id = a.user_id
+LEFT JOIN LATERAL (
+  SELECT s.plan_code FROM app.subscriptions s JOIN app.plans p ON p.code = s.plan_code
+  WHERE s.user_id = a.user_id AND s.status = 'active' AND s.starts_at <= now() AND s.ends_at > now()
+  ORDER BY p.rank DESC LIMIT 1
+) cur ON true
+ORDER BY a.last_at DESC
+LIMIT 500;
+
 -- name: DeleteOldVisits :execrows
 DELETE FROM app.daily_visits WHERE day < sqlc.arg(before)::date;
 
