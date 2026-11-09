@@ -112,6 +112,19 @@ func TestUserActivity(t *testing.T) {
 	if _, body, raw = e.call(http.MethodGet, "/v1/admin/dashboard?day=2026-01-01", "support", nil); body["today"] != false || body["visitors"].(float64) != 0 {
 		t.Fatalf("old day: %s", raw)
 	}
+	// A range ending today (client, 2026-11-08): the sums of its days, a chart day for each, the period before compared.
+	_, body, _ = e.call(http.MethodGet, "/v1/admin/dashboard", "support", nil)
+	day := body["day"].(string)
+	from := mustDay(t, day).AddDate(0, 0, -6).Format("2006-01-02")
+	_, body, raw = e.call(http.MethodGet, "/v1/admin/dashboard?from="+from, "support", nil)
+	if body["from"] != from || body["visitors"].(float64) != 2 || body["prevVisitors"].(float64) != 0 || len(body["trend"].([]any)) != 7 ||
+		len(body["metals"].([]any)) != 2 || body["signups"] == nil {
+		t.Fatalf("range: %s", raw)
+	}
+	// One day: from is the day itself and the chart still shows 30 days.
+	if _, body, raw = e.call(http.MethodGet, "/v1/admin/dashboard", "support", nil); body["from"] != body["day"] || len(body["trend"].([]any)) != 30 {
+		t.Fatalf("one day: %s", raw)
+	}
 
 	// Users list filters and paging.
 	_, body, raw = e.call(http.MethodGet, "/v1/admin/users?metal=zinc&activity=trader", "support", nil)

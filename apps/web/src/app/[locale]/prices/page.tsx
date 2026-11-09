@@ -11,8 +11,8 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ met
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "prices" });
-  return seo(locale, "/prices", { title: t("title"), description: t("subtitle") });
+  const t = await getTranslations({ locale, namespace: "seo.prices" });
+  return seo(locale, "/prices", { title: t("title"), description: t("description") });
 }
 
 /** Every metal's prices. The old ?metal= links move to the metal's own page (/prices/copper). */

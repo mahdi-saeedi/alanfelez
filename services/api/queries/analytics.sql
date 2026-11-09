@@ -153,8 +153,9 @@ WHERE st.day BETWEEN sqlc.arg(from_day)::date AND sqlc.arg(to_day)::date
 GROUP BY st.term ORDER BY searches DESC, st.term LIMIT 100;
 
 -- name: DashboardTrend :many
--- The 30 days up to a day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts.
-WITH days AS (SELECT generate_series(sqlc.arg(to_day)::date - 29, sqlc.arg(to_day)::date, interval '1 day')::date AS day)
+-- Each day from from_day to to_day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts
+-- (the 30 days up to the day, or the chosen range).
+WITH days AS (SELECT generate_series(sqlc.arg(from_day)::date, sqlc.arg(to_day)::date, interval '1 day')::date AS day)
 SELECT d.day,
   coalesce((SELECT t.visitors FROM app.visit_totals t WHERE t.day = d.day),
            (SELECT count(*) FROM app.daily_visits v WHERE v.day = d.day), 0)::bigint AS visitors,

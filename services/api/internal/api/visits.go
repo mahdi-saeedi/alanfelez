@@ -224,37 +224,55 @@ func (s *Server) addViewSeconds(ctx context.Context, user, view pgtype.UUID, sec
 	return nil
 }
 
-// AdminVisits returns the last 30 days' visitor counts and one day's signed-in visitors (staff).
+// AdminVisits returns each day's visitor counts for a range (default the last 30 days) and the signed-in visitors of one
+// day, or of the whole range when it was chosen without a day (staff).
 func (s *Server) AdminVisits(ctx context.Context, req AdminVisitsRequestObject) (AdminVisitsResponseObject, error) {
 	if _, pr := requireRoles(ctx, rolesRead...); pr != nil {
 		return fail[AdminVisitsdefaultApplicationProblemPlusJSONResponse](*pr), nil
 	}
-	today := visits.Day(time.Now())
-	day := today
-	if req.Params.Day != nil {
-		day = req.Params.Day.Time
+	from, to, ok := periodRange(req.Params.From, req.Params.To)
+	if !ok {
+		return fail[AdminVisitsdefaultApplicationProblemPlusJSONResponse](badRequest(ctx, "from must not be after to")), nil
 	}
-	totals, err := s.q.VisitTotals(ctx, pgtype.Date{Time: today.AddDate(0, 0, -29), Valid: true})
+	totals, err := s.q.VisitTotalsBetween(ctx, dbq.VisitTotalsBetweenParams{FromDay: pgDate(from), ToDay: pgDate(to)})
 	if err != nil {
 		return nil, fmt.Errorf("visit totals: %w", err)
 	}
-	users, err := s.q.VisitUsers(ctx, pgtype.Date{Time: day, Valid: true})
-	if err != nil {
-		return nil, fmt.Errorf("visit users: %w", err)
-	}
-	out := AdminVisits200JSONResponse{Day: openapi_types.Date{Time: day}}
+	out := AdminVisits200JSONResponse{From: openapi_types.Date{Time: from}, To: openapi_types.Date{Time: to}}
 	out.Days = make([]visitDay, 0, len(totals))
 	for _, t := range totals {
 		out.Days = append(out.Days, visitDay{Day: openapi_types.Date{Time: t.Day.Time}, Pageviews: int(t.Pageviews), SignedIn: int(t.SignedIn), Visitors: int(t.Visitors)})
 	}
-	out.Users = make([]visitUser, 0, len(users))
-	for _, u := range users {
-		row := visitUser{FirstAt: u.FirstAt.Time.UTC(), LastAt: u.LastAt.Time.UTC(), Pageviews: int(u.Pageviews), Plan: Tier(u.CurrentPlan), UserId: u.UserID.Bytes}
-		if name := fullName(u.FirstName, u.LastName); name != "" {
+	add := func(id pgtype.UUID, first, last pgtype.Timestamptz, pageviews, days int32, plan string, username, firstName, lastName pgtype.Text) {
+		row := visitUser{FirstAt: first.Time.UTC(), LastAt: last.Time.UTC(), Pageviews: int(pageviews), Days: int(days), Plan: Tier(plan), UserId: id.Bytes}
+		if name := fullName(firstName, lastName); name != "" {
 			row.Name = &name
 		}
-		row.Phone = textp(u.Username)
+		row.Phone = textp(username)
 		out.Users = append(out.Users, row)
+	}
+	out.Users = make([]visitUser, 0)
+	if req.Params.Day == nil && req.Params.From != nil { // everyone of the chosen range, one row each
+		users, err := s.q.VisitUsersBetween(ctx, dbq.VisitUsersBetweenParams{FromDay: pgDate(from), ToDay: pgDate(to)})
+		if err != nil {
+			return nil, fmt.Errorf("visit users: %w", err)
+		}
+		for _, u := range users {
+			add(u.UserID, u.FirstAt, u.LastAt, u.Pageviews, u.Days, u.CurrentPlan, u.Username, u.FirstName, u.LastName)
+		}
+		return out, nil
+	}
+	day := visits.Day(time.Now())
+	if req.Params.Day != nil {
+		day = req.Params.Day.Time
+	}
+	out.Day = &openapi_types.Date{Time: day}
+	users, err := s.q.VisitUsers(ctx, pgtype.Date{Time: day, Valid: true})
+	if err != nil {
+		return nil, fmt.Errorf("visit users: %w", err)
+	}
+	for _, u := range users {
+		add(u.UserID, u.FirstAt, u.LastAt, u.Pageviews, 1, u.CurrentPlan, u.Username, u.FirstName, u.LastName)
 	}
 	return out, nil
 }
@@ -268,6 +286,7 @@ type (
 		Visitors  int                `json:"visitors"`
 	}
 	visitUser = struct {
+		Days      int                `json:"days"`
 		FirstAt   time.Time          `json:"firstAt"`
 		LastAt    time.Time          `json:"lastAt"`
 		Name      *string            `json:"name,omitempty"`

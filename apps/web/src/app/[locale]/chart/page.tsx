@@ -30,8 +30,8 @@ type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ ser
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "chart" });
-  return seo(locale, "/chart", { title: t("title"), description: t("subtitle") });
+  const t = await getTranslations({ locale, namespace: "seo.chart" });
+  return seo(locale, "/chart", { title: t("title"), description: t("description") });
 }
 
 /** Price chart (SCOPE §5 #3, §14; design 08-price-chart). History depth is limited by the tier in the API. */

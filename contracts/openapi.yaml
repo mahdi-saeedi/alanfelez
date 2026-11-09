@@ -522,10 +522,15 @@ paths:
     get:
       operationId: adminVisits
       tags: [admin]
-      summary: Daily visitor stats (last 30 days) and the signed-in visitors of one day (default today, Tehran)
+      summary: Daily visitor stats for a range (default the last 30 days) and the signed-in visitors of one day or of the range
+      description: >
+        `from`/`to` choose the days listed (at most 366). With `day`, the users are that day's; else, with `from`, they're
+        everyone signed in who came in the range (one row each); else today's (client, 2026-11-08). People are kept 90 days.
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: day, in: query, required: false, schema: { type: string, format: date } }
+        - { name: from, in: query, required: false, schema: { type: string, format: date } }
+        - { name: to, in: query, required: false, schema: { type: string, format: date } }
       responses:
         '200':
           description: Stats
@@ -811,10 +816,14 @@ paths:
     get:
       operationId: adminDashboard
       tags: [admin]
-      summary: The admin home page for one day (default today in Tehran; visitors, sign-ups, plans, metals viewed) and what waits for staff now
+      summary: The admin home page for one day or a range of days (default today in Tehran; visitors, sign-ups, plans, metals viewed) and what waits for staff now
+      description: >
+        With `from` (before `day`), the visitors, sign-ups, metals and charts cover from `from` to `day` (at most 366 days),
+        compared with the same number of days just before (client, 2026-11-08). Plan counts are as of the end of `day`.
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: day, in: query, required: false, schema: { type: string, format: date } }
+        - { name: from, in: query, required: false, description: First day of a range ending on `day`, schema: { type: string, format: date } }
         - { $ref: '#/components/parameters/AcceptLanguage' }
       responses:
         '200':
@@ -4140,12 +4149,14 @@ components:
 
     AdminVisits:
       type: object
-      required: [day, days, users]
+      required: [from, to, days, users]
       properties:
-        day: { type: string, format: date, description: The day the users list is for }
+        day: { type: string, format: date, description: The day the users list is for (absent when it is for the whole range) }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
         days:
           type: array
-          description: The last 30 days with visits, newest first
+          description: Each day of the range, newest first
           items:
             type: object
             required: [day, visitors, signedIn, pageviews]
@@ -4159,9 +4170,10 @@ components:
           description: The day's signed-in visitors, most recent first
           items:
             type: object
-            required: [userId, firstAt, lastAt, pageviews, plan]
+            required: [userId, firstAt, lastAt, pageviews, days, plan]
             properties:
               userId: { type: string, format: uuid }
+              days: { type: integer, description: Days visited (1 for one day) }
               name: { type: string, description: Name or company (sign-up form) }
               phone: { type: string }
               plan: { $ref: '#/components/schemas/Tier' }
@@ -4171,19 +4183,22 @@ components:
 
     AdminDashboard:
       type: object
-      required: [day, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups7d, signupsPrev7d, silver, gold, expiring7d, pending, missingPrices, metals, trend]
+      required: [day, from, today, visitors, signedIn, pageviews, prevVisitors, prevSignedIn, signups, signupsPrev, signups7d, signupsPrev7d, silver, gold, expiring7d, pending, missingPrices, metals, trend]
       properties:
-        day: { type: string, format: date }
+        day: { type: string, format: date, description: The (last) day }
+        from: { type: string, format: date, description: The first day of the period (= day for one day) }
         trend:
           type: array
-          description: The 30 days up to the day, for the charts (client, 2026-11-05)
+          description: The 30 days up to the day, or each day of the range, for the charts (client, 2026-11-05)
           items: { $ref: '#/components/schemas/DayTrend' }
         today: { type: boolean, description: The day is today (Tehran); plan counts are then as of now, else as of the day's end }
-        visitors: { type: integer }
-        signedIn: { type: integer }
+        visitors: { type: integer, description: Unique visitors of the day; for a range, the sum of each day's }
+        signedIn: { type: integer, description: As visitors, signed in }
         pageviews: { type: integer }
-        prevVisitors: { type: integer, description: The day before }
+        prevVisitors: { type: integer, description: The same for the day (or the as many days) before }
         prevSignedIn: { type: integer }
+        signups: { type: integer, description: Sign-ups in the period }
+        signupsPrev: { type: integer, description: Sign-ups in the as many days before }
         signups7d: { type: integer, description: Sign-ups in the 7 days up to the day }
         signupsPrev7d: { type: integer, description: Sign-ups in the 7 days before those }
         silver: { type: integer, description: Users holding Silver (as of the day) }

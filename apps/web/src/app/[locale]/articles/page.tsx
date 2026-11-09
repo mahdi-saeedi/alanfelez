@@ -15,8 +15,8 @@ const PAGE_SIZE = 12;
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "articles" });
-  return seo(locale, "/articles", { title: t("title"), description: t("subtitle") });
+  const t = await getTranslations({ locale, namespace: "seo.articles" });
+  return seo(locale, "/articles", { title: t("title"), description: t("description") });
 }
 
 /** «مقالات»: educational articles, free for everyone and in the footer for SEO (client, 2026-11-04). */

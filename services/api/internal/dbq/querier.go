@@ -132,8 +132,9 @@ type Querier interface {
 	DashboardCounts(ctx context.Context, dayEnd pgtype.Timestamptz) (DashboardCountsRow, error)
 	// Domestic price rows that had a price in the 14 days before the day but none on it (day_start..day_end).
 	DashboardMissingPrices(ctx context.Context, arg DashboardMissingPricesParams) ([]DashboardMissingPricesRow, error)
-	// The 30 days up to a day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts.
-	DashboardTrend(ctx context.Context, toDay pgtype.Date) ([]DashboardTrendRow, error)
+	// Each day from from_day to to_day: unique visitors, sign-ups and revenue (paid orders, Rial), for the dashboard charts
+	// (the 30 days up to the day, or the chosen range).
+	DashboardTrend(ctx context.Context, arg DashboardTrendParams) ([]DashboardTrendRow, error)
 	DecideRefund(ctx context.Context, arg DecideRefundParams) error
 	DeleteAlert(ctx context.Context, arg DeleteAlertParams) (int64, error)
 	DeleteArticleImage(ctx context.Context, articleID pgtype.UUID) (int64, error)
@@ -306,6 +307,8 @@ type Querier interface {
 	// Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
 	MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error)
 	MetalSlugExists(ctx context.Context, slug string) (bool, error)
+	// Every visitor's metal page views from from_day to to_day (dashboard range), most viewed first.
+	MetalViewsBetween(ctx context.Context, arg MetalViewsBetweenParams) ([]MetalViewsBetweenRow, error)
 	// Every visitor's metal page views on one day (dashboard), most viewed first.
 	MetalViewsOfDay(ctx context.Context, day pgtype.Date) ([]MetalViewsOfDayRow, error)
 	NotificationSent(ctx context.Context, dedupeKey string) (bool, error)
@@ -380,6 +383,8 @@ type Querier interface {
 	SetSignupSource(ctx context.Context, arg SetSignupSourceParams) error
 	// Also bumps last_message_at when a message was just added (touched = true).
 	SetTicketStatus(ctx context.Context, arg SetTicketStatusParams) (SetTicketStatusRow, error)
+	// Sign-ups from day_start (inclusive) to day_end (exclusive), as DashboardCounts counts them.
+	SignupsBetween(ctx context.Context, arg SignupsBetweenParams) (int32, error)
 	// Users with SMS on and a phone who paid SMS for this metal (or any metal: metal_id NULL) in a subscription active now.
 	// Their plan is checked in Go (internal/access).
 	SmsMetalSubscribers(ctx context.Context, metalID pgtype.Int2) ([]SmsMetalSubscribersRow, error)
@@ -429,10 +434,16 @@ type Querier interface {
 	VisitSalt(ctx context.Context, day pgtype.Date) (pgtype.UUID, error)
 	// Per day since from: unique visitors, signed-in visitors and page views.
 	VisitTotals(ctx context.Context, since pgtype.Date) ([]VisitTotalsRow, error)
+	// Each day from from_day to to_day, newest first: visitor totals from the per-visitor rows while they're kept (90 days),
+	// else from the saved totals (days without visits are 0).
+	VisitTotalsBetween(ctx context.Context, arg VisitTotalsBetweenParams) ([]VisitTotalsBetweenRow, error)
 	// One day's visitor totals: from the per-visitor rows while they're kept (90 days), else from the saved totals.
 	VisitTotalsOfDay(ctx context.Context, day pgtype.Date) (VisitTotalsOfDayRow, error)
 	// The signed-in visitors of one day, with their name, mobile and the plan they hold now.
 	VisitUsers(ctx context.Context, day pgtype.Date) ([]VisitUsersRow, error)
+	// The signed-in visitors from from_day to to_day (one row each: first and last visit, page views, days visited), with
+	// their name, mobile and the plan they hold now. Only the last 90 days are kept per person.
+	VisitUsersBetween(ctx context.Context, arg VisitUsersBetweenParams) ([]VisitUsersBetweenRow, error)
 	// Bulk void (client, 2026-11-02): every published point of a series, or those in [from, to). Kept as rejected.
 	VoidPointsInRange(ctx context.Context, arg VoidPointsInRangeParams) (int64, error)
 }

@@ -389,7 +389,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Daily visitor stats (last 30 days) and the signed-in visitors of one day (default today, Tehran) */
+        /**
+         * Daily visitor stats for a range (default the last 30 days) and the signed-in visitors of one day or of the range
+         * @description `from`/`to` choose the days listed (at most 366). With `day`, the users are that day's; else, with `from`, they're everyone signed in who came in the range (one row each); else today's (client, 2026-11-08). People are kept 90 days.
+         */
         get: operations["adminVisits"];
         put?: never;
         post?: never;
@@ -600,7 +603,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The admin home page for one day (default today in Tehran; visitors, sign-ups, plans, metals viewed) and what waits for staff now */
+        /**
+         * The admin home page for one day or a range of days (default today in Tehran; visitors, sign-ups, plans, metals viewed) and what waits for staff now
+         * @description With `from` (before `day`), the visitors, sign-ups, metals and charts cover from `from` to `day` (at most 366 days), compared with the same number of days just before (client, 2026-11-08). Plan counts are as of the end of `day`.
+         */
         get: operations["adminDashboard"];
         put?: never;
         post?: never;
@@ -3044,10 +3050,14 @@ export interface components {
         AdminVisits: {
             /**
              * Format: date
-             * @description The day the users list is for
+             * @description The day the users list is for (absent when it is for the whole range)
              */
-            day: string;
-            /** @description The last 30 days with visits, newest first */
+            day?: string;
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            /** @description Each day of the range, newest first */
             days: {
                 /** Format: date */
                 day: string;
@@ -3061,6 +3071,8 @@ export interface components {
             users: {
                 /** Format: uuid */
                 userId: string;
+                /** @description Days visited (1 for one day) */
+                days: number;
                 /** @description Name or company (sign-up form) */
                 name?: string;
                 phone?: string;
@@ -3073,18 +3085,32 @@ export interface components {
             }[];
         };
         AdminDashboard: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description The (last) day
+             */
             day: string;
-            /** @description The 30 days up to the day, for the charts (client, 2026-11-05) */
+            /**
+             * Format: date
+             * @description The first day of the period (= day for one day)
+             */
+            from: string;
+            /** @description The 30 days up to the day, or each day of the range, for the charts (client, 2026-11-05) */
             trend: components["schemas"]["DayTrend"][];
             /** @description The day is today (Tehran); plan counts are then as of now */
             today: boolean;
+            /** @description Unique visitors of the day; for a range */
             visitors: number;
+            /** @description As visitors */
             signedIn: number;
             pageviews: number;
-            /** @description The day before */
+            /** @description The same for the day (or the as many days) before */
             prevVisitors: number;
             prevSignedIn: number;
+            /** @description Sign-ups in the period */
+            signups: number;
+            /** @description Sign-ups in the as many days before */
+            signupsPrev: number;
             /** @description Sign-ups in the 7 days up to the day */
             signups7d: number;
             /** @description Sign-ups in the 7 days before those */
@@ -4327,6 +4353,8 @@ export interface operations {
         parameters: {
             query?: {
                 day?: string;
+                from?: string;
+                to?: string;
             };
             header?: never;
             path?: never;
@@ -4713,6 +4741,8 @@ export interface operations {
         parameters: {
             query?: {
                 day?: string;
+                /** @description First day of a range ending on `day` */
+                from?: string;
             };
             header?: {
                 "Accept-Language"?: components["parameters"]["AcceptLanguage"];
