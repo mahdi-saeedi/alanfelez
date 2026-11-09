@@ -17,6 +17,12 @@ postgres:
     s3CredentialsSecret: alanfelez-backup-s3   # keys: ACCESS_KEY_ID, ACCESS_SECRET_KEY
     retentionPolicy: 30d
     schedule: "0 0 2 * * *"   # nightly full backup (seconds-precision cron)
+  # Start a NEW cluster from another cluster's backups instead of empty (moving to a new server; REBUILD.md step 8).
+  # Only read when the cluster is created. Example:
+  #   restoreFrom: { destinationPath: s3://alanfelez-backups/production/postgres, serverName: alanfelez-data-pg }
+  # Optional targetTime ("2026-11-08 22:00:00+00") restores to that moment instead of the latest. Optional
+  # database/owner: the app database inside the backup (default appDatabase; production's is "app" since 2026-11-08).
+  restoreFrom: {}
 
 redis:
   enabled: true

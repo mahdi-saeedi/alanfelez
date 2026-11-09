@@ -9,10 +9,10 @@ global:
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "sha-3507b26ca126"}
-  web: {repository: web, tag: "sha-3507b26ca126"}
-  keycloak: {repository: keycloak, tag: "sha-3507b26ca126"}
-  admin: {repository: admin, tag: "sha-3507b26ca126"}
+  api: {repository: api, tag: "sha-29eabd753496"}
+  web: {repository: web, tag: "sha-29eabd753496"}
+  keycloak: {repository: keycloak, tag: "sha-29eabd753496"}
+  admin: {repository: admin, tag: "sha-29eabd753496"}
 api:
   replicas: 1 # small staging server (2 CPU / 4 GB)
   seedProfiles: reference,demo
@@ -37,3 +37,9 @@ ingress:
 # that really never gets Ready still aborts, just later. Production keeps 180 s (owner's call).
 rollout:
   progressDeadlineSeconds: 600
+# Article videos (ADR-0030): private bucket made 2026-11-04 (CORS: PUT from the admin host, GET/HEAD from the site);
+# the key is the sealed alanfelez-media-s3 (deploy/server/seal-backup-keys.sh alanfelez-media-s3).
+storage:
+  endpoint: s3.ir-thr-at1.arvanstorage.ir
+  region: ir-thr-at1
+  bucket: alanfelez-media-staging

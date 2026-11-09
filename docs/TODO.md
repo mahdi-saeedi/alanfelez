@@ -7,6 +7,11 @@ the date, and *Done* keeps only the last 30 days (git history has the rest).
 Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading demo data)
 
 ## Now (in progress)
+- [ ] Postgres AppArmor fix (`fix/postgres-apparmor`): Ubuntu 26.04 AppArmor blocked signals inside the Postgres pod, so the
+      nightly backups failed 2026-11-06…08 (staging WAL archiving too) and production stuck in recovery 2026-11-07.
+      Production moves to the new 50 GB server `alanfelez-production-2` (185.226.116.217) on 2026-11-08 with this fix:
+      the database starts from the old server's backups and backs up to `production-2/`. After the move: delete the old
+      server 188.121.120.201 (keep it off for 2 days), its GitHub deploy key, and add bootstrap.sh's SSH/inotify hardening.
 - [ ] World prices of brass, iron and cast iron: **placeholder** points (migration 00028, made-up, 30 days) so the charts
       show; the client voids them in the admin and enters real prices.
 - [ ] Client to test the idle sign-out (3 hours untouched → «ورود دوباره» asks for the password or code).
@@ -23,10 +28,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Deploys **during an internet shutdown**: build images inside Iran and push to the servers' git copies (DEPLOYMENT §8).
 
 ## Waiting on the owner
-- [ ] **Video bucket** (ADR-0030, 2026-11-04): in ArvanCloud Object Storage, one private bucket per environment
-      (e.g. `alanfelez-media-staging`, `alanfelez-media`) with CORS (PUT from the admin host, GET/HEAD from the web host),
-      a key sealed as `alanfelez-media-s3` (ACCESS_KEY_ID, ACCESS_SECRET_KEY), and `storage: {endpoint, bucket}` in the
-      environment's values. Until then the admin says video upload isn't set up (Aparat links still work).
+- [ ] **Video upload: test it** (ADR-0030): buckets `alanfelez-media-staging` / `alanfelez-media`, a machine user with
+      a Bucket Policy on just those two, its key sealed as `alanfelez-media-s3` and `storage` in both values (2026-11-08).
+      Left: upload and play a video on staging, then publish.
 - [ ] Client: the phone number and address, email info@alanfelez.ir, and the Telegram, WhatsApp, Bale and Eitaa links;
       entered in the admin's Settings (production), no code change. Instagram is set.
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their

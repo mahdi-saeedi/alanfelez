@@ -71,12 +71,14 @@ jobs:
       - uses: actions/checkout@v5
       - uses: azure/setup-helm@v4
       - name: Install kubeconform
-        # Retries: GitHub's release downloads sometimes answer 504 for a while (2026-11-08); -f makes an error page fail
-        # the download instead of reaching tar as "not in gzip format".
+        # Signed-in download (GitHub times out anonymous release downloads at busy times, 2026-11-08), pinned, retried.
+        env: { GH_TOKEN: "${{ github.token }}" }
         run: |
-          curl -fsSL --retry 6 --retry-delay 10 --retry-all-errors -o /tmp/kubeconform.tar.gz \
-            https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz
-          tar xzf /tmp/kubeconform.tar.gz -C /usr/local/bin kubeconform
+          for i in 1 2 3 4 5; do
+            gh release download v0.8.0 -R yannh/kubeconform -p kubeconform-linux-amd64.tar.gz -O /tmp/kc.tgz --clobber && break
+            sleep $((i * 10))
+          done
+          tar xzf /tmp/kc.tgz -C /usr/local/bin kubeconform
       - name: Lint and validate
         run: |
           for env in local staging production; do
