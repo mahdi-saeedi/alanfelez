@@ -9,7 +9,7 @@ import { SearchBox } from "@/components/SearchBox";
 export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ q?: string }> };
 
-const KINDS: SearchKind[] = ["products", "metals", "articles", "faq", "pages"];
+const KINDS: SearchKind[] = ["products", "metals", "articles", "education", "faq", "pages"];
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;

@@ -65,7 +65,8 @@
     "metalPrices": "{metal} prices",
     "articles": "Analysis & forecasts",
     "faq": "FAQ",
-    "pages": "Pages"
+    "pages": "Pages",
+    "education": "Articles"
   },
   "locale": {
     "switch": "فارسی",
@@ -280,7 +281,8 @@
     "otherGroup": "Other {category}",
     "groupCount": "{n, plural, one {# product} other {# products}}",
     "tickerWorld": "World",
-    "tickerIme": "IME"
+    "tickerIme": "IME",
+    "moversNone": "No changes recorded yet."
   },
   "chart": {
     "title": "Metal price chart",
@@ -342,7 +344,8 @@
     "compareNote": "Every product starts at 0% at the start of the range; a higher line rose more over it. Point at the chart to see each product's change on that day.",
     "compareFree": "Comparing world prices is free; the other prices need the {plan} plan.",
     "lockedHistory": "The chart and history of this price come with the {plan} plan",
-    "metalNoData": "{metal} (no prices yet)"
+    "metalNoData": "{metal} (no prices yet)",
+    "empty": "No prices have been recorded for the chart yet. Metal price charts will appear here soon."
   },
   "lock": {
     "upgrade": "Upgrade to {plan}",

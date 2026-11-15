@@ -34,11 +34,11 @@ export function Movers({ rows, count = 3 }: { rows: Row[]; count?: number }) {
     <>
       <section className="rounded-card border border-border bg-surface p-4 shadow-soft">
         <h2 className="mb-2 text-sm font-bold text-up">{t("gainers")}</h2>
-        <ul>{gainers.map((r) => <MoverItem key={r.series.slug} row={r} />)}</ul>
+        {gainers.length ? <ul>{gainers.map((r) => <MoverItem key={r.series.slug} row={r} />)}</ul> : <p className="text-xs text-text-3">{t("moversNone")}</p>}
       </section>
       <section className="rounded-card border border-border bg-surface p-4 shadow-soft">
         <h2 className="mb-2 text-sm font-bold text-down">{t("losers")}</h2>
-        <ul>{losers.map((r) => <MoverItem key={r.series.slug} row={r} />)}</ul>
+        {losers.length ? <ul>{losers.map((r) => <MoverItem key={r.series.slug} row={r} />)}</ul> : <p className="text-xs text-text-3">{t("moversNone")}</p>}
       </section>
     </>
   );

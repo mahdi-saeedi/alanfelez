@@ -64,6 +64,11 @@ Keep each runbook short: symptoms → check → fix → verify → follow-up. St
 - **R2 HighErrorRate:** open Grafana (by route) → GlitchTip (new error after a deploy?) → **roll back** (re-deploy the previous tag) if it started with a release.
 - **R3 SourceStale / Quarantined:** check the adapter's `source_runs.error` → is the upstream down, did its format change, or are credentials expired? → tell editors to use **manual entry** → fix the adapter → review the quarantined points in the admin.
 - **R4 OTP / SMS:** find the top phones/IPs from the logs → tighten limits (settings) or turn on CAPTCHA for everyone → block the abusive ranges at the Arvan WAF → contact the SMS provider if the numbers are fraudulent.
+- **R4b No SMS at all (sign-in codes, prices, greetings) from one server:** «ارسال پیامک با خطا مواجه شد» on sign-in, and
+  failed rows in the admin's «پیامک‌های ارسال‌شده» with `HTTP 401 … محدود به آی‌پی‌های تعریف شده … آی پی شما: <ip>`.
+  sms.ir only accepts the key from listed IPs and the server's **outgoing** IP changed (2026-11-15: production went out
+  from 185.226.116.217, not its public 188.121.120.201). Fix: add the IP from the error to the key's «محدودیت IP» in
+  the sms.ir panel (the key can be edited; no new key, no reseal), then take a sign-in code. Follow-up: a fixed egress IP.
 - **R5 Payments:** check the gateway status page → match `payments` against the gateway panel → never mark paid manually without a gateway reference. Use the admin "grant subscription" with a reason (it's audit-logged).
 - **R6 Backups:** re-run the backup job → check the Object Storage credentials and quota → confirm WAL archiving has resumed → the DR-1 RPO might be at risk, so raise it immediately.
 - **R7 Disk / Cert:** prune images and logs (`docker system prune` of old images only) → extend the volume → check Caddy's ACME logs.

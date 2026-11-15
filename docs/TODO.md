@@ -36,6 +36,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
+- [ ] **A fixed outgoing IP for the production server** (sms.ir only accepts listed IPs; it changed once, 2026-11-15).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
@@ -66,6 +67,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-15 Site review before pricing (client): no error where no price exists yet (home «قیمت جهانی فلزات» shows each
+  metal's «به‌زودی» card, the chart page a calm note, «بیشترین رشد/کاهش» say so); search lists educational articles
+  under «مقالات»; the plans comparison fits a phone. SMS stopped on production (sms.ir refused the server's new outgoing
+  IP): the client added it in sms.ir; runbook R4b.
 - 2026-11-08 The first two «مقالات» (written by Claude, approved by the client): «فرق آلومینیوم نرم و خشک» and
   «انواع ضایعات مس», with our own illustrations (static files under `apps/web/public/articles/`), linked to the metals'
   price pages and a «سؤال‌های رایج» section; added once by the reference seed `65-articles.yaml` (insert_missing),

@@ -160,7 +160,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: "
             </h2>
             <Link href="/prices" className="text-sm font-bold text-gold-dark hover:text-gold">{t("home.seeAll")}</Link>
           </div>
-          {live.length ? (
+          {/* Only an unreachable API is an error; no price yet just shows each metal's «به‌زودی» card. */}
+          {prices && (live.length || heroMetals.length) ? (
             <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
               {/* All seven metals (client, 2026-11-02); a metal without a world price yet gets a «به‌زودی» card. */}
               {(heroMetals.length ? heroMetals : uniqueMetals(live)).map((m) => {
