@@ -163,6 +163,8 @@ ON CONFLICT (metal_id, market) DO NOTHING;
 
 -- name: MetalPriceChanges :many
 -- Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
+-- A price re-entered unchanged (the same as the previous day's close, e.g. the bulk upload's «بدون تغییر» rows) is not a
+-- change: no "updated" SMS for it (client, 2026-11-15).
 SELECT m.id AS metal_id, m.slug AS metal_slug, m.name_fa AS metal_fa, m.name_en AS metal_en, mk.slug AS market,
        max(l.updated_at)::timestamptz AS last_change, count(*)::int AS changed
 FROM market.price_latest l
@@ -171,7 +173,7 @@ JOIN market.markets mk ON mk.id = s.market_id AND mk.slug IN ('ime', 'free')
 JOIN market.products p ON p.id = s.product_id
 JOIN market.metals m ON m.id = p.metal_id
 JOIN app.price_update_cursor c ON c.metal_id = m.id AND c.market = mk.slug
-WHERE l.updated_at > c.notified_through
+WHERE l.updated_at > c.notified_through AND l.price_minor IS DISTINCT FROM l.prev_close_minor
 GROUP BY m.id, m.slug, m.name_fa, m.name_en, mk.slug;
 
 -- name: SetPriceUpdateCursor :exec

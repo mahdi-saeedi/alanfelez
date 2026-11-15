@@ -95,6 +95,18 @@ func TestGoldPriceSMS(t *testing.T) {
 		t.Fatalf("second run sent %d", n)
 	}
 
+	// Re-entered at yesterday's price (the bulk upload's «بدون تغییر» rows, client 2026-11-15): no change, so no SMS.
+	var prevClose int64
+	if err := e.pool.QueryRow(t.Context(), `SELECT l.prev_close_minor FROM market.price_latest l JOIN market.price_series s ON s.id = l.series_id WHERE s.slug = 'copper-red-free'`).Scan(&prevClose); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{{Series: "copper-red-free", ObservedAt: now.Add(250 * time.Millisecond), Price: prevClose}}, prices.IngestOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {
+		t.Fatalf("sent for an unchanged price: %v", sms.sent)
+	}
+
 	// IME (client, 2026-11-04): zinc ticked at sign-up only → the IME "updated" SMS; aluminium ticked nowhere → nothing.
 	if _, err := e.pool.Exec(t.Context(), `UPDATE app.users SET metals = '{zinc}' WHERE id = '00000000-0000-0000-0000-000000000003'`); err != nil {
 		t.Fatal(err)

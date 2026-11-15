@@ -67,6 +67,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-15 Daily prices from one Excel file (client): «دانلود فایل قیمت‌های فعلی» in «ورود گروهی (اکسل)» gives every
+  active row with its current price; only changed prices are written in «قیمت جدید», and an empty cell saves the current
+  price again for today (site: updated today, 0 %). Files from Persian Excel (Windows-1256) are read too. No "prices
+  updated" SMS for a price that equals the previous day's close (MetalPriceChanges).
 - 2026-11-15 Site review before pricing (client): no error where no price exists yet (home «قیمت جهانی فلزات» shows each
   metal's «به‌زودی» card, the chart page a calm note, «بیشترین رشد/کاهش» say so); search lists educational articles
   under «مقالات»; the plans comparison fits a phone. SMS stopped on production (sms.ir refused the server's new outgoing
