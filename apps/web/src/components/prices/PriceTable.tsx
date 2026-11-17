@@ -42,7 +42,18 @@ function ChartIcon() {
   );
 }
 
-function PriceRowView({ row, display, child = false }: { row: Row; display: PriceDisplay; child?: boolean }) {
+/**
+ * Colours that tell the groups of one table apart (client, 2026-11-17: every group in the same cream was hard to tell
+ * apart): cream, blue, grey in turn. Full class names, so Tailwind keeps them.
+ */
+const TONES = [
+  { head: "border-gold/30 bg-gold/10", bar: "bg-gold", text: "text-gold-dark", fold: "border-gold/30 bg-gold/[0.06] hover:bg-gold/10", card: "bg-gold/[0.06] active:bg-gold/10", row: "bg-gold/[0.025] [&>td:first-child]:border-s-4 [&>td:first-child]:border-gold/40", li: "border-s-4 border-gold/40 bg-gold/[0.025]" },
+  { head: "border-info/25 bg-info/10", bar: "bg-info", text: "text-info", fold: "border-info/25 bg-info/[0.06] hover:bg-info/10", card: "bg-info/[0.06] active:bg-info/10", row: "bg-info/[0.025] [&>td:first-child]:border-s-4 [&>td:first-child]:border-info/40", li: "border-s-4 border-info/40 bg-info/[0.025]" },
+  { head: "border-silver/30 bg-silver/15", bar: "bg-silver", text: "text-graphite-2", fold: "border-silver/30 bg-silver/[0.09] hover:bg-silver/15", card: "bg-silver/[0.09] active:bg-silver/15", row: "bg-silver/[0.04] [&>td:first-child]:border-s-4 [&>td:first-child]:border-silver/50", li: "border-s-4 border-silver/50 bg-silver/[0.04]" },
+] as const;
+type Tone = (typeof TONES)[number];
+
+function PriceRowView({ row, display, child }: { row: Row; display: PriceDisplay; child?: Tone }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("prices");
   const unit = useUnitLabel();
@@ -55,7 +66,7 @@ function PriceRowView({ row, display, child = false }: { row: Row; display: Pric
   const usd = s.currency === "USD";
   // The whole row opens the chart; the product name stays a real link for keyboards and screen readers.
   return (
-    <tr className={`group cursor-pointer border-t border-border hover:bg-surface-2 ${child ? "bg-gold/[0.025] [&>td:first-child]:border-s-4 [&>td:first-child]:border-gold/40" : ""}`} onClick={() => router.push(chart)}>
+    <tr className={`group cursor-pointer border-t border-border hover:bg-surface-2 ${child?.row ?? ""}`} onClick={() => router.push(chart)}>
       <td className="px-4 py-3 font-bold">
         <span className="flex items-center gap-2">
           <MetalIcon slug={s.metal.slug} className="h-8 w-8" />
@@ -110,7 +121,7 @@ function LockedRowView({ s, plan, display }: { s: Series; plan: string; display:
 }
 
 /** Phone layout of one row: the whole card opens the chart; product and price on top, change and source/time below. */
-function PriceCardView({ row, display, child = false }: { row: Row; display: PriceDisplay; child?: boolean }) {
+function PriceCardView({ row, display, child }: { row: Row; display: PriceDisplay; child?: Tone }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("prices");
   const unit = useUnitLabel();
@@ -119,7 +130,7 @@ function PriceCardView({ row, display, child = false }: { row: Row; display: Pri
   const s = row.series;
   const flash = live?.flash === "up" ? "animate-flash-up" : live?.flash === "down" ? "animate-flash-down" : "";
   return (
-    <li className={child ? "border-s-4 border-gold/40 bg-gold/[0.025]" : ""}>
+    <li className={child?.li ?? ""}>
       <Link href={{ pathname: "/chart", query: { series: s.slug } }} className="group block px-4 py-3 active:bg-surface-2">
         <div className="flex items-start justify-between gap-3">
           <span className="flex min-w-0 items-center gap-3">
@@ -171,25 +182,35 @@ type Section = { key: string; title?: string; items: Item[] };
  * box under its own name). Only when some product has a group;
  * otherwise one untitled section, as before.
  */
+/** 0 IME, 1 world price, 2 everything else: the order of the boxes on a metal's table. */
+function marketRank(s: Series): number {
+  return s.market.slug === "ime" ? 0 : s.market.scope === "global" ? 1 : 2;
+}
+
 function sectionsOf(items: Item[], other: (category: string) => string): Section[] {
   const seriesOf = (it: Item) => (it.kind === "row" ? it.row.series : it.s);
   if (!items.some((it) => seriesOf(it).group)) return [{ key: "all", items }];
   // A category without groups gets its own name as the title; «سایر …» only follows a category's groups.
   const grouped = new Set(items.map(seriesOf).filter((s) => s.group).map((s) => s.category.slug));
   const cats: string[] = [];
-  const byKey = new Map<string, Section & { cat: string; sort: number }>();
+  const byKey = new Map<string, Section & { cat: string; sort: number; rank: number }>();
   for (const it of items) {
     const s = seriesOf(it);
     if (!cats.includes(s.category.slug)) cats.push(s.category.slug);
-    const key = s.group ? `g${s.group.id}` : `o-${s.category.slug}`;
+    // IME and world prices outside a group get a box of their own, named after the market.
+    const rank = marketRank(s);
+    const key = s.group ? `g${s.group.id}` : rank < 2 ? `m-${s.market.slug}` : `o-${s.category.slug}`;
     let sec = byKey.get(key);
     if (!sec) {
-      sec = { key, cat: s.category.slug, sort: s.group ? s.group.sort : Number.MAX_SAFE_INTEGER, title: s.group ? s.group.name : grouped.has(s.category.slug) ? other(s.category.name) : s.category.name, items: [] };
+      const title = s.group ? s.group.name : rank < 2 ? s.market.name : grouped.has(s.category.slug) ? other(s.category.name) : s.category.name;
+      sec = { key, cat: s.category.slug, sort: s.group ? s.group.sort : Number.MAX_SAFE_INTEGER, rank: 2, title, items: [] };
       byKey.set(key, sec);
     }
     sec.items.push(it);
   }
-  return [...byKey.values()].sort((a, b) => cats.indexOf(a.cat) - cats.indexOf(b.cat) || a.sort - b.sort);
+  // A box whose products are all IME comes first, then all world prices, then the rest (client, 2026-11-17).
+  for (const sec of byKey.values()) sec.rank = Math.max(...sec.items.map((it) => marketRank(seriesOf(it))));
+  return [...byKey.values()].sort((a, b) => a.rank - b.rank || (a.rank < 2 ? 0 : cats.indexOf(a.cat) - cats.indexOf(b.cat)) || a.sort - b.sort);
 }
 
 /** Groups with at least this many products are shown folded: one row with the average price, opened with a click. */
@@ -277,6 +298,16 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
   const seriesOf = (it: Item) => (it.kind === "row" ? it.row.series : it.s);
   // Folding needs the default order and no search (a search shows the matching sizes themselves).
   const fold = !sort && !q;
+  // Each box and folded group takes the next colour, in the order they appear (the phone list and the table agree).
+  const tones = new Map<string, Tone>();
+  const toneOf = (key: string): Tone => {
+    let tone = tones.get(key);
+    if (!tone) {
+      tone = TONES[tones.size % TONES.length]!;
+      tones.set(key, tone);
+    }
+    return tone;
+  };
   // A section that is one big group folds under its own title; a flat list folds each big group where it starts.
   const foldsWhole = (sec: Section) => fold && sec.key.startsWith("g") && sec.items.length >= FOLD_AT;
   const blocks = (sec: Section) => (fold && !sec.key.startsWith("g") ? blocksOf(sec.items, seriesOf) : sec.items.map((it) => ({ kind: "item" as const, it })));
@@ -288,8 +319,9 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
     const sum = summaryOf(items);
     const isOpen = open.has(key);
     const s0 = firstSeries(items);
+    const tone = toneOf(key);
     return (
-      <tr key={`s-${key}`} className="cursor-pointer border-t border-gold/30 bg-gold/[0.06] hover:bg-gold/10" onClick={() => toggle(key)} aria-expanded={isOpen}>
+      <tr key={`s-${key}`} className={`cursor-pointer border-t ${tone.fold}`} onClick={() => toggle(key)} aria-expanded={isOpen}>
         <td className="px-4 py-3 font-bold">
           <span className="flex items-center gap-2">
             <MetalIcon slug={s0.metal.slug} className="h-8 w-8" />
@@ -297,7 +329,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
           </span>
         </td>
         <td className="px-4 py-3">
-          <span className="flex items-center gap-2 font-extrabold text-gold-dark">
+          <span className={`flex items-center gap-2 font-extrabold ${tone.text}`}>
             <span aria-hidden className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>‹</span>
             {name}
             <span className="text-xs font-normal text-text-3">({count(sum.count)})</span>
@@ -318,7 +350,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
         <td className="px-4 py-3 text-text-3">—</td>
         <td className="px-4 py-3">{sum.bp !== undefined ? <ChangePill bp={sum.bp} locale={locale} size="sm" /> : <span className="text-text-3">—</span>}</td>
         <td className="px-4 py-3 whitespace-nowrap text-text-3 tabular-nums">{updated(sum.observedAt)}</td>
-        <td className="px-4 py-3 text-xs font-bold text-gold-dark">{isOpen ? t("groupClose") : t("groupOpen")}</td>
+        <td className={`px-4 py-3 text-xs font-bold ${tone.text}`}>{isOpen ? t("groupClose") : t("groupOpen")}</td>
       </tr>
     );
   };
@@ -326,14 +358,15 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
     const sum = summaryOf(items);
     const isOpen = open.has(key);
     const s0 = firstSeries(items);
+    const tone = toneOf(key);
     return (
       <li key={`s-${key}`}>
-        <button type="button" onClick={() => toggle(key)} aria-expanded={isOpen} className="block w-full bg-gold/[0.06] px-4 py-3 text-start active:bg-gold/10">
+        <button type="button" onClick={() => toggle(key)} aria-expanded={isOpen} className={`block w-full px-4 py-3 text-start ${tone.card}`}>
           <span className="flex items-start justify-between gap-3">
             <span className="flex min-w-0 items-center gap-3">
               <MetalIcon slug={s0.metal.slug} className="h-10 w-10" />
               <span className="min-w-0">
-                <span className="flex items-center gap-1.5 font-extrabold text-gold-dark"><span aria-hidden className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>‹</span><span className="truncate">{name}</span></span>
+                <span className={`flex items-center gap-1.5 font-extrabold ${tone.text}`}><span aria-hidden className={`inline-block transition-transform ${isOpen ? "rotate-90" : ""}`}>‹</span><span className="truncate">{name}</span></span>
                 <span className="text-xs text-text-3">{count(sum.count)} · {unit(s0, display)}</span>
               </span>
             </span>
@@ -348,7 +381,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
           </span>
           <span className="mt-1.5 flex items-center justify-between gap-3 text-xs text-text-3">
             <span className="truncate">{sum.avg ? t("groupRange", { min: price(sum.min!, sum.usd), max: price(sum.max!, sum.usd) }) : ""}</span>
-            <span className="font-bold text-gold-dark">{isOpen ? t("groupClose") : t("groupOpen")}</span>
+            <span className={`font-bold ${tone.text}`}>{isOpen ? t("groupClose") : t("groupOpen")}</span>
           </span>
         </button>
       </li>
@@ -384,16 +417,16 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
     {shown.length === 0 && shownLocked.length === 0 && <p className="p-8 text-center text-sm text-text-2">{t("noMatch")}</p>}
     <ul className="divide-y divide-border md:hidden">
       {sections.map((sec) => {
-        const card = (it: Item, child = false) => (it.kind === "row" ? <PriceCardView key={it.row.series.slug} row={it.row} display={display} child={child} /> : <LockedCardView key={it.s.slug} s={it.s} plan={plan} />);
-        if (foldsWhole(sec)) return [groupCard(sec.key, sec.title ?? "", sec.items), ...(open.has(sec.key) ? sec.items.map((it) => card(it, true)) : [])];
+        const card = (it: Item, child?: Tone) => (it.kind === "row" ? <PriceCardView key={it.row.series.slug} row={it.row} display={display} child={child} /> : <LockedCardView key={it.s.slug} s={it.s} plan={plan} />);
+        if (foldsWhole(sec)) return [groupCard(sec.key, sec.title ?? "", sec.items), ...(open.has(sec.key) ? sec.items.map((it) => card(it, toneOf(sec.key))) : [])];
         return [
           sec.title && (
-            <li key={`h-${sec.key}`} className="flex items-center justify-between gap-2 bg-gold/10 px-4 py-2.5">
-              <span className="flex items-center gap-2 font-extrabold text-gold-dark"><span aria-hidden className="h-4 w-1 rounded-full bg-gold" />{sec.title}</span>
+            <li key={`h-${sec.key}`} className={`flex items-center justify-between gap-2 px-4 py-2.5 ${toneOf(sec.key).head}`}>
+              <span className={`flex items-center gap-2 font-extrabold ${toneOf(sec.key).text}`}><span aria-hidden className={`h-4 w-1 rounded-full ${toneOf(sec.key).bar}`} />{sec.title}</span>
               <span className="text-xs text-text-3">{count(sec.items.length)}</span>
             </li>
           ),
-          ...blocks(sec).flatMap((b) => (b.kind === "item" ? [card(b.it)] : [groupCard(b.key, b.name, b.items), ...(open.has(b.key) ? b.items.map((it) => card(it, true)) : [])])),
+          ...blocks(sec).flatMap((b) => (b.kind === "item" ? [card(b.it)] : [groupCard(b.key, b.name, b.items), ...(open.has(b.key) ? b.items.map((it) => card(it, toneOf(b.key))) : [])])),
         ];
       })}
     </ul>
@@ -417,21 +450,21 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
         </thead>
         <tbody>
           {sections.map((sec) => {
-            const line = (it: Item, child = false) => (it.kind === "row" ? <PriceRowView key={it.row.series.slug} row={it.row} display={display} child={child} /> : <LockedRowView key={it.s.slug} s={it.s} plan={plan} display={display} />);
-            if (foldsWhole(sec)) return [groupRow(sec.key, sec.title ?? "", sec.items, true), ...(open.has(sec.key) ? sec.items.map((it) => line(it, true)) : [])];
+            const line = (it: Item, child?: Tone) => (it.kind === "row" ? <PriceRowView key={it.row.series.slug} row={it.row} display={display} child={child} /> : <LockedRowView key={it.s.slug} s={it.s} plan={plan} display={display} />);
+            if (foldsWhole(sec)) return [groupRow(sec.key, sec.title ?? "", sec.items, true), ...(open.has(sec.key) ? sec.items.map((it) => line(it, toneOf(sec.key))) : [])];
             return [
             sec.title && (
-              <tr key={`h-${sec.key}`} className="border-t border-gold/30 bg-gold/10">
+              <tr key={`h-${sec.key}`} className={`border-t ${toneOf(sec.key).head}`}>
                 <td colSpan={8} className="px-4 py-2.5">
-                  <span className="flex items-center gap-2 font-extrabold text-gold-dark">
-                    <span aria-hidden className="h-4 w-1 rounded-full bg-gold" />
+                  <span className={`flex items-center gap-2 font-extrabold ${toneOf(sec.key).text}`}>
+                    <span aria-hidden className={`h-4 w-1 rounded-full ${toneOf(sec.key).bar}`} />
                     {sec.title}
                     <span className="text-xs font-normal text-text-3">({count(sec.items.length)})</span>
                   </span>
                 </td>
               </tr>
             ),
-            ...blocks(sec).flatMap((b) => (b.kind === "item" ? [line(b.it)] : [groupRow(b.key, b.name, b.items, false), ...(open.has(b.key) ? b.items.map((it) => line(it, true)) : [])])),
+            ...blocks(sec).flatMap((b) => (b.kind === "item" ? [line(b.it)] : [groupRow(b.key, b.name, b.items, false), ...(open.has(b.key) ? b.items.map((it) => line(it, toneOf(b.key))) : [])])),
             ];
           })}
         </tbody>
