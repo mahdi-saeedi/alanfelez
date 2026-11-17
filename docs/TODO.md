@@ -67,6 +67,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 Every box of a metal's table folds (client): small groups like «بیلت و مفتول» too; world prices and IME
+  start open, the rest closed until clicked (categories show their count, an average only for a group's sizes).
 - 2026-11-17 A metal's price table (client): world prices first, then the IME boxes, then the rest; the boxes and folded
   groups take turns in cream, blue and grey so neighbours are told apart.
 - 2026-11-17 Price SMS never twice (client: the IME "updated" SMS came twice): one alerts run at a time (a Postgres
