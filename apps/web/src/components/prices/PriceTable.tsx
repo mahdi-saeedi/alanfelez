@@ -213,8 +213,11 @@ function sectionsOf(items: Item[], other: (category: string) => string): Section
   return [...byKey.values()].sort((a, b) => a.rank - b.rank || (a.rank < 2 ? 0 : cats.indexOf(a.cat) - cats.indexOf(b.cat)) || a.sort - b.sort);
 }
 
-/** Groups with at least this many products are shown folded: one row with the average price, opened with a click. */
-const FOLD_AT = 5;
+/**
+ * In a list of several metals, groups with at least this many products fold into one row. On one metal's table every
+ * box folds, however small (client, 2026-11-17: «بیلت و مفتول» too): closed at first, except world prices and IME.
+ */
+const FOLD_AT = 2;
 
 /**
  * Many sizes of one product (client, 2026-11-17: نبشی، لوله، قوطی…): a group folds into one row with the average of its
@@ -279,8 +282,10 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
   const t = useTranslations("prices");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<Sort>("");
-  const [open, setOpen] = useState<Set<string>>(new Set());
-  const toggle = (key: string) => setOpen((o) => { const n = new Set(o); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  // The boxes the reader opened or closed; the rest keep their default (world prices and IME open, others closed).
+  const [flipped, setFlipped] = useState<Set<string>>(new Set());
+  const toggle = (key: string) => setFlipped((o) => { const n = new Set(o); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  const opened = (key: string, items: Item[]) => flipped.has(key) !== items.every((it) => marketRank(seriesOf(it)) < 2);
   const locale = useLocale() as Locale;
   const unit = useUnitLabel();
   const updated = useUpdated();
@@ -309,15 +314,16 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
     return tone;
   };
   // A section that is one big group folds under its own title; a flat list folds each big group where it starts.
-  const foldsWhole = (sec: Section) => fold && sec.key.startsWith("g") && sec.items.length >= FOLD_AT;
+  const foldsWhole = (sec: Section) => fold && !!sec.title;
   const blocks = (sec: Section) => (fold && !sec.key.startsWith("g") ? blocksOf(sec.items, seriesOf) : sec.items.map((it) => ({ kind: "item" as const, it })));
   const firstSeries = (items: Item[]) => seriesOf(items[0]!);
   const price = (m: { amount: string; currency: "IRR" | "USD"; unit: "kg" | "ton" }, usd?: boolean) => `${usd ? "$" : ""}${formatPriceValue(m as never, locale, display)}`;
 
   // The folded group: name, number of sizes, average price, lowest–highest, average change; a click opens its rows.
   const groupRow = (key: string, name: string, items: Item[], withTitle: boolean) => {
-    const sum = summaryOf(items);
-    const isOpen = open.has(key);
+    const isOpen = opened(key, items);
+    // An average only means something for the sizes of one product (a group), not for a category's mixed products.
+    const sum = key.startsWith("g") ? summaryOf(items) : { ...summaryOf(items), avg: undefined, bp: undefined, locked: false };
     const s0 = firstSeries(items);
     const tone = toneOf(key);
     return (
@@ -355,8 +361,9 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
     );
   };
   const groupCard = (key: string, name: string, items: Item[]) => {
-    const sum = summaryOf(items);
-    const isOpen = open.has(key);
+    const isOpen = opened(key, items);
+    // An average only means something for the sizes of one product (a group), not for a category's mixed products.
+    const sum = key.startsWith("g") ? summaryOf(items) : { ...summaryOf(items), avg: undefined, bp: undefined, locked: false };
     const s0 = firstSeries(items);
     const tone = toneOf(key);
     return (
@@ -418,7 +425,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
     <ul className="divide-y divide-border md:hidden">
       {sections.map((sec) => {
         const card = (it: Item, child?: Tone) => (it.kind === "row" ? <PriceCardView key={it.row.series.slug} row={it.row} display={display} child={child} /> : <LockedCardView key={it.s.slug} s={it.s} plan={plan} />);
-        if (foldsWhole(sec)) return [groupCard(sec.key, sec.title ?? "", sec.items), ...(open.has(sec.key) ? sec.items.map((it) => card(it, toneOf(sec.key))) : [])];
+        if (foldsWhole(sec)) return [groupCard(sec.key, sec.title ?? "", sec.items), ...(opened(sec.key, sec.items) ? sec.items.map((it) => card(it, toneOf(sec.key))) : [])];
         return [
           sec.title && (
             <li key={`h-${sec.key}`} className={`flex items-center justify-between gap-2 px-4 py-2.5 ${toneOf(sec.key).head}`}>
@@ -426,7 +433,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
               <span className="text-xs text-text-3">{count(sec.items.length)}</span>
             </li>
           ),
-          ...blocks(sec).flatMap((b) => (b.kind === "item" ? [card(b.it)] : [groupCard(b.key, b.name, b.items), ...(open.has(b.key) ? b.items.map((it) => card(it, toneOf(b.key))) : [])])),
+          ...blocks(sec).flatMap((b) => (b.kind === "item" ? [card(b.it)] : [groupCard(b.key, b.name, b.items), ...(opened(b.key, b.items) ? b.items.map((it) => card(it, toneOf(b.key))) : [])])),
         ];
       })}
     </ul>
@@ -451,7 +458,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
         <tbody>
           {sections.map((sec) => {
             const line = (it: Item, child?: Tone) => (it.kind === "row" ? <PriceRowView key={it.row.series.slug} row={it.row} display={display} child={child} /> : <LockedRowView key={it.s.slug} s={it.s} plan={plan} display={display} />);
-            if (foldsWhole(sec)) return [groupRow(sec.key, sec.title ?? "", sec.items, true), ...(open.has(sec.key) ? sec.items.map((it) => line(it, toneOf(sec.key))) : [])];
+            if (foldsWhole(sec)) return [groupRow(sec.key, sec.title ?? "", sec.items, true), ...(opened(sec.key, sec.items) ? sec.items.map((it) => line(it, toneOf(sec.key))) : [])];
             return [
             sec.title && (
               <tr key={`h-${sec.key}`} className={`border-t ${toneOf(sec.key).head}`}>
@@ -464,7 +471,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
                 </td>
               </tr>
             ),
-            ...blocks(sec).flatMap((b) => (b.kind === "item" ? [line(b.it)] : [groupRow(b.key, b.name, b.items, false), ...(open.has(b.key) ? b.items.map((it) => line(it, toneOf(b.key))) : [])])),
+            ...blocks(sec).flatMap((b) => (b.kind === "item" ? [line(b.it)] : [groupRow(b.key, b.name, b.items, false), ...(opened(b.key, b.items) ? b.items.map((it) => line(it, toneOf(b.key))) : [])])),
             ];
           })}
         </tbody>
