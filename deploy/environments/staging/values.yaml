@@ -9,10 +9,10 @@ global:
   imageRegistry: registry-b73b5f9c02-alanfelez.apps.ir-central1.arvancaas.ir/alanfelez # ArvanCloud Container Registry host, see docs/guides/DEPLOYMENT.md §3
   imagePullSecrets: [] # the node itself logs in to the registry (/etc/rancher/k3s/registries.yaml)
 images:
-  api: {repository: api, tag: "sha-3389fdc1f558"}
-  web: {repository: web, tag: "sha-3389fdc1f558"}
-  keycloak: {repository: keycloak, tag: "sha-3389fdc1f558"}
-  admin: {repository: admin, tag: "sha-3389fdc1f558"}
+  api: {repository: api, tag: "sha-0afe7957b81a"}
+  web: {repository: web, tag: "sha-0afe7957b81a"}
+  keycloak: {repository: keycloak, tag: "sha-0afe7957b81a"}
+  admin: {repository: admin, tag: "sha-0afe7957b81a"}
 api:
   replicas: 1 # small staging server (2 CPU / 4 GB)
   seedProfiles: reference,demo
