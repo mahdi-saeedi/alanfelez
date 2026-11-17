@@ -67,6 +67,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 ±10 % SMS once per price entered (client): a move against the previous close stays on a price nobody
+  updates, and the alert went out again every morning at 08:00 (keyed by day). Now keyed by the price point, and only
+  for prices written in the last 36 hours, so old moves never go out when a subscriber or this rule is new.
 - 2026-11-17 Staff accounts kept out of the website (client): the admin panel and the website share the Keycloak
   session, so «ورود» on the site signed a staff account in silently and it could buy Gold and SMS metals with no phone
   to send to. Now such a sign-in shows «این حساب مخصوص پنل مدیریت است…» with a button that ends that session, and the

@@ -94,6 +94,13 @@ func TestGoldPriceSMS(t *testing.T) {
 	if n, _ := svc.AutoAt(t.Context(), noon(1)); n != 0 {
 		t.Fatalf("second run sent %d", n)
 	}
+	// The next mornings, with no new price: the +12 % against the old close is not news again (it was sent every day
+	// before, client 2026-11-17).
+	for days := 2; days <= 3; days++ {
+		if n, _ := svc.AutoAt(t.Context(), noon(days).Add(-4*time.Hour)); n != 0 {
+			t.Fatalf("day %d: the old move was sent again: %v", days, sms.sent)
+		}
+	}
 
 	// Re-entered at yesterday's price (the bulk upload's «بدون تغییر» rows, client 2026-11-15): no change, so no SMS.
 	var prevClose int64

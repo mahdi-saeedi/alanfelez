@@ -98,8 +98,10 @@ type Querier interface {
 	// Deleting a user (AdminDeleteUser): the row stays for orders and tickets, the personal details go. 0 rows: no local
 	// profile (never used the API) or already deleted.
 	AnonymizeUser(ctx context.Context, id pgtype.UUID) (int64, error)
-	// Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
-	BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMovesRow, error)
+	// Domestic latest prices that moved at least min_bp (either way) against the previous day's close, written since
+	// `since`. The alert is keyed by the price point, so one entry alerts once: a latest price nobody updates keeps its
+	// move against the old close, and alerted again every morning before (client, 2026-11-17).
+	BigDailyMoves(ctx context.Context, arg BigDailyMovesParams) ([]BigDailyMovesRow, error)
 	// Same rule as ReplaceSubscriptions: shorten a running plan to now, leave a queued one's dates (ends_at > starts_at).
 	CancelSubscription(ctx context.Context, id pgtype.UUID) error
 	// Which references of a new product or series exist (to answer 404 rather than 409).
