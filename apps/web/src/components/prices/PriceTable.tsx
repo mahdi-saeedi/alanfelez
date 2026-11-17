@@ -182,9 +182,9 @@ type Section = { key: string; title?: string; items: Item[] };
  * box under its own name). Only when some product has a group;
  * otherwise one untitled section, as before.
  */
-/** 0 IME, 1 world price, 2 everything else: the order of the boxes on a metal's table. */
+/** 0 world price, 1 IME, 2 everything else: the order of the boxes on a metal's table (client, 2026-11-17). */
 function marketRank(s: Series): number {
-  return s.market.slug === "ime" ? 0 : s.market.scope === "global" ? 1 : 2;
+  return s.market.scope === "global" ? 0 : s.market.slug === "ime" ? 1 : 2;
 }
 
 function sectionsOf(items: Item[], other: (category: string) => string): Section[] {
@@ -208,7 +208,7 @@ function sectionsOf(items: Item[], other: (category: string) => string): Section
     }
     sec.items.push(it);
   }
-  // A box whose products are all IME comes first, then all world prices, then the rest (client, 2026-11-17).
+  // A box of world prices comes first, then the IME boxes, then the rest (client, 2026-11-17).
   for (const sec of byKey.values()) sec.rank = Math.max(...sec.items.map((it) => marketRank(seriesOf(it))));
   return [...byKey.values()].sort((a, b) => a.rank - b.rank || (a.rank < 2 ? 0 : cats.indexOf(a.cat) - cats.indexOf(b.cat)) || a.sort - b.sort);
 }

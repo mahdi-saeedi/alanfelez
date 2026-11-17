@@ -38,6 +38,9 @@ const (
 	QuietUntil = 8
 )
 
+// autoLockKey is the Postgres advisory lock that keeps Auto to one run at a time (any fixed number unique in the app).
+const autoLockKey int64 = 0x616c657274 // "alert"
+
 // Template ids (sms_templates texts and sms.ir templates).
 const (
 	tmplIme    = "ime_update"   // {metal} {count}; sms.ir: METAL, COUNT
@@ -63,6 +66,25 @@ func BatchReady(last, now time.Time) bool { return now.Sub(last) >= UpdateQuiet 
 // Auto sends the automatic Gold SMS: "prices updated" per metal batch and the 10 % move alerts. Safe to run every
 // minute: cursors, dedupe keys and daily caps keep each message to once.
 func (s *Service) Auto(ctx context.Context) (sent int, err error) {
+	// One run at a time: a run still sending when the next minute's job starts would find the same SMS not yet logged
+	// and send it again (client, 2026-11-17: the IME "updated" SMS came twice). The lock lives on this connection.
+	conn, err := s.pool.Acquire(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("alerts: connection: %w", err)
+	}
+	defer conn.Release()
+	var mine bool
+	if err := conn.QueryRow(ctx, "SELECT pg_try_advisory_lock($1)", autoLockKey).Scan(&mine); err != nil {
+		return 0, fmt.Errorf("alerts: lock: %w", err)
+	}
+	if !mine {
+		return 0, nil // the previous run is still busy; it sends what is due
+	}
+	defer func() {
+		if _, err := conn.Exec(context.WithoutCancel(ctx), "SELECT pg_advisory_unlock($1)", autoLockKey); err != nil {
+			s.log.WarnContext(ctx, "alerts: unlock", "err", err)
+		}
+	}()
 	dbNow, err := dbq.New(s.pool).DBNow(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("alerts: db time: %w", err)
@@ -203,7 +225,8 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 				count = jalali.Digits(count)
 			}
 			body := strings.NewReplacer("{metal}", metal, "{count}", count).Replace(texts[tmpl][lang])
-			key := fmt.Sprintf("%s:%s:%d:%d", tmpl, uuid.UUID(u.id.Bytes), c.MetalID, c.LastChange.Time.UnixMicro())
+			// Keyed by the phone, not the account: two accounts with one number get one SMS per batch.
+			key := fmt.Sprintf("%s:%s:%d:%d", tmpl, u.phone, c.MetalID, c.LastChange.Time.UnixMicro())
 			ok, err := s.deliver(ctx, q, perUser, u.id, u.phone, key, tmpl, notify.Message{
 				Template: tmpl, Body: body, Params: []notify.Param{{Name: "METAL", Value: metal}, {Name: "COUNT", Value: count}},
 			})

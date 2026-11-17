@@ -118,6 +118,11 @@ func TestGoldPriceSMS(t *testing.T) {
 	if _, err := e.pool.Exec(t.Context(), `UPDATE app.users SET metals = '{zinc}' WHERE id = '00000000-0000-0000-0000-000000000003'`); err != nil {
 		t.Fatal(err)
 	}
+	// A second Gold account with the same number and zinc too: still one SMS to that phone (client, 2026-11-17).
+	if _, err := e.pool.Exec(t.Context(), `WITH u AS (INSERT INTO app.users (id, username, phone_e164, metals) VALUES ('00000000-0000-0000-0000-0000000000d3', '09120000003x', '+989120000003', '{zinc}') RETURNING id)
+		INSERT INTO app.subscriptions (user_id, plan_code, ends_at) SELECT id, 'gold', now() + interval '30 days' FROM u`); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := e.prices.Ingest(t.Context(), prices.Origin{SourceID: src.ID}, []prices.Quote{
 		{Series: "zinc-ingot-ime", ObservedAt: now, Price: 1_700_000},
 		{Series: "aluminum-ingot-ime", ObservedAt: now, Price: 2_150_000},
