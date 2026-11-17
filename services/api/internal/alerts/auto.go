@@ -27,8 +27,11 @@ const (
 	// UpdateQuiet is how long a metal's prices in one market must stay unchanged before its "updated" SMS goes out, so
 	// a staff member entering 15 products sends one SMS, not 15.
 	UpdateQuiet = 15 * time.Minute
-	// BigMoveBp is the move against the previous day that sends an alert (10 %, up or down), once per product and day.
+	// BigMoveBp is the move against the previous day that sends an alert (10 %, up or down), once per price entered.
 	BigMoveBp = 1000
+	// MoveWindow is how old a price entry may be and still get its move alert: longer than the night pause, short
+	// enough that old entries never alert when this rule or a subscriber is new.
+	MoveWindow = 36 * time.Hour
 	// QuietFrom is the Tehran hour the night pause starts: nothing is sent until QuietUntil, when what's due goes out.
 	QuietFrom = 22
 	// QuietUntil is the Tehran hour the night pause ends.
@@ -95,9 +98,9 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 		return v, err
 	}
 
-	// 1. Moves of 10 % or more against the previous day, once per product and day. First, so that a batch due in the
+	// 1. Moves of 10 % or more against the previous day, once per price entered. First, so that a batch due in the
 	// same run (after the night pause) already knows which products had their alert.
-	moves, err := q.BigDailyMoves(ctx, BigMoveBp)
+	moves, err := q.BigDailyMoves(ctx, dbq.BigDailyMovesParams{MinBp: BigMoveBp, Since: pgtype.Timestamptz{Time: now.Add(-MoveWindow), Valid: true}})
 	if err != nil {
 		return sent, fmt.Errorf("alerts: moves: %w", err)
 	}
@@ -107,7 +110,6 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 			return sent, fmt.Errorf("alerts: subscribers: %w", err)
 		}
 	}
-	day := now.In(prices.Tehran).Format(time.DateOnly)
 	for _, m := range moves {
 		ch, _ := prices.ChangeFrom(&m.PrevCloseMinor, m.PriceMinor)
 		for _, u := range subs {
@@ -127,7 +129,7 @@ func (s *Service) AutoAt(ctx context.Context, now time.Time) (sent int, err erro
 			}
 			price, change := FormatPrice(m.PriceMinor, m.Currency, m.Unit, lang), FormatBp(ch.Bp, lang)
 			body := strings.NewReplacer("{product}", product, "{price}", price, "{change}", change).Replace(texts[tmplMove][lang])
-			key := fmt.Sprintf("%s:%s:%d:%s", tmplMove, uuid.UUID(u.UserID.Bytes), m.SeriesID, day)
+			key := fmt.Sprintf("%s:%s:%d:p%d", tmplMove, uuid.UUID(u.UserID.Bytes), m.SeriesID, m.PointID)
 			ok, err := s.deliver(ctx, q, perUser, u.UserID, u.PhoneE164.String, key, tmplMove, notify.Message{
 				Template: "price_alert", Body: body,
 				Params: []notify.Param{{Name: "PRODUCT", Value: product}, {Name: "PRICE", Value: price}, {Name: "CHANGE", Value: change}},

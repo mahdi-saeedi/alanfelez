@@ -105,14 +105,20 @@ func (q *Queries) AlertsSentSince(ctx context.Context, arg AlertsSentSinceParams
 
 const bigDailyMoves = `-- name: BigDailyMoves :many
 SELECT s.id AS series_id, s.slug AS series_slug, s.currency, s.unit, pr.metal_id, pr.name_fa AS product_fa, pr.name_en AS product_en,
-       l.price_minor, l.prev_close_minor::bigint AS prev_close_minor
+       l.price_minor, l.prev_close_minor::bigint AS prev_close_minor, l.point_id
 FROM market.price_latest l
 JOIN market.price_series s ON s.id = l.series_id AND s.active
 JOIN market.markets mk ON mk.id = s.market_id AND mk.scope = 'domestic'
 JOIN market.products pr ON pr.id = s.product_id
 WHERE l.prev_close_minor IS NOT NULL AND l.prev_close_minor > 0
-  AND abs(l.price_minor - l.prev_close_minor) * 10000 >= $1::bigint * l.prev_close_minor
+  AND l.updated_at >= $1::timestamptz
+  AND abs(l.price_minor - l.prev_close_minor) * 10000 >= $2::bigint * l.prev_close_minor
 `
+
+type BigDailyMovesParams struct {
+	Since pgtype.Timestamptz
+	MinBp int64
+}
 
 type BigDailyMovesRow struct {
 	SeriesID       int32
@@ -124,11 +130,14 @@ type BigDailyMovesRow struct {
 	ProductEn      pgtype.Text
 	PriceMinor     int64
 	PrevCloseMinor int64
+	PointID        int64
 }
 
-// Domestic latest prices that moved at least min_bp (either way) against the previous day's close.
-func (q *Queries) BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMovesRow, error) {
-	rows, err := q.db.Query(ctx, bigDailyMoves, minBp)
+// Domestic latest prices that moved at least min_bp (either way) against the previous day's close, written since
+// `since`. The alert is keyed by the price point, so one entry alerts once: a latest price nobody updates keeps its
+// move against the old close, and alerted again every morning before (client, 2026-11-17).
+func (q *Queries) BigDailyMoves(ctx context.Context, arg BigDailyMovesParams) ([]BigDailyMovesRow, error) {
+	rows, err := q.db.Query(ctx, bigDailyMoves, arg.Since, arg.MinBp)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +155,7 @@ func (q *Queries) BigDailyMoves(ctx context.Context, minBp int64) ([]BigDailyMov
 			&i.ProductEn,
 			&i.PriceMinor,
 			&i.PrevCloseMinor,
+			&i.PointID,
 		); err != nil {
 			return nil, err
 		}
