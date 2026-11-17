@@ -282,7 +282,11 @@
     "groupCount": "{n, plural, other {# محصول}}",
     "tickerWorld": "جهانی",
     "tickerIme": "بورس کالا",
-    "moversNone": "فعلاً تغییری ثبت نشده است."
+    "moversNone": "فعلاً تغییری ثبت نشده است.",
+    "groupAvg": "میانگین",
+    "groupRange": "از {min} تا {max}",
+    "groupOpen": "نمایش همه ▾",
+    "groupClose": "بستن ▴"
   },
   "chart": {
     "title": "نمودار قیمت فلزات",

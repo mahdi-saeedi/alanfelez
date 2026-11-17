@@ -282,7 +282,11 @@
     "groupCount": "{n, plural, one {# product} other {# products}}",
     "tickerWorld": "World",
     "tickerIme": "IME",
-    "moversNone": "No changes recorded yet."
+    "moversNone": "No changes recorded yet.",
+    "groupAvg": "average",
+    "groupRange": "{min} to {max}",
+    "groupOpen": "Show all ▾",
+    "groupClose": "Close ▴"
   },
   "chart": {
     "title": "Metal price chart",

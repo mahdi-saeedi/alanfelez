@@ -67,6 +67,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 The client's aluminium list (Excel): migration 00040 adds 222 «بازار» products in seven groups (شمش، بیلت، ورق،
+  پروفیل، نبشی، لوله، قوطی; repeated rows once) and 14 IME grades (no producer), additive only. On the prices page a
+  group of 5 or more folds into one row with the average, lowest–highest and average change, opened with a click.
+  Left for the client: the older generic rows «بیلت/اسلب/میلگرد آلومینیوم» (hide in the admin if not wanted).
 - 2026-11-15 Daily prices from one Excel file (client): «دانلود فایل قیمت‌های فعلی» in «ورود گروهی (اکسل)» gives every
   active row with its current price; only changed prices are written in «قیمت جدید», and an empty cell saves the current
   price again for today (site: updated today, 0 %). Files from Persian Excel (Windows-1256) are read too. No "prices
