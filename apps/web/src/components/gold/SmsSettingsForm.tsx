@@ -42,6 +42,8 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
             <p role="alert" className="rounded-lg bg-down/10 p-3 text-sm text-down">{t("noPhone")}</p>
           )}
 
+          {/* No mobile number, no purchase: the API refuses it too (PHONE_REQUIRED). */}
+          {settings.phone && (
           <form action={buySmsMetalsAction} className="space-y-3">
             <input type="hidden" name="locale" value={locale} />
             <input type="hidden" name="back" value={back} />
@@ -61,6 +63,7 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
             {unpaid.length > 0 && <p className="text-xs leading-6 text-text-3">{t("addHint", { price: toman(settings.addMetalPrice?.amount) })}</p>}
             <p className="rounded-lg bg-gold/10 p-3 text-xs leading-6 text-gold-dark">{t("noRefund")}</p>
           </form>
+          )}
 
           {signup.length > 0 && (
             <p className="rounded-lg bg-surface-2 p-3 text-xs leading-6 text-text-2">
@@ -87,6 +90,7 @@ export async function SmsSettingsForm({ settings, metals, locale, back, status }
           {status === "saved" && <p role="status" className="text-sm text-up">{t("saved")}</p>}
           {status === "pick" && <p role="alert" className="text-sm text-down">{t("addNone")}</p>}
           {status === "payments" && <p role="alert" className="text-sm text-down">{t("paymentsOff")}</p>}
+          {status === "phone" && <p role="alert" className="text-sm text-down">{t("noPhone")}</p>}
           {status === "failed" && <p role="alert" className="text-sm text-down">{t("failed")}</p>}
         </div>
       )}

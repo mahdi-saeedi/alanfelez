@@ -25,6 +25,9 @@ const (
 	codePaymentsDisabled = "PAYMENTS_DISABLED"
 	codeNotRefundable    = "NOT_REFUNDABLE"
 	codeUpstream         = "UPSTREAM_UNAVAILABLE"
+	// codePhoneRequired: SMS metals bought by an account without a mobile number (a staff account signed in on the
+	// website, 2026-11-17): the SMS could never be sent, so the order is refused before any payment.
+	codePhoneRequired = "PHONE_REQUIRED"
 )
 
 var iranMobile = regexp.MustCompile(`^09\d{9}$`)
@@ -60,6 +63,10 @@ func phoneOf(username string) string {
 		return "+98" + username[1:]
 	}
 	return ""
+}
+
+func phoneRequired(ctx context.Context) Problem {
+	return problem(ctx, http.StatusConflict, codePhoneRequired, "A mobile number is needed for SMS", "this account has no mobile number")
 }
 
 func unauthenticated(ctx context.Context) Problem {
@@ -222,6 +229,9 @@ func (s *Server) StartCheckout(ctx context.Context, req StartCheckoutRequestObje
 	key := strings.TrimSpace(req.Params.IdempotencyKey)
 	if len(key) < 8 || len(key) > 100 {
 		return StartCheckout400ApplicationProblemPlusJSONResponse{ProblemApplicationProblemPlusJSONResponse(badRequest(ctx, "Idempotency-Key must be 8–100 characters"))}, nil
+	}
+	if len(smsMetalsOf(req.Body.SmsMetals)) > 0 && phoneOf(p.Username) == "" {
+		return StartCheckout409ApplicationProblemPlusJSONResponse(phoneRequired(ctx)), nil
 	}
 	u, err := s.touchUser(ctx, p)
 	if err != nil {
@@ -491,6 +501,9 @@ func (s *Server) BuySmsMetals(ctx context.Context, req BuySmsMetalsRequestObject
 	key := strings.TrimSpace(req.Params.IdempotencyKey)
 	if len(key) < 8 || len(key) > 100 {
 		return fail[bad](badRequest(ctx, "Idempotency-Key must be 8–100 characters")), nil
+	}
+	if phoneOf(p.Username) == "" {
+		return fail[bad](phoneRequired(ctx)), nil
 	}
 	u, err := s.touchUser(ctx, p)
 	if err != nil {

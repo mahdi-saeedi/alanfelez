@@ -402,6 +402,7 @@
       "PAYMENTS_DISABLED": "Buying plans isn't available yet.",
       "UPSTREAM_UNAVAILABLE": "The payment gateway is unavailable. Please try again shortly.",
       "FORBIDDEN": "This account can't make purchases. Please contact support.",
+      "PHONE_REQUIRED": "SMS needs a mobile number, and this account has none. Sign in with your mobile number.",
       "generic": "Something went wrong. Please try again."
     },
     "result": {
@@ -825,8 +826,10 @@
     "body": {
       "Default": "We couldn't sign you in just now. Please try again.",
       "AccessDenied": "Signing in with this account isn't allowed.",
-      "Verification": "This sign-in link has expired or was already used. Please sign in again."
+      "Verification": "This sign-in link has expired or was already used. Please sign in again.",
+      "StaffAccount": "This account is for the admin panel, not the website. To use the website, sign in with your mobile number. (This also signs you out of the admin panel.)"
     },
+    "staffSignIn": "Sign in with a mobile number",
     "retry": "Try again",
     "home": "Home",
     "help": "If it keeps happening:",

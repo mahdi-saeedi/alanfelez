@@ -61,5 +61,5 @@ export async function buySmsMetalsAction(form: FormData) {
   const res = await buySmsMetals(metals, String(form.get("key") ?? ""), locale);
   if (res.status === 201 && res.result?.redirectUrl) redirect(res.result.redirectUrl);
   if (res.status === 201 && res.result) redirect(`${prefix(form)}/checkout/result?order=${res.result.order.id}&status=${res.result.order.status}`);
-  redirect(`${prefix(form)}${path}${sep}sms=${res.code === "PAYMENTS_DISABLED" ? "payments" : "failed"}#sms`);
+  redirect(`${prefix(form)}${path}${sep}sms=${res.code === "PAYMENTS_DISABLED" ? "payments" : res.code === "PHONE_REQUIRED" ? "phone" : "failed"}#sms`);
 }

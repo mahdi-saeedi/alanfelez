@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 const PLANS: PaidPlan[] = ["silver", "gold"];
 const PERIODS: Period[] = ["month", "quarter", "year"];
-const ERRORS = ["PAYMENTS_DISABLED", "UPSTREAM_UNAVAILABLE", "FORBIDDEN"];
+const ERRORS = ["PAYMENTS_DISABLED", "UPSTREAM_UNAVAILABLE", "FORBIDDEN", "PHONE_REQUIRED"];
 
 type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ plan?: string; period?: string; error?: string }> };
 

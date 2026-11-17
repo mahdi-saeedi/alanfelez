@@ -67,6 +67,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 Staff accounts kept out of the website (client): the admin panel and the website share the Keycloak
+  session, so «ورود» on the site signed a staff account in silently and it could buy Gold and SMS metals with no phone
+  to send to. Now such a sign-in shows «این حساب مخصوص پنل مدیریت است…» with a button that ends that session, and the
+  API refuses SMS metals for an account without a mobile number (409 PHONE_REQUIRED) before any payment.
 - 2026-11-17 Go 1.27.4 (GO-2026-6859, net/http MaxBytesReader; govulncheck failed every change until then).
 - 2026-11-17 The client's aluminium list (Excel): migration 00040 adds 222 «بازار» products in seven groups (شمش، بیلت، ورق،
   پروفیل، نبشی، لوله، قوطی; repeated rows once) and 19 IME rows, one per symbol with its producer (two IME groups),
