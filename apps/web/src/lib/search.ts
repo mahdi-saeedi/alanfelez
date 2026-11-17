@@ -11,7 +11,7 @@ export function norm(s: string) {
   return s.toLowerCase().replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/[‌\s]+/g, " ").trim();
 }
 
-export type SearchKind = "products" | "metals" | "articles" | "faq" | "pages";
+export type SearchKind = "products" | "metals" | "articles" | "education" | "faq" | "pages";
 /** One result: what it is, its name, a line under it, and where it leads. */
 export type SearchItem = { kind: SearchKind; title: string; sub?: string; href: string };
 /** `similar`: nothing matched exactly, so these are the closest names (a typo, another spelling). */
@@ -41,7 +41,8 @@ const entries = cache(async (locale: Locale, labels: SearchLabels) => {
       text: `${s.product.name} ${s.metal.name} ${s.category.name} ${s.market.name}`,
     })),
     ...(metals.data?.items ?? []).map((m) => ({ kind: "metals" as const, title: labels.metalPrices(m.name), href: `/prices/${m.slug}`, text: m.name })),
-    ...(articles.data?.items ?? []).map((a) => ({ kind: "articles" as const, title: a.title, href: articleHref(a), text: `${a.title} ${a.summary} ${a.metal?.name ?? ""}` })),
+    ...(articles.data?.items ?? []).map((a) => ({ kind: (a.type === "article" ? "education" : "articles") as SearchKind, // «مقالات» apart from news and analyses
+      title: a.title, href: articleHref(a), text: `${a.title} ${a.summary} ${a.metal?.name ?? ""}` })),
     ...(faq.data?.categories ?? []).flatMap((c) => c.items).map((i) => ({ kind: "faq" as const, title: i.question, href: `/faq#${i.slug}`, text: i.question })),
     ...[...MAIN_NAV, ...MORE_NAV].map(([key, href]) => ({ kind: "pages" as const, title: labels.page(key), href, text: labels.page(key) })),
   ];

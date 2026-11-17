@@ -744,7 +744,7 @@ JOIN market.markets mk ON mk.id = s.market_id AND mk.slug IN ('ime', 'free')
 JOIN market.products p ON p.id = s.product_id
 JOIN market.metals m ON m.id = p.metal_id
 JOIN app.price_update_cursor c ON c.metal_id = m.id AND c.market = mk.slug
-WHERE l.updated_at > c.notified_through
+WHERE l.updated_at > c.notified_through AND l.price_minor IS DISTINCT FROM l.prev_close_minor
 GROUP BY m.id, m.slug, m.name_fa, m.name_en, mk.slug
 `
 
@@ -759,6 +759,8 @@ type MetalPriceChangesRow struct {
 }
 
 // Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
+// A price re-entered unchanged (the same as the previous day's close, e.g. the bulk upload's «بدون تغییر» rows) is not a
+// change: no "updated" SMS for it (client, 2026-11-15).
 func (q *Queries) MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error) {
 	rows, err := q.db.Query(ctx, metalPriceChanges)
 	if err != nil {

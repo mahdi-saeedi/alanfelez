@@ -36,6 +36,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Give the developer **GitHub write access**; check **claude.ai/code** works on their
       Claude account and can connect to the repo.
 - [ ] **Save the Sealed Secrets key offline** (password manager): `bootstrap.sh backup-key` (REBUILD.md).
+- [ ] **A fixed outgoing IP for the production server** (sms.ir only accepts listed IPs; it changed once, 2026-11-15).
 - [ ] Delete the **old server** `85.198.55.189` and the **old registry** `registry-808c2160fb…` (old ArvanCloud account).
 - [ ] Wording of the **home page title/description** (SEO).
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
@@ -66,6 +67,21 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 Go 1.27.4 (GO-2026-6859, net/http MaxBytesReader; govulncheck failed every change until then).
+- 2026-11-17 The client's aluminium list (Excel): migration 00040 adds 222 «بازار» products in seven groups (شمش، بیلت، ورق،
+  پروفیل، نبشی، لوله، قوطی; repeated rows once) and 19 IME rows, one per symbol with its producer (two IME groups),
+  additive only. On the prices page a group of 5 or more folds into one row with the average, lowest–highest and average
+  change, opened with a click. Migration 00041 (changes existing rows: **owner OK needed before production**): scrap
+  names exactly as in the file and in its order, «پیستون» + «سرسیلندر» → one row «ضایعات پیستون و سرسیلندر», and the
+  older generic «بیلت/اسلب/میلگرد آلومینیوم» and «سرسیلندر» hidden (inactive, history kept).
+- 2026-11-15 Daily prices from one Excel file (client): «دانلود فایل قیمت‌های فعلی» in «ورود گروهی (اکسل)» gives every
+  active row with its current price; only changed prices are written in «قیمت جدید», and an empty cell saves the current
+  price again for today (site: updated today, 0 %). Files from Persian Excel (Windows-1256) are read too. No "prices
+  updated" SMS for a price that equals the previous day's close (MetalPriceChanges).
+- 2026-11-15 Site review before pricing (client): no error where no price exists yet (home «قیمت جهانی فلزات» shows each
+  metal's «به‌زودی» card, the chart page a calm note, «بیشترین رشد/کاهش» say so); search lists educational articles
+  under «مقالات»; the plans comparison fits a phone. SMS stopped on production (sms.ir refused the server's new outgoing
+  IP): the client added it in sms.ir; runbook R4b.
 - 2026-11-08 The first two «مقالات» (written by Claude, approved by the client): «فرق آلومینیوم نرم و خشک» and
   «انواع ضایعات مس», with our own illustrations (static files under `apps/web/public/articles/`), linked to the metals'
   price pages and a «سؤال‌های رایج» section; added once by the reference seed `65-articles.yaml` (insert_missing),

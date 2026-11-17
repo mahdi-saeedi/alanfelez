@@ -305,6 +305,8 @@ type Querier interface {
 	MarkAlert(ctx context.Context, arg MarkAlertParams) error
 	MetalHasProducts(ctx context.Context, slug string) (bool, error)
 	// Per metal and domestic market (ime, free): latest prices that changed after the cursor, the last change and how many.
+	// A price re-entered unchanged (the same as the previous day's close, e.g. the bulk upload's «بدون تغییر» rows) is not a
+	// change: no "updated" SMS for it (client, 2026-11-15).
 	MetalPriceChanges(ctx context.Context) ([]MetalPriceChangesRow, error)
 	MetalSlugExists(ctx context.Context, slug string) (bool, error)
 	// Every visitor's metal page views from from_day to to_day (dashboard range), most viewed first.

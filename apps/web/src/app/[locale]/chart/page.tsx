@@ -44,8 +44,17 @@ export default async function ChartPage({ params, searchParams }: Params) {
 
   const [prices, ent, metalList] = await Promise.all([getPrices(locale), getEntitlements(), getMetals(locale)]);
   const rows = prices?.items ?? [];
-  if (rows.length === 0) {
+  if (!prices) {
     return <p className="mx-auto max-w-7xl px-4 py-16 text-down">{(await getTranslations())("error.apiDown")}</p>;
+  }
+  if (rows.length === 0) {
+    // Before the first prices are entered: a calm note, not an error (2026-11-15).
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-16">
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+        <p className="mt-6 rounded-card border border-border bg-surface p-6 text-center text-text-2 shadow-soft">{t("empty")}</p>
+      </div>
+    );
   }
   // The picker also lists the products the caller's plan doesn't include (names only, from lockedSeries), marked
   // «ویژه‌ی نقره‌ای»: picking one shows that product locked instead of quietly swapping in another (client, 2026-10-28).

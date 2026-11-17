@@ -60,24 +60,24 @@ export default async function PlansPage({ params, searchParams }: Params) {
 
       <div className="mt-14 overflow-x-auto rounded-card border border-border bg-surface shadow-soft">
         <h2 className="border-b border-border px-5 py-4 font-extrabold">{t("plans.compareTitle")}</h2>
-        <table className="w-full min-w-[560px] text-sm">
+        <table className="w-full text-xs sm:text-sm">
           <thead className="bg-surface-2 text-xs text-text-2">
             <tr>
-              <th className="px-5 py-3 text-start font-bold">{t("plans.feature")}</th>
+              <th className="px-3 py-3 text-start font-bold sm:px-5">{t("plans.feature")}</th>
               {data.items.map((plan) => (
-                <th key={plan.code} className="px-5 py-3 text-center font-bold">{plan.name}</th>
+                <th key={plan.code} className="px-1 py-3 text-center font-bold sm:px-5">{plan.name}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {planFeatures().map((f) => (
               <tr key={f} className="border-t border-border">
-                <td className="px-5 py-3">{t(`features.${f.replace(".", "_")}`)}</td>
+                <td className="px-3 py-3 sm:px-5">{t(`features.${f.replace(".", "_")}`)}</td>
                 {data.items.map((plan) => {
                   const on = plan.features[f];
                   const days = plan.limits["chart.history_days"] ?? 0;
                   return (
-                    <td key={plan.code} className="px-5 py-3 text-center">
+                    <td key={plan.code} className="px-1 py-3 text-center sm:px-5">
                       {f === "chart.basic" && on ? (
                         <span className="text-text-2">{days ? t("plans.limitDays", { days: formatNumber(days, locale) }) : t("plans.unlimited")}</span>
                       ) : on ? (
