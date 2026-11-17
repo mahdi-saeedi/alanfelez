@@ -10,19 +10,19 @@ datasets:
       - { slug: aluminum-bauxite, metal: aluminum, category: raw, name_fa: بوکسیت, name_en: Bauxite, sort: 300 }
       - { slug: aluminum-alumina, metal: aluminum, category: raw, name_fa: آلومینا, name_en: Alumina, sort: 301 }
       - { slug: aluminum-fluoride, metal: aluminum, category: raw, name_fa: فلوراید آلومینیوم, name_en: Aluminum fluoride, sort: 302 }
-      - { slug: aluminum-billet, metal: aluminum, category: intermediate, name_fa: بیلت آلومینیوم, name_en: Aluminum billet, sort: 400 }
-      - { slug: aluminum-slab, metal: aluminum, category: intermediate, name_fa: اسلب آلومینیوم, name_en: Aluminum slab, sort: 401 }
-      - { slug: aluminum-rod, metal: aluminum, category: intermediate, name_fa: میلگرد آلومینیوم, name_en: Aluminum rod, sort: 402 }
-      - { slug: aluminum-ring, metal: aluminum, category: scrap, name_fa: رینگ آلومینیومی, name_en: Aluminum wheels, sort: 500 }
-      - { slug: aluminum-piston, metal: aluminum, category: scrap, name_fa: پیستون, name_en: Piston, sort: 501 }
-      - { slug: aluminum-cylinder-head, metal: aluminum, category: scrap, name_fa: سرسیلندر, name_en: Cylinder head, sort: 502 }
-      - { slug: aluminum-dry, metal: aluminum, category: scrap, name_fa: آلومینیوم خشک, name_en: Hard aluminum, sort: 503 }
-      - { slug: aluminum-can, metal: aluminum, category: scrap, name_fa: قوطی رانی, name_en: Cans, sort: 504 }
-      - { slug: aluminum-dry-turnings, metal: aluminum, category: scrap, name_fa: سفاله آلومینیوم خشک, name_en: Hard aluminum turnings, sort: 505 }
-      - { slug: aluminum-utensil, metal: aluminum, category: scrap, name_fa: آلومینیوم ظرفی, name_en: Utensil aluminum, sort: 506 }
-      - { slug: aluminum-radiator, metal: aluminum, category: scrap, name_fa: رادیات آلومینیوم, name_en: Aluminum radiators, sort: 507 }
-      - { slug: aluminum-profile, metal: aluminum, category: scrap, name_fa: پروفیل شاخه, name_en: Profile (extrusion), sort: 508 }
-      - { slug: aluminum-soft-turnings, metal: aluminum, category: scrap, name_fa: سفاله آلومینیوم نرم, name_en: Soft aluminum turnings, sort: 509 }
+      - { slug: aluminum-billet, metal: aluminum, category: intermediate, name_fa: بیلت آلومینیوم, name_en: Aluminum billet, sort: 400, active: false }
+      - { slug: aluminum-slab, metal: aluminum, category: intermediate, name_fa: اسلب آلومینیوم, name_en: Aluminum slab, sort: 401, active: false }
+      - { slug: aluminum-rod, metal: aluminum, category: intermediate, name_fa: میلگرد آلومینیوم, name_en: Aluminum rod, sort: 402, active: false }
+      - { slug: aluminum-ring, metal: aluminum, category: scrap, name_fa: ضایعات رینگ آلومینیومی, name_en: Aluminum wheels, sort: 505 }
+      - { slug: aluminum-piston, metal: aluminum, category: scrap, name_fa: ضایعات پیستون و سرسیلندر, name_en: Piston, sort: 506 }
+      - { slug: aluminum-cylinder-head, metal: aluminum, category: scrap, name_fa: سرسیلندر, name_en: Cylinder head, sort: 502, active: false }
+      - { slug: aluminum-dry, metal: aluminum, category: scrap, name_fa: ضایعات آلومینیوم خشک, name_en: Hard aluminum, sort: 503 }
+      - { slug: aluminum-can, metal: aluminum, category: scrap, name_fa: ضایعات قوطی رانی, name_en: Cans, sort: 504 }
+      - { slug: aluminum-dry-turnings, metal: aluminum, category: scrap, name_fa: سوفاله آلومینیوم خشک, name_en: Hard aluminum turnings, sort: 509 }
+      - { slug: aluminum-utensil, metal: aluminum, category: scrap, name_fa: ضایعات آلومینیوم ظرفی, name_en: Utensil aluminum, sort: 502 }
+      - { slug: aluminum-radiator, metal: aluminum, category: scrap, name_fa: ضایعات رادیات آلومینیومی, name_en: Aluminum radiators, sort: 507 }
+      - { slug: aluminum-profile, metal: aluminum, category: scrap, name_fa: ضایعات پروفیل و شاخه, name_en: Profile (extrusion), sort: 501 }
+      - { slug: aluminum-soft-turnings, metal: aluminum, category: scrap, name_fa: سوفاله آلومینیوم نرم, name_en: Soft aluminum turnings, sort: 508 }
       - { slug: copper-pipe, metal: copper, category: intermediate, name_fa: لوله مسی, name_en: Copper pipe, sort: 400 }
       - { slug: copper-wire, metal: copper, category: intermediate, name_fa: مفتول مسی, name_en: Copper wire rod, sort: 401 }
       - { slug: copper-ingot, metal: copper, category: intermediate, name_fa: شمش مس, name_en: Copper ingot, sort: 402 }
@@ -98,12 +98,12 @@ datasets:
       - { slug: aluminum-bauxite-free, product: aluminum-bauxite, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
       - { slug: aluminum-alumina-free, product: aluminum-alumina, market: free, currency: IRR, unit: kg, is_base: false, sort: 301 }
       - { slug: aluminum-fluoride-free, product: aluminum-fluoride, market: free, currency: IRR, unit: kg, is_base: false, sort: 302 }
-      - { slug: aluminum-billet-free, product: aluminum-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
-      - { slug: aluminum-slab-free, product: aluminum-slab, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
-      - { slug: aluminum-rod-free, product: aluminum-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
+      - { slug: aluminum-billet-free, product: aluminum-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
+      - { slug: aluminum-slab-free, product: aluminum-slab, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
+      - { slug: aluminum-rod-free, product: aluminum-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402, active: false }
       - { slug: aluminum-ring-free, product: aluminum-ring, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
       - { slug: aluminum-piston-free, product: aluminum-piston, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
-      - { slug: aluminum-cylinder-head-free, product: aluminum-cylinder-head, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
+      - { slug: aluminum-cylinder-head-free, product: aluminum-cylinder-head, market: free, currency: IRR, unit: kg, is_base: false, sort: 502, active: false }
       - { slug: aluminum-dry-free, product: aluminum-dry, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: aluminum-can-free, product: aluminum-can, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: aluminum-dry-turnings-free, product: aluminum-dry-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
