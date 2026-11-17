@@ -67,6 +67,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 Go 1.27.4 (GO-2026-6859, net/http MaxBytesReader; govulncheck failed every change until then).
 - 2026-11-17 The client's aluminium list (Excel): migration 00040 adds 222 «بازار» products in seven groups (شمش، بیلت، ورق،
   پروفیل، نبشی، لوله، قوطی; repeated rows once) and 19 IME rows, one per symbol with its producer (two IME groups),
   additive only. On the prices page a group of 5 or more folds into one row with the average, lowest–highest and average
