@@ -26,3 +26,9 @@ export const tokenEndpoint = internalKeycloakUrl(`${keycloak.issuer}/protocol/op
  * دیگر» there offers the SMS code. «ثبت‌نام» (no parameter) starts with the mobile number and SMS code.
  */
 export const PASSWORD_FIRST = { login: "password" } as const;
+
+/** Customers' usernames are their mobile numbers (PhoneNumbers.toUsername in the Keycloak extension). */
+export const CUSTOMER_USERNAME = /^09\d{9}$/;
+
+/** Short-lived cookie with the ID token of a refused staff sign-in, for the Keycloak logout (lib/actions.ts). */
+export const STAFF_ID_TOKEN_COOKIE = "af_staff_logout";

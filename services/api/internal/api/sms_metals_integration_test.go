@@ -89,3 +89,24 @@ func TestPaidSmsMetals(t *testing.T) {
 		t.Fatalf("paid metals: %d", n)
 	}
 }
+
+// An account without a mobile number (a staff account signed in on the website, 2026-11-17) can't buy SMS metals:
+// the SMS could never be sent, so the order is refused before any payment. A plan without SMS metals is still fine.
+func TestSmsMetalsNeedPhone(t *testing.T) {
+	e := setup(t)
+	e.enablePayments(true)
+	in := map[string]any{"plan": "gold", "period": "month", "smsMetals": []string{"copper"}}
+	if st, body, raw := e.callH(http.MethodPost, "/v1/checkout", "admin", in, map[string]string{"Idempotency-Key": "no-phone-1"}); st != 409 || body["code"] != "PHONE_REQUIRED" {
+		t.Fatalf("checkout with SMS metals, no phone: %d %s", st, raw)
+	}
+	if st, body, raw := e.callH(http.MethodPost, "/v1/checkout/sms-metals", "admin", map[string]any{"metals": []string{"lead"}}, map[string]string{"Idempotency-Key": "no-phone-2"}); st != 409 || body["code"] != "PHONE_REQUIRED" {
+		t.Fatalf("add SMS metals, no phone: %d %s", st, raw)
+	}
+	if n := e.count(`SELECT count(*) FROM app.orders`); n != 0 {
+		t.Fatalf("orders created: %d", n)
+	}
+	delete(in, "smsMetals")
+	if st, _, raw := e.callH(http.MethodPost, "/v1/checkout", "admin", in, map[string]string{"Idempotency-Key": "no-phone-3"}); st != 201 {
+		t.Fatalf("checkout without SMS metals: %d %s", st, raw)
+	}
+}

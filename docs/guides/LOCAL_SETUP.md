@@ -67,6 +67,10 @@ Test users (local only, file `deploy/local/keycloak/alanfelez-users-0.json`). Us
 | `local-editor` | `local-editor-pass` | editor (staff) | same |
 | `09120000001` | `local-user-pass` | normal user | or log in with OTP |
 
+The website accepts only customer accounts (username = a mobile number): a staff account signing in there gets an
+explanation and a button that ends its Keycloak session, which the admin panel shares. Test the website in a private
+window, or sign out of the admin first.
+
 **Try a purchase:** http://localhost:3000/plans → «انتخاب طلایی» → sign in as `09120000001` → accept the terms → pay. The **mock
 gateway** page opens (served by the API, no real money): «پرداخت / Pay» or «انصراف / Cancel». You land on the result page; the
 account page shows the plan, the billing history and, within 7 days and before using paid features, «درخواست بازگشت وجه».

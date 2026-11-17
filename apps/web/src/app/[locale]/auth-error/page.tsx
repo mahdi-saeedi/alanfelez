@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@alanfelez/ui/format";
 import { Link } from "@/i18n/navigation";
-import { signInTo } from "@/lib/actions";
+import { signInTo, staffSignOut } from "@/lib/actions";
 import { seo } from "@/lib/seo";
 
 type Params = { params: Promise<{ locale: Locale }>; searchParams: Promise<{ error?: string }> };
 
 // Auth.js error codes we explain; anything else (Configuration, OAuthCallbackError, …) gets the general text.
-const KNOWN = ["AccessDenied", "Verification"] as const;
+const KNOWN = ["AccessDenied", "Verification", "StaffAccount"] as const;
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
@@ -26,14 +26,16 @@ export default async function AuthErrorPage({ params, searchParams }: Params) {
   const t = await getTranslations("authError");
   const code = (await searchParams).error ?? "Default";
   const known = (KNOWN as readonly string[]).includes(code) ? code : "Default";
-  const retry = signInTo.bind(null, "/", locale);
+  // A staff account: the button ends its Keycloak session (shared with the admin panel), then «ورود» asks for a number.
+  const staff = known === "StaffAccount";
+  const retry = staff ? staffSignOut.bind(null, locale) : signInTo.bind(null, "/", locale);
   return (
     <section className="mx-auto max-w-lg px-4 py-20 text-center">
       <h1 className="text-2xl font-extrabold">{t("title")}</h1>
       <p className="mt-3 leading-8 text-text-2">{t(`body.${known}`)}</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <form action={retry}>
-          <button className="rounded-lg bg-gold px-6 py-2.5 font-bold text-graphite hover:bg-gold-light">{t("retry")}</button>
+          <button className="rounded-lg bg-gold px-6 py-2.5 font-bold text-graphite hover:bg-gold-light">{staff ? t("staffSignIn") : t("retry")}</button>
         </form>
         <Link href="/" className="rounded-lg border border-border bg-surface px-6 py-2.5 font-bold hover:bg-surface-2">{t("home")}</Link>
       </div>

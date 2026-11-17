@@ -1,6 +1,7 @@
 import NextAuth, { customFetch } from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
-import { internalKeycloakUrl, keycloak } from "@/lib/keycloak";
+import { cookies } from "next/headers";
+import { CUSTOMER_USERNAME, internalKeycloakUrl, keycloak, STAFF_ID_TOKEN_COOKIE } from "@/lib/keycloak";
 import { SESSION_MAX_AGE } from "@/lib/session-refresh";
 
 /**
@@ -29,6 +30,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    // The website is for customers, whose username is their mobile number. Staff accounts (admin panel) share the
+    // Keycloak session, so «ورود» used to sign a staff account into the website silently, and it then bought plans and
+    // SMS that can't reach any phone (client, 2026-11-17). Such a sign-in is refused with an explanation instead.
+    async signIn({ profile, account }) {
+      const username = typeof profile?.preferred_username === "string" ? profile.preferred_username : "";
+      if (CUSTOMER_USERNAME.test(username)) return true;
+      if (account?.id_token) {
+        (await cookies()).set(STAFF_ID_TOKEN_COOKIE, account.id_token, {
+          httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 600,
+        });
+      }
+      return "/auth-error?error=StaffAccount";
+    },
     jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
