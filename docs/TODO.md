@@ -67,6 +67,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-17 A metal's price table (client): IME boxes first, then world prices, then the rest; the boxes and folded
+  groups take turns in cream, blue and grey so neighbours are told apart.
 - 2026-11-17 ±10 % SMS once per price entered (client): a move against the previous close stays on a price nobody
   updates, and the alert went out again every morning at 08:00 (keyed by day). Now keyed by the price point, and only
   for prices written in the last 36 hours, so old moves never go out when a subscriber or this rule is new.
