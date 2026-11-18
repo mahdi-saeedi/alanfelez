@@ -285,8 +285,13 @@
     "moversNone": "No changes recorded yet.",
     "groupAvg": "average",
     "groupRange": "{min} to {max}",
-    "groupOpen": "Show all ▾",
-    "groupClose": "Close ▴"
+    "groupClose": "Close",
+    "groupShow": "Show {n, plural, one {# product} other {# products}}",
+    "groupsTotal": "{groups, plural, one {# group} other {# groups}} · {n, plural, one {# product} other {# products}}",
+    "openAll": "Open all",
+    "closeAll": "Close all",
+    "sectionTop": "World prices and IME",
+    "sectionRest": "Open market"
   },
   "chart": {
     "title": "Metal price chart",
