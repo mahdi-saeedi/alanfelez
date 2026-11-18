@@ -42,6 +42,11 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
+- [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
+      lists of all 7 metals (aluminium done); (2) **when all 7 are in, remind the client to send the price-history file**
+      (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
+      history (a data-changing step: the owner's OK first); (4) then the daily prices. The aluminium redesign and products
+      wait on staging for the client's OK before the next publish.
 - [ ] **SEO, part 2**: Google Search Console + Bing (DNS TXT on alanfelez.ir), then `indexable: true` at launch; track the
       real searches there and in the admin's «جست‌وجوهای سایت», and adjust the titles; one article per approved
       search, drafted by Claude and approved by the client (the first two are live).
@@ -67,6 +72,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 The admin's «ورود گروهی (اکسل)» takes the Excel file itself (.xlsx) as well as CSV: read in the browser
+  (`apps/admin/src/pages/xlsx.ts`, no library; checked against the client's own Excel file cell by cell).
 - 2026-11-18 A metal's price table as separate group cards (client approved the mock-up): an open group has a dark
   header with a gold arrow, a closed one a white header with a down arrow; one look for every group (the alternating
   colours are gone), the market as a small label, «باز کردن همه / بستن همه», and «قیمت جهانی و بورس کالا» / «بازار آزاد».

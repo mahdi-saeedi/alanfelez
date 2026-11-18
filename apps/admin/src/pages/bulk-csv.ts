@@ -26,6 +26,9 @@ export const tehranDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZon
 
 const cell = (v: string) => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
+/** Rows of cells back to CSV text (an uploaded .xlsx is shown and read the same way as a CSV). */
+export const toCsv = (rows: string[][]) => rows.map((r) => r.map(cell).join(",")).join("\r\n") + "\r\n";
+
 /**
  * The CSV with the current prices: UTF-8 with a byte order mark and CRLF, so Excel opens the Persian text correctly.
  * labels turns slugs into the admin's words (metal and market names, units).

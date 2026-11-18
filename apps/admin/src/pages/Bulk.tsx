@@ -4,7 +4,8 @@ import { useGetLocale, useTranslate } from "@refinedev/core";
 import type { Schemas } from "@alanfelez/api-client";
 import { formatBp, formatDate, formatPriceValue, type Locale } from "@alanfelez/ui/format";
 import { api, errorText, unwrap } from "../api";
-import { currentPricesCsv, decodeFile, parseCsv, planUpload, tehranDay, type Skipped } from "./bulk-csv";
+import { currentPricesCsv, decodeFile, parseCsv, planUpload, tehranDay, toCsv, type Skipped } from "./bulk-csv";
+import { isZip, readXlsx } from "./xlsx";
 import { Badge, Button, Card, Notice, Page, Td, Th } from "./ui";
 
 type Result = Schemas["BulkPriceResult"];
@@ -21,6 +22,7 @@ export function BulkPage() {
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
+  const [fileError, setFileError] = useState(false);
   const [force, setForce] = useState(false);
   const [results, setResults] = useState<Result[] | null>(null);
   const [skipped, setSkipped] = useState<Skipped[]>([]);
@@ -92,12 +94,22 @@ export function BulkPage() {
           {t("bulk.file")}
           <input
             type="file"
-            accept=".csv,text/csv,text/plain"
+            accept=".xlsx,.csv,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="hidden"
             onChange={async (e) => {
               const f = e.target.files?.[0];
+              setFileError(false);
               if (f) {
-                setText(decodeFile(await f.arrayBuffer()));
+                const bytes = await f.arrayBuffer();
+                // An Excel file (.xlsx) as it is, or a CSV (client, 2026-11-18).
+                if (isZip(bytes)) {
+                  try {
+                    setText(toCsv(await readXlsx(bytes)));
+                  } catch {
+                    setText("");
+                    setFileError(true);
+                  }
+                } else setText(decodeFile(bytes));
                 setFileName(f.name);
               }
               reset();
@@ -106,6 +118,7 @@ export function BulkPage() {
           />
         </label>
         {fileName && <span className="text-sm text-text-2" dir="ltr">{fileName}</span>}
+        {fileError && <Notice tone="error">{t("bulk.fileError")}</Notice>}
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
           {t("bulk.force")}
