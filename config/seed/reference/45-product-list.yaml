@@ -23,17 +23,17 @@ datasets:
       - { slug: aluminum-radiator, metal: aluminum, category: scrap, name_fa: ضایعات رادیات آلومینیومی, name_en: Aluminum radiators, sort: 507 }
       - { slug: aluminum-profile, metal: aluminum, category: scrap, name_fa: ضایعات پروفیل و شاخه, name_en: Profile (extrusion), sort: 501 }
       - { slug: aluminum-soft-turnings, metal: aluminum, category: scrap, name_fa: سوفاله آلومینیوم نرم, name_en: Soft aluminum turnings, sort: 508 }
-      - { slug: copper-pipe, metal: copper, category: intermediate, name_fa: لوله مسی, name_en: Copper pipe, sort: 400 }
+      - { slug: copper-pipe, metal: copper, category: intermediate, name_fa: لوله مسی, name_en: Copper pipe, sort: 400, active: false }
       - { slug: copper-wire, metal: copper, category: intermediate, name_fa: مفتول مسی, name_en: Copper wire rod, sort: 401 }
       - { slug: copper-ingot, metal: copper, category: intermediate, name_fa: شمش مس, name_en: Copper ingot, sort: 402 }
       - { slug: copper-billet, metal: copper, category: intermediate, name_fa: بیلت مس, name_en: Copper billet, sort: 403 }
       - { slug: copper-sheet, metal: copper, category: intermediate, name_fa: ورق مسی, name_en: Copper sheet, sort: 404 }
-      - { slug: copper-telecom, metal: copper, category: scrap, name_fa: مس مخابراتی, name_en: Telecom copper, sort: 500 }
+      - { slug: copper-telecom, metal: copper, category: scrap, name_fa: مس مخابراتی, name_en: Telecom copper, sort: 502 }
       - { slug: copper-cable-black, metal: copper, category: scrap, name_fa: مس کابلی سیاه, name_en: Black cable copper, sort: 501 }
-      - { slug: copper-melted, metal: copper, category: scrap, name_fa: مس ذوبی, name_en: Melted copper, sort: 502 }
+      - { slug: copper-melted, metal: copper, category: scrap, name_fa: مس ذوبی, name_en: Melted copper, sort: 505 }
       - { slug: copper-armature, metal: copper, category: scrap, name_fa: مس آرمیچری, name_en: Armature copper, sort: 503 }
-      - { slug: copper-pipe-scrap, metal: copper, category: scrap, name_fa: لوله مسی, name_en: Copper pipe scrap, sort: 504 }
-      - { slug: copper-mill, metal: copper, category: scrap, name_fa: مس آسیابی, name_en: Milled copper, sort: 505 }
+      - { slug: copper-pipe-scrap, metal: copper, category: scrap, name_fa: لوله مس, name_en: Copper pipe scrap, sort: 504 }
+      - { slug: copper-mill, metal: copper, category: scrap, name_fa: مس آسیابی, name_en: Milled copper, sort: 506 }
       - { slug: zinc-ore, metal: zinc, category: raw, name_fa: سنگ معدن روی, name_en: Zinc ore, sort: 300 }
       - { slug: zinc-melted, metal: zinc, category: scrap, name_fa: روی ذوبی, name_en: Melted zinc, sort: 500 }
       - { slug: zinc-sheet-scrap, metal: zinc, category: scrap, name_fa: ورق‌های روی, name_en: Zinc sheets, sort: 501 }
@@ -111,7 +111,7 @@ datasets:
       - { slug: aluminum-radiator-free, product: aluminum-radiator, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
       - { slug: aluminum-profile-free, product: aluminum-profile, market: free, currency: IRR, unit: kg, is_base: false, sort: 508 }
       - { slug: aluminum-soft-turnings-free, product: aluminum-soft-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 509 }
-      - { slug: copper-pipe-free, product: copper-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: copper-pipe-free, product: copper-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
       - { slug: copper-wire-free, product: copper-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
       - { slug: copper-ingot-free, product: copper-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
       - { slug: copper-billet-free, product: copper-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
