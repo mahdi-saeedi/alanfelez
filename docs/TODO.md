@@ -72,6 +72,11 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 Signed out after ~30 minutes instead of 3 hours (client): parallel requests of one page refreshed the same
+  (single-use) refresh token; the losers saved a "signed out" cookie over the winner's. Now only Keycloak saying the
+  session is over signs out; a reused token or an unreachable Keycloak leaves the cookie alone (owner OK by phone).
+- 2026-11-18 Ticker slower (8 s per entry) and mixed (the metals take turns). Migration 00047 hides the market «مس کاتد»
+  and the generic IME «شمش آلومینیوم» (replaced by the client's lists; their world prices stay; owner OK by phone).
 - 2026-11-18 The price ticker shows each IME group as one average («شمش آلومینیوم بورس کالا میانگین …», client), world
   price first per metal; IME rows without a group one by one, without the producer. Migration 00046 splits aluminium's
   IME «شمش و آلیاژ» into «شمش آلومینیوم بورس کالا» and «آلیاژ آلومینیوم بورس کالا», and puts the IME copper cathode

@@ -33,8 +33,20 @@ export function needsRefresh(t: SessionTokens | null, nowS = Date.now() / 1000):
   return !!t?.refreshToken && !t.error && (t.expiresAt ?? 0) - REFRESH_BEFORE_S < nowS;
 }
 
-/** Exchanges a refresh token at Keycloak. Returns null when the Keycloak session has ended. */
-export async function refreshTokens(refreshToken: string): Promise<SessionTokens | null> {
+/**
+ * What a refresh attempt gave: new tokens; "ended" when Keycloak says the session is over (idle or max time, sign-out,
+ * revoked); "retry" when the refresh token was already used by a parallel request, or Keycloak couldn't be reached.
+ */
+export type RefreshResult = SessionTokens | "ended" | "retry";
+
+/**
+ * Keycloak's answers to a refresh token that a parallel request of the same browser already exchanged (refresh tokens
+ * rotate and work once): the session itself is still alive, that request's response carries the new cookie.
+ */
+const REUSED = /refresh token reuse|stale token/i;
+
+/** Exchanges a refresh token at Keycloak. */
+export async function refreshTokens(refreshToken: string): Promise<RefreshResult> {
   const res = await fetch(tokenEndpoint, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -46,7 +58,11 @@ export async function refreshTokens(refreshToken: string): Promise<SessionTokens
     }),
     cache: "no-store",
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    if (res.status >= 500) return "retry";
+    const err = (await res.json().catch(() => ({}))) as { error?: string; error_description?: string };
+    return err.error === "invalid_grant" && !REUSED.test(err.error_description ?? "") ? "ended" : "retry";
+  }
   const body = (await res.json()) as { access_token: string; refresh_token?: string; id_token?: string; expires_in: number };
   return {
     accessToken: body.access_token,
@@ -67,24 +83,21 @@ export async function refreshSession(req: NextRequest): Promise<{ request: NextR
   const token = await readSession(req.headers).catch(() => null);
   if (!token || !needsRefresh(token)) return noop;
 
-  const fresh = await refreshTokens(token.refreshToken as string).catch(() => null);
-  // A failed refresh (Keycloak session over, token revoked) keeps the user signed in to the site but anonymous for
-  // the API: the error flag stops further attempts and the header says so and offers «ورود دوباره» (Header.tsx).
-  const next: JWT = fresh ? { ...token, ...fresh, error: undefined } : { ...token, accessToken: undefined, error: "RefreshFailed" };
+  const fresh = await refreshTokens(token.refreshToken as string).catch((): RefreshResult => "retry");
+  // Several requests of one page often refresh at the same moment (client, 2026-11-18: signed out after ~30 minutes
+  // instead of 3 hours). Only one of them wins; the others must not save a "signed out" cookie over the winner's, so
+  // they render this one request without the expired token and leave the cookie alone (the next request retries).
+  if (fresh === "retry") {
+    const value = await encode({ token: { ...token, accessToken: undefined }, secret: process.env.AUTH_SECRET as string, salt: sessionCookie, maxAge: SESSION_MAX_AGE });
+    return { request: withSessionCookie(req, chunk(value)).request, apply: (res: NextResponse) => res };
+  }
+  // A real end (Keycloak session over, token revoked) keeps the user signed in to the site but anonymous for the API:
+  // the error flag stops further attempts and the header says so and offers «ورود دوباره» (Header.tsx).
+  const next: JWT = fresh === "ended" ? { ...token, accessToken: undefined, error: "RefreshFailed" } : { ...token, ...fresh, error: undefined };
   const value = await encode({ token: next, secret: process.env.AUTH_SECRET as string, salt: sessionCookie, maxAge: SESSION_MAX_AGE });
-
-  const writes = chunk(value);
-  const existing = req.cookies.getAll().filter((c) => c.name === sessionCookie || c.name.startsWith(`${sessionCookie}.`));
-  const deletes = existing.map((c) => c.name).filter((n) => !writes.some((w) => w.name === n));
-
-  const headers = new Headers(req.headers);
-  const jar = new Map(req.cookies.getAll().map((c) => [c.name, c.value]));
-  deletes.forEach((n) => jar.delete(n));
-  writes.forEach((w) => jar.set(w.name, w.value));
-  headers.set("cookie", [...jar].map(([k, v]) => `${k}=${v}`).join("; "));
-
+  const { request, writes, deletes } = withSessionCookie(req, chunk(value));
   return {
-    request: new NextRequest(req, { headers }),
+    request,
     apply: (res) => {
       for (const w of writes) {
         res.cookies.set(w.name, w.value, { httpOnly: true, sameSite: "lax", path: "/", secure, maxAge: w.maxAge });
@@ -93,6 +106,19 @@ export async function refreshSession(req: NextRequest): Promise<{ request: NextR
       return res;
     },
   };
+}
+
+/** The request with the session cookie replaced by `writes` (for the page rendered in this same request). */
+function withSessionCookie(req: NextRequest, writes: CookieWrite[]): { request: NextRequest; writes: CookieWrite[]; deletes: string[] } {
+  const existing = req.cookies.getAll().filter((c) => c.name === sessionCookie || c.name.startsWith(`${sessionCookie}.`));
+  const deletes = existing.map((c) => c.name).filter((n) => !writes.some((w) => w.name === n));
+
+  const headers = new Headers(req.headers);
+  const jar = new Map(req.cookies.getAll().map((c) => [c.name, c.value]));
+  deletes.forEach((n) => jar.delete(n));
+  writes.forEach((w) => jar.set(w.name, w.value));
+  headers.set("cookie", [...jar].map(([k, v]) => `${k}=${v}`).join("; "));
+  return { request: new NextRequest(req, { headers }), writes, deletes };
 }
 
 function chunk(value: string): CookieWrite[] {
