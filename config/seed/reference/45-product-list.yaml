@@ -24,7 +24,7 @@ datasets:
       - { slug: aluminum-profile, metal: aluminum, category: scrap, name_fa: ضایعات پروفیل و شاخه, name_en: Profile (extrusion), sort: 501 }
       - { slug: aluminum-soft-turnings, metal: aluminum, category: scrap, name_fa: سوفاله آلومینیوم نرم, name_en: Soft aluminum turnings, sort: 508 }
       - { slug: copper-pipe, metal: copper, category: intermediate, name_fa: لوله مسی, name_en: Copper pipe, sort: 400, active: false }
-      - { slug: copper-wire, metal: copper, category: intermediate, name_fa: مفتول مسی, name_en: Copper wire rod, sort: 401 }
+      - { slug: copper-wire, metal: copper, category: intermediate, name_fa: مفتول مسی, name_en: Copper wire rod, sort: 401, active: false }
       - { slug: copper-ingot, metal: copper, category: intermediate, name_fa: شمش مس, name_en: Copper ingot, sort: 402, active: false }
       - { slug: copper-billet, metal: copper, category: intermediate, name_fa: بیلت مس, name_en: Copper billet, sort: 403, active: false }
       - { slug: copper-sheet, metal: copper, category: intermediate, name_fa: ورق مسی, name_en: Copper sheet, sort: 404, active: false }
@@ -112,7 +112,7 @@ datasets:
       - { slug: aluminum-profile-free, product: aluminum-profile, market: free, currency: IRR, unit: kg, is_base: false, sort: 508 }
       - { slug: aluminum-soft-turnings-free, product: aluminum-soft-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 509 }
       - { slug: copper-pipe-free, product: copper-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
-      - { slug: copper-wire-free, product: copper-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: copper-wire-free, product: copper-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
       - { slug: copper-ingot-free, product: copper-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 402, active: false }
       - { slug: copper-billet-free, product: copper-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 403, active: false }
       - { slug: copper-sheet-free, product: copper-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 404, active: false }
