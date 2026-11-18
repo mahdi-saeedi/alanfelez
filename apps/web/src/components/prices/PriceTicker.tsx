@@ -78,16 +78,37 @@ function entriesOf(rows: Row[]): Entry[] {
     }
     out.push({ key: s.slug, label: world ? s.metal.name : withoutProducer(s.product.name), world, rows: [r] });
   }
-  // Mixed, not metal by metal (client, 2026-11-18): one entry of each metal in turn, each metal's world price first.
+  return mix(out);
+}
+
+/**
+ * Mixed (client, 2026-11-18, twice: «در هم و قاطی»): each metal's entries are spread evenly over the whole bar (a metal
+ * with 6 entries every ~3 places, one with 1 entry once), never two of one metal side by side, also across the loop's
+ * seam. Within a metal its world price comes first. The same order on the server and in the browser (no randomness).
+ */
+function mix(entries: Entry[]): Entry[] {
+  const metalOf = (e: Entry) => e.rows[0]!.series.metal.slug;
   const byMetal = new Map<string, Entry[]>();
-  for (const e of out) {
-    const m = e.rows[0]!.series.metal.slug;
-    byMetal.set(m, [...(byMetal.get(m) ?? []), e]);
+  for (const e of entries) byMetal.set(metalOf(e), [...(byMetal.get(metalOf(e)) ?? []), e]);
+  const n = entries.length;
+  const placed = [...byMetal.values()].flatMap((l, mi) =>
+    [...l.filter((e) => e.world), ...l.filter((e) => !e.world)].map((e, k) => ({ e, at: ((k + 0.5) * n) / l.length + mi * 0.01 })),
+  );
+  const out = placed.sort((a, b) => a.at - b.at).map((p) => p.e);
+  // Two of one metal side by side: bring the next entry of another metal in between.
+  for (let i = 1; i < out.length; i++) {
+    if (metalOf(out[i]!) !== metalOf(out[i - 1]!)) continue;
+    const j = out.findIndex((e, k) => k > i && metalOf(e) !== metalOf(out[i]!));
+    if (j > 0) out.splice(i, 0, ...out.splice(j, 1));
   }
-  const lists = [...byMetal.values()].map((l) => [...l.filter((e) => e.world), ...l.filter((e) => !e.world)]);
-  const mixed: Entry[] = [];
-  for (let i = 0; lists.some((l) => i < l.length); i++) for (const l of lists) if (l[i]) mixed.push(l[i]!);
-  return mixed;
+  // The bar loops (the last entry is followed by the first): if they are of one metal, move the last one in between two
+  // entries of other metals.
+  if (out.length > 2 && metalOf(out[0]!) === metalOf(out.at(-1)!)) {
+    const m = metalOf(out.at(-1)!);
+    const i = out.findIndex((e, k) => k > 0 && k < out.length - 1 && metalOf(e) !== m && metalOf(out[k - 1]!) !== m);
+    if (i > 0) out.splice(i, 0, out.pop()!);
+  }
+  return out;
 }
 
 /** Seconds each entry takes to cross (client, 2026-11-18: slower), so the speed stays the same however many there are. */
