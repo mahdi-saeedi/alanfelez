@@ -72,6 +72,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 Copper names as the client wrote them (00044): «لوله مسی ضخامت … سایز … اینچ», «تسمه مسی سایز … ضخامت … با
+  خلوص 99.9%», «کابل افشان 1*16»; «ورق مسی» by thickness and size (10, new group); «شمش مس», «بیلت مس» (= the strips)
+  and the generic «ورق مسی» hidden (owner OK before the main site). A metal's price table gets a third part,
+  «مواد اولیه معدنی» (any market but world prices), between «قیمت جهانی و بورس کالا» and «بازار آزاد».
 - 2026-11-18 The client's copper list (Excel): migration 00042 adds 96 «بازار» products in six groups (کلوخه مس اکسیدی،
   سمانته مس، کنسانتره مس سولفیدی؛ لوله مسی by size and thickness، تسمه مسی، کابل مسی) and 21 IME products, one per traded
   symbol (مس مفتول and سیم و مفتول مسی groups; cathode and low-grade slag in raw materials). 00043 (owner OK before the main
