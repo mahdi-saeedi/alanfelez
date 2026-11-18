@@ -85,6 +85,11 @@ export function useLive(slug: string, fallback?: Row): Live | undefined {
   return { price: fallback.price, change: fallback.change, observedAt: fallback.observedAt, tick: 0 };
 }
 
+/** Every live value of the page by series slug (for numbers made of several series, like the ticker's IME averages). */
+export function useLiveMap(): Record<string, Live> {
+  return useContext(Ctx).live;
+}
+
 export function useLiveConnected(): boolean {
   return useContext(Ctx).connected;
 }

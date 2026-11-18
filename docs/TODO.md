@@ -72,6 +72,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 The price ticker shows each IME group as one average («شمش آلومینیوم بورس کالا میانگین …», client), world
+  price first per metal; IME rows without a group one by one, without the producer. Migration 00046 splits aluminium's
+  IME «شمش و آلیاژ» into «شمش آلومینیوم بورس کالا» and «آلیاژ آلومینیوم بورس کالا», and puts the IME copper cathode
+  with the IME rows on top.
 - 2026-11-18 Copper names as the client wrote them (00044): «لوله مسی ضخامت … سایز … اینچ», «تسمه مسی سایز … ضخامت … با
   خلوص 99.9%», «کابل افشان 1*16»; «ورق مسی» by thickness and size (10, new group); «شمش مس», «بیلت مس» (= the strips)
   and the generic «ورق مسی» hidden, and (00045) the market's «مفتول مسی» (owner OK before the main site). A metal's price table gets a third part,
