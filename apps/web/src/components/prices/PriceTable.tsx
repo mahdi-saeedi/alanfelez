@@ -189,6 +189,9 @@ type Section = { key: string; title?: string; items: Item[] };
  * box under its own name). Only when some product has a group;
  * otherwise one untitled section, as before.
  */
+/** The raw materials category («مواد اولیه معدنی»): a part of its own on a metal's table (client, 2026-11-18). */
+const RAW = "raw";
+
 /** 0 world price, 1 IME, 2 everything else: the order of the boxes on a metal's table (client, 2026-11-17). */
 function marketRank(s: Series): number {
   return s.market.scope === "global" ? 0 : s.market.slug === "ime" ? 1 : 2;
@@ -206,10 +209,11 @@ function sectionsOf(items: Item[], other: (category: string) => string): Section
     if (!cats.includes(s.category.slug)) cats.push(s.category.slug);
     // IME and world prices outside a group get a box of their own, named after the market.
     const rank = marketRank(s);
-    const key = s.group ? `g${s.group.id}` : rank < 2 ? `m-${s.market.slug}` : `o-${s.category.slug}`;
+    const key = s.group ? `g${s.group.id}` : rank < 2 ? `m-${s.market.slug}${rank === 1 && s.category.slug === RAW ? "-raw" : ""}` : `o-${s.category.slug}`;
     let sec = byKey.get(key);
     if (!sec) {
-      const title = s.group ? s.group.name : rank < 2 ? s.market.name : grouped.has(s.category.slug) ? other(s.category.name) : s.category.name;
+      // Raw materials have a heading of their own, so their loose rows are named after the market («بازار»), not again «مواد اولیه معدنی».
+      const title = s.group ? s.group.name : rank < 2 || s.category.slug === RAW ? s.market.name : grouped.has(s.category.slug) ? other(s.category.name) : s.category.name;
       sec = { key, cat: s.category.slug, sort: s.group ? s.group.sort : Number.MAX_SAFE_INTEGER, rank: 2, title, items: [] };
       byKey.set(key, sec);
     }
@@ -412,8 +416,11 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
   // One metal with product groups (client, 2026-11-18): every group is a card of its own with a clear header — dark with a
   // gold arrow when open, white with a down arrow when closed — under «قیمت جهانی و بورس کالا» and «بازار آزاد».
   if (sections[0]?.title) {
-    const top = sections.filter((sec) => sec.items.every((it) => marketRank(seriesOf(it)) < 2));
-    const rest = sections.filter((sec) => !top.includes(sec));
+    // Three parts (client, 2026-11-18): world prices and IME, raw materials («مواد اولیه معدنی», any market), the rest.
+    // World prices stay on top even when their product is a raw material (copper's LME price is «مس کاتد»).
+    const raw = sections.filter((sec) => sec.items.every((it) => seriesOf(it).category.slug === RAW && marketRank(seriesOf(it)) > 0));
+    const top = sections.filter((sec) => !raw.includes(sec) && sec.items.every((it) => marketRank(seriesOf(it)) < 2));
+    const rest = sections.filter((sec) => !raw.includes(sec) && !top.includes(sec));
     const card = (sec: Section) => {
       const isOpen = opened(sec.key, sec.items);
       const sum = summary(sec.key, sec.items);
@@ -463,7 +470,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
         {secs.map(card)}
       </div>
     );
-    const both = top.length > 0 && rest.length > 0;
+    const both = [top, raw, rest].filter((x) => x.length > 0).length > 1;
     return (
       <>
         {toolbar}
@@ -487,6 +494,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
             <span>{t("col.source")}</span>
           </div>
           {part(t("sectionTop"), top, both)}
+          {part(t("sectionRaw"), raw, both)}
           {part(t("sectionRest"), rest, both)}
         </div>
       </>

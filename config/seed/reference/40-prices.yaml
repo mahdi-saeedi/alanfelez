@@ -11,7 +11,7 @@ datasets:
     rows:
       - { slug: aluminum-ingot,      metal: aluminum,  category: intermediate, name_fa: شمش آلومینیوم,        name_en: Aluminum ingot,      sort: 10 }
       - { slug: aluminum-soft-scrap, metal: aluminum,  category: scrap,        name_fa: ضایعات آلومینیوم نرم, name_en: Soft aluminum, sort: 11 }
-      - { slug: copper-red,          metal: copper,    category: scrap,        name_fa: مس کابلی قرمز,        name_en: Red cable copper,          sort: 20 }
+      - { slug: copper-red,          metal: copper,    category: scrap,        name_fa: مس کابلی قرمز,        name_en: Red cable copper,          sort: 500 }
       - { slug: copper-cathode,      metal: copper,    category: raw,          name_fa: مس کاتد,              name_en: Copper cathode,      sort: 22 }
       - { slug: brass-yellow,        metal: brass,     category: raw,          name_fa: برنج,                 name_en: Brass,        sort: 30 }
       - { slug: zinc-ingot,          metal: zinc,      category: raw,          name_fa: شمش روی,              name_en: Zinc ingot,          sort: 40 }

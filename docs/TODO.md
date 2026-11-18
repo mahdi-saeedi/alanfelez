@@ -43,7 +43,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
-      lists of all 7 metals (aluminium done); (2) **when all 7 are in, remind the client to send the price-history file**
+      lists of all 7 metals (aluminium and copper done); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
       history (a data-changing step: the owner's OK first); (4) then the daily prices. The aluminium redesign and products
       wait on staging for the client's OK before the next publish.
@@ -72,6 +72,14 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 Copper names as the client wrote them (00044): «لوله مسی ضخامت … سایز … اینچ», «تسمه مسی سایز … ضخامت … با
+  خلوص 99.9%», «کابل افشان 1*16»; «ورق مسی» by thickness and size (10, new group); «شمش مس», «بیلت مس» (= the strips)
+  and the generic «ورق مسی» hidden (owner OK before the main site). A metal's price table gets a third part,
+  «مواد اولیه معدنی» (any market but world prices), between «قیمت جهانی و بورس کالا» and «بازار آزاد».
+- 2026-11-18 The client's copper list (Excel): migration 00042 adds 96 «بازار» products in six groups (کلوخه مس اکسیدی،
+  سمانته مس، کنسانتره مس سولفیدی؛ لوله مسی by size and thickness، تسمه مسی، کابل مسی) and 21 IME products, one per traded
+  symbol (مس مفتول and سیم و مفتول مسی groups; cathode and low-grade slag in raw materials). 00043 (owner OK before the main
+  site): scrap in the file's order, «لوله مسی» scrap named «لوله مس», the generic «لوله مسی» hidden (its sizes replace it).
 - 2026-11-18 A metal's price groups all start closed (client): the reader opens what they want, or «باز کردن همه».
 - 2026-11-18 The admin's «ورود گروهی (اکسل)» takes the Excel file itself (.xlsx) as well as CSV: read in the browser
   (`apps/admin/src/pages/xlsx.ts`, no library; checked against the client's own Excel file cell by cell).
