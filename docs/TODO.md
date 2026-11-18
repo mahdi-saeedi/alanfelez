@@ -72,6 +72,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 A metal's price groups all start closed (client): the reader opens what they want, or «باز کردن همه».
 - 2026-11-18 The admin's «ورود گروهی (اکسل)» takes the Excel file itself (.xlsx) as well as CSV: read in the browser
   (`apps/admin/src/pages/xlsx.ts`, no library; checked against the client's own Excel file cell by cell).
 - 2026-11-18 A metal's price table as separate group cards (client approved the mock-up): an open group has a dark

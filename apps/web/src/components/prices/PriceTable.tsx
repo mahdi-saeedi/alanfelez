@@ -222,7 +222,7 @@ function sectionsOf(items: Item[], other: (category: string) => string): Section
 
 /**
  * In a list of several metals, groups with at least this many products fold into one row. On one metal's table every
- * box folds, however small (client, 2026-11-17: «بیلت و مفتول» too): closed at first, except world prices and IME.
+ * box folds, however small (client, 2026-11-17: «بیلت و مفتول» too): all closed at first (client, 2026-11-18).
  */
 const FOLD_AT = 2;
 
@@ -350,7 +350,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
   const t = useTranslations("prices");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<Sort>("");
-  // «باز کردن همه» / «بستن همه» set every box; without them world prices and IME start open and the rest closed.
+  // «باز کردن همه» / «بستن همه» set every box; without them every box starts closed (client, 2026-11-18).
   const [all, setAll] = useState<"" | "open" | "closed">("");
   // The boxes the reader opened or closed one by one since.
   const [flipped, setFlipped] = useState<Set<string>>(new Set());
@@ -372,7 +372,7 @@ export function PriceTable({ rows, locked = [], plan = "", display = {}, grouped
   const count = (n: number) => t("groupCount", { n });
   const seriesOf = (it: Item) => (it.kind === "row" ? it.row.series : it.s);
   // A search shows the matching products themselves, so every box with a match is open.
-  const opened = (key: string, items: Item[]) => !!q || flipped.has(key) !== (all ? all === "open" : items.every((it) => marketRank(seriesOf(it)) < 2));
+  const opened = (key: string, _items: Item[]) => !!q || flipped.has(key) !== (all === "open");
   // Folding (flat lists) needs the default order and no search.
   const fold = !sort && !q;
   const blocks = (sec: Section) => (fold && !sec.key.startsWith("g") ? blocksOf(sec.items, seriesOf) : sec.items.map((it) => ({ kind: "item" as const, it })));
