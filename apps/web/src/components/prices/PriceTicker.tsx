@@ -59,7 +59,7 @@ function Item({ entry }: { entry: Entry }) {
 const withoutProducer = (name: string) => name.replace(/\s*\([^()]*(\([^()]*\)[^()]*)*\)\s*$/, "").trim() || name;
 const withoutIme = (name: string) => name.replace(/\s*بورس کالا\s*$/, "").trim() || name;
 
-/** World prices one by one, IME rows one entry per group (their average); by metal, its world price first. */
+/** World prices one by one, IME rows one entry per group (their average), the metals taking turns. */
 function entriesOf(rows: Row[]): Entry[] {
   const out: Entry[] = [];
   const groups = new Map<number, Entry>();
@@ -78,11 +78,20 @@ function entriesOf(rows: Row[]): Entry[] {
     }
     out.push({ key: s.slug, label: world ? s.metal.name : withoutProducer(s.product.name), world, rows: [r] });
   }
-  // Within each metal the world price comes first (rows already come in the metals' order).
-  const metals = [...new Set(rows.map((r) => r.series.metal.slug))];
-  const metalOf = (e: Entry) => metals.indexOf(e.rows[0]!.series.metal.slug);
-  return out.map((e, i) => ({ e, i })).sort((a, b) => metalOf(a.e) - metalOf(b.e) || Number(b.e.world) - Number(a.e.world) || a.i - b.i).map(({ e }) => e);
+  // Mixed, not metal by metal (client, 2026-11-18): one entry of each metal in turn, each metal's world price first.
+  const byMetal = new Map<string, Entry[]>();
+  for (const e of out) {
+    const m = e.rows[0]!.series.metal.slug;
+    byMetal.set(m, [...(byMetal.get(m) ?? []), e]);
+  }
+  const lists = [...byMetal.values()].map((l) => [...l.filter((e) => e.world), ...l.filter((e) => !e.world)]);
+  const mixed: Entry[] = [];
+  for (let i = 0; lists.some((l) => i < l.length); i++) for (const l of lists) if (l[i]) mixed.push(l[i]!);
+  return mixed;
 }
+
+/** Seconds each entry takes to cross (client, 2026-11-18: slower), so the speed stays the same however many there are. */
+const SECONDS_PER_ENTRY = 8;
 
 /** The scrolling bar above the header: each metal's world price and IME prices (the base series), updated live. */
 export function PriceTicker({ rows }: { rows: Row[] }) {
@@ -91,7 +100,7 @@ export function PriceTicker({ rows }: { rows: Row[] }) {
   return (
     <div className="overflow-hidden border-b border-graphite-2 bg-graphite py-1.5" aria-label="ticker">
       {/* Two copies side by side scroll by half their width, so the loop is seamless. */}
-      <ul className="flex w-max animate-ticker hover:[animation-play-state:paused]">
+      <ul className="flex w-max animate-ticker hover:[animation-play-state:paused]" style={{ animationDuration: `${Math.max(60, entries.length * SECONDS_PER_ENTRY)}s` }}>
         {[0, 1].map((copy) => entries.map((e) => <Item key={`${copy}-${e.key}`} entry={e} />))}
       </ul>
     </div>

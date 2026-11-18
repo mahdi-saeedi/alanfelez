@@ -27,7 +27,7 @@ datasets:
   # is_base = visible to the free tier (one headline series per metal, SCOPE §6). max_jump_bp: outlier gate (SECURITY §6).
   - name: price_series
     rows:
-      - { slug: aluminum-ingot-ime,      product: aluminum-ingot,      market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 10 }
+      - { slug: aluminum-ingot-ime,      product: aluminum-ingot,      market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 10, active: false }
       - { slug: aluminum-soft-scrap-free, product: aluminum-soft-scrap, market: free, currency: IRR, unit: kg,  is_base: false, sort: 11 }
       - { slug: copper-red-free,         product: copper-red,          market: free, currency: IRR, unit: kg,  is_base: false, sort: 20 }
       - { slug: zinc-ingot-ime,          product: zinc-ingot,          market: ime,  currency: IRR, unit: kg,  is_base: true,  sort: 40 }

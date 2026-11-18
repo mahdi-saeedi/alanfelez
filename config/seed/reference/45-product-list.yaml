@@ -180,4 +180,4 @@ datasets:
       - { slug: iron-tin-old-free, product: iron-tin-old, market: free, currency: IRR, unit: kg, is_base: false, sort: 513 }
       - { slug: iron-doors-free, product: iron-doors, market: free, currency: IRR, unit: kg, is_base: false, sort: 514 }
       - { slug: iron-chip-turnings-free, product: iron-chip-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 515 }
-      - { slug: copper-cathode-free, product: copper-cathode, market: free, currency: IRR, unit: kg, is_base: false, sort: 399 }
+      - { slug: copper-cathode-free, product: copper-cathode, market: free, currency: IRR, unit: kg, is_base: false, sort: 399, active: false }
