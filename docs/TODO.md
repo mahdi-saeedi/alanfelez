@@ -45,7 +45,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
       lists of all 7 metals (aluminium and copper done); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
-      history (a data-changing step: the owner's OK first); (4) then the daily prices. The aluminium redesign and products
+      history (a data-changing step: the owner's OK first); (4) then the daily prices.
+      Each metal done the aluminium/copper way (IME rows per producer in groups, `is_base` true) joins the price ticker
+      by itself: its world price, one average per IME group, loose IME rows one by one, mixed with the other metals. The aluminium redesign and products
       wait on staging for the client's OK before the next publish.
 - [ ] **SEO, part 2**: Google Search Console + Bing (DNS TXT on alanfelez.ir), then `indexable: true` at launch; track the
       real searches there and in the admin's «جست‌وجوهای سایت», and adjust the titles; one article per approved
