@@ -285,8 +285,13 @@
     "moversNone": "فعلاً تغییری ثبت نشده است.",
     "groupAvg": "میانگین",
     "groupRange": "از {min} تا {max}",
-    "groupOpen": "نمایش همه ▾",
-    "groupClose": "بستن ▴"
+    "groupClose": "بستن",
+    "groupShow": "نمایش {n, plural, other {# محصول}}",
+    "groupsTotal": "{groups, plural, other {# دسته}} · {n, plural, other {# محصول}}",
+    "openAll": "باز کردن همه",
+    "closeAll": "بستن همه",
+    "sectionTop": "قیمت جهانی و بورس کالا",
+    "sectionRest": "بازار آزاد"
   },
   "chart": {
     "title": "نمودار قیمت فلزات",
