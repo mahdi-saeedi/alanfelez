@@ -72,6 +72,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-18 Ticker mixed for real (client): each metal's entries spread evenly over the bar, never two of one metal side
+  by side (also across the loop), unless one metal is all there is.
 - 2026-11-18 Signed out after ~30 minutes instead of 3 hours (client): parallel requests of one page refreshed the same
   (single-use) refresh token; the losers saved a "signed out" cookie over the winner's. Now only Keycloak saying the
   session is over signs out; a reused token or an unreachable Keycloak leaves the cookie alone (owner OK by phone).
