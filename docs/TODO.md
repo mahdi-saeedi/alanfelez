@@ -43,7 +43,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
-      lists of all 7 metals (aluminium and copper done); (2) **when all 7 are in, remind the client to send the price-history file**
+      lists of all 7 metals (aluminium, copper and zinc done); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
       history (a data-changing step: the owner's OK first); (4) then the daily prices.
       Each metal done the aluminium/copper way (IME rows per producer in groups, `is_base` true) joins the price ticker
@@ -74,6 +74,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-19 The client's zinc list (Excel): migration 00048 adds «کلوخه روی اکسیدی» and «کلوخه روی سولفیدی» (16 grades
+  each; the file's one «اکسیدی ۸%» row inside the sulphide list added as sulphide), «ورق گالوانیزه» (22, thickness and
+  width) and 31 IME ingots, one per traded symbol, in «شمش روی بورس کالا». 00049 (owner OK before the main site): scrap
+  named as in the file; the generic «سنگ معدن روی» and IME «شمش روی» rows hidden (the world price stays).
 - 2026-11-18 Ticker mixed for real (client): each metal's entries spread evenly over the bar, never two of one metal side
   by side (also across the loop), unless one metal is all there is.
 - 2026-11-18 Signed out after ~30 minutes instead of 3 hours (client): parallel requests of one page refreshed the same

@@ -34,12 +34,12 @@ datasets:
       - { slug: copper-armature, metal: copper, category: scrap, name_fa: مس آرمیچری, name_en: Armature copper, sort: 503 }
       - { slug: copper-pipe-scrap, metal: copper, category: scrap, name_fa: لوله مس, name_en: Copper pipe scrap, sort: 504 }
       - { slug: copper-mill, metal: copper, category: scrap, name_fa: مس آسیابی, name_en: Milled copper, sort: 506 }
-      - { slug: zinc-ore, metal: zinc, category: raw, name_fa: سنگ معدن روی, name_en: Zinc ore, sort: 300 }
-      - { slug: zinc-melted, metal: zinc, category: scrap, name_fa: روی ذوبی, name_en: Melted zinc, sort: 500 }
-      - { slug: zinc-sheet-scrap, metal: zinc, category: scrap, name_fa: ورق‌های روی, name_en: Zinc sheets, sort: 501 }
-      - { slug: zinc-pipe-scrap, metal: zinc, category: scrap, name_fa: لوله‌های روی, name_en: Zinc pipes, sort: 502 }
-      - { slug: zinc-frame, metal: zinc, category: scrap, name_fa: قاب‌های رویی, name_en: Zinc frames, sort: 503 }
-      - { slug: zinc-auto-parts, metal: zinc, category: scrap, name_fa: قطعات خودرو رویی, name_en: Zinc auto parts, sort: 504 }
+      - { slug: zinc-ore, metal: zinc, category: raw, name_fa: سنگ معدن روی, name_en: Zinc ore, sort: 300, active: false }
+      - { slug: zinc-melted, metal: zinc, category: scrap, name_fa: ضایعات روی ذوبی, name_en: Melted zinc, sort: 500 }
+      - { slug: zinc-sheet-scrap, metal: zinc, category: scrap, name_fa: ضایعات ورق های روی, name_en: Zinc sheets, sort: 501 }
+      - { slug: zinc-pipe-scrap, metal: zinc, category: scrap, name_fa: ضایعات لوله های روی, name_en: Zinc pipes, sort: 502 }
+      - { slug: zinc-frame, metal: zinc, category: scrap, name_fa: ضایعات قاب های رویی, name_en: Zinc frames, sort: 503 }
+      - { slug: zinc-auto-parts, metal: zinc, category: scrap, name_fa: قطعات رویی خودرو, name_en: Zinc auto parts, sort: 504 }
       - { slug: lead-sheet, metal: lead, category: intermediate, name_fa: ورق سرب, name_en: Lead sheet, sort: 400 }
       - { slug: lead-soft, metal: lead, category: scrap, name_fa: سرب نرم, name_en: Soft lead, sort: 500 }
       - { slug: lead-hard, metal: lead, category: scrap, name_fa: سرب خشک, name_en: Hard lead, sort: 501 }
@@ -122,7 +122,7 @@ datasets:
       - { slug: copper-armature-free, product: copper-armature, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: copper-pipe-scrap-free, product: copper-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: copper-mill-free, product: copper-mill, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
-      - { slug: zinc-ore-free, product: zinc-ore, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
+      - { slug: zinc-ore-free, product: zinc-ore, market: free, currency: IRR, unit: kg, is_base: false, sort: 300, active: false }
       - { slug: zinc-melted-free, product: zinc-melted, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
       - { slug: zinc-sheet-scrap-free, product: zinc-sheet-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
       - { slug: zinc-pipe-scrap-free, product: zinc-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
