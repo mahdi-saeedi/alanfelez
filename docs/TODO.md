@@ -43,7 +43,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
-      lists of all 7 metals (aluminium, copper, zinc and lead done); (2) **when all 7 are in, remind the client to send the price-history file**
+      lists of all 7 metals (aluminium, copper, zinc, lead and brass done); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
       history (a data-changing step: the owner's OK first); (4) then the daily prices.
       Each metal done the aluminium/copper way (IME rows per producer in groups, `is_base` true) joins the price ticker
@@ -74,6 +74,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-19 The client's brass list (Excel): no raw materials and no IME (an alloy; client). Migration 00053 adds 121
+  market products in «لوله برنجی» (18), «ورق برنجی» (24, «… ضخامت 0.3 میلیمتر با ابعاد 660*2000 آلیاژ 70b به صورت شیت»),
+  «میلگرد برنجی» (55, «… قطر 30 میلیمتر»), «تسمه برنجی» (24, «تسمه برنجی 25*25») and the scrap row «ته میل برنجی». 00054
+  (owner OK before the main site): scrap named as in the file; «لوستر برنجی» and the four generic rows hidden.
 - 2026-11-19 The client's lead list (Excel): migration 00051 adds «کلوخه سرب اکسیدی/سولفیدی» (3–10 %), «کنسانتره سرب
   اکسیدی» (45–70 %), «شمش سرب کارگاهی», «ورق سربی» 1 and 2 mm, two scrap rows, and on the IME «گواهی سپرده شمش سرب»
   (lead ingot has no IME trades; the deposit certificate trades daily, client OK). 00052 (owner OK before the main

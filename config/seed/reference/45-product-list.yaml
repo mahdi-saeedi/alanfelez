@@ -45,18 +45,18 @@ datasets:
       - { slug: lead-hard, metal: lead, category: scrap, name_fa: ضایعات سرب خشک, name_en: Hard lead, sort: 500 }
       - { slug: lead-battery-dry, metal: lead, category: scrap, name_fa: باتری خشک, name_en: Dry batteries, sort: 502, active: false }
       - { slug: lead-battery-motor, metal: lead, category: scrap, name_fa: باتری موتور, name_en: Motorcycle batteries, sort: 503, active: false }
-      - { slug: brass-pipe, metal: brass, category: intermediate, name_fa: لوله برنجی, name_en: Brass pipe, sort: 400 }
-      - { slug: brass-sheet, metal: brass, category: intermediate, name_fa: ورق برنجی, name_en: Brass sheet, sort: 401 }
-      - { slug: brass-rod, metal: brass, category: intermediate, name_fa: میلگرد برنجی, name_en: Brass rod, sort: 402 }
-      - { slug: brass-strip, metal: brass, category: intermediate, name_fa: تسمه برنجی, name_en: Brass strip, sort: 403 }
-      - { slug: brass-clippings, metal: brass, category: scrap, name_fa: برنج دم قیچی, name_en: Brass clippings, sort: 500 }
-      - { slug: brass-yellow-scrap, metal: brass, category: scrap, name_fa: برنج زردبار, name_en: Yellow brass scrap, sort: 501 }
-      - { slug: brass-white, metal: brass, category: scrap, name_fa: برنج سفید بار, name_en: White brass scrap, sort: 502 }
-      - { slug: brass-turnings, metal: brass, category: scrap, name_fa: سفاله برنج, name_en: Brass turnings, sort: 503 }
+      - { slug: brass-pipe, metal: brass, category: intermediate, name_fa: لوله برنجی, name_en: Brass pipe, sort: 400, active: false }
+      - { slug: brass-sheet, metal: brass, category: intermediate, name_fa: ورق برنجی, name_en: Brass sheet, sort: 401, active: false }
+      - { slug: brass-rod, metal: brass, category: intermediate, name_fa: میلگرد برنجی, name_en: Brass rod, sort: 402, active: false }
+      - { slug: brass-strip, metal: brass, category: intermediate, name_fa: تسمه برنجی, name_en: Brass strip, sort: 403, active: false }
+      - { slug: brass-clippings, metal: brass, category: scrap, name_fa: دم قیچی برنجی, name_en: Brass clippings, sort: 500 }
+      - { slug: brass-yellow-scrap, metal: brass, category: scrap, name_fa: برنج زرد بار, name_en: Yellow brass scrap, sort: 501 }
+      - { slug: brass-white, metal: brass, category: scrap, name_fa: برنج سفید بار (لپ بار), name_en: White brass scrap, sort: 502 }
+      - { slug: brass-turnings, metal: brass, category: scrap, name_fa: سوفاله برنج, name_en: Brass turnings, sort: 503 }
       - { slug: brass-radiator, metal: brass, category: scrap, name_fa: رادیات برنجی, name_en: Brass radiators, sort: 504 }
       - { slug: brass-mixed, metal: brass, category: scrap, name_fa: برنج درهم, name_en: Mixed brass, sort: 505 }
-      - { slug: brass-chandelier, metal: brass, category: scrap, name_fa: لوستر برنجی, name_en: Brass chandeliers, sort: 506 }
-      - { slug: brass-fittings, metal: brass, category: scrap, name_fa: شیرآلات برنجی, name_en: Brass fittings, sort: 507 }
+      - { slug: brass-chandelier, metal: brass, category: scrap, name_fa: لوستر برنجی, name_en: Brass chandeliers, sort: 506, active: false }
+      - { slug: brass-fittings, metal: brass, category: scrap, name_fa: شیر آلات برنجی, name_en: Brass fittings, sort: 506 }
       - { slug: cast-iron-ingot, metal: cast-iron, category: intermediate, name_fa: شمش چدن, name_en: Cast iron ingot, sort: 400 }
       - { slug: cast-iron-sheet, metal: cast-iron, category: intermediate, name_fa: ورق چدن, name_en: Cast iron sheet, sort: 401 }
       - { slug: cast-iron-gray, metal: cast-iron, category: intermediate, name_fa: چدن خاکستری, name_en: Gray cast iron, sort: 402 }
@@ -133,17 +133,17 @@ datasets:
       - { slug: lead-hard-free, product: lead-hard, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
       - { slug: lead-battery-dry-free, product: lead-battery-dry, market: free, currency: IRR, unit: kg, is_base: false, sort: 502, active: false }
       - { slug: lead-battery-motor-free, product: lead-battery-motor, market: free, currency: IRR, unit: kg, is_base: false, sort: 503, active: false }
-      - { slug: brass-pipe-free, product: brass-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
-      - { slug: brass-sheet-free, product: brass-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
-      - { slug: brass-rod-free, product: brass-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
-      - { slug: brass-strip-free, product: brass-strip, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
+      - { slug: brass-pipe-free, product: brass-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
+      - { slug: brass-sheet-free, product: brass-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
+      - { slug: brass-rod-free, product: brass-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402, active: false }
+      - { slug: brass-strip-free, product: brass-strip, market: free, currency: IRR, unit: kg, is_base: false, sort: 403, active: false }
       - { slug: brass-clippings-free, product: brass-clippings, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
       - { slug: brass-yellow-scrap-free, product: brass-yellow-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
       - { slug: brass-white-free, product: brass-white, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
       - { slug: brass-turnings-free, product: brass-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: brass-radiator-free, product: brass-radiator, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: brass-mixed-free, product: brass-mixed, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
-      - { slug: brass-chandelier-free, product: brass-chandelier, market: free, currency: IRR, unit: kg, is_base: false, sort: 506 }
+      - { slug: brass-chandelier-free, product: brass-chandelier, market: free, currency: IRR, unit: kg, is_base: false, sort: 506, active: false }
       - { slug: brass-fittings-free, product: brass-fittings, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
       - { slug: cast-iron-ingot-free, product: cast-iron-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
       - { slug: cast-iron-sheet-free, product: cast-iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
