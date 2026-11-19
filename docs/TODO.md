@@ -43,7 +43,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
-      lists of all 7 metals (aluminium, copper and zinc done); (2) **when all 7 are in, remind the client to send the price-history file**
+      lists of all 7 metals (aluminium, copper, zinc and lead done); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
       history (a data-changing step: the owner's OK first); (4) then the daily prices.
       Each metal done the aluminium/copper way (IME rows per producer in groups, `is_base` true) joins the price ticker
@@ -74,6 +74,10 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-19 The client's lead list (Excel): migration 00051 adds «کلوخه سرب اکسیدی/سولفیدی» (3–10 %), «کنسانتره سرب
+  اکسیدی» (45–70 %), «شمش سرب کارگاهی», «ورق سربی» 1 and 2 mm, two scrap rows, and on the IME «گواهی سپرده شمش سرب»
+  (lead ingot has no IME trades; the deposit certificate trades daily, client OK). 00052 (owner OK before the main
+  site): scrap named as in the file; «باتری خشک», «باتری موتور», the generic «ورق سرب» and IME «شمش سرب» hidden.
 - 2026-11-19 Zinc ingot in «بازار» (client): «شمش روی با خلوص 99.97%» and «99.98%» in a group «شمش روی» (00050).
 - 2026-11-19 The client's zinc list (Excel): migration 00048 adds «کلوخه روی اکسیدی» and «کلوخه روی سولفیدی» (16 grades
   each; the file's one «اکسیدی ۸%» row inside the sulphide list added as sulphide), «ورق گالوانیزه» (22, thickness and

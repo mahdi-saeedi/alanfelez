@@ -40,11 +40,11 @@ datasets:
       - { slug: zinc-pipe-scrap, metal: zinc, category: scrap, name_fa: ضایعات لوله های روی, name_en: Zinc pipes, sort: 502 }
       - { slug: zinc-frame, metal: zinc, category: scrap, name_fa: ضایعات قاب های رویی, name_en: Zinc frames, sort: 503 }
       - { slug: zinc-auto-parts, metal: zinc, category: scrap, name_fa: قطعات رویی خودرو, name_en: Zinc auto parts, sort: 504 }
-      - { slug: lead-sheet, metal: lead, category: intermediate, name_fa: ورق سرب, name_en: Lead sheet, sort: 400 }
-      - { slug: lead-soft, metal: lead, category: scrap, name_fa: سرب نرم, name_en: Soft lead, sort: 500 }
-      - { slug: lead-hard, metal: lead, category: scrap, name_fa: سرب خشک, name_en: Hard lead, sort: 501 }
-      - { slug: lead-battery-dry, metal: lead, category: scrap, name_fa: باتری خشک, name_en: Dry batteries, sort: 502 }
-      - { slug: lead-battery-motor, metal: lead, category: scrap, name_fa: باتری موتور, name_en: Motorcycle batteries, sort: 503 }
+      - { slug: lead-sheet, metal: lead, category: intermediate, name_fa: ورق سرب, name_en: Lead sheet, sort: 400, active: false }
+      - { slug: lead-soft, metal: lead, category: scrap, name_fa: ضایعات سرب نرم, name_en: Soft lead, sort: 501 }
+      - { slug: lead-hard, metal: lead, category: scrap, name_fa: ضایعات سرب خشک, name_en: Hard lead, sort: 500 }
+      - { slug: lead-battery-dry, metal: lead, category: scrap, name_fa: باتری خشک, name_en: Dry batteries, sort: 502, active: false }
+      - { slug: lead-battery-motor, metal: lead, category: scrap, name_fa: باتری موتور, name_en: Motorcycle batteries, sort: 503, active: false }
       - { slug: brass-pipe, metal: brass, category: intermediate, name_fa: لوله برنجی, name_en: Brass pipe, sort: 400 }
       - { slug: brass-sheet, metal: brass, category: intermediate, name_fa: ورق برنجی, name_en: Brass sheet, sort: 401 }
       - { slug: brass-rod, metal: brass, category: intermediate, name_fa: میلگرد برنجی, name_en: Brass rod, sort: 402 }
@@ -128,11 +128,11 @@ datasets:
       - { slug: zinc-pipe-scrap-free, product: zinc-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
       - { slug: zinc-frame-free, product: zinc-frame, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: zinc-auto-parts-free, product: zinc-auto-parts, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
-      - { slug: lead-sheet-free, product: lead-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
+      - { slug: lead-sheet-free, product: lead-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
       - { slug: lead-soft-free, product: lead-soft, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
       - { slug: lead-hard-free, product: lead-hard, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
-      - { slug: lead-battery-dry-free, product: lead-battery-dry, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
-      - { slug: lead-battery-motor-free, product: lead-battery-motor, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
+      - { slug: lead-battery-dry-free, product: lead-battery-dry, market: free, currency: IRR, unit: kg, is_base: false, sort: 502, active: false }
+      - { slug: lead-battery-motor-free, product: lead-battery-motor, market: free, currency: IRR, unit: kg, is_base: false, sort: 503, active: false }
       - { slug: brass-pipe-free, product: brass-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
       - { slug: brass-sheet-free, product: brass-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
       - { slug: brass-rod-free, product: brass-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
