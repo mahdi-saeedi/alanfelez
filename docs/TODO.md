@@ -74,6 +74,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-19 Zinc ingot in «بازار» (client): «شمش روی با خلوص 99.97%» and «99.98%» in a group «شمش روی» (00050).
 - 2026-11-19 The client's zinc list (Excel): migration 00048 adds «کلوخه روی اکسیدی» and «کلوخه روی سولفیدی» (16 grades
   each; the file's one «اکسیدی ۸%» row inside the sulphide list added as sulphide), «ورق گالوانیزه» (22, thickness and
   width) and 31 IME ingots, one per traded symbol, in «شمش روی بورس کالا». 00049 (owner OK before the main site): scrap
