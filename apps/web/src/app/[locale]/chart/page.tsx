@@ -11,6 +11,7 @@ import { CompareChart, type CompareLine } from "@/components/prices/CompareChart
 import { COMPARE_COLORS } from "@/components/prices/compare-colors";
 import { LivePrice, LiveUpdated } from "@/components/prices/LivePrice";
 import { AutoSubmitSelect } from "@/components/AutoSubmitSelect";
+import { ProductPicker } from "@/components/prices/ProductPicker";
 import { Locked, LockIcon } from "@/components/Locked";
 import { InsightCard } from "@/components/content/InsightCard";
 import { getArticles, getMetals } from "@/lib/content";
@@ -252,14 +253,20 @@ export default async function ChartPage({ params, searchParams }: Params) {
             <AutoSubmitSelect name="cat" value={cat} label={t("category")}>
               {cats.map((c) => <option key={c} value={c}>{t(`categories.${c}`)}</option>)}
             </AutoSubmitSelect>
-            <AutoSubmitSelect name="series" value={row.series.slug} label={t("product")}>
-              {products.map((r) => (
-                <option key={r.series.slug} value={r.series.slug}>
-                  {r.series.product.name} — {r.series.market.name}
-                  {chartLocked(r) ? ` (${t("lockedOption", { plan: lockedPlanName || tl("plan.silver") })})` : ""}
-                </option>
-              ))}
-            </AutoSubmitSelect>
+            {/* With a search over all the metal's products (client, 2026-11-20: too many to scroll through). */}
+            <ProductPicker
+              name="series"
+              value={row.series.slug}
+              label={t("product")}
+              searchLabel={t("productSearch")}
+              emptyLabel={t("productNoMatch")}
+              options={CATS.flatMap((c) => inMetal.filter((r) => catOf(r) === c).map((r) => ({
+                slug: r.series.slug,
+                label: `${r.series.product.name} — ${r.series.market.name}${chartLocked(r) ? ` (${t("lockedOption", { plan: lockedPlanName || tl("plan.silver") })})` : ""}`,
+                cat: c,
+                catLabel: t(`categories.${c}`),
+              })))}
+            />
             {!usd && (
               <AutoSubmitSelect name="unit" value={unit} label={t("unit")}>
                 {UNITS.map((u) => (

@@ -299,6 +299,8 @@
     "subtitle": "Price history and market trends over different time ranges",
     "metal": "Metal",
     "market": "Market",
+    "productSearch": "Search products: pipe, sheet, 99.98…",
+    "productNoMatch": "No product with that name.",
     "product": "Product",
     "unit": "Unit",
     "current": "Current price",
