@@ -74,6 +74,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-20 Chart page: the product field has a search over all the metal's products (client: too many to scroll).
 - 2026-11-19 The client's brass list (Excel): no raw materials and no IME (an alloy; client). Migration 00053 adds 121
   market products in «لوله برنجی» (18), «ورق برنجی» (24, «… ضخامت 0.3 میلیمتر با ابعاد 660*2000 آلیاژ 70b به صورت شیت»),
   «میلگرد برنجی» (55, «… قطر 30 میلیمتر»), «تسمه برنجی» (24, «تسمه برنجی 25*25») and the scrap row «ته میل برنجی». 00054
