@@ -74,6 +74,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-20 Keycloak 26.8.2 (image 26.8.2-3): its OpenJDK 21.0.13.1 fixes CVE-2026-114938 ("Java4Shell", CRITICAL, remote
+  code execution), which made Trivy stop every release (owner OK).
 - 2026-11-20 Chart page: the product field has a search over all the metal's products (client: too many to scroll).
 - 2026-11-19 The client's brass list (Excel): no raw materials and no IME (an alloy; client). Migration 00053 adds 121
   market products in «لوله برنجی» (18), «ورق برنجی» (24, «… ضخامت 0.3 میلیمتر با ابعاد 660*2000 آلیاژ 70b به صورت شیت»),
