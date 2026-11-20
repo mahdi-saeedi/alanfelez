@@ -95,9 +95,9 @@ datasets:
 
   - name: price_series
     rows:
-      - { slug: aluminum-bauxite-free, product: aluminum-bauxite, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
-      - { slug: aluminum-alumina-free, product: aluminum-alumina, market: free, currency: IRR, unit: kg, is_base: false, sort: 301 }
-      - { slug: aluminum-fluoride-free, product: aluminum-fluoride, market: free, currency: IRR, unit: kg, is_base: false, sort: 302 }
+      - { slug: aluminum-bauxite-free, product: aluminum-bauxite, market: free, currency: IRR, unit: ton, is_base: false, sort: 300 }
+      - { slug: aluminum-alumina-free, product: aluminum-alumina, market: free, currency: IRR, unit: ton, is_base: false, sort: 301 }
+      - { slug: aluminum-fluoride-free, product: aluminum-fluoride, market: free, currency: IRR, unit: ton, is_base: false, sort: 302 }
       - { slug: aluminum-billet-free, product: aluminum-billet, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
       - { slug: aluminum-slab-free, product: aluminum-slab, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
       - { slug: aluminum-rod-free, product: aluminum-rod, market: free, currency: IRR, unit: kg, is_base: false, sort: 402, active: false }
@@ -122,7 +122,7 @@ datasets:
       - { slug: copper-armature-free, product: copper-armature, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: copper-pipe-scrap-free, product: copper-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: copper-mill-free, product: copper-mill, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
-      - { slug: zinc-ore-free, product: zinc-ore, market: free, currency: IRR, unit: kg, is_base: false, sort: 300, active: false }
+      - { slug: zinc-ore-free, product: zinc-ore, market: free, currency: IRR, unit: ton, is_base: false, sort: 300, active: false }
       - { slug: zinc-melted-free, product: zinc-melted, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
       - { slug: zinc-sheet-scrap-free, product: zinc-sheet-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
       - { slug: zinc-pipe-scrap-free, product: zinc-pipe-scrap, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
@@ -155,8 +155,8 @@ datasets:
       - { slug: cast-iron-ductile-large-free, product: cast-iron-ductile-large, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: cast-iron-turnings-free, product: cast-iron-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: cast-iron-ni-hard-free, product: cast-iron-ni-hard, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
-      - { slug: iron-pellet-free, product: iron-pellet, market: free, currency: IRR, unit: kg, is_base: false, sort: 300, active: false }
-      - { slug: iron-dri-free, product: iron-dri, market: free, currency: IRR, unit: kg, is_base: false, sort: 301, active: false }
+      - { slug: iron-pellet-free, product: iron-pellet, market: free, currency: IRR, unit: ton, is_base: false, sort: 300, active: false }
+      - { slug: iron-dri-free, product: iron-dri, market: free, currency: IRR, unit: ton, is_base: false, sort: 301, active: false }
       - { slug: iron-rebar-free, product: iron-rebar, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
       - { slug: iron-sheet-free, product: iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
       - { slug: iron-beam-free, product: iron-beam, market: free, currency: IRR, unit: kg, is_base: false, sort: 402, active: false }
@@ -180,4 +180,4 @@ datasets:
       - { slug: iron-tin-old-free, product: iron-tin-old, market: free, currency: IRR, unit: kg, is_base: false, sort: 513 }
       - { slug: iron-doors-free, product: iron-doors, market: free, currency: IRR, unit: kg, is_base: false, sort: 514 }
       - { slug: iron-chip-turnings-free, product: iron-chip-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 515 }
-      - { slug: copper-cathode-free, product: copper-cathode, market: free, currency: IRR, unit: kg, is_base: false, sort: 399, active: false }
+      - { slug: copper-cathode-free, product: copper-cathode, market: free, currency: IRR, unit: ton, is_base: false, sort: 399, active: false }

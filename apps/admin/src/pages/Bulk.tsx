@@ -46,7 +46,7 @@ export function BulkPage() {
       const csv = currentPricesCsv([...bySlug.values()], {
         metal: (m) => t(`signup.metal.${m}`, m),
         market: (m) => t(`bulk.market.${m}`, m),
-        unit: (s) => t(s.currency === "USD" ? "bulk.unitUsd" : "bulk.unitToman"),
+        unit: (s) => t(s.currency === "USD" ? "bulk.unitUsd" : s.unit === "ton" ? "bulk.unitTomanTon" : "bulk.unitToman"),
         date: (iso) => formatDate(iso, locale),
       });
       const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
