@@ -14,6 +14,15 @@ test("IRR is shown in Toman per kg by default, with Rial and per-ton switches", 
   assert.equal(formatPriceValue(copper, "fa"), "۶۴۰٬۰۰۰");
 });
 
+test("a per-ton IRR series (raw materials) is shown per ton unless asked per kg", () => {
+  const ore = { amount: "95000000", currency: "IRR", unit: "ton" } as const; // 95,000,000 Rial/ton
+  assert.equal(displayAmount(ore), 9_500_000n);
+  assert.equal(displayAmount(ore, { perTon: false }), 9_500n);
+  assert.equal(displayAmount(ore, { perTon: true, rial: true }), 95_000_000n);
+  assert.equal(priceUnitLabel(ore, "fa"), "تومان/ton");
+  assert.equal(priceUnitLabel(ore, "en", { perTon: false }), "Toman/kg");
+});
+
 test("USD (LME) is shown in dollars per ton", () => {
   assert.equal(displayAmount(lme), 9_800n);
   assert.equal(priceUnitLabel(lme, "fa"), "$/ton");

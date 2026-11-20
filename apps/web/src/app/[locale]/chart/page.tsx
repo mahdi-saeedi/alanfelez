@@ -79,7 +79,8 @@ export default async function ChartPage({ params, searchParams }: Params) {
   const row = products.find((r) => r.series.slug === q.series) ?? products.find((r) => !lockedSlugs.has(r.series.slug)) ?? products[0]!;
   const range: Range = RANGES.includes(q.range as Range) ? (q.range as Range) : "1M";
   const usd = row.series.currency === "USD";
-  const unit: UnitOpt = usd ? "usd-ton" : UNITS.includes(q.unit as (typeof UNITS)[number]) ? (q.unit as UnitOpt) : "toman-kg";
+  // A series priced per ton (raw materials, client 2026-11-20) opens per ton; the select can still switch.
+  const unit: UnitOpt = usd ? "usd-ton" : UNITS.includes(q.unit as (typeof UNITS)[number]) ? (q.unit as UnitOpt) : row.series.unit === "ton" ? "toman-ton" : "toman-kg";
   const display: PriceDisplay = { rial: unit.startsWith("rial"), perTon: unit.endsWith("ton") };
   const limit = ent?.limits["chart.history_days"] ?? 30;
   const rangeAllowed = (r: Range) => limit === 0 || (RANGE_DAYS[r] > 0 && RANGE_DAYS[r] <= limit);

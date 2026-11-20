@@ -14,11 +14,11 @@ type Row = Schemas["PriceRow"];
 type Series = Schemas["SeriesRef"];
 type Sort = "" | "up" | "down";
 
-/** The unit a row's price is shown in, in words: «تومان/کیلوگرم», «ریال/تن», «دلار/تن» (USD/ton stays as it is). */
+/** The unit a row's price is shown in, in words: «تومان/کیلوگرم», «تومان/تن» (raw materials), «دلار/تن» (USD/ton stays as it is). */
 function useUnitLabel() {
   const t = useTranslations("prices");
-  return (s: Pick<Series, "currency">, d: PriceDisplay) =>
-    s.currency === "USD" ? t("unitLabel.usd") : `${t(d.rial ? "unitLabel.rial" : "unitLabel.toman")}/${t(d.perTon ? "units.ton" : "units.kg")}`;
+  return (s: Pick<Series, "currency" | "unit">, d: PriceDisplay) =>
+    s.currency === "USD" ? t("unitLabel.usd") : `${t(d.rial ? "unitLabel.rial" : "unitLabel.toman")}/${t((d.perTon ?? s.unit === "ton") ? "units.ton" : "units.kg")}`;
 }
 
 /** "Last updated": the time for today's prices, «دیروز ۱۲:۱۷» for yesterday's, the date for older ones (client, 2026-10-28). */

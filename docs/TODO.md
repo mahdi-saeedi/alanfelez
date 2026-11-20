@@ -44,6 +44,12 @@ Last updated: 2026-11-20 (k3s system images in the Iran mirror after staging los
 - [ ] **GitHub Pro** (or public repo) to enforce "pull requests only" on `main` (branch protection).
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
+- [ ] **Price history, next** (client, 2026-11-20; all 7 metals' products are done): the client sends the history files and
+      we go section by section: world prices first, then IME, raw materials, intermediate products, scrap. **When it
+      starts, clear every test price first** (the fake prices uploaded on staging and the main site; owner OK given
+      2026-11-20), then import the real history. Check each file's unit (IME files say «تن» but the numbers are Rial/kg).
+- [ ] **Later (client, 2026-11-20):** show the dollar rate somewhere on the site; talk it over with the client first.
+- [ ] **Last, after the history is right:** the Word guide for the daily Excel price upload, with screenshots (client).
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
       lists of all 7 metals (all done 2026-11-20); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
@@ -76,6 +82,10 @@ Last updated: 2026-11-20 (k3s system images in the Iran mirror after staging los
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-20 Raw materials priced per ton (client + owner): migration 00059 moves every Toman series of a raw-materials
+  product (market and IME) to Rial/ton, its stored prices, previous closes and alert thresholds ×1000. The site and the
+  admin show each series in its own unit («تومان/تن»); the chart opens per ton for them; the daily Excel file's «واحد»
+  column says so.
 - 2026-11-20 Staging deploys stuck (sync failed 5 times): its disk filled up, the kubelet deleted the unused pause
   image, and docker.io can't be reached from Iran, so no new pod started. Copied it back from production, capped the
   journal at 300 MB, re-synced (migrations 00057–00058 applied). k3s system images are now in `deploy/mirror-images.txt`.

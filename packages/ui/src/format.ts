@@ -26,7 +26,10 @@ export function dirOf(locale: Locale): "rtl" | "ltr" {
 /** A price as the API sends it: integer minor units per unit (Rial/kg for IRR, US cents/ton for USD). */
 export type ApiPrice = { amount: string; currency: "IRR" | "USD"; unit: "kg" | "ton" };
 
-/** How to show IRR prices (SCOPE §14): Toman per kg by default, with Rial and per-ton switches. */
+/**
+ * How to show IRR prices (SCOPE §14): Toman in the series' own unit by default (per kg; raw materials per ton, client
+ * 2026-11-20), with a Rial switch and a per-kg / per-ton switch (`perTon` true or false; left out = the series' unit).
+ */
 export type PriceDisplay = { rial?: boolean; perTon?: boolean };
 
 const TEHRAN = "Asia/Tehran";
@@ -36,14 +39,16 @@ function nf(locale: Locale, opts?: Intl.NumberFormatOptions): Intl.NumberFormat 
 }
 
 /**
- * Converts an API amount to the displayed number. IRR: Rial → Toman (÷10) unless `rial`, kg → ton (×1000) if `perTon`.
+ * Converts an API amount to the displayed number. IRR: Rial → Toman (÷10) unless `rial`, kg ⇄ ton by `perTon` (left out:
+ * the series' own unit).
  * USD: cents → dollars (per ton, the LME convention). Integer math only; the result is rounded to whole units.
  */
 export function displayAmount(p: Pick<ApiPrice, "amount" | "currency" | "unit">, d: PriceDisplay = {}): bigint {
   let v = BigInt(p.amount);
   if (p.currency === "USD") return (v + 50n) / 100n;
-  if (p.unit === "kg" && d.perTon) v *= 1000n;
-  if (p.unit === "ton" && !d.perTon) v = v / 1000n;
+  const perTon = d.perTon ?? p.unit === "ton";
+  if (p.unit === "kg" && perTon) v *= 1000n;
+  if (p.unit === "ton" && !perTon) v = v / 1000n;
   return d.rial ? v : (v + 5n) / 10n;
 }
 
@@ -56,7 +61,7 @@ export function formatPriceValue(p: ApiPrice, locale: Locale, d: PriceDisplay = 
 export function priceUnitLabel(p: Pick<ApiPrice, "currency" | "unit">, locale: Locale, d: PriceDisplay = {}): string {
   if (p.currency === "USD") return "$/ton";
   const money = d.rial ? (locale === "fa" ? "ریال" : "Rial") : locale === "fa" ? "تومان" : "Toman";
-  return `${money}/${d.perTon ? "ton" : "kg"}`;
+  return `${money}/${d.perTon ?? p.unit === "ton" ? "ton" : "kg"}`;
 }
 
 /** Signed change amount in the same display units, e.g. "+۲٬۱۰۰". */
