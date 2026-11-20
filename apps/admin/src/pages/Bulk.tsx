@@ -10,15 +10,15 @@ import { Badge, Button, Card, Notice, Page, Td, Th } from "./ui";
 
 type Result = Schemas["BulkPriceResult"];
 
+/** Rows per call to /v1/admin/prices/bulk (its maxItems). */
+const BULK_CHUNK = 500;
+
 /**
  * Bulk entry (SECURITY §6): parse in the browser → dry run shows the diff → the user confirms → store.
  * The daily file (client, 2026-11-15): «دانلود فایل قیمت‌های فعلی» gives every price row with its current price; the
  * new prices are written in «قیمت جدید», and an empty cell means unchanged today (saved again at the same price).
  * Amounts are in the series' input unit (Toman/kg or USD/ton), like the single-entry form.
  */
-/** Rows per call to /v1/admin/prices/bulk (its maxItems). */
-const BULK_CHUNK = 500;
-
 export function BulkPage() {
   const t = useTranslate();
   const locale = useGetLocale()() as Locale;
