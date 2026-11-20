@@ -57,16 +57,16 @@ datasets:
       - { slug: brass-mixed, metal: brass, category: scrap, name_fa: برنج درهم, name_en: Mixed brass, sort: 505 }
       - { slug: brass-chandelier, metal: brass, category: scrap, name_fa: لوستر برنجی, name_en: Brass chandeliers, sort: 506, active: false }
       - { slug: brass-fittings, metal: brass, category: scrap, name_fa: شیر آلات برنجی, name_en: Brass fittings, sort: 506 }
-      - { slug: cast-iron-ingot, metal: cast-iron, category: intermediate, name_fa: شمش چدن, name_en: Cast iron ingot, sort: 400 }
-      - { slug: cast-iron-sheet, metal: cast-iron, category: intermediate, name_fa: ورق چدن, name_en: Cast iron sheet, sort: 401 }
-      - { slug: cast-iron-gray, metal: cast-iron, category: intermediate, name_fa: چدن خاکستری, name_en: Gray cast iron, sort: 402 }
-      - { slug: cast-iron-ductile, metal: cast-iron, category: intermediate, name_fa: چدن داکتیل, name_en: Ductile cast iron, sort: 403 }
-      - { slug: cast-iron-small, metal: cast-iron, category: scrap, name_fa: چدن ریز بار, name_en: Small cast iron scrap, sort: 500 }
-      - { slug: cast-iron-large, metal: cast-iron, category: scrap, name_fa: چدن درشت بار, name_en: Large cast iron scrap, sort: 501 }
-      - { slug: cast-iron-ductile-small, metal: cast-iron, category: scrap, name_fa: داکتیل ریزبار, name_en: Small ductile scrap, sort: 502 }
-      - { slug: cast-iron-ductile-large, metal: cast-iron, category: scrap, name_fa: داکتیل درشت بار, name_en: Large ductile scrap, sort: 503 }
-      - { slug: cast-iron-turnings, metal: cast-iron, category: scrap, name_fa: سفاله چدن, name_en: Cast iron turnings, sort: 504 }
-      - { slug: cast-iron-ni-hard, metal: cast-iron, category: scrap, name_fa: نایهارد, name_en: Ni-Hard, sort: 505 }
+      - { slug: cast-iron-ingot, metal: cast-iron, category: intermediate, name_fa: شمش چدن, name_en: Cast iron ingot, sort: 400, active: false }
+      - { slug: cast-iron-sheet, metal: cast-iron, category: intermediate, name_fa: ورق چدن, name_en: Cast iron sheet, sort: 401, active: false }
+      - { slug: cast-iron-gray, metal: cast-iron, category: intermediate, name_fa: شمش چدن خاکستری, name_en: Gray cast iron, sort: 410 }
+      - { slug: cast-iron-ductile, metal: cast-iron, category: intermediate, name_fa: شمش چدن داکتیل, name_en: Ductile cast iron, sort: 411 }
+      - { slug: cast-iron-small, metal: cast-iron, category: scrap, name_fa: ضایعات چدن ریز بار, name_en: Small cast iron scrap, sort: 500 }
+      - { slug: cast-iron-large, metal: cast-iron, category: scrap, name_fa: ضایعات چدن درشت بار, name_en: Large cast iron scrap, sort: 501 }
+      - { slug: cast-iron-ductile-small, metal: cast-iron, category: scrap, name_fa: ضایعات داکتیل چدن ریز بار, name_en: Small ductile scrap, sort: 502 }
+      - { slug: cast-iron-ductile-large, metal: cast-iron, category: scrap, name_fa: ضایعات داکتیل چدن درشت بار, name_en: Large ductile scrap, sort: 503 }
+      - { slug: cast-iron-turnings, metal: cast-iron, category: scrap, name_fa: سوفاله چدن, name_en: Cast iron turnings, sort: 504 }
+      - { slug: cast-iron-ni-hard, metal: cast-iron, category: scrap, name_fa: ضایعات نایهارد, name_en: Ni-Hard, sort: 505 }
       - { slug: iron-pellet, metal: iron, category: raw, name_fa: گندله, name_en: Iron ore pellets, sort: 300 }
       - { slug: iron-dri, metal: iron, category: raw, name_fa: آهن اسفنجی, name_en: Sponge iron (DRI), sort: 301 }
       - { slug: iron-rebar, metal: iron, category: intermediate, name_fa: میلگرد, name_en: Rebar, sort: 400 }
@@ -145,8 +145,8 @@ datasets:
       - { slug: brass-mixed-free, product: brass-mixed, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
       - { slug: brass-chandelier-free, product: brass-chandelier, market: free, currency: IRR, unit: kg, is_base: false, sort: 506, active: false }
       - { slug: brass-fittings-free, product: brass-fittings, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
-      - { slug: cast-iron-ingot-free, product: cast-iron-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
-      - { slug: cast-iron-sheet-free, product: cast-iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
+      - { slug: cast-iron-ingot-free, product: cast-iron-ingot, market: free, currency: IRR, unit: kg, is_base: false, sort: 400, active: false }
+      - { slug: cast-iron-sheet-free, product: cast-iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
       - { slug: cast-iron-gray-free, product: cast-iron-gray, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
       - { slug: cast-iron-ductile-free, product: cast-iron-ductile, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
       - { slug: cast-iron-small-free, product: cast-iron-small, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }

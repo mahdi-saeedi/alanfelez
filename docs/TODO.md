@@ -43,7 +43,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
-      lists of all 7 metals (aluminium, copper, zinc, lead and brass done); (2) **when all 7 are in, remind the client to send the price-history file**
+      lists of all 7 metals (aluminium, copper, zinc, lead, brass and cast iron done); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
       history (a data-changing step: the owner's OK first); (4) then the daily prices.
       Each metal done the aluminium/copper way (IME rows per producer in groups, `is_base` true) joins the price ticker
@@ -74,6 +74,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-20 The client's cast iron list (Excel): a group «شمش چدن» (خاکستری and داکتیل renamed from the existing rows,
+  خام and کوره بلند new) and the IME «شمش چدن (ذوب آهن اصفهان)», the one symbol in a year of trades (00055). 00056 (owner
+  OK before the main site): scrap named as in the file; the generic «شمش چدن» and «ورق چدن» hidden.
 - 2026-11-20 Keycloak 26.8.2 (image 26.8.2-3): its OpenJDK 21.0.13.1 fixes CVE-2026-114938 ("Java4Shell", CRITICAL, remote
   code execution), which made Trivy stop every release (owner OK).
 - 2026-11-20 Chart page: the product field has a search over all the metal's products (client: too many to scroll).
