@@ -8,7 +8,10 @@
 # *_STAGE=…-prebuilt use jars built on the host (task build:local) instead of building in Docker. Useful on slow
 # networks. CI always uses the default, reproducible *-build stages.
 
-ARG KEYCLOAK_VERSION=26.8.1
+ARG KEYCLOAK_VERSION=26.8.2
+# The image rebuild with the patched OpenJDK 21.0.13.1 (CVE-2026-114938, "Java4Shell", CRITICAL; Keycloak's advisory of
+# 2026-11-19: 26.8.2-1 and -2 still carry the vulnerable JDK). The Maven artifacts keep the plain version above.
+ARG KEYCLOAK_IMAGE=26.8.2-3
 ARG EXTENSIONS_STAGE=extensions-build
 ARG THEME_STAGE=theme-build
 
@@ -57,13 +60,13 @@ COPY apps/keycloak-theme/dist_keycloak/alanfelez-keycloak-theme.jar /out/
 FROM ${EXTENSIONS_STAGE} AS extensions
 FROM ${THEME_STAGE} AS theme
 
-FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE} AS builder
 ENV KC_DB=postgres KC_HEALTH_ENABLED=true KC_METRICS_ENABLED=true
 COPY --from=extensions /out/ /opt/keycloak/providers/
 COPY --from=theme /out/ /opt/keycloak/providers/
 RUN /opt/keycloak/bin/kc.sh build
 
-FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE}
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 # Production-safe realm (no users). Imported with --import-realm only if the realm doesn't exist yet.
 COPY services/keycloak/realm/alanfelez-realm.json /opt/keycloak/data/import/alanfelez-realm.json
