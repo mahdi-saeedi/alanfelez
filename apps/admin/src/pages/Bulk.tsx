@@ -10,6 +10,9 @@ import { Badge, Button, Card, Notice, Page, Td, Th } from "./ui";
 
 type Result = Schemas["BulkPriceResult"];
 
+/** Rows per call to /v1/admin/prices/bulk (its maxItems). */
+const BULK_CHUNK = 500;
+
 /**
  * Bulk entry (SECURITY §6): parse in the browser → dry run shows the diff → the user confirms → store.
  * The daily file (client, 2026-11-15): «دانلود فایل قیمت‌های فعلی» gives every price row with its current price; the
@@ -63,8 +66,16 @@ export function BulkPage() {
       setUnchanged(new Set(planned.filter((p) => p.unchanged).map((p) => p.series)));
       if (planned.length === 0) return { items: [] as Result[], stored: 0 };
       const items = planned.map((p) => ({ series: p.series, amount: p.amount, force, ...(p.observedAt ? { observedAt: p.observedAt } : {}) }));
-      const res = unwrap(await api.POST("/v1/admin/prices/bulk", { body: { items, dryRun } }));
-      return { items: res.items, stored: res.stored };
+      // The API takes at most BULK_CHUNK rows per call; a bigger file (a metal with 1,200 products, or every metal's daily
+      // file) goes in parts, one after the other, with the row numbers kept (client, 2026-11-20).
+      const all: Result[] = [];
+      let stored = 0;
+      for (let at = 0; at < items.length; at += BULK_CHUNK) {
+        const res = unwrap(await api.POST("/v1/admin/prices/bulk", { body: { items: items.slice(at, at + BULK_CHUNK), dryRun } }));
+        all.push(...res.items.map((r) => ({ ...r, index: r.index >= 0 ? r.index + at : r.index })));
+        stored += res.stored;
+      }
+      return { items: all, stored };
     },
     onSuccess: (res, dryRun) => {
       setResults(res.items);
