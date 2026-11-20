@@ -4,7 +4,7 @@ The one list of open work. **Keep it current:** whoever finishes, starts or disc
 same change (Claude: the `update-todo` skill). Newest decisions on top of each group; done items move to *Done* with
 the date, and *Done* keeps only the last 30 days (git history has the rest).
 
-Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading demo data)
+Last updated: 2026-11-20 (k3s system images in the Iran mirror after staging lost its pause image)
 
 ## Now (in progress)
 - [ ] Postgres AppArmor fix (`fix/postgres-apparmor`): Ubuntu 26.04 AppArmor blocked signals inside the Postgres pod, so the
@@ -17,6 +17,8 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Client to test the idle sign-out (3 hours untouched → «ورود دوباره» asks for the password or code).
 
 ## Next (no one else needed)
+- [ ] Staging disk is 23 GB and fills up with old images: grow it in the Arvan panel (owner) or prune images on a
+      schedule. Also add the journald 300 MB cap to `deploy/server/bootstrap.sh` (set by hand on staging 2026-11-20).
 - [ ] Monitoring, part 2: `/metrics` in the Go API (per route; prices freshness, SMS, payments, sign-ups) with alerts
       (SourceStale, PaymentFailures, SmsBudget), user events (sign-up, checkout, payment, feature use) and a business
       dashboard; then GlitchTip, an outside uptime check, traces.
@@ -74,6 +76,9 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-20 Staging deploys stuck (sync failed 5 times): its disk filled up, the kubelet deleted the unused pause
+  image, and docker.io can't be reached from Iran, so no new pod started. Copied it back from production, capped the
+  journal at 300 MB, re-synced (migrations 00057–00058 applied). k3s system images are now in `deploy/mirror-images.txt`.
 - 2026-11-20 The client's iron list (Excel), every producer its own row (client): 00057 adds 52 raw rows (گندله, سنگ آهن و
   کنسانتره, آهن اسفنجی), 857 intermediate rows in eleven groups (rows the file repeats word for word once: 22) and 289 IME
   products, one per symbol, in seven groups. 00058 (owner OK before the main site): scrap named as in the file; four
