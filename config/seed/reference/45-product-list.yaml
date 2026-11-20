@@ -67,31 +67,31 @@ datasets:
       - { slug: cast-iron-ductile-large, metal: cast-iron, category: scrap, name_fa: ضایعات داکتیل چدن درشت بار, name_en: Large ductile scrap, sort: 503 }
       - { slug: cast-iron-turnings, metal: cast-iron, category: scrap, name_fa: سوفاله چدن, name_en: Cast iron turnings, sort: 504 }
       - { slug: cast-iron-ni-hard, metal: cast-iron, category: scrap, name_fa: ضایعات نایهارد, name_en: Ni-Hard, sort: 505 }
-      - { slug: iron-pellet, metal: iron, category: raw, name_fa: گندله, name_en: Iron ore pellets, sort: 300 }
-      - { slug: iron-dri, metal: iron, category: raw, name_fa: آهن اسفنجی, name_en: Sponge iron (DRI), sort: 301 }
-      - { slug: iron-rebar, metal: iron, category: intermediate, name_fa: میلگرد, name_en: Rebar, sort: 400 }
-      - { slug: iron-sheet, metal: iron, category: intermediate, name_fa: ورق آهن, name_en: Steel sheet, sort: 401 }
-      - { slug: iron-beam, metal: iron, category: intermediate, name_fa: تیرآهن, name_en: Steel beam, sort: 402 }
-      - { slug: iron-pipe, metal: iron, category: intermediate, name_fa: لوله آهن, name_en: Steel pipe, sort: 403 }
-      - { slug: iron-angle, metal: iron, category: intermediate, name_fa: نبشی, name_en: Angle, sort: 404 }
-      - { slug: iron-channel, metal: iron, category: intermediate, name_fa: ناودانی, name_en: Channel, sort: 405 }
-      - { slug: iron-wire, metal: iron, category: intermediate, name_fa: مفتول آهن, name_en: Steel wire rod, sort: 406 }
+      - { slug: iron-pellet, metal: iron, category: raw, name_fa: گندله, name_en: Iron ore pellets, sort: 300, active: false }
+      - { slug: iron-dri, metal: iron, category: raw, name_fa: آهن اسفنجی, name_en: Sponge iron (DRI), sort: 301, active: false }
+      - { slug: iron-rebar, metal: iron, category: intermediate, name_fa: میلگرد, name_en: Rebar, sort: 400 } # hidden on running sites by 00058; the tests' sample row
+      - { slug: iron-sheet, metal: iron, category: intermediate, name_fa: ورق آهن, name_en: Steel sheet, sort: 401, active: false }
+      - { slug: iron-beam, metal: iron, category: intermediate, name_fa: تیرآهن, name_en: Steel beam, sort: 402, active: false }
+      - { slug: iron-pipe, metal: iron, category: intermediate, name_fa: لوله آهن, name_en: Steel pipe, sort: 403, active: false }
+      - { slug: iron-angle, metal: iron, category: intermediate, name_fa: نبشی, name_en: Angle, sort: 404, active: false }
+      - { slug: iron-channel, metal: iron, category: intermediate, name_fa: ناودانی, name_en: Channel, sort: 405, active: false }
+      - { slug: iron-wire, metal: iron, category: intermediate, name_fa: مفتول آهن, name_en: Steel wire rod, sort: 406, active: false }
       - { slug: iron-special, metal: iron, category: scrap, name_fa: آهن ویژه, name_en: Special scrap, sort: 500 }
       - { slug: iron-super-special, metal: iron, category: scrap, name_fa: آهن سوپر ویژه, name_en: Super special scrap, sort: 501 }
-      - { slug: iron-grade-1, metal: iron, category: scrap, name_fa: آهن درجه ۱, name_en: Grade 1 scrap, sort: 502 }
-      - { slug: iron-grade-2, metal: iron, category: scrap, name_fa: آهن درجه ۲, name_en: Grade 2 scrap, sort: 503 }
-      - { slug: iron-galvanized, metal: iron, category: scrap, name_fa: گالوانیزه نو, name_en: New galvanized, sort: 504 }
+      - { slug: iron-grade-1, metal: iron, category: scrap, name_fa: آهن درجه 1, name_en: Grade 1 scrap, sort: 502 }
+      - { slug: iron-grade-2, metal: iron, category: scrap, name_fa: آهن درجه 2, name_en: Grade 2 scrap, sort: 503 }
+      - { slug: iron-galvanized, metal: iron, category: scrap, name_fa: گالوانیزه, name_en: New galvanized, sort: 504 }
       - { slug: iron-alloy, metal: iron, category: scrap, name_fa: آهن آلیاژی, name_en: Alloy scrap, sort: 505 }
-      - { slug: iron-pressed-body, metal: iron, category: scrap, name_fa: پرسی بدنه, name_en: Pressed body scrap, sort: 506 }
+      - { slug: iron-pressed-body, metal: iron, category: scrap, name_fa: پرسی بدنه, name_en: Pressed body scrap, sort: 506, active: false }
       - { slug: iron-loose-turnings, metal: iron, category: scrap, name_fa: سفاله پوشالی, name_en: Loose turnings, sort: 507 }
-      - { slug: iron-mechanical, metal: iron, category: scrap, name_fa: مکانیکی و ته کارگاهی, name_en: Mechanical and shop scrap, sort: 508 }
-      - { slug: iron-oily-sheet, metal: iron, category: scrap, name_fa: فله ورقی روغن, name_en: Oily loose sheet, sort: 509 }
-      - { slug: iron-pressed-car, metal: iron, category: scrap, name_fa: پرسی خودرو, name_en: Pressed car scrap, sort: 510 }
-      - { slug: iron-light, metal: iron, category: scrap, name_fa: آهن سبک, name_en: Light scrap, sort: 511 }
-      - { slug: iron-tin-new, metal: iron, category: scrap, name_fa: فله حلب نو, name_en: New loose tinplate, sort: 512 }
-      - { slug: iron-tin-old, metal: iron, category: scrap, name_fa: فله حلب کهنه, name_en: Old loose tinplate, sort: 513 }
-      - { slug: iron-doors, metal: iron, category: scrap, name_fa: درب و پنجره آهنی, name_en: Iron doors and windows, sort: 514 }
-      - { slug: iron-chip-turnings, metal: iron, category: scrap, name_fa: سفاله ناخنی, name_en: Chip turnings, sort: 515 }
+      - { slug: iron-mechanical, metal: iron, category: scrap, name_fa: مکانیکی و ته کارگاهی, name_en: Mechanical and shop scrap, sort: 508, active: false }
+      - { slug: iron-oily-sheet, metal: iron, category: scrap, name_fa: فله ورقی روغن, name_en: Oily loose sheet, sort: 509, active: false }
+      - { slug: iron-pressed-car, metal: iron, category: scrap, name_fa: پرسی خودرو, name_en: Pressed car scrap, sort: 510, active: false }
+      - { slug: iron-light, metal: iron, category: scrap, name_fa: آهن سبک, name_en: Light scrap, sort: 506 }
+      - { slug: iron-tin-new, metal: iron, category: scrap, name_fa: فله حلب نو, name_en: New loose tinplate, sort: 508 }
+      - { slug: iron-tin-old, metal: iron, category: scrap, name_fa: فله حلب کهنه, name_en: Old loose tinplate, sort: 509 }
+      - { slug: iron-doors, metal: iron, category: scrap, name_fa: درب و پنجره آهنی, name_en: Iron doors and windows, sort: 510 }
+      - { slug: iron-chip-turnings, metal: iron, category: scrap, name_fa: سوفاله ناخنی, name_en: Chip turnings, sort: 511 }
 
   - name: price_series
     rows:
@@ -155,26 +155,26 @@ datasets:
       - { slug: cast-iron-ductile-large-free, product: cast-iron-ductile-large, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: cast-iron-turnings-free, product: cast-iron-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: cast-iron-ni-hard-free, product: cast-iron-ni-hard, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
-      - { slug: iron-pellet-free, product: iron-pellet, market: free, currency: IRR, unit: kg, is_base: false, sort: 300 }
-      - { slug: iron-dri-free, product: iron-dri, market: free, currency: IRR, unit: kg, is_base: false, sort: 301 }
+      - { slug: iron-pellet-free, product: iron-pellet, market: free, currency: IRR, unit: kg, is_base: false, sort: 300, active: false }
+      - { slug: iron-dri-free, product: iron-dri, market: free, currency: IRR, unit: kg, is_base: false, sort: 301, active: false }
       - { slug: iron-rebar-free, product: iron-rebar, market: free, currency: IRR, unit: kg, is_base: false, sort: 400 }
-      - { slug: iron-sheet-free, product: iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401 }
-      - { slug: iron-beam-free, product: iron-beam, market: free, currency: IRR, unit: kg, is_base: false, sort: 402 }
-      - { slug: iron-pipe-free, product: iron-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 403 }
-      - { slug: iron-angle-free, product: iron-angle, market: free, currency: IRR, unit: kg, is_base: false, sort: 404 }
-      - { slug: iron-channel-free, product: iron-channel, market: free, currency: IRR, unit: kg, is_base: false, sort: 405 }
-      - { slug: iron-wire-free, product: iron-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 406 }
+      - { slug: iron-sheet-free, product: iron-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 401, active: false }
+      - { slug: iron-beam-free, product: iron-beam, market: free, currency: IRR, unit: kg, is_base: false, sort: 402, active: false }
+      - { slug: iron-pipe-free, product: iron-pipe, market: free, currency: IRR, unit: kg, is_base: false, sort: 403, active: false }
+      - { slug: iron-angle-free, product: iron-angle, market: free, currency: IRR, unit: kg, is_base: false, sort: 404, active: false }
+      - { slug: iron-channel-free, product: iron-channel, market: free, currency: IRR, unit: kg, is_base: false, sort: 405, active: false }
+      - { slug: iron-wire-free, product: iron-wire, market: free, currency: IRR, unit: kg, is_base: false, sort: 406, active: false }
       - { slug: iron-special-free, product: iron-special, market: free, currency: IRR, unit: kg, is_base: false, sort: 500 }
       - { slug: iron-super-special-free, product: iron-super-special, market: free, currency: IRR, unit: kg, is_base: false, sort: 501 }
       - { slug: iron-grade-1-free, product: iron-grade-1, market: free, currency: IRR, unit: kg, is_base: false, sort: 502 }
       - { slug: iron-grade-2-free, product: iron-grade-2, market: free, currency: IRR, unit: kg, is_base: false, sort: 503 }
       - { slug: iron-galvanized-free, product: iron-galvanized, market: free, currency: IRR, unit: kg, is_base: false, sort: 504 }
       - { slug: iron-alloy-free, product: iron-alloy, market: free, currency: IRR, unit: kg, is_base: false, sort: 505 }
-      - { slug: iron-pressed-body-free, product: iron-pressed-body, market: free, currency: IRR, unit: kg, is_base: false, sort: 506 }
+      - { slug: iron-pressed-body-free, product: iron-pressed-body, market: free, currency: IRR, unit: kg, is_base: false, sort: 506, active: false }
       - { slug: iron-loose-turnings-free, product: iron-loose-turnings, market: free, currency: IRR, unit: kg, is_base: false, sort: 507 }
-      - { slug: iron-mechanical-free, product: iron-mechanical, market: free, currency: IRR, unit: kg, is_base: false, sort: 508 }
-      - { slug: iron-oily-sheet-free, product: iron-oily-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 509 }
-      - { slug: iron-pressed-car-free, product: iron-pressed-car, market: free, currency: IRR, unit: kg, is_base: false, sort: 510 }
+      - { slug: iron-mechanical-free, product: iron-mechanical, market: free, currency: IRR, unit: kg, is_base: false, sort: 508, active: false }
+      - { slug: iron-oily-sheet-free, product: iron-oily-sheet, market: free, currency: IRR, unit: kg, is_base: false, sort: 509, active: false }
+      - { slug: iron-pressed-car-free, product: iron-pressed-car, market: free, currency: IRR, unit: kg, is_base: false, sort: 510, active: false }
       - { slug: iron-light-free, product: iron-light, market: free, currency: IRR, unit: kg, is_base: false, sort: 511 }
       - { slug: iron-tin-new-free, product: iron-tin-new, market: free, currency: IRR, unit: kg, is_base: false, sort: 512 }
       - { slug: iron-tin-old-free, product: iron-tin-old, market: free, currency: IRR, unit: kg, is_base: false, sort: 513 }

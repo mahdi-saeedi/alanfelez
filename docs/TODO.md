@@ -43,7 +43,7 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 
 ## Waiting on the client (docs/product/OPEN_QUESTIONS.md)
 - [ ] **Products, then history, then prices** (client, 2026-11-18), in this order: (1) the client sends the product
-      lists of all 7 metals (aluminium, copper, zinc, lead, brass and cast iron done); (2) **when all 7 are in, remind the client to send the price-history file**
+      lists of all 7 metals (all done 2026-11-20); (2) **when all 7 are in, remind the client to send the price-history file**
       (don't use the IME rows of the aluminium Excel as history); (3) then clear the test/demo prices and import that
       history (a data-changing step: the owner's OK first); (4) then the daily prices.
       Each metal done the aluminium/copper way (IME rows per producer in groups, `is_base` true) joins the price ticker
@@ -74,6 +74,11 @@ Last updated: 2026-11-08 (SEO titles and descriptions; production stops loading 
 - [ ] Google Search Console + Bing: verify the domain (DNS TXT), submit the sitemap.
 
 ## Done (last 30 days)
+- 2026-11-20 The client's iron list (Excel), every producer its own row (client): 00057 adds 52 raw rows (گندله, سنگ آهن و
+  کنسانتره, آهن اسفنجی), 857 intermediate rows in eleven groups (rows the file repeats word for word once: 22) and 289 IME
+  products, one per symbol, in seven groups. 00058 (owner OK before the main site): scrap named as in the file; four
+  scrap rows not in the file and the nine generic rows hidden. The admin's Excel upload now sends files over 500 rows in
+  parts (the API takes 500 per call; iron alone is 1,211 and every metal's daily file is more).
 - 2026-11-20 The client's cast iron list (Excel): a group «شمش چدن» (خاکستری and داکتیل renamed from the existing rows,
   خام and کوره بلند new) and the IME «شمش چدن (ذوب آهن اصفهان)», the one symbol in a year of trades (00055). 00056 (owner
   OK before the main site): scrap named as in the file; the generic «شمش چدن» and «ورق چدن» hidden.
