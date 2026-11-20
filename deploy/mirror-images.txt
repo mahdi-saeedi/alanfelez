@@ -7,6 +7,18 @@
 # Find them with: helm template x <chart> --repo <url> --version <v> | grep image:
 # `<source> as <name>` copies <source> but stores it under <name> (when the original registry is unreliable).
 
+# k3s v1.36.5+k3s1 system images (`crictl images | grep rancher` on a node). The kubelet deletes unused images when
+# the disk fills up; pause is needed by every new pod, so on 2026-11-20 staging could start no pod until it was copied
+# back by hand. With these here, a deleted image comes back from the registry. Update them with the k3s version.
+docker.io/rancher/mirrored-pause:3.10.2
+docker.io/rancher/mirrored-coredns-coredns:1.14.7
+docker.io/rancher/local-path-provisioner:v0.0.37
+docker.io/rancher/mirrored-library-busybox:1.37.0
+docker.io/rancher/mirrored-metrics-server:v0.9.0
+docker.io/rancher/mirrored-library-traefik:3.7.13
+docker.io/rancher/klipper-helm:v0.13.3-build20260727
+docker.io/rancher/klipper-lb:v0.4.17
+
 # Argo CD 10.9.2 (deploy/argocd/install/values-cluster.yaml)
 quay.io/argoproj/argocd:v3.5.3
 # AWS ECR Public rate-limits anonymous pulls from CI: copy the identical official image from Docker Hub instead.
